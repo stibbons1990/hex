@@ -10,7 +10,7 @@ was on sale since last weekend, and today I *fell for it*.
 Before purchasing the game, I checked all recent
 [Proton reports for Dragon Age: Origins - Ultimate Edition](https://www.protondb.com/app/47810),
 because *one does not simply* run Windows games on Linux.
-At least, not always without a little tinkering.
+At least, not *always* without a little tinkering.
 
 Among all the recent recommendations, this one worked for me:
 
@@ -19,7 +19,7 @@ __GLX_VENDOR_LIBRARY_NAME=nvidia PROTON_FORCE_LARGE_ADDRESS_AWARE=1 RADV_TEX_ANI
 ```
 
 Adding `__NV_PRIME_RENDER_OFFLOAD=1` caused the game to get
-stack in the splash screen, so I had to remove that.
+stuck in the splash screen, so I had to remove that.
 
 Also, as reported by
 [thehoagie](https://www.protondb.com/users/597403899),
