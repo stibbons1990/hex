@@ -58,3 +58,16 @@ to
 ```xml
 <xmlbutton name="play" action="execute" file="${BINARIES_DIR}\DAOrigins.exe" autoquit="true">
 ```
+
+With that, the game finally launches. There is a pop-up dialog
+about DLCs needing to be activated, which is one of those
+things that EA has broken by not maintaining things working.
+
+Years ago there was an option in Steam to obtain the "CD keys",
+but it appears that option is no longer feasible and there is
+no clear workaround that will work in 2023, except getting the
+games from GOG:
+
+*  [What does the "Dragon Age: Origins - Ultimate Edition DLC CD Key" do?](https://steamcommunity.com/app/47810/discussions/0/558752450420490163)
+*  [How to get all the DLC](https://steamcommunity.com/app/47810/discussions/0/1698300679774459377/)
+*  [Downloadable content (Origins)](https://dragonage.fandom.com/wiki/Downloadable_content_(Origins))
