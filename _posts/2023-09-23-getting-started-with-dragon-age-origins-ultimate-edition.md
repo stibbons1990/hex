@@ -14,12 +14,28 @@ At least, not *always* without a little tinkering.
 
 Among all the recent recommendations, this one worked for me:
 
-```
+```bash
 __GLX_VENDOR_LIBRARY_NAME=nvidia PROTON_FORCE_LARGE_ADDRESS_AWARE=1 RADV_TEX_ANISO=16 PROTON_USE_D9VK=1 gamemoderun %command%
 ```
 
 Adding `__NV_PRIME_RENDER_OFFLOAD=1` caused the game to get
 stuck in the splash screen, so I had to remove that.
+
+Although I'm not sure it helped, I did try installing
+NVidia's Physx library:
+
+```bash
+$ winetricks physx
+```
+
+The installation seems to have been made only for the default
+`WINEPREFIX` in `$HOME` while the game uses the one in
+`$HOME/.local/share/Steam/steamapps/compatdata/47810/pfx` so
+the correct command would be
+
+```bash
+$ WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/47810/pfx winetricks physx```
+```
 
 Also, as reported by
 [thehoagie](https://www.protondb.com/users/597403899),
@@ -28,7 +44,7 @@ Also, as reported by
 > doesn't work. Change the line in this xml file:
 
 ```bash
-vi "${HOME}/.local/share/Steam/steamapps/common/Dragon Age Ultimate Edition/data/DAOriginsLauncher.xml"
+$ vi "${HOME}/.local/share/Steam/steamapps/common/Dragon Age Ultimate Edition/data/DAOriginsLauncher.xml"
 ```
 
 and change line **247** from
