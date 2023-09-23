@@ -29,12 +29,34 @@ twitter_username: N/A
 github_username:  stibbons1990
 
 # Build settings
-theme: minima
+# theme: minima
+remote_theme: "mmistakes/minimal-mistakes@4.24.0"
+minimal_mistakes_skin: "neon"
+
 plugins:
   - jekyll-feed
+  - jekyll-remote-theme
+  - jekyll-include-cache
 
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      read_time: true
+      related: true
+  # _pages
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
 encoding: "utf-8"
+include: ["_pages"] 
 markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+permalink: /:year/:month/:day/:title:output_ext
 
 # Exclude from processing.
 # The following items will not be processed, by default.
