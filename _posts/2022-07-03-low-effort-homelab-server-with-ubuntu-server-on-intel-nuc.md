@@ -45,7 +45,7 @@ I added a
 [Crucial MX500 4TB 3D NAND SATA SSD](https://www.crucial.com/ssd/mx500/ct4000mx500ssd1) to serve as an backup to some of my
 precious files in that cursed RAID.
 
-Turns out, [Crucial MX500 SSD are problematic]().
+Turns out, [Crucial MX500 SSD are problematic]({{ site.baseurl }}/2022/10/12/crucial-mx500-ssd-found-problematic.html).
 
 ### Update #2 (2023-09-23)
 
@@ -567,4 +567,5 @@ still quite small package.
 
 Watch this space for links to future posts!
 
+*  **2022-10-12** [Crucial MX500 SSD found problematic]({{ site.baseurl }}/2022/10/12/crucial-mx500-ssd-found-problematic.html)
 *  **2023-09-16** [Migrating a Plex Media Server to Kubernetes]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html)
