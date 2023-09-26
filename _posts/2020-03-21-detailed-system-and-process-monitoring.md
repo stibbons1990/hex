@@ -223,9 +223,9 @@ Data includes:
 
 #### Minimal update to post to InfluxDB
 
-With InfluxDB running, the scripts above can now feed
-data to it *in addition* to producing TSV files, e.g.
-[`mt-top-temp`](#mt-top-temp) can be updated as follows:
+The scripts above can now feed data to it *in addition* to
+producing TSV files, e.g. [`mt-top-temp`](#mt-top-temp)
+can be updated as follows:
 
 ```bash
 #!/bin/bash
@@ -256,3 +256,51 @@ done
 
 ### Grafana
 
+The next step is *visualizing* these time series in fancy
+charts, and that's where [Grafana](https://grafana.com/)
+comes in.
+
+[Install Grafana OSS](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/),
+[start the server with `systemd`](https://grafana.com/docs/grafana/latest/setup-grafana/start-restart-grafana/#start-the-grafana-server-with-systemd)
+and reset the **Admin** password:
+
+```
+# echo "deb https://packages.grafana.com/oss/deb stable main" \
+  | tee /etc/apt/sources.list.d/grafana.list
+# curl https://packages.grafana.com/gpg.key | sudo apt-key add -
+# apt update
+# apt install grafana
+# systemctl daemon-reload
+# systemctl start grafana-server
+# grafana-cli admin reset-admin-password \
+  PLEASE_CHOOSE_A_SENSIBLE_PASSWORD
+INFO[03-20|15:02:11] Connecting to DB                         logger=sqlstore dbtype=sqlite3
+INFO[03-20|15:02:11] Starting DB migrations                   logger=migrator
+Admin password changed successfully ✔
+```
+
+At this point Grafana is available on http://localhost:3000/
+for the Admin user. 
+
+[Add your InfluxDB data source to Grafana](https://grafana.com/docs/grafana/latest/getting-started/get-started-grafana-influxdb/#add-your-influxdb-data-source-to-grafana),
+create a new Dashboard and **Add > Visualization** for each
+measurement (`cpu`, `temp`, `gpu`, etc.).
+
+Tweak `/etc/grafana/grafana.ini` as follows to enable
+[anonymous authentication](https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/#anonymous-authentication)
+and allow anonymous users to view dashboards in the default org:
+
+```conf
+#################################### Anonymous Auth ######################
+[auth.anonymous]
+# enable anonymous access
+enabled = true
+
+# specify organization name that should be used for unauthenticated users
+org_name = Main Org.
+
+# specify role for unauthenticated users
+org_role = Viewer
+
+# systemctl restart grafana-server.service
+```
