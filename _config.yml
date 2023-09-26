@@ -38,6 +38,11 @@ plugins:
   - jekyll-remote-theme
   - jekyll-include-cache
 
+analytics:
+  provider: "google-gtag"
+  google:
+    tracking_id: "G-Y167L3ZVGY"
+    anonymize_ip: false # default
 defaults:
   # _posts
   - scope:
@@ -77,3 +82,4 @@ permalink: /:year/:month/:day/:title:output_ext
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+  
