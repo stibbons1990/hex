@@ -320,3 +320,11 @@ $max-width: 1900px;
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
 ```
+
+#### Install Google Analytics
+
+It *is* as easy as following Jekyll's
+[Analytics](https://mmistakes.github.io/minimal-mistakes/docs/configuration/#analytics)
+instructions to add the G-tag to `_config.yml`
+and, assuming Google Analytics itself has been
+already set up, it should *just work*.
