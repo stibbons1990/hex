@@ -147,7 +147,7 @@ good-looking weather monitoring and mentioned two things I
 had never seen before:
 [influxdb](https://www.influxdata.com/) and
 [grafana](https://grafana.com/).
-They also mentioned they were running thir monitoring on a
+They also mentioned they were running their monitoring on a
 Raspberry Pi computer.
 
 *Now I know* what those are, I have a
@@ -159,7 +159,7 @@ much cheaper than even the cheapest WiFi-enabled printers.
 ### InfluxDB
 
 Installing InfluxDB couldn't be easier, if you don't mind
-running a fairy old version:
+running a fairly old version:
 
 ```
 # apt install influxdb influxdb-client -y
@@ -167,19 +167,92 @@ running a fairy old version:
 ii  influxdb       1.6.4-1+deb10u1 armhf        Scalable datastore for metrics, events, and real-time analytics
 ```
 
-For a more recent version, follow
-[docs.influxdata.com/influxdb/v1/introduction/install](https://docs.influxdata.com/influxdb/v1/introduction/install/)
-to install 1.7, or
-[docs.influxdata.com/influxdb/v2/install](https://docs.influxdata.com/influxdb/v2/install/?t=Linux)
-to install 2.7.
+For a more recent version, one can install
+[InfluxDB OSS 1.7](https://docs.influxdata.com/influxdb/v1/introduction/install/) or
+[InfluxDB 2.7](https://docs.influxdata.com/influxdb/v1/introduction/install/).
 
-#### Data Schema
+Once installed, one or more databases need to be crated to
+start collecting data.
+[Get started with InfluxDB OSS](https://docs.influxdata.com/influxdb/v1/introduction/get-started/)
+to create a database (e.g. `monitoring`) and set a
+retention policy:
 
-Run a loop to post values to influxdb using the InfluxDB API:
+```
+# influx
+Connected to http://localhost:8086 version 1.6.7~rc0
+InfluxDB shell version: 1.6.7~rc0
+> CREATE DATABASE monitoring
+> CREATE RETENTION POLICY "30_days" ON "monitoring" DURATION 30d REPLICATION 1
+> ALTER RETENTION POLICY "30_days" on "monitoring" DURATION 30d REPLICATION 1 DEFAULT
+```
 
-curl -i -XPOST 'http://localhost:8086/write?db=mydb' --data-binary "cpu,host=$host value=$cpu"
-curl -i -XPOST 'http://localhost:8086/write?db=mydb' --data-binary "temperature,host=$host value=$temp"
+As soon as the database is created, data can be inserted.
+There is no need to define columns, instead just
+[Write data with the InfluxDB API](https://docs.influxdata.com/influxdb/v1/guides/write_data/)
+to feed simple data such as CPU load and temperature:
 
+```sh
+curl -i -XPOST \
+  --data-binary "cpu,host=$host value=$cpu" \
+  'http://localhost:8086/write?db=monitoring'
+curl -i -XPOST \
+  --data-binary "temperature,host=$host value=$temp" \
+  'http://localhost:8086/write?db=monitoring'
+```
+
+The body of the POST or
+[InfluxDB line protocol](https://docs.influxdata.com/influxdb/v1/concepts/glossary/#influxdb-line-protocol)
+contains the time series data that you want to store.
+Data includes:
+
+*  **Measurement (required)**: the thing to measure, e.g.
+   `cpu` in this case to measure global CPU load.
+*  **Tags**: Strictly speaking, tags are optional but most
+   series include tags to differentiate data sources and
+   to make querying both easy and efficient. Both tag keys
+   and tag values are strings.
+*  **Fields (required)**: Field keys are required and are
+   always strings, and, 
+   [by default](https://docs.influxdata.com/influxdb/v1/write_protocols/line_protocol_reference/#data-types),
+   field values are floats.
+*  **Timestamp**: Supplied at the end of the line in Unix
+   time in nanoseconds since January 1, 1970 UTC - is
+   optional. If you do not specify a timestamp, InfluxDB
+  uses the server’s local nanosecond timestamp in Unix
+  epoch. Time in InfluxDB is in UTC format by default.
+
+#### Minimal update to post to InfluxDB
+
+With InfluxDB running, the scripts above can now feed
+data to it *in addition* to producing TSV files, e.g.
+[`mt-top-temp`](#mt-top-temp) can be updated as follows:
+
+```bash
+#!/bin/bash
+#
+# CPU usage % and temperature, sampled every second.
+#
+# Usage: mt-top-temp ... Ctrl+C
+
+echo -e "time\tcpu\ttemp"
+while true
+do
+  time=$(date +"%H:%M:%S")
+  cpu=$(top -b -n 1 |awk '{print $9}' | egrep '[0-9]\.[0-9]|^[0-9][0-9]$|^[0-9][0-9][0-9]$|^[0-9][0-9][0-9][0-9]$' | tr '\n' '+' | sed 's/+$/\n/' | bc -ql)
+  temp=$(sensors -A | grep temp1 | awk '{print $2}' | egrep -o '[0-9]+\.[0-9]')
+  host=$(hostname)
+  curl -i -XPOST \
+    --data-binary "cpu,host=$host value=$cpu" \
+    'http://localhost:8086/write?db=monitoring' \
+    2>&1 > /dev/null
+  curl -i -XPOST \
+    --data-binary "temperature,host=$host value=$temp" \
+    'http://localhost:8086/write?db=monitoring'
+    2>&1 > /dev/null
+  echo -e "$time\t$cpu\t$temp"
+  sleep 1
+done
+```
 
 ### Grafana
 
