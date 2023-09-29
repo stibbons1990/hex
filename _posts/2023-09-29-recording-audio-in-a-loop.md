@@ -151,7 +151,7 @@ and very nearly nothing at all from anything
 else. This is very good performance for their
 intented use case, useless of today's goal.
 
-## Webcam michrophone (much better)
+## Webcam microphone (much better)
 
 The only other microphone available is an old webcam, never
 used otherwise. This begin a common
@@ -209,3 +209,10 @@ Simple mixer control 'Mic',0
   -D plughw:CARD=C920,DEV=0 \
   -f cd /tmp/test_C920.wav
 ```
+
+## Clicky noises (~10 Hz)
+
+Audio recording devices are affected by nearby electromagnetic
+waves, including those produced by cables. Power cables and
+power extensions in particular can be most problematic, so
+the webcam (or microphone) must be kept well away from those.
