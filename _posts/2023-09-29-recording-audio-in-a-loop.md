@@ -12,6 +12,8 @@ recall with precision. We tend to remember what we
 Normally it takes *only* about an hour, maybe two,
 to realize of the desire to *rewind* and listen back.
 
+## Analog mic from gaming headphones
+
 Lets start with the basic: record from an old mic.
 
 **Lexicon** beign an Intel NUC11PAHi3, it has a front
@@ -148,3 +150,62 @@ the mouth a few milimeters from the microphone
 and very nearly nothing at all from anything
 else. This is very good performance for their
 intented use case, useless of today's goal.
+
+## Webcam michrophone (much better)
+
+The only other microphone available is an old webcam, never
+used otherwise. This begin a common
+[Logitec C920 HD Pro](https://www.logitech.com/en-ch/products/webcams/c920-pro-hd-webcam.960-001055.html),
+it is well supported:
+
+```
+[204236.991023] usb 3-2: new high-speed USB device number 4 using xhci_hcd
+[204237.709488] usb 3-2: New USB device found, idVendor=046d, idProduct=0892, bcdDevice= 0.19
+[204237.709496] usb 3-2: New USB device strings: Mfr=0, Product=2, SerialNumber=1
+[204237.709501] usb 3-2: Product: HD Pro Webcam C920
+[204237.709504] usb 3-2: SerialNumber: B9BAB6EF
+[204238.583154] videodev: Linux video capture interface: v2.00
+[204238.617035] gspca_main: v2.14.0 registered
+[204238.621950] gspca_main: vc032x-2.14.0 probing 046d:0892
+[204238.622360] gspca_vc032x: reg_r err -32
+[204238.622367] vc032x: probe of 3-2:1.0 failed with error -32
+[204238.622404] usbcore: registered new interface driver vc032x
+[204238.634075] usb 3-2: Found UVC 1.00 device HD Pro Webcam C920 (046d:0892)
+[204238.636766] input: HD Pro Webcam C920 as /devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0/input/input20
+[204238.637655] usbcore: registered new interface driver uvcvideo
+```
+
+Once again, list capture capable devices and record:
+
+```
+# arecord -l
+**** List of CAPTURE Hardware Devices ****
+card 0: PCH [HDA Intel PCH], device 0: ALC256 Analog [ALC256 Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: C920 [HD Pro Webcam C920], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+
+# arecord \
+  -D plughw:CARD=C920,DEV=0 \
+  -f S16_LE /tmp/test_C920.wav
+```
+
+At first this produce *barely audible* sound, need to increase
+the capture volume, but not too much (needed to try a few
+values to find a good one). More importantly, use `-f cd` to
+capture audio in a better format:
+
+```
+# amixer -c1 set Mic 70%
+Simple mixer control 'Mic',0
+  Capabilities: cvolume cvolume-joined cswitch cswitch-joined
+  Capture channels: Mono
+  Limits: Capture 0 - 60
+  Mono: Capture 42 [70%] [41.00dB] [on]
+
+# arecord \
+  -D plughw:CARD=C920,DEV=0 \
+  -f cd /tmp/test_C920.wav
+```
