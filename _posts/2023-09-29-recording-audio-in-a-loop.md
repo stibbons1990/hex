@@ -241,3 +241,47 @@ A 5-minute recording in WAVE format takes about 50 MB, so each
 1-hour file should be about 600 MB. Keeping a whole day of such
 files would take about 15 GB which is *affordable*.
 
+### Loop recording as a service
+
+All that is left to do is keep that recording process
+running and making sure it starts again after each reboot.
+
+1. Create the script `/root/bin/record-hourly` to run `arecord`
+
+    ```bash
+    #!/bin/bash
+    D=/home/depot/audio/Hourly
+    mkdir -p $D
+    arecord \
+    -f cd \
+    -t wav \
+    -D plughw:CARD=C920,DEV=0 \
+    --max-file-time 3600 \
+    --use-strftime $D/%Y-%m-%d-%H-%M-%v.wav
+    ```
+2. Create a service to run it on startup: `/etc/systemd/system/record-hourly.service`
+
+    ```systemd
+    [Unit]
+    Description=Sauron Monitoring
+    After=influxd.service
+    Wants=influxd.service
+
+    [Service]
+    ExecStart=/root/bin/record-hourly
+    Restart=on-failure
+    StandardOutput=null
+    User=root
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+3. Load and start the new service
+
+```
+# systemctl daemon-reload
+# systemctl enable record-hourly.service
+Created symlink /etc/systemd/system/multi-user.target.wants/record-hourly.service → /etc/systemd/system/record-hourly.service.
+# systemctl start record-hourly.service
+```
