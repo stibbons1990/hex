@@ -12,7 +12,9 @@ recall with precision. We tend to remember what we
 Normally it takes *only* about an hour, maybe two,
 to realize of the desire to *rewind* and listen back.
 
-## Analog mic from gaming headphones
+## Simple audio recording
+
+### Analog mic from gaming headphones
 
 Lets start with the basic: record from an old mic.
 
@@ -151,7 +153,7 @@ and very nearly nothing at all from anything
 else. This is very good performance for their
 intented use case, useless of today's goal.
 
-## Webcam microphone (much better)
+### Webcam microphone (much better)
 
 The only other microphone available is an old webcam, never
 used otherwise. This begin a common
@@ -210,9 +212,32 @@ Simple mixer control 'Mic',0
   -f cd /tmp/test_C920.wav
 ```
 
-## Clicky noises (~10 Hz)
+### Clicky noises (~10 Hz)
 
 Audio recording devices are affected by nearby electromagnetic
 waves, including those produced by cables. Power cables and
 power extensions in particular can be most problematic, so
 the webcam (or microphone) must be kept well away from those.
+
+## Loop recording
+
+This example from
+[the `arecord(1)` man page](https://linux.die.net/man/1/arecord)
+shows how to record indefinitely with a new file per hour:
+
+> **`arecord -f cd -t wav --max-file-time 3600 --use-strftime %Y/%m/%d/listen-%H-%M-%v.wav`**  
+> Record in stereo from the default audio source. Create a new file every hour. The files are placed in directories based on their start dates and have names which include their start times and file numbers.
+
+```
+# arecord \
+  -f cd \
+  -t wav \
+  -D plughw:CARD=C920,DEV=0 \
+  --max-file-time 3600 \
+  --use-strftime %Y-%m-%d-%H-%M-%v.wav
+```
+
+A 5-minute recording in WAVE format takes about 50 MB, so each
+1-hour file should be about 600 MB. Keeping a whole day of such
+files would take about 15 GB which is *affordable*.
+
