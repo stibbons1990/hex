@@ -279,9 +279,22 @@ running and making sure it starts again after each reboot.
 
 3. Load and start the new service
 
-```
-# systemctl daemon-reload
-# systemctl enable record-hourly.service
-Created symlink /etc/systemd/system/multi-user.target.wants/record-hourly.service → /etc/systemd/system/record-hourly.service.
-# systemctl start record-hourly.service
-```
+    ```
+    # systemctl daemon-reload
+    # systemctl enable record-hourly.service
+    Created symlink /etc/systemd/system/multi-user.target.wants/record-hourly.service → /etc/systemd/system/record-hourly.service.
+    # systemctl start record-hourly.service
+    ```
+
+4. Run a daily job to generate spectrograms
+   from recordings, running `wav-to-png` as:
+
+    ```bash
+    #!/bin/bash
+    for w in $*; do
+      png=${w/wav/png}
+      test -f $png || sox $w -n spectrogram -o $png
+    done
+    ```
+
+5. Run a daily job to remove recordings older than 2 days:
