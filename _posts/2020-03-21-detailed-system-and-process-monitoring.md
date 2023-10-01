@@ -397,3 +397,17 @@ Then load and start the new service
 Created symlink /etc/systemd/system/multi-user.target.wants/conmon.service → /etc/systemd/system/conmon.service.
 # systemctl start conmon.service
 ```
+
+From here on, new functions can be added to the `conmon`
+script to collect additional metrics, which will be then
+posted by the script periodically. Many other metrics can
+be added later, here are some ideas:
+
+- Total RAM usage
+- CPU usage per process
+- RAM usage per process
+- Network I/O per interface
+- Disk I/O per disk
+- Disk I/O per process
+- Disk used/free (per partition)
+- GPU load, VRAM, temperature, fan speed, power draw
