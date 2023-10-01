@@ -57,18 +57,20 @@ this one is a bit long. The sections are in the order introduced by
     with a large collection comes a large database under this directory.
 *  `19`: Local storage for Kubernetes pods goes under `/home/k8s`
    (root partition is small, no separate `/var` partition).
-*  `34`: Local storage for media files goes under `/home/depot`
+*  `34`: Local storage for audio files goes under `/home/depot`
    (including symlinks for a few folder in a SSD).
-*  `29,64`: `500Gi` may seem even more excessive, but this is not much
+*  `49`: Local storage for video files goes under `/home/ssd`.
+*  `29,44,79,94`: `500Gi` may seem even more excessive, but this is not much
    more than the storage space taken by my collections already.
    *  124 GB are taken by my Audible library (about 350 books).
    *  320 GB are taken by the Podcasts I’ve downloaded, most of which I treasure.
-*  `99`: the token obtained from [plex.tv/claim](https://www.plex.tv/claim/)
+*  `132`: the token obtained from [plex.tv/claim](https://www.plex.tv/claim/)
     ─ **expires in just 4 minutes**.
-*  `101,103`: the old Plex server was running as user plex and
+*  `134,136`: the old Plex server was running as user plex and
    `998` was the UID and GID assigned to it.
-*  `132`: this IP address comes from the range of reserved addresses
-   when installing **MetallLB**.
+*  `223,252`: this IP address comes from the range of reserved
+   when installing **MetallLB** and should be the same on both
+   services (TCP and UDP).
 
 ```yaml
 apiVersion: v1
@@ -332,16 +334,18 @@ all is left to do now is apply it:
 $ kubectl apply -f plex-media-server.yaml 
 namespace/plexserver created
 persistentvolume/plexserver-pv-config created
-persistentvolume/plexserver-pv-data created
+persistentvolume/plexserver-pv-data-depot created
+persistentvolume/plexserver-pv-data-video created
 persistentvolumeclaim/plexserver-pvc-config created
-persistentvolumeclaim/plexserver-pvc-data created
+persistentvolumeclaim/plexserver-pvc-data-depot created
+persistentvolumeclaim/plexserver-pvc-data-video created
 deployment.apps/plexserver created
 service/plex-udp created
 service/plex-tcp created
 ```
 
-After about a minute the pod finds the `PersistentVolumeClaim`s and
-Plex is ready at http://192.168.0.132:32400/web (LAN only, not SSL).
+After about a minute the pod finds the `PersistentVolumeClaim`s and Plex is ready at
+http://192.168.0.128:32400/web (LAN only, no SSL).
 
 When accessing the new server’s web interface for the first time, log
 in and create a test library with a small body of media, just to
@@ -562,6 +566,20 @@ in a separate disk:
         - mountPath: /home/ssd/video
           name: data-video
 ```
+
+### Port forwarding
+
+Normally Plex is able to establish the necessary port
+forwarding via UPnP, but in this case that doesn't seem to
+work. This may be because it's not the only Plex server in
+the nework, so because it's running in a Kubernetes cluster.
+Either way, the port forwarding rule can be added manually to
+the router and then **Manually specify public port** in the
+Plex settings under **Settings > Remote AccesS**.
+
+**Note:** this step may require connecting directly to the
+web interface from the local network:
+http://192.168.0.128:32400/web
 
 ## Epilogue
 
