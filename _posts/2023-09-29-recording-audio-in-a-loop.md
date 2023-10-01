@@ -259,7 +259,8 @@ running and making sure it starts again after each reboot.
     --max-file-time 3600 \
     --use-strftime $D/%Y-%m-%d-%H-%M-%v.wav
     ```
-2. Create a service to run it on startup: `/etc/systemd/system/record-hourly.service`
+2. Create a service to run it on startup:
+   `/etc/systemd/system/record-hourly.service`
 
     ```systemd
     [Unit]
@@ -297,4 +298,24 @@ running and making sure it starts again after each reboot.
     done
     ```
 
-5. Run a daily job to remove recordings older than 2 days:
+5. Run a daily job to remove recordings older than 3 days,
+   e.g. as `clean-up-recordings`
+
+    ```bash
+    #!/bin/bash
+    D=/home/depot/audio/Hourly
+    test -d $D || exit 1
+
+    N=3  # Number of days to keep
+    now=$(date +"%s")
+
+    N_days_ago=$((now - N*24*3600))
+    n=1
+    while [[ $n -gt 0 ]]; do
+      date=$(date -d @$N_days_ago +"%Y-%m-%d")
+      n=$(ls $D | grep -c ${date}.*.wav) 
+      rm -f $D/${date}-*.wav
+      date_ts=$(date -d @$N_days_ago +"%s")
+      N_days_ago=$((date_ts - 24*3600))
+    done
+    ```
