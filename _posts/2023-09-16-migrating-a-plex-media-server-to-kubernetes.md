@@ -576,7 +576,7 @@ work. This may be because it's not the only Plex server in
 the nework, so because it's running in a Kubernetes cluster.
 Either way, the port forwarding rule can be added manually to
 the router and then **Manually specify public port** in the
-Plex settings under **Settings > Remote AccesS**.
+Plex settings under **Settings > Remote Access**.
 
 **Note:** this step may require connecting directly to the
 web interface from the local network:
