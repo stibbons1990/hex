@@ -268,14 +268,6 @@ running and making sure it starts again after each reboot.
     Wants=influxd.service
 
     [Service]
-
-    ```systemd
-    [Unit]
-    Description=Audio Recording
-    After=influxd.service
-    Wants=influxd.service
-
-    [Service]
     ExecStart=/root/bin/record-hourly
     Restart=on-failure
     StandardOutput=null
