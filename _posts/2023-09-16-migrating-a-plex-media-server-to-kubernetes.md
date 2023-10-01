@@ -94,7 +94,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: plexserver-pv-data
+  name: plexserver-pv-data-depot
   namespace: plexserver
 spec:
   storageClassName: manual
@@ -105,6 +105,21 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: /home/depot
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plexserver-pv-data-video
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/ssd/video
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -124,11 +139,26 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: plexserver-pvc-data
+  name: plexserver-pvc-data-depot
   namespace: plexserver
 spec:
   storageClassName: manual
-  volumeName: plexserver-pv-data
+  volumeName: plexserver-pv-data-depot
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plexserver-pvc-data-video
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  volumeName: plexserver-pv-data-video
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
@@ -163,9 +193,12 @@ spec:
       - name: plex-config
         persistentVolumeClaim:
           claimName: plexserver-pvc-config
-      - name: data
+      - name: data-depot
         persistentVolumeClaim:
-          claimName: plexserver-pvc-data
+          claimName: plexserver-pvc-data-depot
+      - name: data-video
+        persistentVolumeClaim:
+          claimName: plexserver-pvc-data-video
       containers:
       - env:
         - name: PLEX_CLAIM
@@ -219,7 +252,9 @@ spec:
         - mountPath: /config
           name: plex-config
         - mountPath: /home/depot
-          name: data
+          name: data-depot
+        - mountPath: /home/ssd/video
+          name: data-video
       restartPolicy: Always
 ---
 kind: Service
@@ -258,7 +293,7 @@ spec:
     name: gdm-32414
     protocol: UDP
   type: LoadBalancer
-  loadBalancerIP: 192.168.0.128
+  loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the TCP service.
 ---
 kind: Service
 apiVersion: v1
@@ -270,7 +305,7 @@ metadata:
 spec:
   selector:
     app: plexserver
-  ports:                     
+  ports:                      
   - port: 32400
     targetPort: 32400
     name: pms-web
@@ -287,7 +322,7 @@ spec:
     name: dlna-tcp
     protocol: TCP
   type: LoadBalancer
-  loadBalancerIP: 192.168.0.132
+  loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the UDP service.
 ```
 
 Having saved the above as `plex-media-server.yaml`
@@ -515,6 +550,17 @@ in `plex-media-server.yaml`
           name: plex-config
         - mountPath: /home/depot
           name: data
+```
+
+In addition to that, my deployment creates 2 separate
+`PhysicalVolume`s (and claims) because video files are
+in a separate disk:
+
+```yaml
+        - mountPath: /home/depot
+          name: data-depot
+        - mountPath: /home/ssd/video
+          name: data-video
 ```
 
 ## Epilogue
