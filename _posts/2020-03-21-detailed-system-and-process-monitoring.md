@@ -304,3 +304,96 @@ org_role = Viewer
 
 # systemctl restart grafana-server.service
 ```
+
+## Continuous Monitoring
+
+With InfluxDB and Grafana in place, collection and reporting of
+metrics can be done continuously, rather than having to run the
+scripts each time. 
+
+For a minimal start, create a script that reports total CPU
+usage every second, e.g as `/usr/local/bin/conmon`
+
+```bash
+#!/bin/bash
+#
+# Export system monitoring metrics to influxdb.
+
+# InfluxDB target.
+DBNAME=monitoring
+TARGET='http://localhost:8086'
+
+# Data file for batch POST.
+DDIR="/dev/shm/$$"
+DATA="${DDIR}/DATA.txt"
+mkdir -p "${DDIR}"
+
+host=$(hostname)
+
+timestamp_ns() {
+  date +'%s%N'
+}
+
+store_line() {
+  # Write a line of data to the temporary in-memory file.
+  # Exit immediately if this fails.
+  echo $1 >>"${DATA}" || exit 1
+}
+
+report_top() {
+  # Stats from top: CPU (overall and per process) and RAM (per process).
+  ts=$(timestamp_ns)
+  cpu_load=$(top -b -n 1 |awk '{print $9}' | egrep '[0-9]\.[0-9]|^[0-9][0-9]$|^[0-9][0-9][0-9]$|^[0-9][0-9][0-9][0-9]$' | tr '\n' '+' | sed 's/+$/\n/' | bc -ql)
+  store_line "top,host=${host} value=${cpu_load} ${ts}"
+}
+
+post_lines_to_influxdb() {
+  # POST data to InfluxDB in batch, when target is available.
+  # Depends on: nc.
+  sleep ${DELAY_POST}
+  host_and_port=$(echo "${TARGET}" | sed 's/.*\///' | tr : ' ')
+  if nc 2>&1 -zv ${host_and_port} | grep -q succeeded; then
+    # All other tasks write data to the file in append mode (>>).
+    # This task reads everything at once and immediately deletes the file.
+    # This makes all the other tasks write to the same file, created anew.
+    mv -f "${DATA}" "${DATA}.POST"
+    cut -f1 -d, "${DATA}.POST" | sort | uniq -c
+    curl >/dev/null 2>/dev/null -i -XPOST "${TARGET}/write?db=${DBNAME}" --data-binary @"${DATA}.POST"
+  fi
+}
+
+# Run all the above tasks in a loop.
+# Each task is responsible of its own checks.
+while true; do
+  report_top
+  post_lines_to_influxdb
+done
+```
+
+Create a new service to run this upon reboot, e.g. as
+`/etc/systemd/system/conmon.service`
+
+```systemd
+[Unit]
+Description=Continuous Monitoring
+After=influxd.service
+Wants=influxd.service
+
+[Service]
+ExecStart=/usr/local/bin/conmon
+Restart=on-failure
+StandardOutput=null
+User=root
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then load and start the new service
+
+```
+# systemctl daemon-reload
+# systemctl enable conmon.service
+Created symlink /etc/systemd/system/multi-user.target.wants/conmon.service → /etc/systemd/system/conmon.service.
+# systemctl start conmon.service
+```
