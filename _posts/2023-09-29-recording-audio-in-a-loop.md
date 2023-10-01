@@ -263,7 +263,15 @@ running and making sure it starts again after each reboot.
 
     ```systemd
     [Unit]
-    Description=Sauron Monitoring
+    Description=Audio Recording
+    After=influxd.service
+    Wants=influxd.service
+
+    [Service]
+
+    ```systemd
+    [Unit]
+    Description=Audio Recording
     After=influxd.service
     Wants=influxd.service
 
