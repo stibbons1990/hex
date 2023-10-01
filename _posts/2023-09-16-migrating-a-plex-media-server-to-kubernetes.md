@@ -345,7 +345,8 @@ service/plex-tcp created
 ```
 
 After about a minute the pod finds the `PersistentVolumeClaim`s and Plex is ready at
-http://192.168.0.128:32400/web (LAN only, no SSL).
+[192.168.0.128:32400/web](http://192.168.0.128:32400/web)
+(LAN only, no SSL).
 
 When accessing the new server’s web interface for the first time, log
 in and create a test library with a small body of media, just to
@@ -579,7 +580,7 @@ Plex settings under **Settings > Remote AccesS**.
 
 **Note:** this step may require connecting directly to the
 web interface from the local network:
-http://192.168.0.128:32400/web
+[192.168.0.128:32400/web](http://192.168.0.128:32400/web)
 
 ## Epilogue
 
