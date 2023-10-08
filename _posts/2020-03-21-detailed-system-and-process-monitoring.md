@@ -411,3 +411,7 @@ be added later, here are some ideas:
 - Disk I/O per process
 - Disk used/free (per partition)
 - GPU load, VRAM, temperature, fan speed, power draw
+
+These and more may be added later, keep an eye on the full
+scripts in the **Continuous Monitoring** page
+[here]({{ site.baseurl }}/conmon).
