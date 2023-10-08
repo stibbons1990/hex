@@ -31,6 +31,36 @@ in the network:
    [myStrom REST API](https://api.mystrom.ch/) from one or
    more smart plug/switch devices that report energy usage.
 
+## How to Install
+
+Choose *a* version of the `conmon` script and install it as
+`/usr/local/bin/conmon` and run it as a service by creating
+`/etc/systemd/system/conmon.service` as follows:
+
+```ini
+[Unit]
+Description=Continuous Monitoring
+After=influxd.service
+Wants=influxd.service
+
+[Service]
+ExecStart=/usr/local/bin/conmon
+Restart=on-failure
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable and start the services in `systemd`:
+
+```
+# systemctl enable conmon.service
+# systemctl daemon-reload
+# systemctl start conmon.service
+# systemctl status conmon.service
+```
+
 ## Single-thread
 
 ### `deploy-to-rpis`
