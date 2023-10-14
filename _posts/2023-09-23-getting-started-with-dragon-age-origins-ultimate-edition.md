@@ -34,7 +34,7 @@ The installation seems to have been made only for the default
 the correct command would be
 
 ```bash
-$ WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/47810/pfx winetricks physx```
+$ WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/47810/pfx winetricks physx
 ```
 
 Also, as reported by
