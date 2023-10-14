@@ -255,7 +255,6 @@ tar -xf GE-Proton*.tar.gz \
   -C ~/.steam/root/compatibilitytools.d/
 ```
 
-
 ### Sky UI
 
 Download the updated UI mod
@@ -294,12 +293,70 @@ At this point it becomes clear, not only from the game UI but
 also from every single forum thread, that a Bethesda.net
 account is required to even load mods in this game.
 
+#### Sky UI keeps auto-disabling
+
+I seem to keep running into
+[an old issue](https://www.reddit.com/r/skyrimmods/comments/c5v6qy/skyui_se_keeps_getting_disabled_i_read_about_how/)
+where `SkyUI_SE.esp` disables itself automatically because it
+has no masters listed, it's a bug with Skyrim Special Edition.
+Adding `Skyrim.esm` as a master to the file will fix it, and
+to do this you have to use
+[xEdit](https://www.nexusmods.com/skyrim/mods/25859/).
+
+```
+$ 7z x TES5Edit\ 4.0.4-25859-4-0-4-1636548544.7z 
+
+7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
+p7zip Version 16.02 (locale=en_US.UTF-8,Utf16=on,HugeFiles=on,64 bits,16 CPUs AMD Ryzen 7 5800X 8-Core Processor              (A20F12),ASM,AES-NI)
+
+Scanning the drive for archives:
+1 file, 14361776 bytes (14 MiB)
+
+Extracting archive: TES5Edit 4.0.4-25859-4-0-4-1636548544.7z
+--
+Path = TES5Edit 4.0.4-25859-4-0-4-1636548544.7z
+Type = 7z
+Physical Size = 14361776
+Headers Size = 4031
+Method = LZMA2:27 LZMA:20 BCJ2
+Solid = +
+Blocks = 2
+
+Everything is Ok                                 
+
+Folders: 3
+Files: 180
+Size:       112996891
+Compressed: 14361776
+
+$ cp -a TES5Edit\ 4.0.4 \
+  ~/.local/share/Steam/steamapps/common/Skyrim\ Special\ Edition/TES5Edit
+
+$ cd ~/.local/share/Steam/steamapps/common/Skyrim\ Special\ Edition
+
+$ WINEARCH=win64 WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/489830/pfx wine \
+  TES5Edit/TES5Edit.exe \
+  -AllowMasterFilesEdit \
+  -IKnowWhatImDoing \
+  Data/SkyUI_SE.esp
+```
+
+This seems to fail, starts by showing an error message saying
+
+> Fatal: Could not open registry key: \SOFTWARE\Bethesda Softworks\Skyrim\  
+> This can happen after Steam updates, run the game's launcher to restore registry settings
+
+This keeps happening even right after launching the game from
+Steam. The UI does not show any hint of actually opening the
+file, not even 
+[the expected first-time warning](https://stepmodifications.org/wiki/Guide:XEdit#First_Edit_Warning).
+
 ### Ultrawide UI
 
 [Complete Widescreen Fix for Vanilla and SkyUI 2.2 and 5.2 SE](https://www.nexusmods.com/skyrimspecialedition/mods/1778)
 
 ```
-$ $ unrar x Complete\ Widescreen\ Fix\ for\ SkyUI\ 5.2\ SE\ Alpha\ -\ 2560x1080-1778-2-0.rar 
+$ unrar x Complete\ Widescreen\ Fix\ for\ SkyUI\ 5.2\ SE\ Alpha\ -\ 2560x1080-1778-2-0.rar 
 
 UNRAR 6.11 beta 1 freeware      Copyright (c) 1993-2022 Alexander Roshal
 
@@ -346,6 +403,20 @@ times trying to load mods all you get is the infamous
 [accounts.bethesda.net/en/linked-accounts](https://accounts.bethesda.net/en/linked-accounts) shows the Steam account is
 linked, yet the error persists and there is nothing you can
 do but wait... forever?
+
+### The Elder Scrolls V: Skyrim (original)
+
+[The Elder Scrolls V: Skyrim](https://steamdb.info/app/72850/)
+original game is no longer available in Steam, and it can't
+even be launched by its game id:
+
+```
+steam steam://rungameid/72850
+```
+
+This leads to a "No licenses" error pop-up and, maybe worse
+yet, Steam starts to *check* the game and re-download all or
+part of it. At least, it doesn't seem to have deleted mods.
 
 ### Mod Manager
 
