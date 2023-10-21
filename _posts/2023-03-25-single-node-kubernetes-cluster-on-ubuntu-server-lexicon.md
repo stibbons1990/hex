@@ -1,12 +1,13 @@
 ---
-title:  "Single-node Kubernetes cluster on Ubuntu Server"
+title:  "Single-node Kubernetes cluster on Ubuntu Server (lexicon)"
 date:   2023-03-25 23:03:25 +0200
 categories: ubuntu server linux kubernetes docker
 ---
 
 After playing around with a few Docker containers and Docker
 compose, I decided it was time to dive into Kubernetes.
-But I only have one server.
+But I only have one server:
+[lexicon]({{ site.baseurl }}/2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.html).
 
 {% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
 
