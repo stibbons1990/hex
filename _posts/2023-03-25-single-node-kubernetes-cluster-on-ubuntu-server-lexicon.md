@@ -579,9 +579,321 @@ LAST SEEN   TYPE     REASON      OBJECT             MESSAGE
 
 ### MetalLB Load Balancer
 
+The [MetalLB Load Balancer](https://computingforgeeks.com/deploy-metallb-load-balancer-on-kubernetes/)
+is going to be necessary for the [Dashboard](#dashboard)
+and future applications, to expose individual services via
+open ports on the server (`NodePort`) or virtual IP addresses.
+
+```
+$ wget \
+https://raw.githubusercontent.com/metallb/metallb/v$MetalLB_RTAG/config/manifests/metallb-native.yaml
+$ kubectl apply -f metallb-native.yaml
+namespace/metallb-system created
+customresourcedefinition.apiextensions.k8s.io/addresspools.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io created
+serviceaccount/controller created
+serviceaccount/speaker created
+role.rbac.authorization.k8s.io/controller created
+role.rbac.authorization.k8s.io/pod-lister created
+clusterrole.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrole.rbac.authorization.k8s.io/metallb-system:speaker created
+rolebinding.rbac.authorization.k8s.io/controller created
+rolebinding.rbac.authorization.k8s.io/pod-lister created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker created
+secret/webhook-server-cert created
+service/webhook-service created
+deployment.apps/controller created
+daemonset.apps/speaker created
+validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-configuration created
+```
+
+After a few seconds the deployment should have the controller
+and speaker running:
+
+```
+$ kubectl get all -n metallb-system 
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/controller-68bf958bf9-kzcfg   1/1     Running   0          32s
+pod/speaker-78bvh                 1/1     Running   0          32s
+
+NAME                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/webhook-service   ClusterIP   10.96.89.141   <none>        443/TCP   32s
+
+NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/speaker   1         1         1       1            1           kubernetes.io/os=linux   32s
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/controller   1/1     1            1           32s
+
+NAME                                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/controller-68bf958bf9   1         1         1       32s
+$ kubectl get pods -n metallb-system 
+NAME                          READY   STATUS    RESTARTS   AGE
+controller-68bf958bf9-kzcfg   1/1     Running   0          92s
+speaker-78bvh                 1/1     Running   0          92s
+```
+
+At this point the components are idle waiting for a working
+[configuration](https://metallb.universe.tf/configuration/);
+edit `ipaddress_pools.yaml` to set a range of IP addresses:
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: production
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.0.122-192.168.0.140
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advert
+  namespace: metallb-system
+```
+
+The range **192.168.0.122-192.168.0.140** is based on the
+local DHCP server being configured to lease 228 addresses
+starting with 192.168.0.2. The current active leases are
+reserved so they don’t change, and the range 122-140 are
+just not leased so far. The reason to use IPs from the leased
+range is that the router only allows adding port forwarding
+rules for those. This range is intentionally on the same
+network range and subnet as the DHCP server so that no
+routing is required to reach MetalLB IP addresses.
+
+**Note:** Layer 2 mode does not require the IPs to be bound
+to the network interfaces of your worker nodes. It works by
+responding to ARP requests on your local network directly,
+to give the machine’s MAC address to clients.
+
+```
+$ kubectl apply -f ipaddress_pools.yaml 
+ipaddresspool.metallb.io/production created
+l2advertisement.metallb.io/l2-advert created
+$ kubectl get ipaddresspool.metallb.io -n metallb-system
+NAME         AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
+production   true          false             ["192.168.0.122-192.168.0.140"]
+$ kubectl get l2advertisement.metallb.io -n metallb-system
+NAME        IPADDRESSPOOLS   IPADDRESSPOOL SELECTORS   INTERFACES
+l2-advert                                              
+$ kubectl describe ipaddresspool.metallb.io production -n metallb-system
+Name:         production
+Namespace:    metallb-system
+API Version:  metallb.io/v1beta1
+Kind:         IPAddressPool
+Spec:
+  Addresses:
+    192.168.0.122-192.168.0.140
+```
+
+#### Test MetalLB
+
+To test the load balancer with a demo web, create a 
+deployment with `web-app-demo.yaml` as follows:
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+  namespace: web
+spec:
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:alpine
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server-service
+  namespace: web
+spec:
+  selector:
+    app: web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+```
+
+```
+$ kubectl apply -f web-app-demo.yaml
+$ kubectl get all -n web
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/web-server-5879949fb7-4c6r9   1/1     Running   0          26s
+
+NAME                         TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
+service/web-server-service   LoadBalancer   10.111.32.131   192.168.0.122   80:32468/TCP   3s
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web-server   1/1     1            1           26s
+
+NAME                                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-server-5879949fb7   1         1         1       26s
+
+$ curl http://192.168.0.122/
+<html><body><h1>It works!</h1></body></html>
+```
+
+This only works from other hosts in the local network when
+using an IP range in the same subnet, otherwise requests will
+time out.
+
+Also, this is not enough to make this IP’s port 80 reachable
+from other networks. Adding a port forwarding rule in the
+router to redirect port 12080 externally to port 80 on
+192.168.0.122  works in that requests are forwarded to the
+right port, but then requests are rejected.
+
 ### Ingress Controller
 
+In addition to the load balancer, I also wanted to
+[deploy Nginx Ingress Controller](https://computingforgeeks.com/deploy-nginx-ingress-controller-on-kubernetes-using-helm-chart/)
+to redirect HTTPS requests to different services.
+
+```
+$ controller_tag=$(curl -s https://api.github.com/repos/kubernetes/ingress-nginx/releases/latest | grep tag_name | cut -d '"' -f 4)
+$ wget -O nginx-ingress-controller-deploy.yaml \
+  https://raw.githubusercontent.com/kubernetes/ingress-nginx/${controller_tag}/deploy/static/provider/baremetal/deploy.yaml
+$ sed -i 's/type: NodePort/type: LoadBalancer/g' nginx-ingress-controller-deploy.yaml
+```
+
+**Note:** since we already have [MetalLB](#metallb-load-balancer)
+configured with a range of IP addresses, change **line 365**
+in `nginx-ingress-controller-deploy.yaml` to
+`type: LoadBalancer` so that it gets an External IP.
+
+```
+$ kubectl apply -f nginx-ingress-controller-deploy.yaml
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+serviceaccount/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+configmap/ingress-nginx-controller created
+service/ingress-nginx-controller created
+service/ingress-nginx-controller-admission created
+deployment.apps/ingress-nginx-controller created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+ingressclass.networking.k8s.io/nginx created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+$ kubectl get all -n ingress-nginx
+NAME                                            READY   STATUS      RESTARTS   AGE
+pod/ingress-nginx-admission-create-wjzv4        0/1     Completed   0          107s
+pod/ingress-nginx-admission-patch-lcj2j         0/1     Completed   1          107s
+pod/ingress-nginx-controller-6b58ffdc97-2k2hk   1/1     Running     0          107s
+
+NAME                                         TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                      AGE
+service/ingress-nginx-controller             LoadBalancer   10.100.229.186   192.168.0.122   80:31137/TCP,443:31838/TCP   6s
+service/ingress-nginx-controller-admission   ClusterIP      10.99.206.192    <none>          443/TCP                      6s
+
+NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ingress-nginx-controller   1/1     1            1           107s
+
+NAME                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/ingress-nginx-controller-6b58ffdc97   1         1         1       107s
+
+NAME                                       COMPLETIONS   DURATION   AGE
+job.batch/ingress-nginx-admission-create   1/1           7s         107s
+job.batch/ingress-nginx-admission-patch    1/1           8s         107s
+```
+
 ### Dashboard
+
+[Installing the Kubernetes Dashboard](https://computingforgeeks.com/how-to-install-kubernetes-dashboard-with-nodeport/)
+
+Download the manifest and change spec.type to LoadBalancer so it gets an External IP from MetalLB:
+
+```
+$ VER=$(curl -s https://api.github.com/repos/kubernetes/dashboard/releases/latest|grep tag_name|cut -d '"' -f 4)
+$ echo $VER
+v2.7.0
+$ wget -O kubernetes-dashboard.yaml \
+  https://raw.githubusercontent.com/kubernetes/dashboard/$VER/aio/deploy/recommended.yaml 
+```
+
+To make the dashboard easily available in the local network,
+edit `kubernetes-dashboard.yaml` (around line 40) to set the
+service to `LoadBalancer`:
+ 
+```yaml
+  namespace: kubernetes-dashboard
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 443
+```
+
+Then deploy the Dashboard:
+
+```
+$ kubectl apply -f kubernetes-dashboard.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+$ kubectl get all -n kubernetes-dashboard
+NAME                                            READY   STATUS    RESTARTS   AGE
+pod/dashboard-metrics-scraper-7bc864c59-6k5tm   1/1     Running   0          33s
+pod/kubernetes-dashboard-6c7ccbcf87-qd5cg       1/1     Running   0          33s
+
+NAME                                TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)         AGE
+service/dashboard-metrics-scraper   ClusterIP      10.98.87.20     <none>          8000/TCP        33s
+service/kubernetes-dashboard        LoadBalancer   10.99.222.155   192.168.0.123   443:31490/TCP   33s
+
+NAME                                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/dashboard-metrics-scraper   1/1     1            1           33s
+deployment.apps/kubernetes-dashboard        1/1     1            1           33s
+
+NAME                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/dashboard-metrics-scraper-7bc864c59   1         1         1       33s
+replicaset.apps/kubernetes-dashboard-6c7ccbcf87       1         1         1       33s
+```
+
+At this the dashboard is available at https://192.168.0.123/
+
 
 ### LocalPath PV provisioner
 
