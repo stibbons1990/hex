@@ -12,6 +12,13 @@ to redirect port 80 to them with `iptables`.
 iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port ____
 ```
 
+Kiosk browser + Grafana for physical display on lexicon
+- Maybe run X + single-command in .xsession (pi-z2?)
+- Can't power display off/on with vbetool dpms because can't disable Secure Boot 
+[1](https://access.redhat.com/solutions/6969947);
+remounting /dev won't help 
+[2](https://superuser.com/questions/1555396/trouble-with-shutting-down-screen-in-ubuntu-server)
+
 [RetroDECK](http://retrodeck.net)
 
 Flameshot (screenshots app)
