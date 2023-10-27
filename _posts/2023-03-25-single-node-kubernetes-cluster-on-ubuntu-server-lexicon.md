@@ -894,7 +894,231 @@ replicaset.apps/kubernetes-dashboard-6c7ccbcf87       1         1         1     
 
 At this the dashboard is available at https://192.168.0.123/
 
-
 ### LocalPath PV provisioner
+
+By default, a Kubernetes cluster is not set up to provide
+storage to pods. The recommended way is to use
+[dynamic volume provisioning](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#dynamic),
+which is not currently enabled: `kube-apiserver` is running
+with only `--enable-admission-plugins=NodeRestriction` which
+means we need to enable the `DefaultStorageClass`
+[admission controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#defaultstorageclass)
+on the API server, by updating this flag in line
+20 of `/etc/kubernetes/manifests/kube-apiserver.yaml`
+
+Next, we need to create
+[persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+and **mark a storage class as default**.
+Gitlab recommends setting `reclaimPolicy` to `Retain`.
+
+> The name of a `StorageClass` object is significant, and is
+> how users can request a particular class. Administrators
+> set the name and other parameters of a class when first
+> creating `StorageClass` objects, and the objects cannot be
+> updated once they are created.
+
+To use
+[Local](https://kubernetes.io/docs/concepts/storage/storage-classes/#local)
+volumes, will support `WaitForFirstConsumer` with
+pre-created `PersistentVolume` binding, but not dynamic
+provisioning.
+
+For an easy way, we use the *Local Path Provisioner* from
+[rancher.io](https://www.rancher.com/)
+with `/home/k8s/local-path-storage`
+
+To add a default storage class, I followed
+[Computing for Geeks](https://computingforgeeks.com/)'
+article
+[Dynamic hostPath PV Creation in Kubernetes using Local Path Provisioner](https://computingforgeeks.com/dynamic-hostpath-pv-creation-in-kubernetes-using-local-path-provisioner/).
+
+First, the cluster needs to be enabled for dynamic volume
+provisioning, which means making sure `kube-apiserver` is
+running with
+`--enable-admission-plugins=DefaultStorageClass` to enable
+the `DefaultStorageClass` admission controller, by updating
+this flag in line 20 of 
+`/etc/kubernetes/manifests/kube-apiserver.yaml`
+and restarting the `kubelet` service:
+
+```yaml
+apiVersion: v1
+kind: Pod
+...
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - --advertise-address=10.0.0.6
+    - --allow-privileged=true
+    - --authorization-mode=Node,RBAC
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --enable-admission-plugins=NodeRestriction,DefaultStorageClass
+    ...
+```
+
+```
+# systemctl restart kubelet.service
+```
+
+Create a directory in the a file system where there is plenty of space:
+
+```
+# mkdir /home/k8s/local-path-storage
+# chmod 1777 /home/k8s/local-path-storage
+```
+
+Create a deployment with Rancher’s PV provisioner, with the annotation to make it the default storage class and create a
+deployment, e.g. `local-path-storage-as-default-class.yaml`
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-path-storage
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: local-path-provisioner-service-account
+  namespace: local-path-storage
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: local-path-provisioner-role
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "nodes", "persistentvolumeclaims", "configmaps" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "endpoints", "persistentvolumes", "pods" ]
+    verbs: [ "*" ]
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "create", "patch" ]
+  - apiGroups: [ "storage.k8s.io" ]
+    resources: [ "storageclasses" ]
+    verbs: [ "get", "list", "watch" ]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-path-provisioner-bind
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: local-path-provisioner-role
+subjects:
+  - kind: ServiceAccount
+    name: local-path-provisioner-service-account
+    namespace: local-path-storage
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-path-provisioner
+  namespace: local-path-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-path-provisioner
+  template:
+    metadata:
+      labels:
+        app: local-path-provisioner
+    spec:
+      serviceAccountName: local-path-provisioner-service-account
+      containers:
+        - name: local-path-provisioner
+          image: rancher/local-path-provisioner:master-head
+          imagePullPolicy: IfNotPresent
+          command:
+            - local-path-provisioner
+            - --debug
+            - start
+            - --config
+            - /etc/config/config.json
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config/
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+      volumes:
+        - name: config-volume
+          configMap:
+            name: local-path-config
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: local-path-config
+  namespace: local-path-storage
+data:
+  config.json: |-
+    {
+            "nodePathMap":[
+            {
+                    "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                    "paths":["/home/k8s/local-path-storage"]
+            }
+            ]
+    }
+  setup: |-
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |-
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
+  helperPod.yaml: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: helper-pod
+    spec:
+      containers:
+      - name: helper-pod
+        image: busybox
+        imagePullPolicy: IfNotPresent
+```
+
+```
+$ kubectl apply -f \
+  local-path-storage-as-default-class.yaml
+namespace/local-path-storage created
+serviceaccount/local-path-provisioner-service-account created
+clusterrole.rbac.authorization.k8s.io/local-path-provisioner-role created
+clusterrolebinding.rbac.authorization.k8s.io/local-path-provisioner-bind created
+deployment.apps/local-path-provisioner created
+storageclass.storage.k8s.io/local-path created
+configmap/local-path-config created
+
+$ kubectl get storageclass 
+NAME                   PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-path (default)   rancher.io/local-path   Retain          WaitForFirstConsumer   true                   11s
+```
 
 ### HTTPS with Let's Encrypt
