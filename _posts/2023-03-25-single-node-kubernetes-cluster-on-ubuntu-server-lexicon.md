@@ -1122,3 +1122,1220 @@ local-path (default)   rancher.io/local-path   Retain          WaitForFirstConsu
 ```
 
 ### HTTPS with Let's Encrypt
+
+Enabling HTTPS and configuring SSL certificates with
+[Let's Encrypt](https://letsencrypt.org/getting-started/)
+requires running
+[Certbot](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal)
+to confirm/certify control of the web host. Since nothing
+is listening on port 80, this should be pretty easy.
+The certificate should be for a specific subdomain
+(e.g. `ssl.uu.am`) which will be mapped to the IP,
+then other subdomains redirect to specific ports.
+
+#### Host OS setup
+
+[Install certbot](https://www.server-world.info/en/note?os=Ubuntu_22.04&p=ssl&f=2)
+and request a certificate for `ssl.uu.am`
+
+```
+# apt install -y certbot
+# certbot certonly --standalone -d ssl.uu.am
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Enter email address (used for urgent renewal and security notices)
+ (Enter 'c' to cancel): root@uu.am
+...
+
+# ls -l /etc/letsencrypt/live/ssl.uu.am/
+total 20
+lrwxrwxrwx 1 root root  38 Feb 13 22:00 cert.pem -> ../../archive/ssl.uu.am/cert1.pem
+lrwxrwxrwx 1 root root  39 Feb 13 22:00 chain.pem -> ../../archive/ssl.uu.am/chain1.pem
+lrwxrwxrwx 1 root root  43 Feb 13 22:00 fullchain.pem -> ../../archive/ssl.uu.am/fullchain1.pem
+lrwxrwxrwx 1 root root  41 Feb 13 22:00 privkey.pem -> ../../archive/ssl.uu.am/privkey1.pem
+-rw-r--r-- 1 root root 692 Feb 13 22:00 README
+
+# cat /etc/letsencrypt/live/ssl.uu.am/README
+This directory contains your keys and certificates.
+
+`privkey.pem`  : the private key for your certificate.
+`fullchain.pem`: the certificate file used in most server software.
+`chain.pem`    : used for OCSP stapling in Nginx >=1.3.7.
+`cert.pem`     : will break many server configurations, and should not be used
+                 without reading further documentation (see link below).
+
+WARNING: DO NOT MOVE OR RENAME THESE FILES!
+         Certbot expects these files to remain in this location in order
+         to function properly!
+
+We recommend not moving these files. For more information, see the Certbot
+User Guide at https://certbot.eff.org/docs/using.html#where-are-my-certificates.
+```
+
+Actual files are in `/etc/letsencrypt/archive/ssl.uu.am/`
+but have numbered names (e.g. cert1.pem) while the links in
+`/etc/letsencrypt/live/ssl.uu.am/` will have constant file
+names (e.g. `cert.pem`).
+
+##### Renewal (automated)
+
+The `certbot` package installs a service and a timer to
+renew certificates every 30 days, trying 2x daily:
+
+```
+# systemctl status certbot.timer 
+● certbot.timer - Run certbot twice daily
+     Loaded: loaded (/lib/systemd/system/certbot.timer; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2023-04-16 13:42:11 CEST; 2s ago
+    Trigger: n/a
+   Triggers: ● certbot.service
+
+Apr 16 13:42:11 lexicon systemd[1]: Stopped Run certbot twice daily.
+Apr 16 13:42:11 lexicon systemd[1]: Stopping Run certbot twice daily...
+Apr 16 13:42:11 lexicon systemd[1]: Started Run certbot twice daily.
+
+# systemctl status certbot.service 
+● certbot.service - Certbot
+     Loaded: loaded (/lib/systemd/system/certbot.service; static)
+     Active: activating (start) since Sun 2023-04-16 13:42:11 CEST; 10s ago
+TriggeredBy: ● certbot.timer
+       Docs: file:///usr/share/doc/python-certbot-doc/html/index.html
+             https://certbot.eff.org/docs
+   Main PID: 2015732 (certbot)
+      Tasks: 1 (limit: 37940)
+     Memory: 32.2M
+        CPU: 256ms
+     CGroup: /system.slice/certbot.service
+             └─2015732 /usr/bin/python3 /usr/bin/certbot -q renew
+
+Apr 16 13:42:11 lexicon systemd[1]: Starting Certbot...
+```
+
+For this to work long-term, the external port 80 must be
+forwarded to the hosts’ IP.
+If this forward is removed at some point (e.g. forwarded
+to another IP), the renewal will fail:
+
+```
+# systemctl status certbot.service 
+× certbot.service - Certbot
+     Loaded: loaded (/lib/systemd/system/certbot.service; static)
+     Active: failed (Result: exit-code) since Sun 2023-04-16 04:53:14 CEST; 8h ago
+TriggeredBy: ● certbot.timer
+       Docs: file:///usr/share/doc/python-certbot-doc/html/index.html
+             https://certbot.eff.org/docs
+    Process: 279698 ExecStart=/usr/bin/certbot -q renew (code=exited, status=1/FAILURE)
+   Main PID: 279698 (code=exited, status=1/FAILURE)
+        CPU: 632ms
+
+Apr 16 04:50:22 lexicon systemd[1]: Starting Certbot...
+Apr 16 04:53:14 lexicon certbot[279698]: Failed to renew certificate ssl.uu.am with error: Some challenges have>
+Apr 16 04:53:14 lexicon certbot[279698]: All renewals failed. The following certificates could not be renewed:
+Apr 16 04:53:14 lexicon certbot[279698]:   /etc/letsencrypt/live/ssl.uu.am/fullchain.pem (failure)
+Apr 16 04:53:14 lexicon certbot[279698]: 1 renew failure(s), 0 parse failure(s)
+Apr 16 04:53:14 lexicon systemd[1]: certbot.service: Main process exited, code=exited, status=1/FAILURE
+Apr 16 04:53:14 lexicon systemd[1]: certbot.service: Failed with result 'exit-code'.
+Apr 16 04:53:14 lexicon systemd[1]: Failed to start Certbot.
+```
+
+To fix this, restore the port forwarding and
+**restart the timer** (not the service):
+
+```
+# systemctl restart certbot.timer 
+# systemctl status certbot.timer 
+● certbot.timer - Run certbot twice daily
+     Loaded: loaded (/lib/systemd/system/certbot.timer; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2023-04-16 13:42:11 CEST; 2s ago
+    Trigger: n/a
+   Triggers: ● certbot.service
+```
+
+After a while (random delay under 10 minutes) there should be a lot of activity logged in
+`/var/log/letsencrypt/letsencrypt.log`
+ending with
+
+```
+2023-04-16 13:49:44,607:DEBUG:certbot._internal.renewal:no renewal failures
+```
+
+#### Kubernetes setup
+
+Having a successful setup to
+[Enable HTTPS with Let's Encrypt](#https-with-lets-encrypt),
+the question is how to set up Nginx reverse proxy.
+
+We have an [Ingress Controller](#ingress-controller)
+already configured with a MetalLB IP 192.168.0.122
+listening on ports 80 and 443. We can forward external port
+443 to this IP so we have the same page/s on (not yet
+secure)
+[https://192.168.0.121/](https://192.168.0.121/)
+and
+[https://ssl.uu.am/](https://ssl.uu.am/)
+(just Nginx 404 now).
+
+Need to make 2 big changes to the Nginx controller:
+
+1. [Install Let’s Encrypt certificate as a secret](#install-lets-encrypt-certificate-as-a-secret)
+1. [Add Ingress for Gitea](#add-ingress-for-gitea)
+
+##### Install Let’s Encrypt certificate as a secret
+
+Need to add a secret in the `ingress-nginx` namespace with
+the Let’s Encrypt certificate. Otherwise,
+if nothing else is found, Nginx will use the default
+"Kubernetes Ingress Controller Fake Certificate".
+
+How to add the certificate as a secret?
+
+[How to Install Kubernetes Cert-Manager and Configure Let’s Encrypt](https://www.howtogeek.com/devops/how-to-install-kubernetes-cert-manager-and-configure-lets-encrypt/)
+is based on
+[Securing NGINX-ingress](https://cert-manager.io/v1.3-docs/tutorials/acme/ingress/)
+which we could follow starting from
+[Step 5 - Deploy Cert Manager](https://cert-manager.io/v1.3-docs/tutorials/acme/ingress/#step-5---deploy-cert-manager)
+by installing directly in
+[Kubernetes](https://cert-manager.io/v1.3-docs/installation/kubernetes/)
+(with or without Helm).
+Install the latest version of cert-manager using Helm:
+
+```
+$ helm repo add jetstack https://charts.jetstack.io
+$ helm repo update
+$ helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.11.0 \
+  --set installCRDs=true
+NAME: cert-manager
+LAST DEPLOYED: Sun Apr 16 15:25:25 2023
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.11.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+
+$ kubectl get all -n cert-manager
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/cert-manager-64f9f45d6f-qx4hs              1/1     Running   0          4m29s
+pod/cert-manager-cainjector-56bbdd5c47-ltjgx   1/1     Running   0          4m29s
+pod/cert-manager-webhook-d4f4545d7-tf4l6       1/1     Running   0          4m29s
+
+NAME                           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/cert-manager           ClusterIP   10.110.150.206   <none>        9402/TCP   4m29s
+service/cert-manager-webhook   ClusterIP   10.107.245.49    <none>        443/TCP    4m29s
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cert-manager              1/1     1            1           4m29s
+deployment.apps/cert-manager-cainjector   1/1     1            1           4m29s
+deployment.apps/cert-manager-webhook      1/1     1            1           4m29s
+
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/cert-manager-64f9f45d6f              1         1         1       4m29s
+replicaset.apps/cert-manager-cainjector-56bbdd5c47   1         1         1       4m29s
+replicaset.apps/cert-manager-webhook-d4f4545d7       1         1         1       4m29s
+```
+
+Everything seems to be running fine, but just in case
+[verify the installation](https://cert-manager.io/v1.3-docs/installation/kubernetes/#verifying-the-installation)
+by creating a test cert.
+
+Assuming that works,
+[install the Kubectl plugin](https://cert-manager.io/v1.3-docs/usage/kubectl-plugin/);
+get the latest release from
+[github.com/cert-manager/cert-manager](https://github.com/cert-manager/cert-manager/releases/)
+to match the Helm chart installed.
+
+```
+$ curl -L -o kubectl-cert-manager.tar.gz \
+  https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/kubectl-cert_manager-linux-amd64.tar.gz
+$ tar xfz kubectl-cert-manager.tar.gz 
+$ sudo install -m 755 kubectl-cert_manager /usr/local/bin/
+$ kubectl cert-manager check api
+The cert-manager API is ready
+```
+
+Create a `ClusterIssuer` which applies across all Ingress
+resources in the cluster, by deploying the following
+`cert-manager-issuer.yml`
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: root@uu.ma
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+```
+
+```
+$ kubectl create -f cert-manager-issuer.yml
+clusterissuer.cert-manager.io/letsencrypt-prod created
+$ kubectl describe clusterissuer.cert-manager.io/letsencrypt-prod
+Name:         letsencrypt-prod
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         ClusterIssuer
+Metadata:
+  Creation Timestamp:  2023-04-16T14:11:19Z
+  Generation:          1
+  Resource Version:    3171554
+  UID:                 2176e44f-421a-498c-935b-34e71a21cae1
+Spec:
+  Acme:
+    Email:            root@uu.ma
+    Preferred Chain:  
+    Private Key Secret Ref:
+      Name:  letsencrypt-prod
+    Server:  https://acme-v02.api.letsencrypt.org/directory
+    Solvers:
+      http01:
+        Ingress:
+          Class:  nginx
+Status:
+  Acme:
+    Last Registered Email:  root@uu.ma
+    Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/1063900577
+  Conditions:
+    Last Transition Time:  2023-04-16T14:11:20Z
+    Message:               The ACME account was registered with the ACME server
+    Observed Generation:   1
+    Reason:                ACMEAccountRegistered
+    Status:                True
+    Type:                  Ready
+```
+
+##### Add Ingress for the first pod
+
+Now that we have `cert-manager` running in the cluster,
+lets see how to update Ingress resources to request a
+production certificate. Do this by changing the value
+of the `cert-manager.io/cluster-issuer` annotation to
+`letsencrypt-prod` (the `ClusterIssuer` above).
+
+The example that follows shows the *rather bumpy*
+journe of adding HTTPS to a pod running Gitea.
+
+One way to do this would be using kubectl to apply the
+change in Gitea's own Ingress (`vi gitea-ingress.yml`):
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "git.ssl.uu.am"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea-http
+                port:
+                  number: 3000
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - "git.ssl.uu.am"
+```
+```
+$ kubectl -n gitea apply -f gitea-ingress.yml
+```
+
+Better yet, it should be possible to incorporate this
+into values passed to the Gitea Helm chart, applying
+the changes to `gitea-values.yaml` as follows:
+
+```yaml
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: git.ssl.uu.am
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - "git.ssl.uu.am"
+```
+
+```
+$ helm install gitea gitea-charts/gitea \
+  --create-namespace \
+  --namespace=gitea \
+  --values=gitea-values.yaml \
+  --dry-run --debug
+# Source: gitea/templates/gitea/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea
+  labels:
+    helm.sh/chart: gitea-8.1.0
+    app: gitea
+    app.kubernetes.io/name: gitea
+    app.kubernetes.io/instance: gitea
+    app.kubernetes.io/version: "1.19.1"
+    version: "1.19.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+    - host: "git.ssl.uu.am"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea-http
+                port:
+                  number: 3000
+
+$ helm install gitea gitea-charts/gitea \
+  --create-namespace \
+  --namespace=gitea \
+  --values=gitea-values.yaml 
+coalesce.go:175: warning: skipped value for memcached.initContainers: Not a table.
+NAME: gitea
+LAST DEPLOYED: Sun Apr 16 16:32:07 2023
+NAMESPACE: gitea
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  http://git.ssl.uu.am/
+
+$ kubectl get ingress -A
+NAMESPACE   NAME    CLASS    HOSTS                ADDRESS    PORTS   AGE
+gitea       gitea   <none>   git.ssl.uu.am   10.0.0.6   80      20m
+
+$ kubectl get all -n gitea
+NAME                                   READY   STATUS    RESTARTS   AGE
+pod/gitea-0                            1/1     Running   0          10m
+pod/gitea-memcached-6559f55668-s8nl6   1/1     Running   0          10m
+pod/gitea-postgresql-0                 1/1     Running   0          10m
+
+NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/gitea-http            NodePort    10.100.158.203   <none>        3000:30080/TCP   10m
+service/gitea-memcached       ClusterIP   10.111.252.194   <none>        11211/TCP        10m
+service/gitea-postgresql      ClusterIP   10.96.77.223     <none>        5432/TCP         10m
+service/gitea-postgresql-hl   ClusterIP   None             <none>        5432/TCP         10m
+service/gitea-ssh             NodePort    10.105.190.218   <none>        22:30022/TCP     10m
+
+NAME                              READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/gitea-memcached   1/1     1            1           10m
+
+NAME                                         DESIRED   CURRENT   READY   AGE
+replicaset.apps/gitea-memcached-6559f55668   1         1         1       10m
+
+NAME                                READY   AGE
+statefulset.apps/gitea              1/1     10m
+statefulset.apps/gitea-postgresql   1/1     10m
+```
+
+This doesn’t work: Ingress gitea doesn’t have a class
+and points to port 80 (wrong, should be 3000) Nginx on
+(external and node’s) port 443 hasn’t changed
+(404 Not Found, fake cert).
+
+Maybe the way to use this is to have Nginx
+(somewhere else) point to this service’s port 80?
+
+While we have Gitea already running,
+we can try using kubectl to apply this change to
+`gitea-ingress.yml`:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "git.ssl.uu.am"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea-http
+                port:
+                  number: 3000
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - "git.ssl.uu.am"
+```
+
+But this still doesn't work:
+
+```
+$ kubectl -n gitea apply -f gitea-ingress.yml
+Error from server (BadRequest): error when creating "gitea-ingress.yml": admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: host "git.ssl.uu.am" and path "/" is already defined in ingress gitea/gitea
+```
+
+So we have to not try to add this directly to the Helm
+chart, to avoid this conflict. Once that’s removed,
+and Gitea reinstall (w/ Helm), we’re back at having an
+Ingress entity jus like the one above:
+
+```
+$ kubectl get ingress -A
+NAMESPACE   NAME            CLASS   HOSTS                ADDRESS    PORTS   AGE
+gitea       gitea-ingress   nginx   git.ssl.uu.am   10.0.0.6   80      56m
+```
+
+**Note:** creating `gitea-ingress` in the
+`ingress-nginx` namespace won’t work because then
+Nginx can’t find the gitea-http service, resulting in
+HTTP 503 error at
+[https://git.ssl.uu.am](https://git.ssl.uu.am/)
+
+```
+W0416 15:55:11.088261       7 controller.go:1044] Error obtaining Endpoints for Service "ingress-nginx/gitea-http": no object matching key "ingress-nginx/gitea-http" in local store
+```
+
+At this point it should be possible to hit the
+external IP on port 443, which is forwarded to the
+MetalLB IP, and get the Gitea home page at
+[https://git.ssl.uu.am](https://git.ssl.uu.am/)
+
+That partially works: we get to the Gitea service,
+but still use the fake cert.
+
+```
+$ kubectl -n ingress-nginx get pods | grep ingress-nginx-controller
+ingress-nginx-controller-6b58ffdc97-rt5lm   1/1     Running     1 (4d12h ago)   14d
+
+$ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | tail -10
+2023/04/16 16:08:53 [crit] 4655#4655: *6295724 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
+10.244.0.1 - - [16/Apr/2023:16:49:42 +0000] "GET / HTTP/2.0" 200 13744 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36" 464 0.004 [gitea-gitea-http-3000] [] 10.244.0.252:3000 13757 0.003 200 1df33130aa3f23144c62d7eb91650dcc
+```
+
+Not sure whether the SSL error there is caused by,
+or causing, the use of the fake cert.
+
+```
+$ kubectl -n gitea describe ingress gitea-ingress
+Name:             gitea-ingress
+Labels:           <none>
+Namespace:        gitea
+Address:          10.0.0.6
+Ingress Class:    nginx
+Default backend:  <default>
+Rules:
+  Host                Path  Backends
+  ----                ----  --------
+  git.ssl.uu.am  
+                      /   gitea-http:3000 (10.244.0.252:3000)
+Annotations:          cert-manager.io/cluster-issuer: letsencrypt-prod
+Events:               <none>
+```
+
+[docs.bitnami.com/kubernetes/.../secure-ingress-resources](https://docs.bitnami.com/kubernetes/infrastructure/cert-manager/configuration/secure-ingress-resources/)
+looks like perhaps the cert-manager.io/cluster-issuer:
+`letsencrypt-prod` annotation needs to go in the
+ingress.class instead of each ingress resource
+
+At this point, we the annotation to `nginx-ingress-controller-deploy.yaml` under line 601,
+and check the diff and apply:
+
+```yaml
+  kind: IngressClass
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+```
+
+```
+$ kubectl diff -f nginx-ingress-controller-deploy.yaml 
+...
+ kind: IngressClass
+ metadata:
+   annotations:
++    cert-manager.io/cluster-issuer: letsencrypt-prod
+...
+
+$ kubectl apply -f nginx-ingress-controller-deploy.yaml
+$ kubectl -n ingress-nginx describe ingressclass.networking.k8s.io/nginx
+Name:         nginx
+Labels:       app.kubernetes.io/component=controller
+              app.kubernetes.io/instance=ingress-nginx
+              app.kubernetes.io/name=ingress-nginx
+              app.kubernetes.io/part-of=ingress-nginx
+              app.kubernetes.io/version=1.7.0
+Annotations:  cert-manager.io/cluster-issuer: letsencrypt-prod
+Controller:   k8s.io/ingress-nginx
+Events:       <none>
+```
+
+That doesn’t seem to make any difference, so we keep looking and find out we’re missing the tls section in `gitea-ingress.yml` which turned to be important:
+
+```yaml
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - "git.ssl.uu.am"
+```
+
+```
+$ kubectl -n gitea apply -f gitea/gitea-ingress.yml 
+ingress.networking.k8s.io/gitea-ingress configured
+
+$ kubectl -n gitea describe ingress gitea-ingress
+Name:             gitea-ingress
+Labels:           <none>
+Namespace:        gitea
+Address:          10.0.0.6
+Ingress Class:    nginx
+Default backend:  <default>
+TLS:
+  tls-secret terminates git.ssl.uu.am
+Rules:
+  Host                Path  Backends
+  ----                ----  --------
+  git.ssl.uu.am
+                      /   gitea-http:3000 (10.244.0.252:3000)
+Annotations:          cert-manager.io/cluster-issuer: letsencrypt-prod
+Events:
+  Type    Reason             Age                 From                       Message
+  ----    ------             ----                ----                       -------
+  Normal  Sync               3s (x3 over 3h17m)  nginx-ingress-controller   Scheduled for sync
+  Normal  CreateCertificate  3s                  cert-manager-ingress-shim  Successfully created Certificate "tls-secret"
+```
+
+We still get the fake cert on
+[https://git.ssl.uu.am](https://git.ssl.uu.am/)
+(and it’s not the browser caching it).
+
+The ingress controller is complaining that it can’t
+find those tls-secret
+
+```
+$ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | egrep -i 'ssl.*cert|ssl.*hand' | grep -v gitlab
+I0412 04:07:33.044575       7 main.go:104] "SSL fake certificate created" file="/etc/ingress-controller/ssl/default-fake-certificate.pem"
+I0412 04:07:33.075730       7 ssl.go:533] "loading tls certificate" path="/usr/local/certificates/cert" key="/usr/local/certificates/key"
+2023/04/16 12:41:20 [crit] 3974#3974: *6093931 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
+2023/04/16 15:12:03 [crit] 4112#4112: *6240379 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
+2023/04/16 16:08:53 [crit] 4655#4655: *6295724 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
+W0416 19:13:29.051149       7 controller.go:1372] Error getting SSL certificate "gitea/tls-secret": local SSL certificate gitea/tls-secret was not found. Using default certificate
+W0416 19:13:29.088408       7 backend_ssl.go:47] Error obtaining X.509 certificate: no object matching key "gitea/tls-secret" in local store
+...
+W0416 19:20:05.541182       7 controller.go:1372] Error getting SSL certificate "kubernetes-dashboard/tls-secret": local SSL certificate kubernetes-dashboard/tls-secret was not found. Using default certificate
+W0416 19:20:05.573367       7 backend_ssl.go:47] Error obtaining X.509 certificate: no object matching key "kubernetes-dashboard/tls-secret" in local store
+```
+
+The secrets do exist, do they not contain valid
+certificates?
+
+```
+$ kubectl -n gitea describe cert
+Name:         tls-secret
+Namespace:    gitea
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         Certificate
+Metadata:
+  Creation Timestamp:  2023-04-16T19:13:29Z
+  Generation:          1
+  Owner References:
+    API Version:           networking.k8s.io/v1
+    Block Owner Deletion:  true
+    Controller:            true
+    Kind:                  Ingress
+    Name:                  gitea-ingress
+    UID:                   6e4dfaeb-23d8-4a24-906e-c457431f14e5
+  Resource Version:        3200901
+  UID:                     cb10b560-974f-4533-9eff-c5ff1a8d3933
+Spec:
+  Dns Names:
+    git.ssl.uu.am
+  Issuer Ref:
+    Group:      cert-manager.io
+    Kind:       ClusterIssuer
+    Name:       letsencrypt-prod
+  Secret Name:  tls-secret
+  Usages:
+    digital signature
+    key encipherment
+Status:
+  Conditions:
+    Last Transition Time:        2023-04-16T19:13:29Z
+    Message:                     Issuing certificate as Secret does not exist
+    Observed Generation:         1
+    Reason:                      DoesNotExist
+    Status:                      True
+    Type:                        Issuing
+    Last Transition Time:        2023-04-16T19:13:29Z
+    Message:                     Issuing certificate as Secret does not exist
+    Observed Generation:         1
+    Reason:                      DoesNotExist
+    Status:                      False
+    Type:                        Ready
+  Next Private Key Secret Name:  tls-secret-84npl
+Events:
+  Type    Reason     Age   From                                       Message
+  ----    ------     ----  ----                                       -------
+  Normal  Issuing    12m   cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+  Normal  Generated  12m   cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "tls-secret-84npl"
+  Normal  Requested  12m   cert-manager-certificates-request-manager  Created new CertificateRequest resource "tls-secret-hm94m"
+
+$ kubectl -n kubernetes-dashboard describe cert
+Name:         tls-secret
+Namespace:    kubernetes-dashboard
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         Certificate
+Metadata:
+  Creation Timestamp:  2023-04-16T19:20:05Z
+  Generation:          1
+  Owner References:
+    API Version:           networking.k8s.io/v1
+    Block Owner Deletion:  true
+    Controller:            true
+    Kind:                  Ingress
+    Name:                  kubernetes-dashboard-ingress
+    UID:                   dd2d357c-6558-41fd-bb0c-5b7eb4dc36d5
+  Resource Version:        3201584
+  UID:                     09f28e55-bbfd-4b0b-a171-80502fa8c88b
+Spec:
+  Dns Names:
+    k8s.ssl.uu.am
+  Issuer Ref:
+    Group:      cert-manager.io
+    Kind:       ClusterIssuer
+    Name:       letsencrypt-prod
+  Secret Name:  tls-secret
+  Usages:
+    digital signature
+    key encipherment
+Status:
+  Conditions:
+    Last Transition Time:        2023-04-16T19:20:05Z
+    Message:                     Issuing certificate as Secret does not exist
+    Observed Generation:         1
+    Reason:                      DoesNotExist
+    Status:                      True
+    Type:                        Issuing
+    Last Transition Time:        2023-04-16T19:20:05Z
+    Message:                     Issuing certificate as Secret does not exist
+    Observed Generation:         1
+    Reason:                      DoesNotExist
+    Status:                      False
+    Type:                        Ready
+  Next Private Key Secret Name:  tls-secret-dbggr
+Events:
+  Type    Reason     Age   From                                       Message
+  ----    ------     ----  ----                                       -------
+  Normal  Issuing    6m    cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+  Normal  Generated  6m    cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "tls-secret-dbggr"
+  Normal  Requested  6m    cert-manager-certificates-request-manager  Created new CertificateRequest resource "tls-secret-8w9rt"
+```
+
+Looking at
+[Issuer not found #3066](https://github.com/cert-manager/cert-manager/discussions/3066),
+it seems we have in-flight orders for certificates,
+but are still waiting to receive them:
+
+```
+$ kubectl -n gitea describe CertificateRequest tls-secret-hm94m
+Name:         tls-secret-hm94m
+Namespace:    gitea
+Labels:       <none>
+Annotations:  cert-manager.io/certificate-name: tls-secret
+              cert-manager.io/certificate-revision: 1
+              cert-manager.io/private-key-secret-name: tls-secret-84npl
+API Version:  cert-manager.io/v1
+Kind:         CertificateRequest
+Metadata:
+  Creation Timestamp:  2023-04-16T19:13:29Z
+  Generate Name:       tls-secret-
+  Generation:          1
+  Owner References:
+    API Version:           cert-manager.io/v1
+    Block Owner Deletion:  true
+    Controller:            true
+    Kind:                  Certificate
+    Name:                  tls-secret
+    UID:                   cb10b560-974f-4533-9eff-c5ff1a8d3933
+  Resource Version:        3200917
+  UID:                     bb31c94f-fd83-4f62-9edc-5de1cc883b0a
+Spec:
+  Extra:
+    authentication.kubernetes.io/pod-name:
+      cert-manager-64f9f45d6f-qx4hs
+    authentication.kubernetes.io/pod-uid:
+      75a75d95-2318-4fc2-a3fa-0be649a24a31
+  Groups:
+    system:serviceaccounts
+    system:serviceaccounts:cert-manager
+    system:authenticated
+  Issuer Ref:
+    Group:  cert-manager.io
+    Kind:   ClusterIssuer
+    Name:   letsencrypt-prod
+  Request:  …S0K
+  UID:      088d0ec3-f284-4387-893c-e4a0eaa223e9
+  Usages:
+    digital signature
+    key encipherment
+  Username:  system:serviceaccount:cert-manager:cert-manager
+Status:
+  Conditions:
+    Last Transition Time:  2023-04-16T19:13:29Z
+    Message:               Certificate request has been approved by cert-manager.io
+    Reason:                cert-manager.io
+    Status:                True
+    Type:                  Approved
+    Last Transition Time:  2023-04-16T19:13:29Z
+    Message:               Waiting on certificate issuance from order gitea/tls-secret-hm94m-3966586170: "pending"
+    Reason:                Pending
+    Status:                False
+    Type:                  Ready
+Events:
+  Type    Reason              Age   From                                                Message
+  ----    ------              ----  ----                                                -------
+  Normal  WaitingForApproval  19m   cert-manager-certificaterequests-issuer-vault       Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  19m   cert-manager-certificaterequests-issuer-selfsigned  Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  19m   cert-manager-certificaterequests-issuer-venafi      Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  19m   cert-manager-certificaterequests-issuer-acme        Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  19m   cert-manager-certificaterequests-issuer-ca          Not signing CertificateRequest until it is Approved
+  Normal  cert-manager.io     19m   cert-manager-certificaterequests-approver           Certificate request has been approved by cert-manager.io
+  Normal  OrderCreated        19m   cert-manager-certificaterequests-issuer-acme        Created Order resource gitea/tls-secret-hm94m-3966586170
+
+$ kubectl -n kubernetes-dashboard describe CertificateRequest tls-secret-8w9rt
+Name:         tls-secret-8w9rt
+Namespace:    kubernetes-dashboard
+Labels:       <none>
+Annotations:  cert-manager.io/certificate-name: tls-secret
+              cert-manager.io/certificate-revision: 1
+              cert-manager.io/private-key-secret-name: tls-secret-dbggr
+API Version:  cert-manager.io/v1
+Kind:         CertificateRequest
+Metadata:
+  Creation Timestamp:  2023-04-16T19:20:05Z
+  Generate Name:       tls-secret-
+  Generation:          1
+  Owner References:
+    API Version:           cert-manager.io/v1
+    Block Owner Deletion:  true
+    Controller:            true
+    Kind:                  Certificate
+    Name:                  tls-secret
+    UID:                   09f28e55-bbfd-4b0b-a171-80502fa8c88b
+  Resource Version:        3201600
+  UID:                     37fe511f-f278-4145-84f4-22d54a08f23b
+Spec:
+  Extra:
+    authentication.kubernetes.io/pod-name:
+      cert-manager-64f9f45d6f-qx4hs
+    authentication.kubernetes.io/pod-uid:
+      75a75d95-2318-4fc2-a3fa-0be649a24a31
+  Groups:
+    system:serviceaccounts
+    system:serviceaccounts:cert-manager
+    system:authenticated
+  Issuer Ref:
+    Group:  cert-manager.io
+    Kind:   ClusterIssuer
+    Name:   letsencrypt-prod
+  Request:  …S0K
+  UID:      088d0ec3-f284-4387-893c-e4a0eaa223e9
+  Usages:
+    digital signature
+    key encipherment
+  Username:  system:serviceaccount:cert-manager:cert-manager
+Status:
+  Conditions:
+    Last Transition Time:  2023-04-16T19:20:05Z
+    Message:               Certificate request has been approved by cert-manager.io
+    Reason:                cert-manager.io
+    Status:                True
+    Type:                  Approved
+    Last Transition Time:  2023-04-16T19:20:05Z
+    Message:               Waiting on certificate issuance from order kubernetes-dashboard/tls-secret-8w9rt-548771682: "pending"
+    Reason:                Pending
+    Status:                False
+    Type:                  Ready
+Events:
+  Type    Reason              Age   From                                                Message
+  ----    ------              ----  ----                                                -------
+  Normal  WaitingForApproval  13m   cert-manager-certificaterequests-issuer-ca          Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  13m   cert-manager-certificaterequests-issuer-acme        Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  13m   cert-manager-certificaterequests-issuer-selfsigned  Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  13m   cert-manager-certificaterequests-issuer-vault       Not signing CertificateRequest until it is Approved
+  Normal  WaitingForApproval  13m   cert-manager-certificaterequests-issuer-venafi      Not signing CertificateRequest until it is Approved
+  Normal  cert-manager.io     13m   cert-manager-certificaterequests-approver           Certificate request has been approved by cert-manager.io
+  Normal  OrderCreated        13m   cert-manager-certificaterequests-issuer-acme        Created Order resource kubernetes-dashboard/tls-secret-8w9rt-548771682
+  Normal  OrderPending        13m   cert-manager-certificaterequests-issuer-acme        Waiting on certificate issuance from order kubernetes-dashboard/tls-secret-8w9rt-548771682: ""
+
+$ kubectl describe clusterissuer letsencrypt-prod
+Name:         letsencrypt-prod
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         ClusterIssuer
+Metadata:
+  Creation Timestamp:  2023-04-16T14:11:19Z
+  Generation:          1
+  Resource Version:    3171554
+  UID:                 2176e44f-421a-498c-935b-34e71a21cae1
+Spec:
+  Acme:
+    Email:            root@uu.am
+    Preferred Chain:  
+    Private Key Secret Ref:
+      Name:  letsencrypt-prod
+    Server:  https://acme-v02.api.letsencrypt.org/directory
+    Solvers:
+      http01:
+        Ingress:
+          Class:  nginx
+Status:
+  Acme:
+    Last Registered Email:  root@uu.am
+    Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/1063900577
+  Conditions:
+    Last Transition Time:  2023-04-16T14:11:20Z
+    Message:               The ACME account was registered with the ACME server
+    Observed Generation:   1
+    Reason:                ACMEAccountRegistered
+    Status:                True
+    Type:                  Ready
+Events:                    <none>
+```
+
+The orders are pending, possibly because the self-check / challenge is failing due to incomplete network setup, i.e. not enough port forwardings:
+
+```
+$ kubectl -n gitea get order tls-secret-hm94m-3966586170
+NAME                          STATE     AGE
+tls-secret-hm94m-3966586170   pending   31m
+$ kubectl -n kubernetes-dashboard get order tls-secret-8w9rt-548771682
+NAME                         STATE     AGE
+tls-secret-8w9rt-548771682   pending   24m
+```
+
+[Troubleshooting Orders](https://cert-manager.io/docs/troubleshooting/acme/#2-troubleshooting-orders)
+shows how to find the orders, their challenges and
+why they are failing:
+
+```
+$ kubectl -n gitea describe order tls-secret-hm94m-3966586170 | tail -4
+Events:
+  Type    Reason   Age   From                 Message
+  ----    ------   ----  ----                 -------
+  Normal  Created  34m   cert-manager-orders  Created Challenge resource "tls-secret-hm94m-3966586170-1941395475" for domain "git.ssl.uu.am"
+$ kubectl -n gitea describe challenge tls-secret-hm94m-3966586170-1941395475 | grep Reason:
+  Reason:      Waiting for HTTP-01 challenge propagation: failed to perform self check GET request 'http://git.ssl.uu.am/.well-known/acme-challenge/cw9i3YCPZQmQXrofkEt4inKYr5x3fEc9wJ6R2ydpeAg': Get "http://git.ssl.uu.am/.well-known/acme-challenge/cw9i3YCPZQmQXrofkEt4inKYr5x3fEc9wJ6R2ydpeAg": dial tcp 217.162.57.64:80: connect: connection refused
+
+$ kubectl -n kubernetes-dashboard describe order tls-secret-8w9rt-548771682 | tail -4
+Events:
+  Type    Reason   Age   From                 Message
+  ----    ------   ----  ----                 -------
+  Normal  Created  28m   cert-manager-orders  Created Challenge resource "tls-secret-8w9rt-548771682-3606431526" for domain "k8s.ssl.uu.am"
+$ kubectl -n kubernetes-dashboard describe challenge tls-secret-8w9rt-548771682-3606431526 |grep Reason:
+  Reason:      Waiting for HTTP-01 challenge propagation: failed to perform self check GET request 'http://k8s.ssl.uu.am/.well-known/acme-challenge/Eu-aIJIbu4gRAqgRW2ZcPpGyVk9ZmIBFy23zDQNr14s': Get "http://k8s.ssl.uu.am/.well-known/acme-challenge/Eu-aIJIbu4gRAqgRW2ZcPpGyVk9ZmIBFy23zDQNr14s": dial tcp 217.162.57.64:80: connect: connection refused
+```
+
+The question is where to redirect that port 80 to;
+currently it points to the node’s port 80.
+Before trying to sort out that port 80 forwarding,
+[HTTP01 troubleshooting](https://cert-manager.io/docs/troubleshooting/acme/#http01-troubleshooting)
+looks like we want to add 2 more annotations to the
+Ingress resources in `gitea-ingress.yml` and
+`kubernetes-dashboard-ingress.yaml`:
+
+```yaml
+cert-manager.io/issue-temporary-certificate: "true"
+acme.cert-manager.io/http01-edit-in-place: "true"
+```
+
+Add these and re-apply:
+
+```
+$ kubectl -n kubernetes-dashboard apply -f  dashboard/kubernetes-dashboard-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+
+$ kubectl -n gitea apply -f gitea-ingress.yml 
+ingress.networking.k8s.io/gitea-ingress configured
+```
+
+That doesn’t help, at least not immediately,
+so **let’s sort out that port forwarding**: 
+the trick is to find each acme resolver and forward
+external port 80 to its `NodePort`:
+
+```
+$ kubectl -n gitea get svc | grep acme
+cm-acme-http-solver-wmmvk   NodePort    10.103.37.86     <none>        8089:31544/TCP   51m
+```
+
+More generally, for other cert managers:
+
+```
+$ kubectl get svc -A | grep acme
+code-server              cm-acme-http-solver-8n9ks                               NodePort       10.101.32.112    <none>          8089:32220/TCP                                                                                  3d19h
+kubernetes-dashboard     cm-acme-http-solver-b8l2x                               NodePort       10.100.2.141     <none>          8089:32328/TCP
+```
+
+After that port was made accessible, the challenge disappears and the order is **completed successfully**:
+
+```
+$ kubectl -n gitea describe order tls-secret-hm94m-3966586170 | tail -4
+  Type    Reason    Age   From                 Message
+  ----    ------    ----  ----                 -------
+  Normal  Created   54m   cert-manager-orders  Created Challenge resource "tls-secret-hm94m-3966586170-1941395475" for domain "git.ssl.uu.am"
+  Normal  Complete  82s   cert-manager-orders  Order completed successfully
+
+$ kubectl -n gitea describe CertificateRequest tls-secret-hm94m
+Name:         tls-secret-hm94m
+
+Status:
+  Certificate:  LS0…==
+  Conditions:
+    Last Transition Time:  2023-04-16T19:13:29Z
+    Message:               Certificate request has been approved by cert-manager.io
+    Reason:                cert-manager.io
+    Status:                True
+    Type:                  Approved
+    Last Transition Time:  2023-04-16T20:06:31Z
+    Message:               Certificate fetched from issuer successfully
+    Reason:                Issued
+    Status:                True
+    Type:                  Ready
+Events:
+...
+  Normal  CertificateIssued   2m35s  cert-manager-certificaterequests-issuer-acme        Certificate fetched from issuer successfully
+
+$ kubectl -n gitea describe cert
+Name:         tls-secret
+Namespace:    gitea
+...
+Status:
+  Conditions:
+    Last Transition Time:  2023-04-16T20:06:31Z
+    Message:               Certificate is up to date and has not expired
+    Observed Generation:   1
+    Reason:                Ready
+    Status:                True
+    Type:                  Ready
+...
+Events:
+...
+  Normal  Issuing    5m    cert-manager-certificates-issuing          The certificate has been successfully issued
+```
+
+Now we have certificates, and a new problem!
+
+```
+$ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | grep -C1 error:0A00006C:SSL
+10.244.0.1 - - [16/Apr/2023:20:08:27 +0000] "GET / HTTP/1.1" 200 13779 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" 742 0.003 [gitea-gitea-http-3000] [] 10.244.0.252:3000 13757 0.003 200 2ec12a59924906d8edd0900ff547afeb
+2023/04/16 20:08:32 [crit] 5747#5747: *6530552 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
+10.244.0.1 - - [16/Apr/2023:20:10:55 +0000] "GET / HTTP/2.0" 200 36815 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36" 599 0.020 [gitea-gitea-http-3000] [] 10.244.0.252:3000 36828 0.020 200 566dde9f9d34e65ae66f7b1ff4efe1cd
+```
+
+Maybe the only problem was impatience; left alone for a while and it works perfectly now 🙂
+
+##### Add Ingress for Kubernetes Dashboard
+
+Once the above works, we can do the same for the
+[Kubernetes Dashboard](#dashboard):
+
+```
+$ kubectl -n kubernetes-dashboard get svc
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP   10.96.35.216    <none>        8000/TCP        13d
+kubernetes-dashboard        NodePort    10.99.147.241   <none>        443:32000/TCP   13d
+```
+
+Update `kubernetes-dashboard-ingress.yaml` like this:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.244.0.0/16"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "k8s.ssl.uu.am"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard
+                port:
+                  number: 8443
+```
+
+```
+$ kubectl -n kubernetes-dashboard \
+  apply -f kubernetes-dashboard-ingress.yaml 
+ingress.networking.k8s.io/kubernetes-dashboard-ingress created
+
+$ kubectl -n kubernetes-dashboard get ingress
+NAME                           CLASS   HOSTS                ADDRESS    PORTS   AGE
+kubernetes-dashboard-ingress   nginx   k8s.ssl.uu.am   10.0.0.6   80      3m50s
+
+$ kubectl -n kubernetes-dashboard describe ingress/kubernetes-dashboard-ingress
+Name:             kubernetes-dashboard-ingress
+Labels:           <none>
+Namespace:        kubernetes-dashboard
+Address:          10.0.0.6
+Ingress Class:    nginx
+Default backend:  <default>
+TLS:
+  tls-secret terminates k8s.ssl.uu.am
+Rules:
+  Host                Path  Backends
+  ----                ----  --------
+  k8s.ssl.uu.am  
+                      /   kubernetes-dashboard:8443 (10.244.0.82:8443)
+Annotations:          cert-manager.io/cluster-issuer: letsencrypt-prod
+                      nginx.ingress.kubernetes.io/auth-tls-verify-client: false
+                      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+                      nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+Events:
+  Type    Reason             Age                 From                       Message
+  ----    ------             ----                ----                       -------
+  Normal  Sync               16s (x6 over 123m)  nginx-ingress-controller   Scheduled for sync
+  Normal  CreateCertificate  16s                 cert-manager-ingress-shim  Successfully created Certificate "tls-secret"
+
+$ kubectl get all -A -o wide | egrep 10.244.0.82
+kubernetes-dashboard   pod/kubernetes-dashboard-6c7ccbcf87-vwxnt       1/1     Running     1 (4d13h ago)    13d     10.244.0.82    lexicon   <none>           <none>
+```
+
+This does not yet work 100%:
+- [ssl.uu.am:32000](https://ssl.uu.am:32000/#/workloads?namespace=_all) works,
+  port 32000 is forwarded to the correct `NodePort`
+- [k8s.uu.am](https://k8s.uu.am/) redirects there,
+  with an HTTP redirect rule
+- [k8s.ssl.uu.am/](https://k8s.ssl.uu.am/#/workloads?namespace=_all)
+  doesn’t work (HTTP ERROR 400)
+- `k8s.ssl.uu.am` resolves to external IP, where port
+   443 is forwarded to the
+   [MetalLB](#metallb-load-balancer) IP 192.168.0.122
+   for `ingress-nginx-controller`.
+
+Looking at the logs of the Nginx controller, it looks
+like a problem with/in the Cluster internal network:
+
+```
+$ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | tail -2
+2023/04/16 17:26:40 [error] 4790#4790: *6371572 recv() failed (104: Connection reset by peer) while reading upstream, client: 10.244.0.1, server: k8s.ssl.uu.am, request: "GET / HTTP/2.0", upstream: "http://10.244.0.82:8443/", host: "k8s.ssl.uu.am", referrer: "https://www.google.com/"
+10.244.0.1 - - [16/Apr/2023:17:26:40 +0000] "GET / HTTP/2.0" 400 48 "https://www.google.com/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36" 465 0.002 [kubernetes-dashboard-kubernetes-dashboard-443] [] 10.244.0.82:8443 48 0.002 400 c2e45b0dee94255bb284054654b987a4
+```
+
+Tried mapping to port 8443 but still got the same error. The problem was that Nginx was trying to send HTTP requests to an HTTPS endpoint and the solution was to add more annotations in
+`kubernetes-dashboard-ingress.yaml` and re-apply:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.244.0.0/16"
+```
+
+[These additional annotations](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-certificate-authentication)
+might be necessary later,
+but it’s not clear when or why:
+
+```yaml
+    nginx.ingress.kubernetes.io/configuration-snippet: |-
+      proxy_ssl_server_name on;
+      proxy_ssl_name $host;
+```
+
+In the end, what was missing was the `tls` section and
+after troubleshooting challenges, we got it to work.
+
+Finally, we can have [http://k8s.uu.am](http://k8s.uu.am)
+redirect to 
+[k8s.ssl.uu.am](https://k8s.ssl.uu.am/#/workloads?namespace=_all)
+which not only works but is also entirely safe! 🙂
+
+##### Monthly renewal of certificates
+
+A [montly renewal of certificates](#renewal-automated)
+is scheduled for Kubernetes deployments, but then again
+it will create challenges that can't be fulfilled until
+port 80 on the public IP is forwarded to the right
+node port, *one at a time*.
+
+This can be automated by having port 80 on the public
+IP permanently forwarded to the host port 80, which is
+never listening, and then redirecting that port to the
+node port for each `acme` resolver, one at a time.
+
+To find **all** `acme` resolvers:
+
+```
+$ kubectl get svc -A | grep acme
+code-server              cm-acme-http-solver-8n9ks                               NodePort       10.101.32.112    <none>          8089:32220/TCP                                                                                  3d19h
+kubernetes-dashboard     cm-acme-http-solver-b8l2x                               NodePort       10.100.2.141     <none>          8089:32328/TCP
+```
+
+In this situation, we'd want to forward port 32220 to
+port 80 until the `acme` resolver listening on that
+port is no longer running. Then forward port 32328 to
+port 80 until the `acme` resolver listening on that
+port is no longer running. And so on.
