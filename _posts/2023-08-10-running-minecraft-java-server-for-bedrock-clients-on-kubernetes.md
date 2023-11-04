@@ -395,10 +395,29 @@ and
 script in the [Appendix](#appendix-more-server-commands)
 below.
 
+**Note:** these commands must be run as the user who
+has [the credentials to run `kubectl`]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#bootstrap):
+
 ```
 $ crontab -e
 10  6 * * *   /home/coder/bin/minecraft-start-k8s
 30 22 * * *   /home/coder/bin/minecraft-stop-k8s
+```
+
+### World Reset
+
+If at some point we want to start a new world, it is as
+simple as renaming `/home/k8s/minecraft-server/world`
+to any name when the server is **not running**.
+The next time the server starts, a new 
+`/home/k8s/minecraft-server/world` folder will 
+be created with *a whole new world*.
+
+```
+# /home/coder/bin/minecraft-stop-k8s
+# mv /home/k8s/minecraft-server/world \
+  /home/k8s/minecraft-server/old_world
+# /home/coder/bin/minecraft-start-k8s
 ```
 
 ## Appendix: more server commands
