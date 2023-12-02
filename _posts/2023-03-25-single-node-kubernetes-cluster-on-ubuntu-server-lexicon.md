@@ -2313,7 +2313,7 @@ redirect to
 [k8s.ssl.uu.am](https://k8s.ssl.uu.am/#/workloads?namespace=_all)
 which not only works but is also entirely safe! 🙂
 
-##### Monthly renewal of certificates
+##### Monthly renewal of certificates (manual)
 
 A [montly renewal of certificates](#renewal-automated)
 is scheduled for Kubernetes deployments, but then again
@@ -2339,3 +2339,42 @@ port 80 until the `acme` resolver listening on that
 port is no longer running. Then forward port 32328 to
 port 80 until the `acme` resolver listening on that
 port is no longer running. And so on.
+
+##### Monthly renewal of certificates (automated)
+
+Changing port forwarding on the router is very slow,
+so instead we want to
+[change service ports using patch](https://stackoverflow.com/questions/65789509/kubernetes-how-to-change-service-ports-using-patch)
+on those `cm-acme-http-solver` *services* to change
+their `nodePort` to one the router is *always*
+redirecting port 80 to.
+
+Once the service is patched, the external connection
+reaches the solver pod and the renewal is completed
+very shortly, which then deletes the pod and service.
+
+Running this in a crontab daily should do the job:
+
+```bash
+#!/bin/bash
+#
+# Patch the nodePort of running cert-manager renewal challenge, to listen
+# on port 32080 which is the one the router is forwarding port 80 to.
+
+# Check if there is a LetsEncrypt challenge resolver (acme) running.
+export KUBECONFIG=/etc/kubernetes/admin.conf
+nodeport=$(kubectl get svc -A | grep acme | awk '{print $6}' | cut -f2 -d: | cut -f1 -d/ | head -1)
+namespace=$(kubectl get svc -A | grep acme | awk '{print $1}' | head -1)
+service=$(kubectl get svc -A | grep acme | awk '{print $2}' | head -1)
+
+# Patch the service to listen on port 32080 (set up in router).
+if [ -n "${namespace}" ] && [ -n "${service}" ]; then
+    kubectl -n "${namespace}" patch service "${service}" -p '{"spec":{"ports": [{"port": 8089, "nodePort":32080}]}}'
+fi
+```
+
+```
+# crontab -e
+# Hourly patch montly cert renewal solvers.
+30 * * * * /root/bin/cert-renewal-port-fwd.sh
+```
