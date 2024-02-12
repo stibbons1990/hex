@@ -49,7 +49,7 @@ the chance of needing to read a few files form others.
 ## LUKS
 
 Most of the disk will be encrypted with [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
-an dformatted with `ext4` (no need for `btrfs`).
+and formatted with `ext4` (no need for `btrfs`).
 
 There is no *real* need for a multi-OS setup, we'll just
 create a small 32 GB partition at the start of the disk
@@ -71,8 +71,7 @@ small, so we replace those partitions with new ones so
 that the first one is a generous 32 GB:
 
 ```
-# fdisk /dev/sdf
-...
+# fdisk -l /dev/sdf
 Disk /dev/sdf: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
 Disk model: PSSD T7 Shield  
 Units: sectors of 1 * 512 = 512 bytes
@@ -183,3 +182,200 @@ for Ubuntu 22.04 an install it, then setup up the small
 **Encrypt USB Data Using VeraCrypt**
 section of the same LinuxHint article to
 [Encrypt Data on USB from Linux](https://linuxhint.com/encrypt-data-usb-linux/).
+
+## Follow up: Samsung T5 2TB SSD
+
+
+
+```
+# fdisk /dev/sdf
+
+Welcome to fdisk (util-linux 2.37.2).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): p
+Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors
+Disk model: Portable SSD T5 
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 33553920 bytes
+Disklabel type: dos
+Disk identifier: 0x9dfc017f
+
+Device     Boot Start        End    Sectors  Size Id Type
+/dev/sdf1        2048 3907026112 3907024065  1.8T  7 HPFS/NTFS/exFAT
+
+Command (m for help): l
+
+00 Empty            24 NEC DOS          81 Minix / old Lin  bf Solaris        
+01 FAT12            27 Hidden NTFS Win  82 Linux swap / So  c1 DRDOS/sec (FAT-
+02 XENIX root       39 Plan 9           83 Linux            c4 DRDOS/sec (FAT-
+03 XENIX usr        3c PartitionMagic   84 OS/2 hidden or   c6 DRDOS/sec (FAT-
+04 FAT16 <32M       40 Venix 80286      85 Linux extended   c7 Syrinx         
+05 Extended         41 PPC PReP Boot    86 NTFS volume set  da Non-FS data    
+06 FAT16            42 SFS              87 NTFS volume set  db CP/M / CTOS / .
+07 HPFS/NTFS/exFAT  4d QNX4.x           88 Linux plaintext  de Dell Utility   
+08 AIX              4e QNX4.x 2nd part  8e Linux LVM        df BootIt         
+09 AIX bootable     4f QNX4.x 3rd part  93 Amoeba           e1 DOS access     
+0a OS/2 Boot Manag  50 OnTrack DM       94 Amoeba BBT       e3 DOS R/O        
+0b W95 FAT32        51 OnTrack DM6 Aux  9f BSD/OS           e4 SpeedStor      
+0c W95 FAT32 (LBA)  52 CP/M             a0 IBM Thinkpad hi  ea Linux extended 
+0e W95 FAT16 (LBA)  53 OnTrack DM6 Aux  a5 FreeBSD          eb BeOS fs        
+0f W95 Ext'd (LBA)  54 OnTrackDM6       a6 OpenBSD          ee GPT            
+10 OPUS             55 EZ-Drive         a7 NeXTSTEP         ef EFI (FAT-12/16/
+11 Hidden FAT12     56 Golden Bow       a8 Darwin UFS       f0 Linux/PA-RISC b
+12 Compaq diagnost  5c Priam Edisk      a9 NetBSD           f1 SpeedStor      
+14 Hidden FAT16 <3  61 SpeedStor        ab Darwin boot      f4 SpeedStor      
+16 Hidden FAT16     63 GNU HURD or Sys  af HFS / HFS+       f2 DOS secondary  
+17 Hidden HPFS/NTF  64 Novell Netware   b7 BSDI fs          fb VMware VMFS    
+18 AST SmartSleep   65 Novell Netware   b8 BSDI swap        fc VMware VMKCORE 
+1b Hidden W95 FAT3  70 DiskSecure Mult  bb Boot Wizard hid  fd Linux raid auto
+1c Hidden W95 FAT3  75 PC/IX            bc Acronis FAT32 L  fe LANstep        
+1e Hidden W95 FAT1  80 Old Minix        be Solaris boot     ff BBT            
+
+Aliases:
+   linux          - 83
+   swap           - 82
+   extended       - 05
+   uefi           - EF
+   raid           - FD
+   lvm            - 8E
+   linuxex        - 85
+
+Command (m for help): p
+Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors
+Disk model: Portable SSD T5 
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 33553920 bytes
+Disklabel type: dos
+Disk identifier: 0x9dfc017f
+
+Device     Boot Start        End    Sectors  Size Id Type
+/dev/sdf1        2048 3907026112 3907024065  1.8T  7 HPFS/NTFS/exFAT
+
+Command (m for help): d
+Selected partition 1
+Partition 1 has been deleted.
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (1-4, default 1): 
+First sector (2048-3907029167, default 2048): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-3907029167, default 3907029167): 
+
+Created a new partition 1 of type 'Linux' and of size 1.8 TiB.
+Partition #1 contains a exfat signature.
+
+Do you want to remove the signature? [Y]es/[N]o: Y
+
+The signature will be removed by a write command.
+
+Command (m for help): p
+Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors
+Disk model: Portable SSD T5 
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 33553920 bytes
+Disklabel type: dos
+Disk identifier: 0x9dfc017f
+
+Device     Boot Start        End    Sectors  Size Id Type
+/dev/sdf1        2048 3907029167 3907027120  1.8T 83 Linux
+
+Filesystem/RAID signature on partition 1 will be wiped.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+```
+
+`/dev/sdf`**`1`**
+
+```
+cryptsetup --verbose --verify-passphrase luksFormat /dev/sdf1
+```
+
+
+
+```
+# sudo mkdir /mnt/encrypted
+# sudo mount /dev/mapper/luks /mnt/encrypted
+# sudo touch /mnt/encrypted/file1.txt
+# sudo chown -R `whoami` /mnt/encrypted
+# ls -la /mnt/encrypted
+total 24
+drwxr-xr-x 3 coder root  4096 Nov 27 23:03 .
+drwxr-xr-x 3 root   root  4096 Nov 27 23:02 ..
+-rw-r--r-- 1 coder root     0 Nov 27 23:03 file1.txt
+drwx------ 2 coder root 16384 Nov 27 23:01 lost+found
+```
+
+Once done, umount the filesystem and *close* the
+encrypted disk:
+
+```
+# sudo umount /dev/mapper/luks
+# sudo cryptsetup luksClose luks
+Device luks is still in use.
+
+# umount /dev/mapper/luks
+# cryptsetup luksClose luks
+Device luks is still in use.
+# ls -la /mnt/encrypted
+total 8
+drwxr-xr-x 2 root root 4096 Nov 27 23:02 .
+drwxr-xr-x 3 root root 4096 Nov 27 23:02 ..
+# umount /mnt/encrypted
+umount: /mnt/encrypted: not mounted.
+# cryptsetup luksClose luks
+Device luks is still in use.
+# cryptsetup luksClose luks
+Device luks is still in use.
+```
+
+```
+[47088.440687] EXT4-fs (dm-0): mounted filesystem with ordered data mode. Opts: errors=remount-ro. Quota mode: none.
+
+[47199.602516] usb 4-4: USB disconnect, device number 7
+[47199.616305] sd 10:0:0:0: [sdf] Synchronizing SCSI cache
+[47199.627339] blk_update_request: I/O error, dev sdf, sector 356612464 op 0x1:(WRITE) flags 0x800 phys_seg 1 prio class 0
+[47199.627348] blk_update_request: I/O error, dev sdf, sector 356608368 op 0x1:(WRITE) flags 0x4000 phys_seg 128 prio class 0
+[47199.627352] blk_update_request: I/O error, dev sdf, sector 356609392 op 0x1:(WRITE) flags 0x0 phys_seg 128 prio class 0
+[47199.627381] blk_update_request: I/O error, dev sdf, sector 356610416 op 0x1:(WRITE) flags 0x4000 phys_seg 128 prio class 0
+[47199.627384] blk_update_request: I/O error, dev sdf, sector 356611440 op 0x1:(WRITE) flags 0x0 phys_seg 128 prio class 0
+[47199.737269] sd 10:0:0:0: [sdf] Synchronize Cache(10) failed: Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
+[47202.969163] Aborting journal on device dm-0-8.
+[47202.969184] Buffer I/O error on dev dm-0, logical block 243826688, lost sync page write
+[47202.969194] JBD2: Error -5 detected when updating journal superblock for dm-0-8.
+
+
+[47222.937094] Buffer I/O error on dev dm-0, logical block 20, lost async page write
+[47222.937105] Buffer I/O error on dev dm-0, logical block 21, lost async page write
+
+```
+
+```
+[47343.977469] EXT4-fs (dm-1): recovery complete
+[47343.984397] EXT4-fs (dm-1): mounted filesystem with ordered data mode. Opts: errors=remount-ro. Quota mode: none.
+```
+[58660.961828] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
+[58660.961872] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
+[58660.961882] EXT4-fs (dm-0): I/O error while writing superblock
+[58660.961885] EXT4-fs (dm-0): Remounting filesystem read-only
+[58660.961904] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
+[58660.961924] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
+[58660.961930] EXT4-fs (dm-0): I/O error while writing superblock
+[58666.912824] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
+[58666.912861] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
+[58666.912868] EXT4-fs (dm-0): I/O error while writing superblock
+[58666.912887] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
+[58666.912900] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
+[58666.912904] EXT4-fs (dm-0): I/O error while writing superblock
+
