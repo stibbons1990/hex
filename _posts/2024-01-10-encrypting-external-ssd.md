@@ -185,7 +185,9 @@ section of the same LinuxHint article to
 
 ## Follow up: Samsung T5 2TB SSD
 
-
+After the above setup has been working very well on the new 4TB SSD,
+it was time to apply the same to the old 2TB SSD. In this case,
+there will be only one partition, encrypted with LUKS:
 
 ```
 # fdisk /dev/sdf
@@ -296,15 +298,12 @@ Calling ioctl() to re-read partition table.
 Syncing disks.
 ```
 
-`/dev/sdf`**`1`**
+**Carefully** run the above commands on the new disk,
+making sure to apply the commands to the correct device, e.g.
+**`/dev/sdf1`** (not that `/dev/sdf2` would exist).
 
 ```
-cryptsetup --verbose --verify-passphrase luksFormat /dev/sdf1
-```
-
-
-
-```
+# cryptsetup --verbose --verify-passphrase luksFormat /dev/sdf1
 # sudo mkdir /mnt/encrypted
 # sudo mount /dev/mapper/luks /mnt/encrypted
 # sudo touch /mnt/encrypted/file1.txt
@@ -340,6 +339,10 @@ Device luks is still in use.
 Device luks is still in use.
 ```
 
+At this point something weird happened, the disk went into a
+state were it kept producing `I/O error` messages even though
+it was essentially empty and ummounted.
+
 ```
 [47088.440687] EXT4-fs (dm-0): mounted filesystem with ordered data mode. Opts: errors=remount-ro. Quota mode: none.
 
@@ -354,16 +357,21 @@ Device luks is still in use.
 [47202.969163] Aborting journal on device dm-0-8.
 [47202.969184] Buffer I/O error on dev dm-0, logical block 243826688, lost sync page write
 [47202.969194] JBD2: Error -5 detected when updating journal superblock for dm-0-8.
+```
 
+After waiting a little, unplugged the disk and plugged it again:
 
+```
 [47222.937094] Buffer I/O error on dev dm-0, logical block 20, lost async page write
 [47222.937105] Buffer I/O error on dev dm-0, logical block 21, lost async page write
 
-```
-
-```
 [47343.977469] EXT4-fs (dm-1): recovery complete
 [47343.984397] EXT4-fs (dm-1): mounted filesystem with ordered data mode. Opts: errors=remount-ro. Quota mode: none.
+```
+
+A different spur of errors showed up later, although this was not
+caused by unplugging the disk:
+
 ```
 [58660.961828] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
 [58660.961872] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
@@ -378,4 +386,4 @@ Device luks is still in use.
 [58666.912887] EXT4-fs error (device dm-0): __ext4_find_entry:1682: inode #2: comm winedevice.exe: reading directory lblock 0
 [58666.912900] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
 [58666.912904] EXT4-fs (dm-0): I/O error while writing superblock
-
+```
