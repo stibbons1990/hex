@@ -387,3 +387,17 @@ caused by unplugging the disk:
 [58666.912900] Buffer I/O error on dev dm-0, logical block 0, lost sync page write
 [58666.912904] EXT4-fs (dm-0): I/O error while writing superblock
 ```
+
+## Appendix
+
+Additional sources about the above setup and others to encrypt portable external disks:
+- https://opensource.com/article/21/3/encryption-luks
+- https://www.jwillikers.com/encrypt-an-external-disk-on-linux
+- https://www.wikihow.com/Encrypt-an-External-Hard-Drive-on-Linux
+- https://linux.fernandocejas.com/docs/how-to/encrypt-an-external-hard-drive
+- https://linuxhint.com/encrypt-data-usb-linux/
+- https://superuser.com/questions/1602752/encrypt-an-external-hard-drive-with-readwrite-access-on-both-windows-and-linux
+- https://forums.linuxmint.com/viewtopic.php?t=377430
+- https://theawesomegarage.com/blog/encrypt-external-hard-drives-with-linux
+- https://proton.me/blog/usb-encryption
+- https://linux.tips/tutorials/how-to-encrypt-a-usb-drive-on-linux-operating-system
