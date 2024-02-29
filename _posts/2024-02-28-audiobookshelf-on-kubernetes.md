@@ -50,14 +50,37 @@ persistentvolumeclaim/audiobookshelf-pvc-config created
 persistentvolumeclaim/audiobookshelf-pvc-metadata created
 persistentvolumeclaim/audiobookshelf-pvc-audiobooks created
 persistentvolumeclaim/audiobookshelf-pvc-podcasts created
-service/audiobookshelf-tcp created
 deployment.apps/audiobookshelf created
+service/audiobookshelf created
 ingress.networking.k8s.io/audiobookshelf-ingress created
 
-$ $ kubectl -n audiobookshelf get service
-NAME                        TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-service/audiobookshelf-tcp   NodePort   10.97.42.11   <none>        13378:31378/TCP   51m
+$ kubectl -n audiobookshelf get service
+NAME             TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+audiobookshelf   NodePort   10.102.115.191   <none>        13378:31378/TCP   20s
 cm-acme-http-solver-jh67q   NodePort   10.106.142.67   <none>        8089:30126/TCP    2m39s
+
+$ kubectl -n audiobookshelf describe ingress audiobookshelf-ingress
+Name:             audiobookshelf-ingress
+Labels:           <none>
+Namespace:        audiobookshelf
+Address:          
+Ingress Class:    nginx
+Default backend:  <default>
+TLS:
+  tls-secret terminates aus.ssl.uu.am
+Rules:
+  Host                Path  Backends
+  ----                ----  --------
+  aus.ssl.uu.am  
+                      /   audiobookshelf:31378 (10.244.0.202:13378)
+Annotations:          acme.cert-manager.io/http01-edit-in-place: true
+                      cert-manager.io/cluster-issuer: letsencrypt-prod
+                      cert-manager.io/issue-temporary-certificate: true
+Events:
+  Type    Reason             Age   From                       Message
+  ----    ------             ----  ----                       -------
+  Normal  Sync               26s   nginx-ingress-controller   Scheduled for sync
+  Normal  CreateCertificate  26s   cert-manager-ingress-shim  Successfully created Certificate "tls-secret"
 ```
 
 The server is now available at http://192.168.0.6:31378
@@ -259,7 +282,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: audiobookshelf-tcp
+  name: audiobookshelf
   namespace: audiobookshelf
 spec:
   type: NodePort
