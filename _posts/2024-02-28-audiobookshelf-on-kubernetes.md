@@ -282,17 +282,16 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: audiobookshelf
+  name: audiobookshelf-svc
   namespace: audiobookshelf
 spec:
   type: NodePort
-  ports:                      
-  - port: 13378
+  ports:
+  - port: 13388
     nodePort: 31378
     targetPort: 13378
   selector:
     app: audiobookshelf
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -303,23 +302,24 @@ metadata:
     acme.cert-manager.io/http01-edit-in-place: "true"
     cert-manager.io/issue-temporary-certificate: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/websocket-services: audiobookshelf-svc
 spec:
   ingressClassName: nginx
   rules:
-    - host: aus.ssl.uu.am
+    - host: abs.ssl.uu.am
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: audiobookshelf
+                name: audiobookshelf-svc
                 port:
-                  number: 31378
+                  number: 13378
   tls:
     - secretName: tls-secret
       hosts:
-        - aus.ssl.uu.am
+        - abs.ssl.uu.am
 ```
 
 The above deployment is based on
