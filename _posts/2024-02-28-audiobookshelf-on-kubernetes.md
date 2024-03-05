@@ -32,7 +32,7 @@ deployment `securityContext` later.
 
 [Docker Compose](https://www.audiobookshelf.org/docs/#docker-compose-install)
 suggests mounting audiobooks and podcasts as separate
-volumes so the following Kubernetes deployment will do
+volumes, so the following Kubernetes deployment will do
 so, even though it would also work to have it all under
 a single volume.
 
@@ -86,7 +86,6 @@ Events:
 The server is now available at http://192.168.0.6:31378
 
 NGinx should also make it available at https://aus.ssl.uu.am
-
 
 ### Deployment
 
@@ -417,3 +416,113 @@ Emitted 'error' event on Server instance at:
 
 Node.js v20.11.1
 ```
+
+## Configuration
+
+Once the service is running, accessing the web interface allows
+creating the first (`root`) user. Additional users can (should)
+be created, so they can each have their own progress saved throughout
+books and podcatss. Users can also have access to different sets of
+libraries, although by default they will have access to all libraries.
+
+## Better Features
+
+There is *a lot* in Audiobookshelf that is better, or *much better*,
+than in Plex:
+
+*  Saving the progress through books and podcats, per user.
+*  Podcats with a separate feed for pre/after show are somehow
+   included 
+*  **[REST API](https://api.audiobookshelf.org)** that may allow
+   implementing some of the missing features below.
+
+## Missing Features
+
+After a few days listening to books and podcasts, a few features turn
+out to be missing or not working as expected. Most of these are not
+yet in the issue trackers:
+
+[audiobookshelf](https://github.com/advplyr/audiobookshelf/issues)
+*  [[Enhancement]: Display podcast episode images #1573](https://github.com/advplyr/audiobookshelf/issues/1573)
+*  [[Enhancement]: Ability to edit Series similar to tags #1604](https://github.com/advplyr/audiobookshelf/issues/1604)
+*  [UI: Sort a Series by publication year if no sort sequence number present #1674](https://github.com/advplyr/audiobookshelf/issues/1674)
+*  [[Enhancement] Set custom order for podcast library #1792](https://github.com/advplyr/audiobookshelf/issues/1792)
+*  [[Enhancement]: Enable Custom datetime in Podcast episode File Name #1869](https://github.com/advplyr/audiobookshelf/issues/1869)
+*  [[Enhancement]: More Flexible Library Structure #2208](https://github.com/advplyr/audiobookshelf/issues/2208)
+*  [[Bug]: PDF Reader is flickering #2279](https://github.com/advplyr/audiobookshelf/issues/2279)
+*  [[Enhancement]: Same book, different narrators #2396](https://github.com/advplyr/audiobookshelf/issues/2396)
+*  [[Enhancement]: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660)
+
+[audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app/issues)
+*  [Provide ability to queue audiobooks and podcast episodes #416](https://github.com/advplyr/audiobookshelf-app/issues/416)
+*  [Ability to mark several Podcast episodes by first marking and then dragging down with two fingers in IOS #685](https://github.com/advplyr/audiobookshelf-app/issues/685)
+
+
+
+### Batch Updates
+
+Not only is progress saved automatically while listening, podcasts
+can also be updated to mark episodes are finished. What is missing
+here is the ability to select multiple episodes *easily and quickly*,
+for instance with `Shift+click` the last episode of a range when the
+first one is already selected. It would help to even just be able
+to mark *all* episodes as finished, even if only to then mark a few
+as unfinished.
+
+### Collections
+
+The option to add books to collections seems to be missing.
+
+### Series
+
+Most book series are not recognized unless they are organized by folders, e.g.
+
+```
+$ ls /audiobooks/Ulf.Blanck/Die.Drei.Kids/
+'Die drei  Kids 01. Panik im Paradies'
+'Die drei  Kids 04. Chaos vor der Kamera'
+'Die drei  Kids 110. Panik im Park'
+'Die drei  Kids 17. Rettet Atlantis'
+```
+
+The name of the folder is taken literally (`Die.Drei.Kids`).
+
+Changed the name to `Die Drei Kids` and moved all the Witcher books
+under a `The Witcher` folder, then triggered **Scan** for the library,
+but it doesn't seem to pick tha changes up; the scan takes barely
+a second:
+
+```
+$ kubectl -n audiobookshelf logs -f audiobookshelf-5596fd468c-cvvz9
+[2024-03-04 20:06:03.817] INFO: [LibraryScanner] Starting library scan 7bd245e5-30a1-4655-abcb-2acec3e87a50 for Audiobooks
+[2024-03-04 20:06:04.842] INFO: [LibraryScanner] Library scan 7bd245e5-30a1-4655-abcb-2acec3e87a50 completed in 0:01.0 | 0 Added | 0 Updated | 0 Missing
+[2024-03-04 20:06:04.870] INFO: [LibraryController] Scan complete
+```
+
+Yet after this playback on the `Die Drei Kids` books works, even
+though the files have been moved, so the scan did find the new files,
+just didn't update the *Series* items.
+
+### Language
+
+Only one book is recognized to be in German, there are many.
+
+### PDF Reader
+
+There should be a way to read the PDF files included with some books,
+e.g. Everything is a Hammer, Good Clean Fun.
+
+### Podcast Chapter Covers
+
+For the Easy German podcast (find public episode with them).
+
+See [[Enhancement]: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660).
+
+### Precise dates
+
+Podcast **episodes** have only a year of publication, with their
+release date being set to YYYYY-01-01. This could be fixed by
+allowing Audiobookshelf to download RSS feeds directly.
+
+This may affect audiobooks too, but that's less critical since books
+tend to be published at less than one-per-year pace.
