@@ -33,7 +33,7 @@ is restarted.
 Note that **UID & GID 1003** will be needed later to run
 the server as this user.
 
-## Kuberneted Deployment
+## Kubernetes Deployment
 
 Create and apply the deployment in
 `minecraft-server.yaml` using the
