@@ -259,11 +259,24 @@ ExecStart=
 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
 ```
 
-Reload and restart kubelet with:
+Reload and restart `kubelet` with:
 
 ```
 sudo systemctl daemon-reload
 sudo service kubelet restart
+```
+
+After this restart, one needs to approve the `csr` from kubernetes,
+but this requires using `kubectl` which is precisely what was broken:
+
+```
+kubectl get csr
+```
+
+There will see the certificate waiting to be approved:
+
+```
+kubectl certificate approve csr-dlcf6
 ```
 
 References:
