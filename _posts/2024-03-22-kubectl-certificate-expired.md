@@ -296,7 +296,15 @@ scheduler.conf             Mar 23, 2025 09:41 UTC   364d            ca          
 CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
 ca                      Mar 19, 2033 21:37 UTC   8y              no      
 etcd-ca                 Mar 19, 2033 21:37 UTC   8y              no      
-front-proxy-ca          Mar 19, 2033 21:37 UTC   8y              no  ```
+front-proxy-ca          Mar 19, 2033 21:37 UTC   8y              no  
+
+# openssl x509 -in /var/lib/kubelet/pki/kubelet.crt -text -noout  | grep -A 2 Validity
+        Validity
+            Not Before: Mar 22 20:37:39 2023 GMT
+            Not After : Mar 21 20:37:39 2024 GMT
+
+# ls -l /var/lib/kubelet/pki/kubelet-server-current.pem
+ls: cannot access '/var/lib/kubelet/pki/kubelet-server-current.pem': No such file or directory
 
 # cp /etc/kubernetes/admin.conf .kube/config
 # kubectl cluster-info
@@ -491,6 +499,25 @@ Events:              <none>
 
 This looks like at least `kubectl` finally works again, so now may be
 the time to 1. upgrade and 2. enable automatic certificate renewal.
+
+Now we try to *restart the control plane Pods*:
+
+```
+# kubectl -n kube-system delete pod -l 'component=kube-apiserver'
+# kubectl -n kube-system delete pod -l 'component=kube-controller-manager'
+# kubectl -n kube-system delete pod -l 'component=kube-scheduler'
+# kubectl -n kube-system delete pod -l 'component=etcd'
+```
+
+It's not entirely clear what may have changed, but now the
+Kubernetes console and everything else seems to work, except that
+one job shows as pending:
+
+```
+# kubectl get jobs -n kube-system
+NAME                   COMPLETIONS   DURATION   AGE
+upgrade-health-check   0/1                      9m43s
+```
 
 ```
 # kubeadm upgrade plan
