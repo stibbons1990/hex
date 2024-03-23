@@ -259,8 +259,279 @@ Or possibly just reload and restart `kubelet` with:
 After running `kubeadm certs renew all`:
 
 ```
+# kubeadm certs renew all
+[renew] Reading configuration from the cluster...
+[renew] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[renew] Error reading configuration from the Cluster. Falling back to default configuration
+
+certificate embedded in the kubeconfig file for the admin to use and for kubeadm itself renewed
+certificate for serving the Kubernetes API renewed
+certificate the apiserver uses to access etcd renewed
+certificate for the API server to connect to kubelet renewed
+certificate embedded in the kubeconfig file for the controller manager to use renewed
+certificate for liveness probes to healthcheck etcd renewed
+certificate for etcd nodes to communicate with each other renewed
+certificate for serving etcd renewed
+certificate for the front proxy client renewed
+certificate embedded in the kubeconfig file for the scheduler manager to use renewed
+
+Done renewing certificates. You must restart the kube-apiserver, kube-controller-manager, kube-scheduler and etcd, so that they can use the new certificates.
+
 # kubeadm certs check-expiration
-...
+[check-expiration] Reading configuration from the cluster...
+[check-expiration] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Mar 23, 2025 09:41 UTC   364d            ca                      no      
+apiserver                  Mar 23, 2025 09:41 UTC   364d            ca                      no      
+apiserver-etcd-client      Mar 23, 2025 09:41 UTC   364d            etcd-ca                 no      
+apiserver-kubelet-client   Mar 23, 2025 09:41 UTC   364d            ca                      no      
+controller-manager.conf    Mar 23, 2025 09:41 UTC   364d            ca                      no      
+etcd-healthcheck-client    Mar 23, 2025 09:41 UTC   364d            etcd-ca                 no      
+etcd-peer                  Mar 23, 2025 09:41 UTC   364d            etcd-ca                 no      
+etcd-server                Mar 23, 2025 09:41 UTC   364d            etcd-ca                 no      
+front-proxy-client         Mar 23, 2025 09:41 UTC   364d            front-proxy-ca          no      
+scheduler.conf             Mar 23, 2025 09:41 UTC   364d            ca                      no      
+
+CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+ca                      Mar 19, 2033 21:37 UTC   8y              no      
+etcd-ca                 Mar 19, 2033 21:37 UTC   8y              no      
+front-proxy-ca          Mar 19, 2033 21:37 UTC   8y              no  ```
+
+# cp /etc/kubernetes/admin.conf .kube/config
+# kubectl cluster-info
+Kubernetes control plane is running at https://10.0.0.6:6443
+CoreDNS is running at https://10.0.0.6:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+# kubectl get nodes
+NAME      STATUS   ROLES           AGE    VERSION
+lexicon   Ready    control-plane   366d   v1.26.15
+
+# kubectl describe node lexicon
+Name:               lexicon
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    feature.node.kubernetes.io/cpu-cpuid.ADX=true
+                    feature.node.kubernetes.io/cpu-cpuid.AESNI=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX2=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512BITALG=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512BW=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512CD=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512DQ=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512F=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512IFMA=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VBMI=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VBMI2=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VL=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VNNI=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VP2INTERSECT=true
+                    feature.node.kubernetes.io/cpu-cpuid.AVX512VPOPCNTDQ=true
+                    feature.node.kubernetes.io/cpu-cpuid.CETIBT=true
+                    feature.node.kubernetes.io/cpu-cpuid.CETSS=true
+                    feature.node.kubernetes.io/cpu-cpuid.CMPXCHG8=true
+                    feature.node.kubernetes.io/cpu-cpuid.FLUSH_L1D=true
+                    feature.node.kubernetes.io/cpu-cpuid.FMA3=true
+                    feature.node.kubernetes.io/cpu-cpuid.FSRM=true
+                    feature.node.kubernetes.io/cpu-cpuid.FXSR=true
+                    feature.node.kubernetes.io/cpu-cpuid.FXSROPT=true
+                    feature.node.kubernetes.io/cpu-cpuid.GFNI=true
+                    feature.node.kubernetes.io/cpu-cpuid.IA32_ARCH_CAP=true
+                    feature.node.kubernetes.io/cpu-cpuid.IA32_CORE_CAP=true
+                    feature.node.kubernetes.io/cpu-cpuid.IBPB=true
+                    feature.node.kubernetes.io/cpu-cpuid.LAHF=true
+                    feature.node.kubernetes.io/cpu-cpuid.MD_CLEAR=true
+                    feature.node.kubernetes.io/cpu-cpuid.MOVBE=true
+                    feature.node.kubernetes.io/cpu-cpuid.MOVDIR64B=true
+                    feature.node.kubernetes.io/cpu-cpuid.MOVDIRI=true
+                    feature.node.kubernetes.io/cpu-cpuid.OSXSAVE=true
+                    feature.node.kubernetes.io/cpu-cpuid.SHA=true
+                    feature.node.kubernetes.io/cpu-cpuid.SPEC_CTRL_SSBD=true
+                    feature.node.kubernetes.io/cpu-cpuid.SRBDS_CTRL=true
+                    feature.node.kubernetes.io/cpu-cpuid.STIBP=true
+                    feature.node.kubernetes.io/cpu-cpuid.SYSCALL=true
+                    feature.node.kubernetes.io/cpu-cpuid.SYSEE=true
+                    feature.node.kubernetes.io/cpu-cpuid.VAES=true
+                    feature.node.kubernetes.io/cpu-cpuid.VMX=true
+                    feature.node.kubernetes.io/cpu-cpuid.VPCLMULQDQ=true
+                    feature.node.kubernetes.io/cpu-cpuid.X87=true
+                    feature.node.kubernetes.io/cpu-cpuid.XGETBV1=true
+                    feature.node.kubernetes.io/cpu-cpuid.XSAVE=true
+                    feature.node.kubernetes.io/cpu-cpuid.XSAVEC=true
+                    feature.node.kubernetes.io/cpu-cpuid.XSAVEOPT=true
+                    feature.node.kubernetes.io/cpu-cpuid.XSAVES=true
+                    feature.node.kubernetes.io/cpu-cstate.enabled=true
+                    feature.node.kubernetes.io/cpu-hardware_multithreading=true
+                    feature.node.kubernetes.io/cpu-model.family=6
+                    feature.node.kubernetes.io/cpu-model.id=140
+                    feature.node.kubernetes.io/cpu-model.vendor_id=Intel
+                    feature.node.kubernetes.io/cpu-pstate.scaling_governor=powersave
+                    feature.node.kubernetes.io/cpu-pstate.status=active
+                    feature.node.kubernetes.io/cpu-pstate.turbo=true
+                    feature.node.kubernetes.io/cpu-rdt.RDTL2CA=true
+                    feature.node.kubernetes.io/kernel-config.NO_HZ=true
+                    feature.node.kubernetes.io/kernel-config.NO_HZ_IDLE=true
+                    feature.node.kubernetes.io/kernel-version.full=5.15.0-101-generic
+                    feature.node.kubernetes.io/kernel-version.major=5
+                    feature.node.kubernetes.io/kernel-version.minor=15
+                    feature.node.kubernetes.io/kernel-version.revision=0
+                    feature.node.kubernetes.io/pci-0300_8086.present=true
+                    feature.node.kubernetes.io/pci-0300_8086.sriov.capable=true
+                    feature.node.kubernetes.io/storage-nonrotationaldisk=true
+                    feature.node.kubernetes.io/system-os_release.ID=ubuntu
+                    feature.node.kubernetes.io/system-os_release.VERSION_ID=22.04
+                    feature.node.kubernetes.io/system-os_release.VERSION_ID.major=22
+                    feature.node.kubernetes.io/system-os_release.VERSION_ID.minor=04
+                    feature.node.kubernetes.io/usb-ef_046d_0892.present=true
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=lexicon
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=
+                    node.kubernetes.io/exclude-from-external-load-balancers=
+Annotations:        flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"26:f0:f4:2a:36:8a"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 10.0.0.6
+                    kubeadm.alpha.kubernetes.io/cri-socket: unix:/run/containerd/containerd.sock
+                    nfd.node.kubernetes.io/extended-resources: 
+                    nfd.node.kubernetes.io/feature-labels:
+                      cpu-cpuid.ADX,cpu-cpuid.AESNI,cpu-cpuid.AVX,cpu-cpuid.AVX2,cpu-cpuid.AVX512BITALG,cpu-cpuid.AVX512BW,cpu-cpuid.AVX512CD,cpu-cpuid.AVX512DQ...
+                    nfd.node.kubernetes.io/master.version: v0.12.1
+                    nfd.node.kubernetes.io/worker.version: v0.12.1
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 22 Mar 2023 22:37:43 +0100
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  lexicon
+  AcquireTime:     <unset>
+  RenewTime:       Sat, 23 Mar 2024 10:45:03 +0100
+Conditions:
+  Type                 Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----                 ------  -----------------                 ------------------                ------                       -------
+  NetworkUnavailable   False   Mon, 18 Mar 2024 21:03:00 +0100   Mon, 18 Mar 2024 21:03:00 +0100   FlannelIsUp                  Flannel is running on this node
+  MemoryPressure       False   Sat, 23 Mar 2024 10:41:21 +0100   Mon, 18 Mar 2024 21:02:41 +0100   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure         False   Sat, 23 Mar 2024 10:41:21 +0100   Mon, 18 Mar 2024 21:02:41 +0100   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure          False   Sat, 23 Mar 2024 10:41:21 +0100   Mon, 18 Mar 2024 21:02:41 +0100   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready                True    Sat, 23 Mar 2024 10:41:21 +0100   Mon, 18 Mar 2024 21:02:41 +0100   KubeletReady                 kubelet is posting ready status. AppArmor enabled
+Addresses:
+  InternalIP:  10.0.0.6
+  Hostname:    lexicon
+Capacity:
+  cpu:                4
+  ephemeral-storage:  47684Mi
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             32479888Ki
+  pods:               110
+Allocatable:
+  cpu:                4
+  ephemeral-storage:  45000268112
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             32377488Ki
+  pods:               110
+System Info:
+  Machine ID:                 2056272131924fa6bd1ad9d2922ee4cc
+  System UUID:                3214261f-3ee2-1169-841c-88aedd021b0e
+  Boot ID:                    6db4e730-968b-4864-a85c-a1de937de9a3
+  Kernel Version:             5.15.0-101-generic
+  OS Image:                   Ubuntu 22.04.4 LTS
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.6.28
+  Kubelet Version:            v1.26.15
+  Kube-Proxy Version:         v1.26.15
+PodCIDR:                      10.244.0.0/24
+PodCIDRs:                     10.244.0.0/24
+Non-terminated Pods:          (26 in total)
+  Namespace                   Name                                                      CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                      ------------  ----------  ---------------  -------------  ---
+  atuin-server                atuin-585c6b96f8-htnvj                                    500m (12%)    500m (12%)  2Gi (6%)         2Gi (6%)       201d
+  audiobookshelf              audiobookshelf-867f885b49-rpbpr                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         38h
+  cert-manager                cert-manager-64f9f45d6f-qx4hs                             0 (0%)        0 (0%)      0 (0%)           0 (0%)         341d
+  cert-manager                cert-manager-cainjector-56bbdd5c47-ltjgx                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         341d
+  cert-manager                cert-manager-webhook-d4f4545d7-tf4l6                      0 (0%)        0 (0%)      0 (0%)           0 (0%)         341d
+  code-server                 code-server-5768c9d997-cr858                              0 (0%)        0 (0%)      0 (0%)           0 (0%)         192d
+  default                     inteldeviceplugins-controller-manager-7994555cdb-gjmfm    100m (2%)     100m (2%)   100Mi (0%)       120Mi (0%)     190d
+  ingress-nginx               ingress-nginx-controller-6b58ffdc97-rt5lm                 100m (2%)     0 (0%)      90Mi (0%)        0 (0%)         355d
+  kube-flannel                kube-flannel-ds-nrrg6                                     100m (2%)     0 (0%)      50Mi (0%)        0 (0%)         356d
+  kube-system                 coredns-787d4945fb-67z8g                                  100m (2%)     0 (0%)      70Mi (0%)        170Mi (0%)     366d
+  kube-system                 coredns-787d4945fb-gsx6h                                  100m (2%)     0 (0%)      70Mi (0%)        170Mi (0%)     366d
+  kube-system                 etcd-lexicon                                              100m (2%)     0 (0%)      100Mi (0%)       0 (0%)         17d
+  kube-system                 kube-apiserver-lexicon                                    250m (6%)     0 (0%)      0 (0%)           0 (0%)         17d
+  kube-system                 kube-controller-manager-lexicon                           200m (5%)     0 (0%)      0 (0%)           0 (0%)         17d
+  kube-system                 kube-proxy-qlt8c                                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         366d
+  kube-system                 kube-scheduler-lexicon                                    100m (2%)     0 (0%)      0 (0%)           0 (0%)         17d
+  kubernetes-dashboard        dashboard-metrics-scraper-7bc864c59-p27cg                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         355d
+  kubernetes-dashboard        kubernetes-dashboard-6c7ccbcf87-vwxnt                     0 (0%)        0 (0%)      0 (0%)           0 (0%)         355d
+  local-path-storage          local-path-provisioner-8bc8875b-lbjh8                     0 (0%)        0 (0%)      0 (0%)           0 (0%)         342d
+  metallb-system              controller-68bf958bf9-79mpk                               0 (0%)        0 (0%)      0 (0%)           0 (0%)         355d
+  metallb-system              speaker-t8f7k                                             0 (0%)        0 (0%)      0 (0%)           0 (0%)         355d
+  metrics-server              metrics-server-74c749979-wd278                            0 (0%)        0 (0%)      0 (0%)           0 (0%)         355d
+  node-feature-discovery      nfd-node-feature-discovery-master-5f56c75d-xjkb8          0 (0%)        0 (0%)      0 (0%)           0 (0%)         190d
+  node-feature-discovery      nfd-node-feature-discovery-worker-xmzwk                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         190d
+  plexserver                  plexserver-85f7bf866-7c8gv                                0 (0%)        0 (0%)      0 (0%)           0 (0%)         174d
+  telegraf                    telegraf-7f7c9db469-fmkd7                                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         313d
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                1650m (41%)  600m (15%)
+  memory             2528Mi (7%)  2508Mi (7%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+Events:              <none>
+```
+
+This looks like at least `kubectl` finally works again, so now may be
+the time to 1. upgrade and 2. enable automatic certificate renewal.
+
+```
+# kubeadm upgrade plan
+[upgrade/config] Making sure the configuration is correct:
+[upgrade/config] Reading configuration from the cluster...
+[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[preflight] Running pre-flight checks.
+[upgrade] Running cluster health checks
+[upgrade] Fetching available versions to upgrade to
+[upgrade/versions] Cluster version: v1.26.3
+[upgrade/versions] kubeadm version: v1.26.15
+I0323 10:44:05.356608 3686397 version.go:256] remote version is much newer: v1.29.3; falling back to: stable-1.26
+[upgrade/versions] Target version: v1.26.15
+[upgrade/versions] Latest version in the v1.26 series: v1.26.15
+
+Upgrade to the latest version in the v1.26 series:
+
+COMPONENT                 CURRENT   TARGET
+kube-apiserver            v1.26.3   v1.26.15
+kube-controller-manager   v1.26.3   v1.26.15
+kube-scheduler            v1.26.3   v1.26.15
+kube-proxy                v1.26.3   v1.26.15
+CoreDNS                   v1.9.3    v1.9.3
+etcd                      3.5.6-0   3.5.10-0
+
+You can now apply the upgrade by executing the following command:
+
+        kubeadm upgrade apply v1.26.15
+
+_____________________________________________________________________
+
+
+The table below shows the current state of component configs as understood by this version of kubeadm.
+Configs that have a "yes" mark in the "MANUAL UPGRADE REQUIRED" column require manual config upgrade or
+resetting to kubeadm defaults before a successful upgrade can be performed. The version to manually
+upgrade to is denoted in the "PREFERRED VERSION" column.
+
+API GROUP                 CURRENT VERSION   PREFERRED VERSION   MANUAL UPGRADE REQUIRED
+kubeproxy.config.k8s.io   v1alpha1          v1alpha1            no
+kubelet.config.k8s.io     v1beta1           v1beta1             no
+_____________________________________________________________________
 ```
 
 ## Automatic Certificate Renewal
