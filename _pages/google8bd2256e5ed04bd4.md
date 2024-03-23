@@ -1,5 +1,5 @@
 ---
-title: google-site-verification: google8bd2256e5ed04bd4.html
+title: google-site-verification
 permalink: /google8bd2256e5ed04bd4.html
 ---
 
