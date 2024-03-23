@@ -519,6 +519,133 @@ NAME                   COMPLETIONS   DURATION   AGE
 upgrade-health-check   0/1                      9m43s
 ```
 
+After a node reboot, the minecraft server was working again
+(and all clients were able to connect to it) but the
+`metrics-server` is now failed:
+
+```
+$ kubectl get all -n metrics-server
+NAME                                 READY   STATUS    RESTARTS        AGE
+pod/metrics-server-74c749979-wd278   0/1     Running   31 (118m ago)   355d
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/metrics-server   ClusterIP   10.101.79.149   <none>        443/TCP   355d
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/metrics-server   0/1     1            0           355d
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/metrics-server-74c749979   1         1         0       355d
+
+$ kubectl logs metrics-server-74c749979-wd278 -n metrics-server
+Error from server: Get "https://10.0.0.6:10250/containerLogs/metrics-server/metrics-server-74c749979-wd278/metrics-server": remote error: tls: internal error
+```
+
+Kubernetes dashboard shows event
+`metrics-server-74c749979-wd278.17bf5cdf3efdd640`
+with message
+`Readiness probe failed: HTTP probe failed with statuscode: 500`
+
+The above error to see the logs is happening everywhere,
+also to the minecraft server, both when trying to show logs
+and when trying to communicate with the server to send messages:
+
+```
+$ kubectl -n minecraft-server get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+minecraft-server-7f847b6b7-tv6tw   1/1     Running   0          124m
+
+$ kubectl -n minecraft-server logs minecraft-server-7f847b6b7-tv6tw
+Error from server: Get "https://10.0.0.6:10250/containerLogs/minecraft-server/minecraft-server-7f847b6b7-tv6tw/minecraft-server": remote error: tls: internal error
+
+$ kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console "Hello"
+Error from server: error dialing backend: remote error: tls: internal error
+```
+
+Journal logs from kubelet show a *TLS handshake error* several times per minute:
+
+```
+# journalctl -xeu kubelet | grep -Ev 'Nameserver limits exceeded' | head -3
+Mar 23 11:46:36 lexicon kubelet[6055]: I0323 11:46:36.036164    6055 log.go:245] http: TLS handshake error from 10.244.0.44:45274: no serving certificate available for the kubelet
+Mar 23 11:46:51 lexicon kubelet[6055]: I0323 11:46:51.042664    6055 log.go:245] http: TLS handshake error from 10.244.0.44:40012: no serving certificate available for the kubelet
+Mar 23 11:47:06 lexicon kubelet[6055]: I0323 11:47:06.042088    6055 log.go:245] http: TLS handshake error from 10.244.0.44:50504: no serving certificate available for the kubelet
+
+# journalctl -xeu kubelet | grep -Ev 'Nameserver limits exceeded' | grep -c 'http: TLS handshake error'
+366
+```
+
+Filtering those out, there are signs that rotating the certs is stuck:
+
+```
+# journalctl -xeu kubelet | grep -Ev 'Nameserver limits exceeded' | grep -v 'http: TLS handshake error'
+Mar 23 11:51:57 lexicon kubelet[6055]: E0323 11:51:57.493069    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+Mar 23 12:07:05 lexicon kubelet[6055]: E0323 12:07:05.531775    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+Mar 23 12:22:21 lexicon kubelet[6055]: E0323 12:22:21.802759    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+Mar 23 12:22:21 lexicon kubelet[6055]: E0323 12:22:21.802782    6055 certificate_manager.go:354] kubernetes.io/kubelet-serving: Reached backoff limit, still unable to rotate certs: timed out waiting for the condition
+Mar 23 12:37:53 lexicon kubelet[6055]: E0323 12:37:53.816829    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+Mar 23 12:53:21 lexicon kubelet[6055]: E0323 12:53:21.816677    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+Mar 23 13:08:49 lexicon kubelet[6055]: E0323 13:08:49.816195    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
+```
+
+This is because, after restart, one needs to approve **the most recent** `csr` from kubernetes:
+
+```
+# kubectl get csr
+NAME        AGE     SIGNERNAME                      REQUESTOR             REQUESTEDDURATION   CONDITION
+csr-454fv   7m21s   kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-4mtnx   69m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-fljjd   22m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-n5bvr   114m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-plnf8   99m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-rg4cs   38m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-wzg9g   53m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-xlmlk   129m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-zj52z   84m     kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+
+# kubectl certificate approve csr-454fv
+certificatesigningrequest.certificates.k8s.io/csr-454fv approved
+
+# kubectl get csr
+NAME        AGE    SIGNERNAME                      REQUESTOR             REQUESTEDDURATION   CONDITION
+csr-454fv   10m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Approved,Issued
+csr-4mtnx   72m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-fljjd   25m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-n5bvr   117m   kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-plnf8   102m   kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-rg4cs   41m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-wzg9g   56m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-xlmlk   132m   kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+csr-zj52z   87m    kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
+```
+
+After approving the most recent CSR (and it's **Issued**),
+`kubectl` operations are back to work and the `metrics-server`
+deployment is functional again:
+
+```
+$ kubectl get all -n metrics-server
+                      READY   STATUS    RESTARTS        AGE
+pod/metrics-server-74c749979-wd278   1/1     Running   31 (132m ago)   355d
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/metrics-server   ClusterIP   10.101.79.149   <none>        443/TCP   355d
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/metrics-server   1/1     1            1           355d
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/metrics-server-74c749979   1         1         1       355d
+
+$ kubectl -n minecraft-server logs minecraft-server-7f847b6b7-tv6tw | tail -4
+[11:23:46] [User Authenticator #2/INFO]: UUID of player M________t is bbe841f4-06de-4e86-86cd-de0061cf8db1
+[11:23:47] [Server thread/INFO]: M________t joined the game
+[11:23:47] [Server thread/INFO]: M________t[/10.244.0.1:12945] logged in with entity id 327 at ([world]-179.5, 71.0, -312.5)
+[11:23:55] [Server thread/INFO]: M________t lost connection: Disconnected
+[11:23:55] [Server thread/INFO]: M________t left the game
+```
+
+## Maybe Update
+
 ```
 # kubeadm upgrade plan
 [upgrade/config] Making sure the configuration is correct:
