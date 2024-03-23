@@ -37,7 +37,10 @@ plugins:
   - jekyll-feed
   - jekyll-remote-theme
   - jekyll-include-cache
+  - jekyll-google_search_console_verification_file
 
+google_search_console:
+  verification_file_code: 8bd2256e5ed04bd4
 analytics:
   provider: "google-gtag"
   google:
