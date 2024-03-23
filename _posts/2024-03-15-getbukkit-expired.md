@@ -106,3 +106,21 @@ since Paper also supports [GeyserMC](https://geysermc.org/)
             - name: MEMORY
               value: 4G
 ```
+
+However, applying this results in a non-ready deployment:
+
+```
+$ kubectl apply -f minecraft-server.yaml 
+namespace/minecraft-server unchanged
+service/minecraft-server unchanged
+persistentvolume/minecraft-server-pv unchanged
+persistentvolumeclaim/minecraft-server-pv-claim unchanged
+deployment.apps/minecraft-server created
+
+$ kubectl get all -n minecraft-server
+NAME                       TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                           AGE
+service/minecraft-server   NodePort   10.110.215.139   <none>        25565:32565/TCP,19132:32132/UDP   298d
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/minecraft-server   0/1     0            0           2m
+```
