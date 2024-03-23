@@ -34,6 +34,44 @@ E0322 20:59:13.309929 3571458 memcache.go:265] couldn't get current server API g
 Unable to connect to the server: tls: failed to verify certificate: x509: certificate is valid for UniFi, not localhost
 ```
 
+This happens to `root` because it is missing `.kube/config`:
+
+```
+# kubectl config view
+apiVersion: v1
+clusters: null
+contexts: null
+current-context: ""
+kind: Config
+preferences: {}
+users: null
+
+# ls .kube
+cache
+# cp /etc/kubernetes/admin.conf .kube/config
+
+# kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://10.0.0.6:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+```
+
 The Kubelet config has not changed in about a year:
 
 ```
@@ -184,6 +222,40 @@ etcd-ca                 Mar 19, 2033 21:37 UTC   8y              no
 front-proxy-ca          Mar 19, 2033 21:37 UTC   8y              no      
 ```
 
+YouTube video
+[unable to connect to the Server and having x509 certificate has expired issue](https://youtu.be/SJIhDu4CckI?si=rY5rUUdRbggD91WJ&t=692)
+by [Cyber Legum](https://www.youtube.com/@cyberlegum)
+(@cyberlegum ‧ 776 suscriptores ‧ 37 vídeos)
+show that that `kubeadm certs renew all` does indeed renew
+all the certificates, and that it then requires restarting
+the 4 components (), which the video doesn't quite show. 
+
+[Manual certificate renewal](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#manual-certificate-renewal)
+also does not say exactly *how* one should *restart the control plane Pods*,
+there seem to be 2 ways:
+
+```
+# kubectl -n kube-system delete pod -l 'component=kube-apiserver'
+# kubectl -n kube-system delete pod -l 'component=kube-controller-manager'
+# kubectl -n kube-system delete pod -l 'component=kube-scheduler'
+# kubectl -n kube-system delete pod -l 'component=etcd'
+```
+
+which would require copying again:
+
+`.kube/config`:
+
+```
+# cp /etc/kubernetes/admin.conf .kube/config
+```
+
+Or possibly just reload and restart `kubelet` with:
+
+```
+# systemctl daemon-reload
+# service kubelet restart
+```
+
 After running `kubeadm certs renew all`:
 
 ```
@@ -285,3 +357,16 @@ References:
 - https://kubernetes.io/docs/tasks/tls/certificate-rotation/
 - https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs
 
+## Time To Upgrade Maybe
+
+Another reason to manually renew the server certificate
+is that the node cannot be upgraded without it:
+
+```
+# kubeadm upgrade plan
+[upgrade/config] Making sure the configuration is correct:
+[upgrade/config] Reading configuration from the cluster...
+[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[upgrade/config] FATAL: failed to get config map: Get "https://10.0.0.6:6443/api/v1/namespaces/kube-system/configmaps/kubeadm-config?timeout=10s": tls: failed to verify certificate: x509: certificate has expired or is not yet valid: current time 2024-03-23T10:16:27+01:00 is after 2024-03-21T21:37:37Z
+To see the stack trace of this error execute with --v=5 or higher
+```
