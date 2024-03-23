@@ -234,7 +234,7 @@ drwxrwxr-x 1 minecraft minecraft  20 May 29 15:47 PluginMetrics
 
 To enter commands into the running server, see
 [Interacting with the server](https://github.com/itzg/docker-minecraft-server/blob/master/README.md#interacting-with-the-server)
-and in particular the `mc-send-to-console` command that
+and in particular the `rcon-cli` command that
 can be run in the container.
 
 No need to get the full name of the current pod, which
@@ -243,7 +243,7 @@ changes when deployment restarts:
 ```
 $ kubectl -n minecraft-server \
   exec deploy/minecraft-server \
-   -- mc-send-to-console difficulty peaceful
+   -- rcon-cli difficulty peaceful
 ```
 
 Note that using `deploy/minecraft-server` allows running
@@ -357,7 +357,7 @@ single day multiple backups are available to restore:
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  su coder -c "kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*"
+  su coder -c "kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*"
 }
 minecraft_server_cmd "say Starting full backup."
 minecraft_server_cmd "save-off"
@@ -429,7 +429,7 @@ The `minecraft-server-fortune` script ...
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
 declare -a fortunes
@@ -442,7 +442,7 @@ fortunes[5]="Steams my broccoli."
 len=${#fortunes[@]}-1
 i=$(shuf -i 0-$((len-1)) -n 1)
 fortune=${fortunes[$i]}
-minecraft_server_cmd "say $fortune $(printf '\r')"
+minecraft_server_cmd "say $fortune"
 ```
 
 ### `minecraft-server-kick`
@@ -453,10 +453,10 @@ that is passed as argument:
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "kick $1 $(printf '\r')"
+minecraft_server_cmd "kick $1"
 ```
 
 ### `minecraft-server-make-creative`
@@ -467,12 +467,12 @@ server into creative mode.
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "gamemode creative M________t $(printf '\r')"
-minecraft_server_cmd "gamemode creative L________a $(printf '\r')"
-minecraft_server_cmd "difficulty peaceful $(printf '\r')"
+minecraft_server_cmd "gamemode creative M________t"
+minecraft_server_cmd "gamemode creative L________a"
+minecraft_server_cmd "difficulty peaceful"
 ```
 
 ### `minecraft-server-make-survival`
@@ -483,12 +483,12 @@ server into survival mode.
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "gamemode survival M________t $(printf '\r')"
-minecraft_server_cmd "gamemode survival L________a $(printf '\r')"
-minecraft_server_cmd "difficulty normal $(printf '\r')"
+minecraft_server_cmd "gamemode survival M________t"
+minecraft_server_cmd "gamemode survival L________a"
+minecraft_server_cmd "difficulty normal"
 ```
 
 ### `minecraft-server-say-shutdown`
@@ -499,10 +499,10 @@ server down (necessary before making a backup).
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "say WARNING: server WILL SHUT DOWN in $time $(printf '\r')"
+minecraft_server_cmd "say WARNING: server WILL SHUT DOWN in $time"
 ```
 
 ### `minecraft-server-tp-l--------a-m--------t`
@@ -513,10 +513,10 @@ The `minecraft-server-tp-l--------a-m--------t` script
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "tp L________a M________t $(printf '\r')"
+minecraft_server_cmd "tp L________a M________t"
 ```
 
 ### `minecraft-server-tp-S-----------e-m--------t`
@@ -527,10 +527,10 @@ The `minecraft-server-tp-S-----------e-m--------t` script
 ```bash
 #!/bin/bash
 minecraft_server_cmd () {
-  kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console $*
+  kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
 }
 
-minecraft_server_cmd "tp S______________1 M________t $(printf '\r')"
+minecraft_server_cmd "tp S______________1 M________t"
 ```
 
 ### `minecraft-start-k8s`

@@ -403,6 +403,36 @@ container, but the service is mapping (`NodePort`) port
 connecting to it from **Java** clients. For **Bedrock**
 clients, the correct (UDP) port is **32132**.
 
+### Fix The Scripts
+
+With the Spigot server, to send commands to the server the scripts were sending
+those via a pipeline. With the Paper server, this no longer works:
+
+```
+kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console "say hi"
+ERROR: console pipe needs to be enabled by setting CREATE_CONSOLE_IN_PIPE to true
+ERROR: named pipe /tmp/minecraft-console-in is missing
+command terminated with exit code 1
+```
+
+There seems to be nothing about `CREATE_CONSOLE_IN_PIPE` but there is
+[Issue #2485](https://github.com/itzg/docker-minecraft-server/issues/2485):
+*ERROR: named pipe /tmp/minecraft-console-in is missing* where
+[the recommendation](https://github.com/itzg/docker-minecraft-server/issues/2485#issuecomment-1807339110)
+is to use `rcon-cli` instead:
+
+```
+$ kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli "say hi"
+```
+
+These show in the logs as
+
+```
+[17:38:28 INFO]: Thread RCON Client /0:0:0:0:0:0:0:1 started
+[17:38:28 INFO]: Thread RCON Client /0:0:0:0:0:0:0:1 shutting down
+[17:38:28 INFO]: [Not Secure] [Rcon] hi
+```
+
 ### Further Improvements
 
 #### Tweak Flags
@@ -506,6 +536,26 @@ deployment.apps/minecraft-server created
 [15:58:20 INFO]: [Geyser-Spigot] Loading Geyser version 2.2.2-SNAPSHOT (git-master-c64e8af)
 [15:58:20 INFO]: [Geyser-Spigot] 
 [15:58:20 INFO]: [Geyser-Spigot] ******************************************
+```
+
+**Note:** it apperas that a `.` is prepended to the username of
+users logging via Floodgate; this is important to use with server commands:
+
+```
+[17:14:49 INFO]: [Geyser-Spigot] /10.244.0.1:61211 tried to connect!
+[17:14:50 INFO]: [Geyser-Spigot] Player connected with username Isa________45
+[17:14:50 INFO]: [Geyser-Spigot] Isa________45 (logged in as: Isa________45) has connected to the Java server
+[17:14:51 INFO]: [floodgate] Floodgate player logged in as .Isa________45 joined (UUID: 00000000-0000-0000-0009-0__________8)
+```
+
+To send a command for this user, the `.` must be in front of the username:
+
+```
+$ kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli "gamemode survival Isa________45"
+No player was found
+
+$ kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli "gamemode survival .Isa________45"
+Set .Isa________45's game mode to Survival Mode
 ```
 
 #### Perms
