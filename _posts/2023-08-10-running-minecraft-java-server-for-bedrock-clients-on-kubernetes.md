@@ -557,3 +557,15 @@ removing the deployment.
 kubectl delete -n minecraft-server deployment minecraft-server
 ```
 
+### `minecraft-logs`
+
+The `minecraft-logs` script shows server logs as they are
+produces (with `-f`).
+
+```bash
+#!/bin/bash
+
+pod=$(kubectl get pods -n minecraft-server | grep '1/1' | awk '{print $1}')
+kubectl -n minecraft-server logs -f "${pod}"
+```
+
