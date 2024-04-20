@@ -356,12 +356,103 @@ into it, setup Grafana by creating a **Data source**:
 *   URL: http://10.0.0.6:30086
 *   Database: `telegraf`
 
-
-
-### InfluxDB Authentication
+### Secure InfluxDB
 
 The next step is to add authentication to InfluxDB.
 This will require updating Telegraf and Grafana.
+
+#### InfluxDB Authentication
+
+[Authentication and authorization in InfluxDB](https://docs.influxdata.com/influxdb/v1/administration/authentication_and_authorization/)
+starts by enabling authentication.
+
+Create at least one `admin` user:
+
+```
+$ influx -host localhost -port 30086
+Connected to http://localhost:30086 version 1.8.10
+InfluxDB shell version: 1.6.7~rc0
+
+> USE telegraf
+Using database telegraf
+
+> CREATE USER admin WITH PASSWORD '**********' WITH ALL PRIVILEGES
+```
+
+**Warning:** the password **must** be enclosed in
+**single** quotes (**`'`**).
+
+[Enable authentication in the deployment](https://stackoverflow.com/a/67937758)
+by setting the `INFLUXDB_HTTP_AUTH_ENABLED` variable:
+
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+...
+    spec:
+      containers:
+      - image: docker.io/influxdb:1.8
+        env:
+        - name: "INFLUXDB_HTTP_AUTH_ENABLED"
+          value: "true"
+        name: influxdb
+```
+
+Restart InfluxDB:
+
+```
+$ kubectl apply -f monitoring.yaml
+...
+deployment.apps/influxdb configured
+...
+```
+
+The result is not that connections are rejected,
+but access to the database is denied:
+
+```
+$ kubectl  -n monitoring logs telegraf-2k8hb | tail -1
+2024-04-20T18:24:16Z E! [outputs.influxdb] E! [outputs.influxdb] Failed to write metric (will be dropped: 401 Unauthorized): unable to parse authentication credentials
+
+$ influx -host localhost -port 30086
+Connected to http://localhost:30086 version 1.8.10
+InfluxDB shell version: 1.6.7~rc0
+> USE telegraf
+ERR: unable to parse authentication credentials
+DB does not exist!
+```
+
+#### Update Grafana
+
+Entering the username (`admin`) and password in
+Grafana is enough to get the connextion restored.
+
+#### Update Telegraf
+
+To restore access to Telegraf, add the credentials
+to the `ConfigMap` as follows:
+
+```yaml
+---
+apiVersion: v1
+kind: ConfigMap
+...
+data:
+  telegraf.conf: |+
+    [[outputs.influxdb]]
+      urls = ["http://influxdb-svc:18086/"]
+      database = "telegraf"
+      username = "admin"
+      password = "*********************"
+```
+
+And restart `telegraf`:
+
+```
+$ kubectl delete -n monitoring daemonset telegraf
+$ kubectl apply -f monitoring.yaml
+```
 
 ### HTTPS Access
 
@@ -562,11 +653,22 @@ $ kubectl -n monitoring exec -i -t telegraf-zzs52 -- ping -c 1 grafana-svc.monit
 PING grafana-svc.monitoring.svc.cluster.local (10.109.127.41) 56(84) bytes of data.
 ```
 
-So it was the **service** that the Kubernetes DNS did
-map to an IP, and the port was that of the service
-(`port`) instead of that of the pod (`targetPort`),
-so the correct URL to reach InfluxDB is
-http://influxdb-svc:18086
+All this is because
+[there's no A record for a Pod born of a Deployment](https://www.reddit.com/r/kubernetes/comments/cwt9gj/how_can_i_find_the_cause_for_nxdomain_errors_for/)
+so the DNS service will not resolve pods, but instead
+**services**, and the port exposed is that of the service (`port`) instead of that of the pod
+(`targetPort`), so the correct URL to reach InfluxDB
+is http://influxdb-svc:18086
 
 The change of service name and `port` happened while
 creating the `Ingress` for HTTP access.
+
+**Further reading:
+[Connecting the Dots: Understanding How Pods Talk in Kubernetes Networks](https://medium.com/@seifeddinerajhi/connecting-the-dots-understanding-how-pods-talk-in-kubernetes-networks-992fa69fbbeb).**
+
+## Conmon Migration
+
+[Continuous Monitoring]({{ site.baseurl }}/conmon/)
+can now be migrated to report metrics to a (new)
+database in the new InfluxDB and serve dashboards
+securely over HTTPS from the new Grafana.
