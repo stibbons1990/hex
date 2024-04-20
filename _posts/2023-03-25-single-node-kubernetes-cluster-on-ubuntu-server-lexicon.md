@@ -123,6 +123,72 @@ taken effect:
  Docker Root Dir: /home/lib/docker
 ```
 
+#### Discard Unused Images
+
+Over time, storage usage of `/home/lib/containerd`
+will grow with stale images. These can be cleaned
+up manually with `crictl rmi --prune` pointing it
+to the correct endpoint:
+
+```
+# du -sh /home/lib/containerd/
+109G    /home/lib/containerd/
+# crictl \
+  -r unix:///run/containerd/containerd.sock \
+  rmi --prune
+Deleted: registry.k8s.io/pause:3.9
+# du -sh /home/lib/containerd/
+8.1G    /home/lib/containerd/
+```
+
+The same can be achieved on an on-going basis by
+adjusting the `ImageGCHighThresholdPercent` setting
+to trigger Kubernetes' built-in garbage collection:
+
+Setting this threshold involves
+[updating the `KubeletConfiguration`](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-reconfigure/#updating-the-kubeletconfiguration):
+
+```
+$ kubectl edit cm -n kube-system kubelet-config
+```
+
+Find the `imageMinimumGCAge` variable and add the
+threshold for garbage collection under it; very
+carefully using the exact same blank characters
+for indentation (otherwise the YAML is invalid):
+
+```yaml
+    imageMinimumGCAge: 0s
+    imageGCLowThresholdPercent: 65
+    imageGCHighThresholdPercent: 70
+```
+
+Run `kubeadm upgrade` as below to download the latest
+`kubelet-config` ConfigMap contents into the local
+file `/var/lib/kubelet/config.yaml` and restart the
+`kubelet` service:
+
+```
+# kubeadm upgrade node phase kubelet-config
+[upgrade] Reading configuration from the cluster...
+[upgrade] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[upgrade] The configuration for this node was successfully updated!
+[upgrade] Now you should go ahead and upgrade the kubelet package using your package manager.
+
+# systemctl restart kubelet
+```
+
+**Note:** This may not be effective when the images
+are not in the root partition.
+
+[It also possible](https://github.com/containerd/containerd/discussions/6295#discussioncomment-1718081)
+to set `discard_unpacked_layers: true` on the CRI
+plugin configuration (`/etc/containerd/config.toml`)
+so that it discards the compressed layer data after
+unpacking images. This data is only really needed if
+you are going to unpack the image again.
+
 ### Important Tweak for BTRFS
 
 [Docker gradually exhausts disk space on BTRFS #27653](https://github.com/moby/moby/issues/27653).
