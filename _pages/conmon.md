@@ -186,21 +186,23 @@ report_vcgencmd() {
 
 report_sensors() {
   # CPU, SSD, NVMe temperatures and other sensors (if available).
-  # Depends on: sensors.
+  # Depends on: jq, sensors.
+  jq=$(command -v jq)
+  if [ -z "${jq}" ] || [ ! -f "${jq}" ]; then
+    return
+  fi
   sensors=$(command -v sensors)
   if [ -z "${sensors}" ] || [ ! -f "${sensors}" ]; then
     return
   fi
-  sensors_u="${DDIR}/sensors"
+  sensors_json="${DDIR}/sensors"
   ts=$(timestamp_ns)
-  "${sensors}" -u >"${sensors_u}"
-  grep '^[^ -].*-.*' "${sensors_u}" | while read adapter; do
-    sensors_ua="${DDIR}/sensors_${adapter}"
-    # This is tricky: -A18 is just enough to capture SSD temps without causing
-    # metrics spilling too much across adapters.
-    grep -E "$adapter|_input|:\$" "${sensors_u}" | grep -vE ': 0\.000|: -[0-9]+\.0' | grep -EB1 "fan._input|temp._input|${adapter}" | grep -A18 "${adapter}" >"${sensors_ua}"
-    grep '^[^ -]' "${sensors_ua}" | grep -v "${adapter}" | cut -f1 -d: | while read name; do
-      value=$(grep -A2 "${name}" ${sensors_ua} | grep '_input' | head -1 | cut -f2 -d: | cut -f2 -d' ' | sed 's/\.000$//')
+  "${sensors}" -j >"${sensors_json}"
+  $jq 'keys' "${sensors_json}" | grep '^  "' | cut -f2 -d'"' | while read adapter; do
+    echo "adapter: $adapter"
+    $jq ".\"${adapter}\"" "${sensors_json}" | $jq 'keys' | grep '^  "' | grep -v '"Adapter"' | cut -f2 -d'"' | while read name; do
+      key=$($jq ".\"${adapter}\".\"${name}\"" "${sensors_json}" | $jq 'keys' | grep '^  "' | grep '_input"' | cut -f2 -d'"')
+      value=$($jq ".\"${adapter}\".\"${name}\".\"${key}\"" "${sensors_json}")
       store_line "sensors,host=${host},adapter=${adapter},name=${name/ /_} value=${value} ${ts}"
     done
   done
@@ -490,7 +492,7 @@ while true; do
 done
 ```
 
-## Single-thread
+## Multi-thread
 
 To run in slow systems such as Raspberry Pi computers, including any one from the 
 [Zero W (v1)](https://www.raspberrypi.com/products/raspberry-pi-zero-w/)
@@ -638,22 +640,24 @@ report_vcgencmd() {
 
 report_sensors() {
   # CPU, SSD, NVMe temperatures and other sensors (if available).
-  # Depends on: sensors.
+  # Depends on: jq, sensors.
+  jq=$(command -v jq)
+  if [ -z "${jq}" ] || [ ! -f "${jq}" ]; then
+    return
+  fi
   sensors=$(command -v sensors)
   if [ -z "${sensors}" ] || [ ! -f "${sensors}" ]; then
     return
   fi
-  sensors_u="${DDIR}/sensors"
+  sensors_json="${DDIR}/sensors"
   while true; do
     ts=$(timestamp_ns)
-    "${sensors}" -u >"${sensors_u}"
-    grep '^[^ -].*-.*' "${sensors_u}" | while read adapter; do
-      sensors_ua="${DDIR}/sensors_${adapter}"
-      # This is tricky: -A18 is just enough to capture SSD temps without causing
-      # metrics spilling too much across adapters.
-      grep -E "$adapter|_input|:\$" "${sensors_u}" | grep -vE ': 0\.000|: -[0-9]+\.0' | grep -EB1 "fan._input|temp._input|${adapter}" | grep -A18 "${adapter}" >"${sensors_ua}"
-      grep '^[^ -]' "${sensors_ua}" | grep -v "${adapter}" | cut -f1 -d: | while read name; do
-        value=$(grep -A2 "${name}" ${sensors_ua} | grep '_input' | head -1 | cut -f2 -d: | cut -f2 -d' ' | sed 's/\.000$//')
+    "${sensors}" -j >"${sensors_json}"
+    $jq 'keys' "${sensors_json}" | grep '^  "' | cut -f2 -d'"' | while read adapter; do
+      echo "adapter: $adapter"
+      $jq ".\"${adapter}\"" "${sensors_json}" | $jq 'keys' | grep '^  "' | grep -v '"Adapter"' | cut -f2 -d'"' | while read name; do
+        key=$($jq ".\"${adapter}\".\"${name}\"" "${sensors_json}" | $jq 'keys' | grep '^  "' | grep '_input"' | cut -f2 -d'"')
+        value=$($jq ".\"${adapter}\".\"${name}\".\"${key}\"" "${sensors_json}")
         store_line "sensors,host=${host},adapter=${adapter},name=${name/ /_} value=${value} ${ts}"
       done
     done
