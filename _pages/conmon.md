@@ -31,7 +31,21 @@ in the network:
    [myStrom REST API](https://api.mystrom.ch/) from one or
    more smart plug/switch devices that report energy usage.
 
-## How to Install
+## Install InfluxDB
+
+[Install InfluxDB OSS](https://docs.influxdata.com/influxdb/v1/introduction/install/)
+or simply
+
+```
+# apt install influxdb influxdb-client -y
+```
+
+[Set it up](https://docs.influxdata.com/influxdb/v1/introduction/get-started/)
+and test 
+[test writing data](https://docs.influxdata.com/influxdb/v1/guides/write_data/).
+
+Create a `monitoring` database (name can be different,
+then update the `DBNAME` variable in the `conmon` scripts).
 
 Choose *a* version of the `conmon` script and install it as
 `/usr/local/bin/conmon` and run it as a service by creating
@@ -60,6 +74,69 @@ Then enable and start the services in `systemd`:
 # systemctl start conmon.service
 # systemctl status conmon.service
 ```
+
+### The future of Flux
+
+Flux is going into maintenance mode. You can continue
+using it as you currently are without any changes to
+your code.
+
+Flux is going into maintenance mode and will not be
+supported in InfluxDB 3.0. This was a decision based
+on the broad demand for SQL and the continued growth
+and adoption of InfluxQL. We are continuing to
+support Flux for users in 1.x and 2.x so you can
+continue using it with no changes to your code.
+If you are interested in transitioning to InfluxDB
+3.0 and want to future-proof your code, we suggest
+using InfluxQL.
+
+For information about the future of Flux, see the following:
+
+*  [The plan for InfluxDB 3.0 Open Source](https://www.influxdata.com/blog/the-plan-for-influxdb-3-0-open-source/)
+*  [InfluxDB 3.0 benchmarks](https://www.influxdata.com/blog/influxdb-3-0-is-2.5x-45x-faster-compared-to-influxdb-open-source/)
+
+## Install Grafana
+
+To visualize monitoring in this setup
+[Grafana](https://grafana.com/grafana/)
+is used.
+
+Follow the steps to
+[install Grafana on Ubuntu](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/),
+[start the server with systemd](https://grafana.com/docs/grafana/latest/setup-grafana/start-restart-grafana/#start-the-grafana-server-with-systemd)
+and reset its `admin` password:
+
+```
+# grafana-cli admin reset-admin-password \
+  PLEASE_CHOOSE_A_SENSIBLE_PASSWORD
+INFO[03-20|15:02:11] Connecting to DB                         logger=sqlstore dbtype=sqlite3
+INFO[03-20|15:02:11] Starting DB migrations                   logger=migrator
+Admin password changed successfully ✔
+```
+[Add your InfluxDB data source to Grafana](https://grafana.com/docs/grafana/latest/getting-started/get-started-grafana-influxdb/#add-your-influxdb-data-source-to-grafana),
+create a new Dashboard and **Add > Visualization** for each measurement.
+
+Finally, enable
+[anonymous authentication](https://grafana.com/docs/grafana/latest/setup-grafana/start-restart-grafana/#start-the-grafana-server-with-systemd).
+by tweaking `/etc/grafana/grafana.ini` as follows:
+
+```conf
+#################################### Anonymous Auth ######################
+[auth.anonymous]
+# enable anonymous access
+enabled = true
+
+# specify organization name that should be used for unauthenticated users
+org_name = Main Org.
+
+# specify role for unauthenticated users
+org_role = Viewer
+
+# systemctl restart grafana-server.service
+```
+
+## Install Conmon
 
 ## Single-thread
 
