@@ -31,6 +31,15 @@ in the network:
    [myStrom REST API](https://api.mystrom.ch/) from one or
    more smart plug/switch devices that report energy usage.
 
+## Kubernetes Setup
+
+This setup has been 
+[migrated]({{ site.baseurl }}/2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes.html)
+to run on a
+[single-node Kubernetes cluster]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+and the scripts have been updated to support dual-targeting
+InfluxDB over HTTP without auth and/or HTTPS with Basic Auth.
+
 ## Install InfluxDB
 
 [Install InfluxDB OSS](https://docs.influxdata.com/influxdb/v1/introduction/install/)
@@ -151,14 +160,34 @@ latest version of the script to all computers at once.
 #
 # Deplay conmon-st to Raspberry Pi hosts.
 
-for host in pi-z1 pi-z2 pi3a pi-f1; do
+for host in pi-f1 pi-z1 pi-z2 pi3a; do
   if nc 2>&1 -zv ${host} 22 | grep -q succeeded; then
     echo "Deploying to ${host} ..."
-    # Copy over the entire repo.
-    scp -qr ../conmon pi@${host}:src/ 2>/dev/null
-    # Install single-thread script.
-    ssh pi@${host} "sudo cp /home/pi/src/conmon/conmon-st /usr/local/bin/conmon" 2>/dev/null
-    ssh pi@${host} "sudo systemctl restart conmon.service" 2>/dev/null
+    scp 2>/dev/null \
+      -qr \
+      ../conmon \
+      pi@${host}:src/
+    ssh 2>/dev/null \
+      pi@${host} \
+      "sudo cp /home/pi/src/conmon/conmon-st /usr/local/bin/conmon"
+    ssh 2>/dev/null \
+      pi@${host} \
+      "sudo systemctl restart conmon.service"
+    etc_influxdb_auth=/etc/conmon/influxdb-auth
+    for src_influxdb_auth in /etc/conmon/influxdb-auth "${HOME}/.conmon-influxdb-auth"; do
+      if [ -f $src_influxdb_auth ]; then
+        auth=$(cat $src_influxdb_auth 2>/dev/null)
+        ssh 2>/dev/null \
+          pi@${host} \
+          "sudo mkdir -p $(dirname $etc_influxdb_auth)"
+        ssh 2>&1 >/dev/null \
+          pi@${host} \
+          "echo '${auth}' | sudo tee $etc_influxdb_auth"
+        ssh 2>/dev/null \
+          pi@${host} \
+          "sudo chmod 400 $etc_influxdb_auth"
+      fi
+    done
   fi
 done
 ```
@@ -172,7 +201,8 @@ done
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET='http://lexicon:8086'
+TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTPS='http://lexicon:30086'
 
 # Default delay between each POST request to InfluxDB.
 DELAY_POST=4
@@ -519,15 +549,30 @@ report_du() {
 post_lines_to_influxdb() {
   # POST data to InfluxDB in batch, when target is available.
   # Depends on: nc.
+  # All other tasks write data to the file in append mode (>>).
+  # This task reads everything at once and immediately deletes the file.
+  # This makes all the other tasks write to the same file, created anew.
   sleep ${DELAY_POST}
-  host_and_port=$(echo "${TARGET}" | sed 's/.*\///' | tr : ' ')
-  if nc 2>&1 -zv ${host_and_port} | grep -q succeeded; then
-    # All other tasks write data to the file in append mode (>>).
-    # This task reads everything at once and immediately deletes the file.
-    # This makes all the other tasks write to the same file, created anew.
-    mv -f "${DATA}" "${DATA}.POST"
-    cut -f1 -d, "${DATA}.POST" | sort | uniq -c
-    curl >/dev/null 2>/dev/null -i -XPOST "${TARGET}/write?db=${DBNAME}" --data-binary @"${DATA}.POST"
+  mv -f "${DATA}" "${DATA}.POST"
+  # Post over HTTP without auth.
+  host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
+  if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+    curl >/dev/null 2>/dev/null \
+      -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+      --data-binary @"${DATA}.POST"
+  fi
+  # Post over HTTPS with Basic Auth, provided credentials are
+  # found in /etc/conmon/influxdb-auth
+  influxdb_auth=/etc/conmon/influxdb-auth
+  if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+    return
+  fi
+  host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+  if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+    curl >/dev/null 2>/dev/null \
+      -u $(sudo cat $influxdb_auth) \
+      -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+      --data-binary @"${DATA}.POST"
   fi
 }
 
@@ -593,11 +638,31 @@ deploy the latest version of the script to all computers.
 for host in computer smart-computer lexicon rapture; do
   if nc 2>&1 -zv ${host} 22 | grep -q succeeded; then
     echo "Deploying to ${host} ..."
-    # Copy over the entire repo.
-    scp -qr ../conmon root@${host}: 2>/dev/null
-    # Install single-thread script.
-    ssh root@${host} "cp /root/conmon/conmon-mt /usr/local/bin/conmon" 2>/dev/null
-    ssh root@${host} "systemctl restart conmon.service" 2>/dev/null
+    scp 2>/dev/null \
+      -qr \
+      ../conmon \
+      root@${host}:
+    ssh 2>/dev/null \
+      root@${host} \
+      "cp /root/conmon/conmon-mt /usr/local/bin/conmon"
+    ssh 2>/dev/null \
+      root@${host} \
+      "systemctl restart conmon.service"
+    etc_influxdb_auth=/etc/conmon/influxdb-auth
+    for src_influxdb_auth in /etc/conmon/influxdb-auth "${HOME}/.conmon-influxdb-auth"; do
+      if [ -f $src_influxdb_auth ]; then
+        ssh 2>/dev/null \
+          root@${host} \
+          "mkdir -p $(dirname $etc_influxdb_auth)"
+        scp 2>/dev/null \
+          -qr \
+          $src_influxdb_auth \
+          root@${host}:$etc_influxdb_auth
+        ssh 2>/dev/null \
+          root@${host} \
+          "chmod 400 $etc_influxdb_auth"
+      fi
+    done
   fi
 done
 ```
@@ -611,7 +676,8 @@ done
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET='http://lexicon:8086'
+TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTPS='http://lexicon:30086'
 
 # Default delay between each POST request to InfluxDB.
 DELAY_POST=4
@@ -998,21 +1064,36 @@ report_du() {
 }
 
 post_lines_to_influxdb() {
-  # POST data to InfluxDB in batch, when target is available.
+  # POST data to InfluxDB in batch, when targets are available.
   # Depends on: curl, nc.
+  # All other tasks write data to the file in append mode (>>).
+  # This task reads everything at once and immediately deletes the file.
+  # This makes all the other tasks write to the same file, created anew.
+  # To avoid losing data between reading and delete the file, rename it,
+  # wait a little (DELAY_FAST) for the writes of tasks that already had
+  # it open, then other tasks will have to write to a new file.
   while true; do
     sleep ${DELAY_POST}
-    host_and_port=$(echo $TARGET | sed 's/.*\///' | tr : ' ')
+    mv -f "${DATA}" "${DATA}.POST"
+    # Post over HTTP without auth.
+    host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
     if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-      # All other tasks write data to the file in append mode (>>).
-      # This task reads everything at once and immediately deletes the file.
-      # This makes all the other tasks write to the same file, created anew.
-      # To avoid losing data between reading and delete the file, rename it,
-      # wait a little (DELAY_FAST) for the writes of tasks that already had
-      # it open, then other tasks will have to write to a new file.
-      mv -f "${DATA}" "${DATA}.POST"
-      cut -f1 -d, "${DATA}.POST" | sort | uniq -c
-      curl >/dev/null 2>/dev/null -i -XPOST "${TARGET}/write?db=${DBNAME}" --data-binary @"${DATA}.POST"
+      curl >/dev/null 2>/dev/null \
+        -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+    fi
+    # Post over HTTPS with Basic Auth, provided credentials are
+    # found in /etc/conmon/influxdb-auth
+    influxdb_auth=/etc/conmon/influxdb-auth
+    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+      return
+    fi
+    host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+      curl >/dev/null 2>/dev/null \
+        -u $(sudo cat $influxdb_auth) \
+        -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
     fi
   done
 }
@@ -1045,8 +1126,9 @@ sleep 10000000000
 #!/bin/bash
 
 # InfluxDB target.
-TARGET='http://lexicon:8086'
 DBNAME=monitoring
+TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTPS='http://lexicon:30086'
 
 host=$(hostname)
 
@@ -1064,7 +1146,26 @@ echo "inet_down,host=${host} value=${netspd_down}" >>"$DATA"
 echo "inet_ping,host=${host} value=${netspd_ping}" >>"$DATA"
 
 # POST all data points in one batch request.
-curl >/dev/null 2>/dev/null -i -XPOST "${TARGET}/write?db=${DBNAME}" --data-binary @"$DATA"
+# Post over HTTP without auth.
+host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
+if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+    curl >/dev/null 2>/dev/null \
+        -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+fi
+# Post over HTTPS with Basic Auth, provided credentials are
+# found in /etc/conmon/influxdb-auth
+influxdb_auth=/etc/conmon/influxdb-auth
+if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+    return
+fi
+host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+    curl >/dev/null 2>/dev/null \
+        -u $(cat $influxdb_auth) \
+        -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+fi
 rm -f "${DATA}"
 ```
 
@@ -1077,7 +1178,8 @@ rm -f "${DATA}"
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET='http://lexicon:8086'
+TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTPS='http://lexicon:30086'
 
 # MyStrom switches.
 declare -A switches=(
@@ -1107,18 +1209,32 @@ store_line() {
 post_lines_to_influxdb() {
     # POST data to InfluxDB in batch, when target is available.
     # Depends on: nc.
+    # All other tasks write data to the file in append mode (>>).
+    # This task reads everything at once and immediately deletes the file.
+    # This makes all the other tasks write to the same file, created anew.
+    # To avoid losing data between reading and delete the file, rename it,
+    # wait a little (DELAY_FAST) for the writes of tasks that already had
+    # it open, then other tasks will have to write to a new file.
+    # Post over HTTP without auth.
     sleep ${DELAY_POST}
-    host_and_port=$(echo "${TARGET}" | sed 's/.*\///' | tr : ' ')
-    if nc 2>&1 -zv ${host_and_port} | grep -q succeeded; then
-        # All other tasks write data to the file in append mode (>>).
-        # This task reads everything at once and immediately deletes the file.
-        # This makes all the other tasks write to the same file, created anew.
-        # To avoid losing data between reading and delete the file, rename it,
-        # wait a little (DELAY_FAST) for the writes of tasks that already had
-        # it open, then other tasks will have to write to a new file.
-        mv -f "${DATA}" "${DATA}.POST"
-        cut -f1 -d, "${DATA}.POST" | sort | uniq -c
-        curl >/dev/null 2>/dev/null -i -XPOST "${TARGET}/write?db=${DBNAME}" --data-binary @"${DATA}.POST"
+    host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+            -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+            --data-binary @"${DATA}.POST"
+    fi
+    # Post over HTTPS with Basic Auth, provided credentials are
+    # found in /etc/conmon/influxdb-auth
+    influxdb_auth=/etc/conmon/influxdb-auth
+    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+        return
+    fi
+    host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+            -u $(cat $influxdb_auth) \
+            -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+            --data-binary @"${DATA}.POST"
     fi
 }
 

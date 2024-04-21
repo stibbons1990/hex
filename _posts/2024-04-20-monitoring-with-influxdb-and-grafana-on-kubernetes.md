@@ -353,7 +353,7 @@ into it, setup Grafana by creating a **Data source**:
 *   Type: InfluxDB
 *   Name: `telegraf`
 *   Query language: InfluxQL
-*   URL: http://10.0.0.6:30086
+*   URL: http://influxdb-svc:18086 (see [Pod Hostname DNS](#pod-hostname-dns))
 *   Database: `telegraf`
 
 ### Secure InfluxDB
@@ -385,7 +385,7 @@ Using database telegraf
 [Enable authentication in the deployment](https://stackoverflow.com/a/67937758)
 by setting the `INFLUXDB_HTTP_AUTH_ENABLED` variable:
 
-```
+```yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -425,8 +425,9 @@ DB does not exist!
 
 #### Update Grafana
 
-Entering the username (`admin`) and password in
-Grafana is enough to get the connextion restored.
+Updating the InfluxDB connection under **Data soures**
+in Grafana, by adding the username (`admin`) and
+password, is enough to get the connextion restored.
 
 #### Update Telegraf
 
@@ -661,7 +662,32 @@ so the DNS service will not resolve pods, but instead
 is http://influxdb-svc:18086
 
 The change of service name and `port` happened while
-creating the `Ingress` for HTTP access.
+creating the `Ingress` for HTTP access:
+
+```
+$ kubectl -n monitoring get all 
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/grafana-7647f97d64-k8h5m    1/1     Running   0          19h
+pod/influxdb-84dd8bc664-5m9fx   1/1     Running   0          17h
+pod/telegraf-c59gg              1/1     Running   0          17h
+
+NAME                   TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+service/grafana-svc    NodePort   10.109.127.41    <none>        13000:30300/TCP   19h
+service/influxdb-svc   NodePort   10.109.191.140   <none>        18086:30086/TCP   19h
+
+NAME                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/telegraf   1         1         1       1            1           <none>          17h
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/grafana    1/1     1            1           19h
+deployment.apps/influxdb   1/1     1            1           19h
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/grafana-7647f97d64    1         1         1       19h
+replicaset.apps/influxdb-6c86444bb7   0         0         0       19h
+replicaset.apps/influxdb-84dd8bc664   1         1         1       17h
+replicaset.apps/influxdb-87c66ff6     0         0         0       17h
+```
 
 **Further reading:
 [Connecting the Dots: Understanding How Pods Talk in Kubernetes Networks](https://medium.com/@seifeddinerajhi/connecting-the-dots-understanding-how-pods-talk-in-kubernetes-networks-992fa69fbbeb).**
@@ -672,3 +698,88 @@ creating the `Ingress` for HTTP access.
 can now be migrated to report metrics to a (new)
 database in the new InfluxDB and serve dashboards
 securely over HTTPS from the new Grafana.
+
+Create a `monitoring` database (separate from the
+`telegraf` database) and set its retencion period to
+30 days:
+
+```
+$ influx -host localhost -port 30086
+Connected to http://localhost:30086 version 1.8.10
+InfluxDB shell version: 1.6.7~rc0
+
+> auth
+username: admin
+password: 
+
+> CREATE DATABASE monitoring
+> USE monitoring
+Using database monitoring
+
+> CREATE RETENTION POLICY "30_days" ON "monitoring" DURATION 30d REPLICATION 1
+> ALTER RETENTION POLICY "30_days" on "monitoring" DURATION 30d REPLICATION 1 DEFAULT
+```
+
+In Grafana, create a new InfluxDB connection under
+**Data sources** pointing to this database.
+
+In the `conmon` scripts, update the `curl` domain
+to use **HTTP Basic** authentication, and update
+the `TARGET` to point at the new InfluxDB service;
+the value can be any of the following:
+
+*   http://localhost:30086 only on the server itself
+*   http://lexicon:30086 when running in the same LAN
+*   https://inf.ssl.uu.am when running out of LAN
+
+To accommodate for a transition period,
+scripts can report to both InfluxDB
+instances until the migration is over.
+
+First, store the InfluxDB credentials in
+`/etc/conmon/influxdb-auth` and make the
+file readable only to the `root` user:
+
+```
+# echo 'admin:*************' > /etc/conmon/influxdb-auth
+# chmod 400 /etc/conmon/influxdb-auth
+```
+
+```bash
+DBNAME=monitoring
+TARGET='http://lexicon:8086'
+TARGET2='http://lexicon:30086'
+...
+      curl >/dev/null 2>/dev/null \
+        -i -XPOST "${TARGET}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+      curl >/dev/null 2>/dev/null \
+        -u $(cat /etc/conmon/influxdb-auth) \
+        -i -XPOST "${TARGET2}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+```
+
+The `conmon` scripts will need to be updated later to
+optionally send authentication (user and password)
+only when necessary, and store the password somewhere
+safe (definitely outside of the running script).
+
+For each host reporting metrics, migrating the dashboard/s
+from the old Grafana to the old new should be as *easy* as:
+
+1.  In (each one of) the **old** dashboards, go to 
+    **Dashboard settings > JSON Model**
+    and copy the JSON model into a local file.
+1.  In (any of) the new **old** dashboards, go to 
+    **Dashboard settings > JSON Model**
+    and copy the `uid` of (any) `datasource` object.
+1.  In the local file, **replace** the `uid` of the `influxdb`
+    `datasource` objects (one per panel) with the value copied
+    from the old dashboard.
+1.  In the new Grafana, go to **Home > Dashboards** then
+    **New > Import** and upload the local file.
+
+Finally, once all the dashboards are working, one can go to
+**Administration > General > Default preferences** and set a
+specific dashboard as **Home Dashboard**.
+
