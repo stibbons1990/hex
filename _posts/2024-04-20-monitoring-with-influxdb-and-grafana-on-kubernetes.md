@@ -783,3 +783,27 @@ Finally, once all the dashboards are working, one can go to
 **Administration > General > Default preferences** and set a
 specific dashboard as **Home Dashboard**.
 
+### Clean Up
+
+After some time dual-reporting with no regressions observed,
+reporting to the old InfluxDB was removed and a few days later
+the service could be disabled:
+
+```
+# systemctl stop grafana-server.service
+# systemctl stop influxdb.service 
+# systemctl disable grafana-server.service
+Synchronizing state of grafana-server.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install disable grafana-server
+Removed /etc/systemd/system/multi-user.target.wants/grafana-server.service.
+# systemctl disable influxdb.service 
+Synchronizing state of influxdb.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install disable influxdb
+Removed /etc/systemd/system/multi-user.target.wants/influxdb.service.
+Removed /etc/systemd/system/influxd.service.
+```
+
+This was rather necessary to keep the server cooler and quieter,
+if not completely cool and quiet:
+
+![Monitoring showing a decrease in CPU and memory use after disabling the old Grafana and InfluxDB services]({{ media }}/.jpg)
