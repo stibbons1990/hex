@@ -806,4 +806,4 @@ Removed /etc/systemd/system/influxd.service.
 This was rather necessary to keep the server cooler and quieter,
 if not completely cool and quiet:
 
-![Monitoring showing a decrease in CPU and memory use after disabling the old Grafana and InfluxDB services]({{ media }}/.jpg)
+![Monitoring showing a decrease in CPU and memory use after disabling the old Grafana and InfluxDB services]({{ media }}/monitoring-after-disabling-old-services.png)
