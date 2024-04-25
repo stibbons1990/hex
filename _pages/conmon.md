@@ -201,7 +201,7 @@ done
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTP='' # Leave empty to skip.
 TARGET_HTTPS='http://lexicon:30086'
 
 # Default delay between each POST request to InfluxDB.
@@ -555,24 +555,28 @@ post_lines_to_influxdb() {
   sleep ${DELAY_POST}
   mv -f "${DATA}" "${DATA}.POST"
   # Post over HTTP without auth.
-  host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
-  if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-    curl >/dev/null 2>/dev/null \
-      -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
-      --data-binary @"${DATA}.POST"
+  if [ -n "$TARGET_HTTP" ]; then
+    host_and_port=$(echo "$TARGET_HTTP" | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+      curl >/dev/null 2>/dev/null \
+        -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+    fi
   fi
   # Post over HTTPS with Basic Auth, provided credentials are
   # found in /etc/conmon/influxdb-auth
-  influxdb_auth=/etc/conmon/influxdb-auth
-  if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
-    return
-  fi
-  host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
-  if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-    curl >/dev/null 2>/dev/null \
-      -u $(sudo cat $influxdb_auth) \
-      -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
-      --data-binary @"${DATA}.POST"
+  if [ -n "$TARGET_HTTPS" ]; then
+    influxdb_auth=/etc/conmon/influxdb-auth
+    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+      return
+    fi
+    host_and_port=$(echo "$TARGET_HTTPS" | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+      curl >/dev/null 2>/dev/null \
+        -u $(sudo cat $influxdb_auth) \
+        -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+        --data-binary @"${DATA}.POST"
+    fi
   fi
 }
 
@@ -676,7 +680,7 @@ done
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTP='' # Leave empty to skip.
 TARGET_HTTPS='http://lexicon:30086'
 
 # Default delay between each POST request to InfluxDB.
@@ -1076,24 +1080,28 @@ post_lines_to_influxdb() {
     sleep ${DELAY_POST}
     mv -f "${DATA}" "${DATA}.POST"
     # Post over HTTP without auth.
-    host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
-    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-      curl >/dev/null 2>/dev/null \
-        -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
-        --data-binary @"${DATA}.POST"
+    if [ -n "$TARGET_HTTP" ]; then
+      host_and_port=$(echo "$TARGET_HTTP" | sed 's/.*\///' | tr : ' ')
+      if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+          -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+          --data-binary @"${DATA}.POST"
+      fi
     fi
     # Post over HTTPS with Basic Auth, provided credentials are
     # found in /etc/conmon/influxdb-auth
-    influxdb_auth=/etc/conmon/influxdb-auth
-    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
-      return
-    fi
-    host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
-    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-      curl >/dev/null 2>/dev/null \
-        -u $(sudo cat $influxdb_auth) \
-        -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
-        --data-binary @"${DATA}.POST"
+    if [ -n "$TARGET_HTTPS" ]; then
+      influxdb_auth=/etc/conmon/influxdb-auth
+      if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+        return
+      fi
+      host_and_port=$(echo "$TARGET_HTTPS" | sed 's/.*\///' | tr : ' ')
+      if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+          -u $(sudo cat $influxdb_auth) \
+          -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+          --data-binary @"${DATA}.POST"
+      fi
     fi
   done
 }
@@ -1127,7 +1135,7 @@ sleep 10000000000
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTP='' # Leave empty to skip.
 TARGET_HTTPS='http://lexicon:30086'
 
 host=$(hostname)
@@ -1147,24 +1155,28 @@ echo "inet_ping,host=${host} value=${netspd_ping}" >>"$DATA"
 
 # POST all data points in one batch request.
 # Post over HTTP without auth.
-host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
-if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-    curl >/dev/null 2>/dev/null \
-        -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
-        --data-binary @"${DATA}.POST"
+if [ -n "$TARGET_HTTP" ]; then
+    host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+            -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+            --data-binary @"${DATA}"
+    fi
 fi
 # Post over HTTPS with Basic Auth, provided credentials are
 # found in /etc/conmon/influxdb-auth
-influxdb_auth=/etc/conmon/influxdb-auth
-if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
-    return
-fi
-host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
-if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-    curl >/dev/null 2>/dev/null \
-        -u $(cat $influxdb_auth) \
-        -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
-        --data-binary @"${DATA}.POST"
+if [ -n "$TARGET_HTTPS" ]; then
+    influxdb_auth="${HOME}/.conmon-influxdb-auth"
+    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+        return
+    fi
+    host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+        curl >/dev/null 2>/dev/null \
+            -u $(cat $influxdb_auth) \
+            -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+            --data-binary @"${DATA}"
+    fi
 fi
 rm -f "${DATA}"
 ```
@@ -1178,7 +1190,7 @@ rm -f "${DATA}"
 
 # InfluxDB target.
 DBNAME=monitoring
-TARGET_HTTP='http://lexicon:8086'
+TARGET_HTTP='' # Leave empty to skip.
 TARGET_HTTPS='http://lexicon:30086'
 
 # MyStrom switches.
@@ -1217,24 +1229,28 @@ post_lines_to_influxdb() {
     # it open, then other tasks will have to write to a new file.
     # Post over HTTP without auth.
     sleep ${DELAY_POST}
-    host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
-    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-        curl >/dev/null 2>/dev/null \
-            -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
-            --data-binary @"${DATA}.POST"
+    if [ -n "$TARGET_HTTP" ]; then
+        host_and_port=$(echo $TARGET_HTTP | sed 's/.*\///' | tr : ' ')
+        if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+            curl >/dev/null 2>/dev/null \
+                -i -XPOST "${TARGET_HTTP}/write?db=${DBNAME}" \
+                --data-binary @"${DATA}"
+        fi
     fi
     # Post over HTTPS with Basic Auth, provided credentials are
     # found in /etc/conmon/influxdb-auth
-    influxdb_auth=/etc/conmon/influxdb-auth
-    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
-        return
-    fi
-    host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
-    if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
-        curl >/dev/null 2>/dev/null \
-            -u $(cat $influxdb_auth) \
-            -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
-            --data-binary @"${DATA}.POST"
+    if [ -n "$TARGET_HTTPS" ]; then
+        influxdb_auth=/etc/conmon/influxdb-auth
+        if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+            return
+        fi
+        host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
+        if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
+            curl >/dev/null 2>/dev/null \
+                -u $(cat $influxdb_auth) \
+                -i -XPOST "${TARGET_HTTPS}/write?db=${DBNAME}" \
+                --data-binary @"${DATA}"
+        fi
     fi
 }
 
