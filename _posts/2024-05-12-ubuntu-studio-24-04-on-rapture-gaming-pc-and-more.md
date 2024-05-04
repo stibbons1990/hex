@@ -8,6 +8,21 @@ Installing Ubuntu Studio 24.04 on my main PC, for Gaming, coding, media and more
 
 {% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
 
+## Considering Timing
+
+[Ubuntu Studio 24.04 LTS Released](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/)
+on April 25 but, as they themselves put it
+*since it’s just out, you may experience some issues, so you might want to wait a bit before upgrading*.
+
+There doesn't seem to be anything particular scarey in release notes:
+
+*  [Ubuntu Studio 24.04 LTS Release Notes](https://ubuntustudio.org/ubuntu-studio-24-04-LTS-release-notes/)
+*  [Kubuntu 24.04 Release Notes](https://wiki.ubuntu.com/NobleNumbat/ReleaseNotes/Kubuntu)
+*  [Noble Numbat Release Notes](https://discourse.ubuntu.com/t/noble-numbat-release-notes/39890/1)
+
+And my plan is not to upgrade in place; I like to keep the previous
+version around just in case I need a stable system to fall back to.
+
 ## Preparation
 
 In preparation to upgrade my main PC to
