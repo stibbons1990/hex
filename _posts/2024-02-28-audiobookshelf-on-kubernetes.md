@@ -4,13 +4,17 @@ date:   2024-02-28 02:28:24 +0200
 categories: linux kubernetes audiobookshelf docker server
 ---
 
-[Migrating a Plex Media Server to Kubernetes](https://stibbons1990.github.io/hex/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
+[Migrating a Plex Media Server to Kubernetes]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
 was a significant improvement for the *maintenance* of the Plex Media
 Server I use to listen to podcasts and audiobooks, to keep me company
 while I play games, but after all these years Plex remains a
 *very insufficient and deficient* application for audiobooks.
 
 ***Enter [audiobookshelf](https://www.audiobookshelf.org/)*** (because Emby and Jellyfin are also not great)
+
+{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+
+![Audiobookshelf home page]({{ media }}/audiobookshelf-home.png)
 
 ## Installation on Kubernetes
 
@@ -322,10 +326,9 @@ spec:
 ```
 
 The above deployment is based on
-https://www.audiobookshelf.org/docs/#docker-upgrade
+[audiobookshelf Docker documentation](https://www.audiobookshelf.org/docs/#docker-upgrade)
 and
-https://www.datree.io/helm-chart/audiobookshelf-truecharts
-
+[Audiobookshelf Helm Chart By TrueCharts](https://www.datree.io/helm-chart/audiobookshelf-truecharts).
 
 #### Troubleshooting
 
@@ -420,10 +423,21 @@ Node.js v20.11.1
 ## Configuration
 
 Once the service is running, accessing the web interface allows
-creating the first (`root`) user. Additional users can (should)
+creating the first (`root`) user. Additional users can (and should)
 be created, so they can each have their own progress saved throughout
 books and podcatss. Users can also have access to different sets of
 libraries, although by default they will have access to all libraries.
+
+## Mobile app
+
+To complete the self-hosted audiobook service, there is also the mobile app
+[advplyr/audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app).
+
+![Audiobookshelf Android app]({{ media }}/audiobookshelf-phone.png)
+
+[Audiobookshelf Android app](https://play.google.com/store/apps/details?id=com.audiobookshelf.app&hl=en_US)
+can easily be installed from Google Play directly. The iOS app cannot
+simply be installed, because Apple has a hard limit of 10k beta testers.
 
 ## Better Features
 
@@ -432,32 +446,95 @@ than in Plex:
 
 *  Saving the progress through books and podcats, per user.
 *  Podcats with a separate feed for pre/after show are somehow
-   included 
+   corrected merged together.
 *  **[REST API](https://api.audiobookshelf.org)** that may allow
    implementing some of the missing features below.
+
+### Matching Metadata
+
+One of my favorite features of **audiobookshelf** is the ability
+to fetch book metadata and thus more clearly tell different
+versions of a book a part, e.g. abridged vs unabridged:
+
+![Audiobookshelf Match]({{ media }}/audiobookshelf-match.png)
+
+After selecting one matching book, metadata can be edited or even
+left out. This is very useful when an exact match cannot be found,
+but a *close enough* match can be used to fetch the matching parts
+of its metadata while at the same time manually editing or adding
+as needed. After importing metadata, there are further options to
+add or edit book metadata in the **Details** tab:
+
+![Audiobookshelf Details]({{ media }}/audiobookshelf-details.png)
+
+I find it particularly useful to add or edit:
+
+*   **Explict**, because this is seem to never be provided by
+    matching metadata and in any case it can be a matter of opinion.
+*   **Language**, if not correctly matched (usually it is).
+*   **Series**. A book can have a different places in different
+    series or subseries, and you can create your own series too.
+
+The **Series** field is interesting to then navigate books by series:
+
+![Audiobookshelf Series]({{ media }}/audiobookshelf-series.png)
+
+### PDF Reader
+
+When there is a PDF file along with audio files, this can be
+read from the browser by clicking the corresponding icon
+e.g. this is (half) a page of Nick Offerman's
+[Good Clean Fun](https://nickofferman.co/books/good-clean-fun/):
+
+![Audiobookshelf eBook]({{ media }}/audiobookshelf-ebook.png)
+
+### Podcast Publication Dates
+
+At least when using a separate tool for downloading podcast
+**episodes**, they have have only a **year** of publication,
+from the `TYER` ID3 frame, so they show up with their release date
+being as YYYY-01-01 and they cannot be properly sorted by
+release date. This could be fixed by allowing Audiobookshelf
+to download RSS feeds directly (have not tried), but also by
+updating the separate tool to set the 
+[`TDAT` and `TIME` frames](https://id3.org/id3v2.3.0#sec4.2).
+Once these are set in the MP3 files, **audiobookshell** will
+correctly parse and display them:
+
+![Audiobookshelf podcast episodes by publication date]({{ media }}/audiobookshelf-podcasts-bydate.png)
+
+### Podcast Progress
+
+Just like with Audiobooks, keep track of which podcasts episodes
+each user has listed to is a central feature. One little detail I
+really like about how this is done, is the yellow or black circle
+on the podcast cover indicating whether all episodes have been
+listed to already (black circle) or otherwise how many are yet to
+be listened to (yellow circle):
+
+![Audiobookshelf podcasts by title]({{ media }}/audiobookshelf-podcasts.png)
 
 ## Missing Features
 
 After a few days listening to books and podcasts, a few features turn
-out to be missing or not working as expected. Most of these are not
-yet in the issue trackers:
+out to be missing or not working as expected. Most of these are already
+in the issue tracker:
 
 [audiobookshelf](https://github.com/advplyr/audiobookshelf/issues)
-*  [[Enhancement]: Display podcast episode images #1573](https://github.com/advplyr/audiobookshelf/issues/1573)
-*  [[Enhancement]: Ability to edit Series similar to tags #1604](https://github.com/advplyr/audiobookshelf/issues/1604)
+
+*  [Enhancement: Display podcast episode images #1573](https://github.com/advplyr/audiobookshelf/issues/1573)
+*  [Enhancement: Ability to edit Series similar to tags #1604](https://github.com/advplyr/audiobookshelf/issues/1604)
 *  [UI: Sort a Series by publication year if no sort sequence number present #1674](https://github.com/advplyr/audiobookshelf/issues/1674)
-*  [[Enhancement] Set custom order for podcast library #1792](https://github.com/advplyr/audiobookshelf/issues/1792)
-*  [[Enhancement]: Enable Custom datetime in Podcast episode File Name #1869](https://github.com/advplyr/audiobookshelf/issues/1869)
-*  [[Enhancement]: More Flexible Library Structure #2208](https://github.com/advplyr/audiobookshelf/issues/2208)
-*  [[Bug]: PDF Reader is flickering #2279](https://github.com/advplyr/audiobookshelf/issues/2279)
-*  [[Enhancement]: Same book, different narrators #2396](https://github.com/advplyr/audiobookshelf/issues/2396)
-*  [[Enhancement]: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660)
+*  [Enhancement Set custom order for podcast library #1792](https://github.com/advplyr/audiobookshelf/issues/1792)
+*  [Enhancement: Enable Custom datetime in Podcast episode File Name #1869](https://github.com/advplyr/audiobookshelf/issues/1869)
+*  [Enhancement: More Flexible Library Structure #2208](https://github.com/advplyr/audiobookshelf/issues/2208)
+*  [Bug: PDF Reader is flickering #2279](https://github.com/advplyr/audiobookshelf/issues/2279)
+*  [Enhancement: Same book, different narrators #2396](https://github.com/advplyr/audiobookshelf/issues/2396)
+*  [Enhancement: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660)
 
 [audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app/issues)
 *  [Provide ability to queue audiobooks and podcast episodes #416](https://github.com/advplyr/audiobookshelf-app/issues/416)
 *  [Ability to mark several Podcast episodes by first marking and then dragging down with two fingers in IOS #685](https://github.com/advplyr/audiobookshelf-app/issues/685)
-
-
 
 ### Batch Updates
 
@@ -471,58 +548,18 @@ as unfinished.
 
 ### Collections
 
-The option to add books to collections seems to be missing.
+The option to **remove** books to collections seems to be missing
+and there doesn't seem to be any way to remove collections at all.
 
-### Series
+### Playlists
 
-Most book series are not recognized unless they are organized by folders, e.g.
+Playlists have the same problematic limitations as Collections:
+no way option to delete them, or remove episodes from them.
 
-```
-$ ls /audiobooks/Ulf.Blanck/Die.Drei.Kids/
-'Die drei  Kids 01. Panik im Paradies'
-'Die drei  Kids 04. Chaos vor der Kamera'
-'Die drei  Kids 110. Panik im Park'
-'Die drei  Kids 17. Rettet Atlantis'
-```
+This is the one and only thing I still use Plex for. I like to
+listen to podcasts in by their publication date, especially because I
+listen to several podcasts that cross-reference and even *invite on*
+each other. I have not found a *good* way to do this with Audiobookshelf,
+given the no-remove-option limitations, so I'm still using Plex.
 
-The name of the folder is taken literally (`Die.Drei.Kids`).
-
-Changed the name to `Die Drei Kids` and moved all the Witcher books
-under a `The Witcher` folder, then triggered **Scan** for the library,
-but it doesn't seem to pick tha changes up; the scan takes barely
-a second:
-
-```
-$ kubectl -n audiobookshelf logs -f audiobookshelf-5596fd468c-cvvz9
-[2024-03-04 20:06:03.817] INFO: [LibraryScanner] Starting library scan 7bd245e5-30a1-4655-abcb-2acec3e87a50 for Audiobooks
-[2024-03-04 20:06:04.842] INFO: [LibraryScanner] Library scan 7bd245e5-30a1-4655-abcb-2acec3e87a50 completed in 0:01.0 | 0 Added | 0 Updated | 0 Missing
-[2024-03-04 20:06:04.870] INFO: [LibraryController] Scan complete
-```
-
-Yet after this playback on the `Die Drei Kids` books works, even
-though the files have been moved, so the scan did find the new files,
-just didn't update the *Series* items.
-
-### Language
-
-Only one book is recognized to be in German, there are many.
-
-### PDF Reader
-
-There should be a way to read the PDF files included with some books,
-e.g. Everything is a Hammer, Good Clean Fun.
-
-### Podcast Chapter Covers
-
-For the Easy German podcast (find public episode with them).
-
-See [[Enhancement]: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660).
-
-### Precise dates
-
-Podcast **episodes** have only a year of publication, with their
-release date being set to YYYYY-01-01. This could be fixed by
-allowing Audiobookshelf to download RSS feeds directly.
-
-This may affect audiobooks too, but that's less critical since books
-tend to be published at less than one-per-year pace.
+![Plex podcast playlist]({{ media }}/plex-podcasts-playlist.png)
