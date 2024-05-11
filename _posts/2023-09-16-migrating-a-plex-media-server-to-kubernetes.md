@@ -582,6 +582,32 @@ Plex settings under **Settings > Remote Access**.
 web interface from the local network:
 [192.168.0.128:32400/web](http://192.168.0.128:32400/web)
 
+### Scheduled Tasks
+
+Normally Plex runs daily maintenance during the night,
+which is a good time. However, given the limited CPU in
+this server, even letting it run for 4 hours every day
+results in the CPU running quite hot for all that time:
+
+![Monitoring shows CPU running at 200% and around 90ºC]({{ media }}/lexicon-plex-cpu-load-and-temps.png)
+![Monitoring shows Plex running at 200% CPU load]({{ media }}/lexicon-plex-user-cpu-load.png)
+
+To get rid of this, I went to **Settings > Server > Library**
+to update
+[Plex Library Settings](https://support.plex.tv/articles/200289526-library/) and disable these which I don't really need,
+by setting their *frequency* to **never**:
+
+*  **Generate chapter thumbnails** seems relevant only for
+   TV series, which I don't use (or care about).
+*  **Analyze audio tracks for loudness** is clearly called out
+   as potentially CPU-intensive, and I don't think is useful
+   for podcasts, where each episode is a single track, and most
+   of the times one listens to a single one per "album". Even
+   if this *could* be useful for audiobooks, it shouldn't be
+   necessary given the rather high quality of their audio.
+
+![Plex Library Settings Disabling CPU-intensive tasks]({{ media }}/lexicon-plex-settings-library.png)
+
 ## Epilogue
 
 The migration had two *critical* requirements:
