@@ -411,10 +411,10 @@ I like to spice it up to make a little more *trigger-happy*:
 ```
 # vi /etc/fail2ban/jail.conf
 # "bantime" is the number of seconds that a host is banned.
-bantime  = 1000m
+bantime  = 3d
 # A host is banned if it has generated "maxretry" during the last "findtime"
 # seconds.
-findtime  = 100m
+findtime  = 1d
 # "maxretry" is the number of failures before a host get banned.
 maxretry = 3
 # "bantime.increment" allows to use database for searching of previously banned ip's to increase a 
