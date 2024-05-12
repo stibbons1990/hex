@@ -1,6 +1,6 @@
 ---
 title:  "Single-node Kubernetes cluster on Ubuntu Studio desktop (rapture)"
-date:   2024-05-12 20:05:12 +0200
+date:   2024-05-12 15:05:12 +0200
 categories: ubuntu studio desktop linux kubernetes docker
 ---
 
@@ -95,10 +95,10 @@ Intel NUC can handle:
    intensive, not sure why but it is the one service that makes
    the CPU run hotter on a regular basis, although always in
    short spikes and never much above 100% (a single CPU core).
-*  [GitLab Helm chart](https://docs.gitlab.com/charts/) requires
-   enough CPU to be allocated that, together with just the basic
-   single-node cluster allocations, it exceeded the limit of the
-   available 4 CPU cores. Besides, running
+*  [GitLab Helm chart](https://docs.gitlab.com/charts/)
+   requires enough CPU to be allocated that, together with
+   just the basic single-node cluster allocations, it exceeded
+   the limit of the available 4 CPU cores. Besides, running
    [CI/CD pipelines](https://docs.gitlab.com/ee/ci/pipelines/)
    would likely take too long on a system with few CPU cores.
 *  [PhotoPrism](https://docs.photoprism.app/getting-started/advanced/kubernetes/)
@@ -1081,9 +1081,403 @@ In order to *resolve* those pre-flight checks one would
 have to `kubeadm reset` which would only undo the work!
 
 ## MetalLB Load Balancer
+
+A Load Balancer is going to be necessary for the
+[Dashboard](#kubernets-dashboard)
+and other services, to expose individual services via open
+ports on the server (`NodePort`) or virtual IP addresses.
+[Installation By Manifest](https://metallb.universe.tf/installation/#installation-by-manifest)
+is as simple as applying the provided manifest:
+
+```
+$ wget https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
+
+$ kubectl apply -f metallb-native.yaml
+namespace/metallb-system created
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io created
+serviceaccount/controller created
+serviceaccount/speaker created
+role.rbac.authorization.k8s.io/controller created
+role.rbac.authorization.k8s.io/pod-lister created
+clusterrole.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrole.rbac.authorization.k8s.io/metallb-system:speaker created
+rolebinding.rbac.authorization.k8s.io/controller created
+rolebinding.rbac.authorization.k8s.io/pod-lister created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker created
+configmap/metallb-excludel2 created
+secret/metallb-webhook-cert created
+service/metallb-webhook-service created
+deployment.apps/controller created
+daemonset.apps/speaker created
+validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-configuration created
+```
+
+**Note:** YAML files for MetalLB will be stored for
+future reference, under `1.26/metallb` in the
+[GitHub repository](#github-repository).
+
+MetalLB remains idle until configured, which is done by
+deploying resources into its namespace (`metallb-system`).
+In this PC, a small range of IP addresses is advertised via
+[Layer 2 Configuration](https://metallb.universe.tf/configuration/#layer-2-configuration), which does not
+not require the IPs to be bound to the network interfaces:
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: rapture-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.1.230-192.168.1.240
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advert
+  namespace: metallb-system
+```
+
+Store this configuration in a separate, host-specific file (`ipaddress-pool-rapture.yaml`) and apply it:
+
+```
+$ kubectl apply -f ipaddress-pool-rapture.yaml
+ipaddresspool.metallb.io/rapture-pool created
+l2advertisement.metallb.io/l2-advert created
+
+$ kubectl get l2advertisements.metallb.io -n metallb-system
+NAME        IPADDRESSPOOLS   IPADDRESSPOOL SELECTORS   INTERFACES
+l2-advert
+
+$ kubectl get ipaddresspools.metallb.io -n metallb-system
+NAME           AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
+rapture-pool   true          false             ["192.168.1.230-192.168.1.240"]
+
+$ kubectl describe ipaddresspools.metallb.io rapture-pool -n metallb-system
+Name:         rapture-pool
+Namespace:    metallb-system
+Labels:       <none>
+Annotations:  <none>
+API Version:  metallb.io/v1beta1
+Kind:         IPAddressPool
+Metadata:
+  Creation Timestamp:  2024-05-12T13:34:20Z
+  Generation:          1
+  Managed Fields:
+    API Version:  metallb.io/v1beta1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          .:
+          f:kubectl.kubernetes.io/last-applied-configuration:
+      f:spec:
+        .:
+        f:addresses:
+        f:autoAssign:
+        f:avoidBuggyIPs:
+    Manager:         kubectl-client-side-apply
+    Operation:       Update
+    Time:            2024-05-12T13:34:20Z
+  Resource Version:  13194
+  UID:               979ae8fc-7cad-48df-9c2c-744c242a5075
+Spec:
+  Addresses:
+    192.168.1.230-192.168.1.240
+  Auto Assign:       true
+  Avoid Buggy I Ps:  false
+Events:              <none>
+```
+
+**Note:** The range 192.168.0.230-192.168.0.240 is
+intended to be **outside** of the range leased by the
+local DHCP server, which not only prevents conflicts but
+also ensure that the router **will not** route external
+requests to these.
+This is the opposite intent from that of the 
+[`IPAddressPool` setup in Lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#metallb-load-balancer).
+
 ## Kubernets Dashboard
+
+The first service to leverage all the above infrastructure,
+including virtual IP addresses from the
+[MetalLB Load Balancer](#metallb-load-balancer), is the
+[Kubernetes Dashboard](https://v1-26.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
+
+Once again, this service is deployed by manifest:
+
+```
+$ wget -O kubernetes-dashboard.yaml \
+  https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+```
+
+**Note:** YAML files for MetalLB will be stored for
+future reference, under `1.26/dashboard` in the
+[GitHub repository](#github-repository).
+
+In this case to make the dashboard easily available in the
+local network, we edit the deployment to add
+`type: LoadBalancer` to the `kubernetes-dashboard`
+**service** (line 40):
+
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 443
+      targetPort: 8443
+  selector:
+    k8s-app: kubernetes-dashboard
+```
+
+After applying this deployment, a virtual IP address will
+be assign to it, where the dashboard can be accessed:
+
+```
+$ kubectl apply -f kubernetes-dashboard.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+
+$ kubectl get svc -n kubernetes-dashboard
+NAME                        TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP      10.107.131.104   <none>          8000/TCP        32s
+kubernetes-dashboard        LoadBalancer   10.107.235.155   192.168.1.230   443:30480/TCP   32s
+```
+
+The dashboard is accessible at [https://192.168.1.230](https://192.168.1.230) but not exactly accessible without
+a login token:
+
+![Kubernetes Dashboard login page]({{ media }}/kubernetes-dashboard-login.png)
+
+The [Authentication](kubernetes.io/docs/admin/authentication/)
+link is broken; the documentation that seems most relevant to
+authenticating Service Accounts to acess the dashboard is the
+[Authenticating](https://v1-26.docs.kubernetes.io/docs/reference/access-authn-authz/authentication/) page, which
+does not quite explain how to create a Service Account,
+grant it access to the dashboard *and then* obtain a token.
+Neither does the documentation to
+[Deploy **and Access** the Kubernetes Dashboard](https://v1-26.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
+
+For this, I really had to resort to the
+[Creating Kubernetes Admin User for Accessing Dashboard](https://computingforgeeks.com/create-admin-user-to-access-kubernetes-dashboard/)
+article. To create a Service Account and grant it access to
+everything (the `cluster-admin` roles), apply the following
+manifest as `admin-sa-rbac.yaml`
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8sadmin
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  namespace: kube-system
+  name: k8sadmin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: k8sadmin
+    namespace: kube-system
+```
+
+```
+$ kubectl apply -f admin-sa-rbac.yaml
+serviceaccount/k8sadmin created
+clusterrolebinding.rbac.authorization.k8s.io/k8sadmin created
+```
+
+Now one can create a token for the `k8sadmin` user and use it
+to access the dashboard:
+
+```
+$ kubectl create token k8sadmin -n kube-system
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkktZ05rdlNzcVNzb1F0S3VYYmo3TXlpMjdTU2ktUUhpSzQwcUNLOTBRMXMifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzE1NTMwNTQyLCJpYXQiOjE3MTU1MjY5NDIsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJrOHNhZG1pbiIsInVpZCI6IjJjMDliOTU3LTBhYzItNDQyNy05YjA2LWFiZDBhMmI5OTJhNyJ9fSwibmJmIjoxNzE1NTI2OTQyLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06azhzYWRtaW4ifQ.e6aAjUZvHvtZCN-QJAwFVt0I9pDklXC0La8RA-SjWTguEuAm0YbTgeOkRUKzb1q5_lkYIvpVyFN_E5z5IH1s6ygWdcWqS_RYtsmdQGr7iBTbpk-2cZb3bmt-mZkfDkYGgThNbzYoQ2gqXHSYnRtQKH2Spz6j_xt3G42IL1WGrfZIrdfBcLnkRBe1-l76qt1i0mq1wDwcSR2XAi3EpaOF-65f19__DYY4nt2JkhgxixpC-TZCLOXTfOAmbfbLoR07BmLZxw97Y85tvtYj1un7vQmgeDTBmWqtHIV4hYBlgH4ljUNIZg11GWECkOcd6UrHHtG8IG3REh87dAF2eD5Ysw
+```
+
+![Kubernetes Dashboard home page]({{ media }}/kubernetes-dashboard-home.png)
+
+**Note:** at this point the SSL certificate is not yet valid,
+this will be
+[addressed later](#add-ingress-for-kubernetes-dashboard)
+by accessing the dashboard via an
+[Ingress Controller](#ingress-controller) with
+[HTTPS](#https-with-lets-encrypt).
+
 ## Ingress Controller
+
+An Nginx Ingress Controller will be used to redirect **HTTPS**
+requests to different services depending on the `Host:` header,
+while all those requests will be hitting the same IP address.
+
+Download the deployment manifest following the
+[Installation Guide](https://kubernetes.github.io/ingress-nginx/deploy/)
+from
+[kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx)
+
+```
+$ wget -O nginx-ingress-controller.yaml \
+  https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+```
+
+To serve HTTPS requests on a single IP address, the
+`ingress-nginx-controller` **service** must be created with
+`type: LoadBalancer`. As it happens, the `v1.10.1` manifest
+already has this property set in line 366:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.10.1
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  externalTrafficPolicy: Local
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - appProtocol: http
+    name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - appProtocol: https
+    name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  type: LoadBalancer
+```
+
+After applying this deployment, another virtual IP address
+is assigned to the `ingress-nginx-controller` service and
+there is NGinx happily returning 404 Not found:
+
+```
+$ kubectl apply -f  nginx-ingress-controller.yaml
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+serviceaccount/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+configmap/ingress-nginx-controller created
+service/ingress-nginx-controller created
+service/ingress-nginx-controller-admission created
+deployment.apps/ingress-nginx-controller created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+ingressclass.networking.k8s.io/nginx created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+
+$ kubectl get svc -n ingress-nginx
+NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.97.59.176   192.168.1.231   80:30706/TCP,443:30199/TCP   28s
+ingress-nginx-controller-admission   ClusterIP      10.98.208.0    <none>          443/TCP                      28s
+
+$ curl http://192.168.1.231/
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
 ## HTTPS with Let’s Encrypt
-### Monthly renewal of certificates (automated)
-### Add Ingress for Kubernetes Dashboard
+
+The
+[Kubernetes setup for Let’s Encrypt in Lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#kubernetes-setup)
+was riddled with *first-time issues*, but I was able to
+[Add Ingress for Kubernetes Dashboard]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#add-ingress-for-kubernetes-dashboard)
+and setup en entirely
+[*automated* monthly renewal of certificates]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#monthly-renewal-of-certificates-automated).
+However, the entire *Let’s Encrypt* system to obtain and
+renew certificates relies on external requests reaching the
+NGinx controller, which is precisely some to avoid here.
+
+If and when it becomes necessary, the setup can be replicated
+even if that involves manually renewing certifidates each
+month. While any other external requests would not be routed
+to this PC, `/etc/hosts` can be used to map rapture.ssl.uu.am
+to the NGinx LoadBalancer IP (192.168.1.231) so that
+*external-looking* URLs can be used for this internal traffic.
+
+In the meantime, `/etc/hosts` can be used to map specific
+subdomains to the LoadBalancer IPs of individual services, e.g.
+k8s.rapture.ssl.uu.am can be mapped to 192.168.1.230 so that
+the dashboard is accessible at
+[https://k8s.rapture.ssl.uu.am/](https://k8s.rapture.ssl.uu.am/).
+
 ## LocalPath PV provisioner
+
+By default, a Kubernetes cluster is not set up to provide storage to pods. This was problematic for a while, especially
+when trying to 
+[deploy GitLab with Helm](https://docs.gitlab.com/charts/installation/deployment.html)
+without first taking the time to
+[Configure storage for the GitLab chart](https://docs.gitlab.com/charts/installation/storage.html).
+
+Before finding out that the
+[GitLab Helm chart](https://docs.gitlab.com/charts/) requires
+more CPU to be allocated than available, I spent some time to
+setup a
+[LocalPath PV provisioner in Lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#localpath-pv-provisioner)
+but this was never really used. In the end, **all** services
+deployed in Lexicon are using `storageClassName: manual` with
+`hostPath` pointing to specific directories in local file
+systems.
+
+This may become necessary in the future, e.g. when installing
+GitLab, at which point the setup can be replicated in this PC,
+but that may be more appropriate to capture along with the work
+to fullfil all other
+[GitLab chart prerequisites](https://docs.gitlab.com/charts/installation/tools.html).
