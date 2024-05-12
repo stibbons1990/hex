@@ -1722,3 +1722,77 @@ with CPU usage going only near 400% (at a short spike) for
 `ffprobe` but never above 100% for the service itself (`node`):
 
 ![Audiobookshelf CPU and I/O usage in monitoring]({{ media }}/rapture-audiobookshelf-monitoring.png)
+
+Showing the list of books seems to go a lot faster, even though
+it does not seem to require much of the CPU. Perhaps the big
+difference is in the amount of metadata to fetch from storage:
+Audiobookshelf in Lexicon has much more detailed metadata,
+Audiobookshelf in Rapture has only what is embeded in the audio
+files.
+
+### Migration from Lexicon
+
+Copying all that metadata from Lexicon to Rapture could be an
+interesting exercise, and possibly a way to back it up. It is
+possible to replace the entire `/home/k8s/audiobookshelf` in
+Rapture with that from Lexicon, so long as the original 
+contents are entirely removed:
+
+```
+# kubectl delete -f audiobookshelf.yaml 
+namespace "audiobookshelf" deleted
+persistentvolume "audiobookshelf-pv-config" deleted
+persistentvolume "audiobookshelf-pv-metadata" deleted
+persistentvolume "audiobookshelf-pv-audiobooks" deleted
+persistentvolumeclaim "audiobookshelf-pvc-config" deleted
+persistentvolumeclaim "audiobookshelf-pvc-metadata" deleted
+persistentvolumeclaim "audiobookshelf-pvc-audiobooks" deleted
+deployment.apps "audiobookshelf" deleted
+service "audiobookshelf-svc" deleted
+
+# cp -a /home/k8s/audiobookshelf/ /home/k8s/audiobookshelf_backup
+# rm -rf /home/k8s/audiobookshelf/*/*
+# rsync -uva lexicon:/home/k8s/audiobookshelf/* /home/k8s/audiobookshelf/
+
+# kubectl apply -f audiobookshelf.yaml 
+namespace/audiobookshelf created
+persistentvolume/audiobookshelf-pv-config created
+persistentvolume/audiobookshelf-pv-metadata created
+persistentvolume/audiobookshelf-pv-audiobooks created
+persistentvolumeclaim/audiobookshelf-pvc-config created
+persistentvolumeclaim/audiobookshelf-pvc-metadata created
+persistentvolumeclaim/audiobookshelf-pvc-audiobooks created
+deployment.apps/audiobookshelf created
+service/audiobookshelf-svc created
+```
+
+This *migration* leaves the service in Rapture no longer
+accessible for the `root` user, while others keep their
+access and even reading process. The service runs faster on
+Rapture, especially when listing *Authors* with all their
+photos, but even then Rapture does take a while to load all
+the photos and runs hotter even though the service barely
+reaches 150% of CPU utilization.
+
+The process can be used in case of need, albeit having to
+[reset the `root` password by editing the SQLite database](https://www.audiobookshelf.org/faq/server/#how-can-i-reset-a-password):
+
+```
+# kubectl delete -f audiobookshelf.yaml 
+# cd /home/k8s/audiobookshelf/config/
+# cp absdatabase.sqlite absdatabase.sqlite.bak
+# sqlite3 absdatabase.sqlite
+```
+
+In the `sqlite` prompt:
+
+```sql
+update users set pash=NULL where username='root';
+.exit
+```
+
+Then `kubectl apply` again and the user `root` can login
+**without** entering a password; but should then set one
+immediately.
+
+## Plex Media Server
