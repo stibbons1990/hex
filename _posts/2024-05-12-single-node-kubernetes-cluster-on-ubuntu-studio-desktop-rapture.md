@@ -1,6 +1,6 @@
 ---
 title:  "Single-node Kubernetes cluster on Ubuntu Studio desktop (rapture)"
-date:   2024-05-12 15:05:12 +0200
+date:   2024-05-12 20:05:12 +0200
 categories: ubuntu studio desktop linux kubernetes docker
 ---
 
@@ -1481,3 +1481,244 @@ GitLab, at which point the setup can be replicated in this PC,
 but that may be more appropriate to capture along with the work
 to fullfil all other
 [GitLab chart prerequisites](https://docs.gitlab.com/charts/installation/tools.html).
+
+## Audiobookshelf
+
+[Audiobookshelf]({{ site.baseurl }}/2024/02/28/audiobookshelf-on-kubernetes.html) may be a good example to
+check much better a service runs having many more CPU cores
+available. For this test, the deployment is limited to just
+audiobooks (no podcasts), stored under a different path
+(`/home/new-ssd`) for faster storage (see monitoring below),
+and served via `LoadBalancer` IP:
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: audiobookshelf
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audiobookshelf-pv-config
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/k8s/audiobookshelf/config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audiobookshelf-pv-metadata
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/k8s/audiobookshelf/metadata
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audiobookshelf-pv-audiobooks
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/new-ssd/audio/Audiobooks
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-pvc-config
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  volumeName: audiobookshelf-pv-config
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-pvc-metadata
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  volumeName: audiobookshelf-pv-metadata
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-pvc-audiobooks
+  namespace: audiobookshelf
+spec:
+  storageClassName: manual
+  volumeName: audiobookshelf-pv-audiobooks
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: audiobookshelf
+  name: audiobookshelf
+  namespace: audiobookshelf
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: audiobookshelf
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: audiobookshelf
+    spec:
+      containers:
+        - image: ghcr.io/advplyr/audiobookshelf:latest
+          imagePullPolicy: Always
+          name: audiobookshelf
+          env:
+          - name: PORT
+            value: "8888"
+          ports:
+          - containerPort: 8888
+          resources: {}
+          stdin: true
+          tty: true
+          volumeMounts:
+          - mountPath: /config
+            name: audiobookshelf-config
+          - mountPath: /metadata
+            name: audiobookshelf-metadata
+          - mountPath: /audiobooks
+            name: audiobookshelf-audiobooks
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1006
+            runAsGroup: 1006
+      restartPolicy: Always
+      volumes:
+      - name: audiobookshelf-config
+        persistentVolumeClaim:
+          claimName: audiobookshelf-pvc-config
+      - name: audiobookshelf-metadata
+        persistentVolumeClaim:
+          claimName: audiobookshelf-pvc-metadata
+      - name: audiobookshelf-audiobooks
+        persistentVolumeClaim:
+          claimName: audiobookshelf-pvc-audiobooks
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: audiobookshelf-svc
+  namespace: audiobookshelf
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8888
+  selector:
+    app: audiobookshelf
+```
+
+**Note:** YAML files for Rapture-specific deployments will be
+stored for future reference, under `1.26/rapture` in the
+[GitHub repository](#github-repository), while the original
+deployment for Lexicon will be under `1.26/lexicon`.
+
+As in Lexicon, the service runs as a dedicated
+`audiobookshelf` user with its own persistent storage under
+`/home/k8s/audiobookshelf` which must be created manually:
+
+```
+# useradd -u 1006 -d /home/k8s/audiobookshelf -s /usr/sbin/nologin audiobookshelf
+# mkdir -p /home/k8s/audiobookshelf/config /home/k8s/audiobookshelf/metadata
+# chown -R audiobookshelf.audiobookshelf /home/k8s/audiobookshelf
+# # ls -lan /home/k8s/audiobookshelf
+total 0
+drwxr-xr-x 1 1006 1006 28 May 12 20:51 .
+drwxr-xr-x 1    0    0 28 May 12 20:51 ..
+drwxr-xr-x 1 1006 1006  0 May 12 20:51 config
+drwxr-xr-x 1 1006 1006  0 May 12 20:51 metadata
+```
+
+Once the dedicate user is ready, apply the manifest:
+
+```
+$ kubectl apply -f audiobookshelf.yaml
+namespace/audiobookshelf created
+persistentvolume/audiobookshelf-pv-config created
+persistentvolume/audiobookshelf-pv-metadata created
+persistentvolume/audiobookshelf-pv-audiobooks created
+persistentvolumeclaim/audiobookshelf-pvc-config created
+persistentvolumeclaim/audiobookshelf-pvc-metadata created
+persistentvolumeclaim/audiobookshelf-pvc-audiobooks created
+deployment.apps/audiobookshelf created
+service/audiobookshelf-svc created
+
+$ kubectl get svc -n audiobookshelf
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)        AGE
+audiobookshelf-svc   LoadBalancer   10.102.116.166   192.168.1.232   80:31059/TCP   47s
+```
+
+The service is soon available at
+[http://192.168.1.232/](http://192.168.1.232/),
+or more conveniently at
+[http://abs.rapture.uu.am/](http://abs.rapture.uu.am/)
+after mapping this in `/etc/hosts`. After setting the
+password for the `root` user and logging in, create a new
+library (Audiobooks) and scan it:
+
+![Audiobookshelf start screen]({{ media }}/rapture-audiobookshelf-root-login.png)
+
+![Audiobookshelf Create Library page]({{ media }}/rapture-audiobookshelf-new-library.png)
+
+At this point something interesting happened: originally the
+audiobooks were read from `/home/depot` which is slow storage,
+so I stopped the deployment with `kubectl delete`, updated the
+path to read audiobooks from the faster SSD storage, applied
+the manifest again and the scan finished much faster.
+
+Monitoring shows that scanning a library is mostly IO-bound,
+with CPU usage going only near 400% (at a short spike) for
+`ffprobe` but never above 100% for the service itself (`node`):
+
+![Audiobookshelf CPU and I/O usage in monitoring]({{ media }}/rapture-audiobookshelf-monitoring.png)
