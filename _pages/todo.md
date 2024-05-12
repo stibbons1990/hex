@@ -18,8 +18,12 @@ Speech <->
 https://cloud.google.com/speech-to-text/docs/speech-to-text-requests#synchronous-requests
 https://cloud.google.com/text-to-speech/docs/ssml
 
-Protoprims
+Protoprism
 https://github.com/p80n/photoprism-helm
+https://docs.photoprism.app/getting-started/advanced/kubernetes/
+https://docs.photoprism.app/getting-started/config-options/
+https://artifacthub.io/packages/helm/truecharts/photoprism
+https://www.reddit.com/r/photoprism/comments/sqk54l/deploying_photoprism_with_kubernetes_k3s/
 
 terry pratchett quotes about coffee?
 https://www.google.com/search?q=terry+pratchett+quotes+about+coffee&sca_esv=581440190&tbm=isch&sxsrf=AM9HkKm4ECaW8ImKXuemc0R-SjqSTGkQyQ:1699683531771&source=lnms&sa=X&ved=2ahUKEwix6JDJpruCAxUy1AIHHZkKDOQQ_AUoAXoECAIQAw&biw=1567&bih=911&dpr=1.41
