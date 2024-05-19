@@ -1137,7 +1137,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - 192.168.1.230-192.168.1.240
+  - 192.168.0.220-192.168.0.229
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -1159,7 +1159,7 @@ l2-advert
 
 $ kubectl get ipaddresspools.metallb.io -n metallb-system
 NAME           AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
-rapture-pool   true          false             ["192.168.1.230-192.168.1.240"]
+rapture-pool   true          false             ["192.168.0.220-192.168.0.229"]
 
 $ kubectl describe ipaddresspools.metallb.io rapture-pool -n metallb-system
 Name:         rapture-pool
@@ -1191,19 +1191,21 @@ Metadata:
   UID:               979ae8fc-7cad-48df-9c2c-744c242a5075
 Spec:
   Addresses:
-    192.168.1.230-192.168.1.240
+    192.168.0.220-192.168.0.229
   Auto Assign:       true
   Avoid Buggy I Ps:  false
 Events:              <none>
 ```
 
-**Note:** The range 192.168.0.230-192.168.0.240 is
-intended to be **outside** of the range leased by the
-local DHCP server, which not only prevents conflicts but
-also ensure that the router **will not** route external
-requests to these.
-This is the opposite intent from that of the 
-[`IPAddressPool` setup in Lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#metallb-load-balancer).
+The range **192.168.0.220-192.168.0.229** is based on the
+local DHCP server being configured to lease 228 addresses
+starting with 192.168.0.2. The current active leases are
+reserved so they don’t change, and the range 122-140 are
+just not leased so far. The reason to use IPs from the leased
+range is that the router only allows adding port forwarding
+rules for those. This range is intentionally on the same
+network range and subnet as the DHCP server so that no
+routing is required to reach MetalLB IP addresses.
 
 ## Kubernets Dashboard
 
@@ -1268,10 +1270,10 @@ deployment.apps/dashboard-metrics-scraper created
 $ kubectl get svc -n kubernetes-dashboard
 NAME                        TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)         AGE
 dashboard-metrics-scraper   ClusterIP      10.107.131.104   <none>          8000/TCP        32s
-kubernetes-dashboard        LoadBalancer   10.107.235.155   192.168.1.230   443:30480/TCP   32s
+kubernetes-dashboard        LoadBalancer   10.107.235.155   192.168.0.229   443:30480/TCP   32s
 ```
 
-The dashboard is accessible at [https://192.168.1.230](https://192.168.1.230) but not exactly accessible without
+The dashboard is accessible at [https://192.168.0.229](https://192.168.0.229) but not exactly accessible without
 a login token:
 
 ![Kubernetes Dashboard login page]({{ media }}/kubernetes-dashboard-login.png)
@@ -1420,10 +1422,10 @@ validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admiss
 
 $ kubectl get svc -n ingress-nginx
 NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
-ingress-nginx-controller             LoadBalancer   10.97.59.176   192.168.1.231   80:30706/TCP,443:30199/TCP   28s
+ingress-nginx-controller             LoadBalancer   10.97.59.176   192.168.0.228   80:30706/TCP,443:30199/TCP   28s
 ingress-nginx-controller-admission   ClusterIP      10.98.208.0    <none>          443/TCP                      28s
 
-$ curl http://192.168.1.231/
+$ curl http://192.168.0.228/
 <html>
 <head><title>404 Not Found</title></head>
 <body>
@@ -1448,15 +1450,15 @@ NGinx controller, which is precisely some to avoid here.
 If and when it becomes necessary, the setup can be replicated
 even if that involves manually renewing certifidates each
 month. While any other external requests would not be routed
-to this PC, `/etc/hosts` can be used to map rapture.ssl.uu.am
-to the NGinx LoadBalancer IP (192.168.1.231) so that
+to this PC, `/etc/hosts` can be used to map rapture.uu.am
+to the NGinx LoadBalancer IP (192.168.0.228) so that
 *external-looking* URLs can be used for this internal traffic.
 
 In the meantime, `/etc/hosts` can be used to map specific
 subdomains to the LoadBalancer IPs of individual services, e.g.
-k8s.rapture.ssl.uu.am can be mapped to 192.168.1.230 so that
+k8s.rapture.uu.am can be mapped to 192.168.0.229 so that
 the dashboard is accessible at
-[https://k8s.rapture.ssl.uu.am/](https://k8s.rapture.ssl.uu.am/).
+[https://k8s.rapture.uu.am/](https://k8s.rapture.uu.am/).
 
 ## LocalPath PV provisioner
 
@@ -1672,7 +1674,7 @@ As in Lexicon, the service runs as a dedicated
 # useradd -u 1006 -d /home/k8s/audiobookshelf -s /usr/sbin/nologin audiobookshelf
 # mkdir -p /home/k8s/audiobookshelf/config /home/k8s/audiobookshelf/metadata
 # chown -R audiobookshelf.audiobookshelf /home/k8s/audiobookshelf
-# # ls -lan /home/k8s/audiobookshelf
+# ls -lan /home/k8s/audiobookshelf
 total 0
 drwxr-xr-x 1 1006 1006 28 May 12 20:51 .
 drwxr-xr-x 1    0    0 28 May 12 20:51 ..
@@ -1696,11 +1698,11 @@ service/audiobookshelf-svc created
 
 $ kubectl get svc -n audiobookshelf
 NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)        AGE
-audiobookshelf-svc   LoadBalancer   10.102.116.166   192.168.1.232   80:31059/TCP   47s
+audiobookshelf-svc   LoadBalancer   10.102.116.166   192.168.0.221   80:31059/TCP   47s
 ```
 
 The service is soon available at
-[http://192.168.1.232/](http://192.168.1.232/),
+[http://192.168.0.221/](http://192.168.0.221/),
 or more conveniently at
 [http://abs.rapture.uu.am/](http://abs.rapture.uu.am/)
 after mapping this in `/etc/hosts`. After setting the
@@ -1795,4 +1797,371 @@ Then `kubectl apply` again and the user `root` can login
 **without** entering a password; but should then set one
 immediately.
 
+The database and metadata can be re-synced again, so long as
+the service is not running:
+
+```
+# kubectl delete -f audiobookshelf.yaml 
+# rsync -uva lexicon:/home/k8s/audiobookshelf/* /home/k8s/audiobookshelf/
+# kubectl apply -f audiobookshelf.yaml 
+```
+
 ## Plex Media Server
+
+Migrating the Plex Media Server in Rapture to Kubernetes would
+be a repetition of the same exercise already done for the 
+[Plex Media Server deployment in Lexicon]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html#kubernetes), with only a few changes:
+
+*   Audio files are stored under `/home/raid/audio` but some
+    of the libraries are pointing to `/home/depot/audio`
+*   Video files are stored under `/home/raid/video` but some
+    of the libraries are pointing to `/home/depot/video` while
+    others are pointing to `/media/video` (a very old path).
+*   The `loadBalancerIP` must be set to the next available IP
+    from [MetalLB](#metallb-load-balancer). Run
+    `kubectl get svc -A` and check the `EXTERNAL-IP` column
+    to find which ones are in use already, then pick the next.
+*   Adjust the `PUID` variable to match the UID of the `plex`
+    user (**999**).
+*   A fresh new `PLEX_CLAIM` token has to be obtained from
+    [plex.tv/claim](https://www.plex.tv/claim/) as it expires
+    in just 4 minutes.
+
+**Note:** this setup assumes the `plex` user (and group)
+already exists with ID **998**; otherwise either create them
+with that ID or update the `PGID` and `PUID` variables in the
+manifest to match the actual `plex` user (and group) IDs.
+
+Create the plex-owned directory for its database (`/config`),
+stop the old server and copy over its database:
+
+```
+# systemctl stop plexmediaserver.service
+# systemctl disable plexmediaserver.service
+Removed /etc/systemd/system/multi-user.target.wants/plexmediaserver.service.
+
+# mkdir -p /home/k8s/plexmediaserver
+# cp -a /var/lib/plexmediaserver/Library /home/k8s/plexmediaserver/
+# chown -R plex.plex /home/k8s/plexmediaserver
+```
+
+And now, *just* before deploying the new server, go to
+[plex.tv/claim](https://www.plex.tv/claim/) to get a fresh new
+claim token and set the `PLEX_CLAIM` variable to it; *then*
+apply the deployment:
+
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: plexserver
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plexserver-pv-config
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/k8s/plexmediaserver
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plexserver-pv-data-audio
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/raid/audio
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plexserver-pv-data-video
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /home/raid/video
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plexserver-pvc-config
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  volumeName: plexserver-pv-config
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plexserver-pvc-data-audio
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  volumeName: plexserver-pv-data-audio
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plexserver-pvc-data-video
+  namespace: plexserver
+spec:
+  storageClassName: manual
+  volumeName: plexserver-pv-data-video
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: plexserver
+  name: plexserver
+  namespace: plexserver
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: plexserver
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: plexserver
+    spec:
+      volumes:
+      - name: plex-config
+        persistentVolumeClaim:
+          claimName: plexserver-pvc-config
+      - name: data-audio
+        persistentVolumeClaim:
+          claimName: plexserver-pvc-data-audio
+      - name: data-video
+        persistentVolumeClaim:
+          claimName: plexserver-pvc-data-video
+      containers:
+      - env:
+        - name: PLEX_CLAIM
+          value: claim-vwSJ5pLyxPQVKKRPvVDk
+        - name: PGID
+          value: "998"
+        - name: PUID
+          value: "999"
+        - name: VERSION
+          value: latest
+        - name: TZ
+          value: Europe/Amsterdam
+        image: ghcr.io/linuxserver/plex
+        imagePullPolicy: Always
+        name: plexserver
+        ports:
+        - containerPort: 32400
+          name: pms-web
+          protocol: TCP
+        - containerPort: 32469
+          name: dlna-tcp
+          protocol: TCP
+        - containerPort: 1900
+          name: dlna-udp
+          protocol: UDP
+        - containerPort: 3005
+          name: plex-companion
+          protocol: TCP  
+        - containerPort: 5353
+          name: discovery-udp
+          protocol: UDP  
+        - containerPort: 8324
+          name: plex-roku
+          protocol: TCP  
+        - containerPort: 32410
+          name: gdm-32410
+          protocol: UDP
+        - containerPort: 32412
+          name: gdm-32412
+          protocol: UDP
+        - containerPort: 32413
+          name: gdm-32413
+          protocol: UDP
+        - containerPort: 32414
+          name: gdm-32414
+          protocol: UDP
+        resources: {}
+        stdin: true
+        tty: true
+        volumeMounts:
+        - mountPath: /config
+          name: plex-config
+        - mountPath: /home/depot/audio
+          name: data-audio
+        - mountPath: /home/depot/video
+          name: data-video
+        - mountPath: /home/raid/audio
+          name: data-audio
+        - mountPath: /home/raid/video
+          name: data-video
+        - mountPath: /media/video
+          name: data-video
+      restartPolicy: Always
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: plex-udp
+  namespace: plexserver
+  annotations:
+    metallb.universe.tf/allow-shared-ip: plexserver
+spec:
+  selector:
+    app: plexserver
+  ports:
+  - port: 1900
+    targetPort: 1900
+    name: dlna-udp
+    protocol: UDP
+  - port: 5353
+    targetPort: 5353
+    name: discovery-udp
+    protocol: UDP
+  - port: 32410
+    targetPort: 32410
+    name: gdm-32410
+    protocol: UDP
+  - port: 32412
+    targetPort: 32412
+    name: gdm-32412
+    protocol: UDP
+  - port: 32413
+    targetPort: 32413
+    name: gdm-32413
+    protocol: UDP
+  - port: 32414
+    targetPort: 32414
+    name: gdm-32414
+    protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the TCP service.
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: plex-tcp
+  namespace: plexserver
+  annotations:
+    metallb.universe.tf/allow-shared-ip: plexserver
+spec:
+  selector:
+    app: plexserver
+  ports:                      
+  - port: 32400
+    targetPort: 32400
+    name: pms-web
+    protocol: TCP
+  - port: 3005
+    targetPort: 3005
+    name: plex-companion
+  - port: 8324
+    name: plex-roku
+    targetPort: 8324  
+    protocol: TCP  
+  - port: 32469
+    targetPort: 32469
+    name: dlna-tcp
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the UDP service.
+```
+
+```
+$ kubectl apply -f plex-media-server.yaml 
+namespace/plexserver created
+persistentvolume/plexserver-pv-config created
+persistentvolume/plexserver-pv-data-audio created
+persistentvolume/plexserver-pv-data-video created
+persistentvolumeclaim/plexserver-pvc-config created
+persistentvolumeclaim/plexserver-pvc-data-audio created
+persistentvolumeclaim/plexserver-pvc-data-video created
+deployment.apps/plexserver created
+service/plex-udp created
+service/plex-tcp created
+
+$ kubectl get svc -n plexserver
+NAME       TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                                                                                         AGE
+plex-tcp   LoadBalancer   10.100.110.149   192.168.0.221   32400:30939/TCP,3005:30159/TCP,8324:30278/TCP,32469:30767/TCP                                   7m19s
+plex-udp   LoadBalancer   10.97.4.51       192.168.0.221   1900:32446/UDP,5353:31607/UDP,32410:31569/UDP,32412:32246/UDP,32413:31588/UDP,32414:32331/UDP   7m19s
+```
+
+Plex web app is now available at
+[http://192.168.0.221:32400/web](http://192.168.0.221:32400/web)
+and the next steps are to
+1.  Log in with the same Plex account from the old server.
+2.  Enable remote access.
+
+Normally Plex is able to establish the necessary port forwarding via UPnP, but in this case that doesn’t seem to work. The port forwarding rule can be added manually to the router and then Manually specify public port in the Plex settings under **Settings > Remote Access**.
+
+**Note:** this step may require connecting directly to the web
+interface from the local network, via
+[http://192.168.0.221:32400/web](http://192.168.0.221:32400/web).
+
+**However**, to do this [MetalLB](#metallb-load-balancer) must
+be updated to include at least a few IP addresses overlapping
+with the range supported by the router (e.g. 192.168.0.**221**)
+so that it can be reached via port **23240**.
+
+```
+$ kubectl delete -f rapture/plex-media-server.yaml
+
+$ kubectl apply -f metallb/ipaddress-pool-rapture.yaml 
+ipaddresspool.metallb.io/rapture-pool configured
+l2advertisement.metallb.io/l2-advert unchanged
+
+$ kubectl apply -f rapture/plex-media-server.yaml
+
+$ kubectl get svc -A | grep -v '<none>'
+NAMESPACE              NAME                                 TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                                                                                         AGE
+audiobookshelf         audiobookshelf-svc                   LoadBalancer   10.100.173.108   192.168.0.221   80:32696/TCP                                                                                    4h58m
+ingress-nginx          ingress-nginx-controller             LoadBalancer   10.97.59.176     192.168.0.228   80:30706/TCP,443:30199/TCP                                                                      6d23h
+kubernetes-dashboard   kubernetes-dashboard                 LoadBalancer   10.107.235.155   192.168.0.229   443:30480/TCP                                                                                   7d
+plexserver             plex-tcp                             LoadBalancer   10.97.83.71      192.168.0.222   32400:30505/TCP,3005:30299/TCP,8324:31277/TCP,32469:31987/TCP                                   6d16h
+plexserver             plex-udp                             LoadBalancer   10.100.30.101    192.168.0.222   1900:31197/UDP,5353:32649/UDP,32410:32214/UDP,32412:32151/UDP,32413:32713/UDP,32414:32543/UDP   6d16h
+```
