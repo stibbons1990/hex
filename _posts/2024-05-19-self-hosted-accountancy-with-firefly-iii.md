@@ -24,6 +24,22 @@ decided to first try with
 
 ## Deployment
 
+Before deploying this applications, persistant storage needs to be
+prepared for the database and the application itself:
+
+```
+# mkdir -p /home/k8s/firefly-iii/mysql /home/k8s/firefly-iii/upload
+# chown -R 33.33 /home/k8s/firefly-iii/mysql
+# chown -R www-data.www-data /home/k8s/firefly-iii/upload
+# ls -ln /home/k8s/firefly-iii
+total 0
+drwxr-xr-x 1 100 101 390 May 19 19:49 mysql
+drwxrwxr-x 1  33  33   0 May 19 16:18 upload
+```
+
+**Note:** user and groupd IDs are enforced by the docker images.
+Enforcing different users seems to be too much of a headache.
+
 [Firefly III on Kubernetes.](https://github.com/firefly-iii/kubernetes) includes deployments for each component, of which
 I will be using the most basic ones:
 
@@ -268,10 +284,46 @@ as noted in
 also better explained in
 [monicahq/monica #6449](https://github.com/monicahq/monica/issues/6449#issuecomment-1334845725).
 
+```
+$ kubectl apply -f firefly-iii.yaml 
+namespace/firefly-iii created
+persistentvolume/firefly-iii-pv-mysql created
+persistentvolumeclaim/firefly-iii-pvc-mysql created
+deployment.apps/firefly-iii-mysql created
+service/firefly-iii-mysql-svc created
+persistentvolume/firefly-iii-pv-upload created
+persistentvolumeclaim/firefly-iii-pvc-upload created
+service/firefly-iii-svc created
+deployment.apps/firefly-iii created
+ingress.networking.k8s.io/firefly-iii-ingress created
+
+$ $ kubectl -n firefly-iii get all
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-vfwlp           1/1     Running   0          16s
+pod/firefly-iii-6c8dbdd45f-jqdsv        1/1     Running   0          16s
+pod/firefly-iii-mysql-68f59d48f-chhbw   1/1     Running   0          16s
+
+NAME                            TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/firefly-iii-mysql-svc   NodePort   10.97.148.234   <none>        3306:30306/TCP   16s
+service/firefly-iii-svc         NodePort   10.99.161.143   <none>        8080:30080/TCP   16s
+
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/firefly-iii         1/1     1            1           16s
+deployment.apps/firefly-iii-mysql   1/1     1            1           16s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/firefly-iii-6c8dbdd45f        1         1         1       16s
+replicaset.apps/firefly-iii-mysql-68f59d48f   1         1         1       16s
+```
+
 Once the service has started up, initialized the database and
 everything else, one can finally visit 
 [https://ffi.ssl.uu.am/](https://ffi.ssl.uu.am/)
 to create an account and get started:
+
+**Note**: the `cm-acme-http-solver` is responsible for obtaining
+a valid certificated for this service; the HTTPS connection will
+be secure only after this pod has finished its job. 
 
 ![Signup form]({{ media }}/firefly-iii-signup.png)
 
