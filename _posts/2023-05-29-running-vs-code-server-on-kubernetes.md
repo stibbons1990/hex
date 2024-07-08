@@ -1,7 +1,7 @@
 ---
 title:  "Running Visual Studio Code Server on Kubernetes"
 date:   2023-05-29 23:05:29 +0200
-categories: ubuntu server linux kubernetes docker vscode
+categories: ubuntu server linux kubernetes docker vscode self-hosted
 ---
 
 I would like to be able to *code from anywhere*, or at

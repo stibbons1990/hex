@@ -1,7 +1,7 @@
 ---
 title:  "Self-hosted accountancy with Firefly III"
 date:   2024-05-19 14:05:19 +0200
-categories: linux kubernetes docker server firefly-iii
+categories: linux kubernetes docker server firefly-iii self-hosted
 ---
 
 Keep track of expenses and stuff is hard, thankless work.

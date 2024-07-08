@@ -1,7 +1,7 @@
 ---
 title:  "Self-hosted time tracking with ActivityWatch"
 date:   2024-06-30 12:30:24 +0200
-categories: linux kubernetes docker server ebook komga
+categories: linux kubernetes docker server ActivityWatch time-tracking self-hosted
 ---
 
 A big chunk of my time is spent **at** the computer, also during

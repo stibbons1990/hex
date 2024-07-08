@@ -1,7 +1,7 @@
 ---
 title:  "Self-hosted eBook library with Komga"
 date:   2024-05-26 16:05:24 +0200
-categories: linux kubernetes docker server ebook komga
+categories: linux kubernetes docker server ebook komga self-hosted
 ---
 
 After weeks of using

@@ -1,7 +1,7 @@
 ---
 title:  "Audiobookshelf on Kubernetes"
 date:   2024-02-28 02:28:24 +0200
-categories: linux kubernetes audiobookshelf docker server
+categories: linux kubernetes audiobookshelf docker server audiobooks self-hosted
 ---
 
 [Migrating a Plex Media Server to Kubernetes]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
