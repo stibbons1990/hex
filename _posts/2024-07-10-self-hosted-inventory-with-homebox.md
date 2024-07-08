@@ -168,19 +168,22 @@ persistentvolume/homebox-pv-data created
 persistentvolumeclaim/homebox-pvc-data created
 deployment.apps/homebox created
 service/homebox-svc created
+ingress.networking.k8s.io/homebox-ingress created
 
 $ kubectl -n homebox get all
-NAME                           READY   STATUS    RESTARTS   AGE
-pod/homebox-5fc47bd5cb-bqqcp   1/1     Running   0          46s
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-jk4cr   1/1     Running   0          31s
+pod/homebox-7fb9d44d48-wxj6q    1/1     Running   0          29m
 
-NAME                  TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
-service/homebox-svc   NodePort   10.96.235.150   <none>        7745:30745/TCP   46s
+NAME                                TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/cm-acme-http-solver-2xqr8   NodePort   10.102.88.72    <none>        8089:32649/TCP   31s
+service/homebox-svc                 NodePort   10.96.235.150   <none>        7745:30745/TCP   91m
 
 NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/homebox   1/1     1            1           46s
+deployment.apps/homebox   1/1     1            1           91m
 
 NAME                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/homebox-5fc47bd5cb   1         1         1       46s
+replicaset.apps/homebox-7fb9d44d48   1         1         1       29m
 ```
 
 ## Configuration
