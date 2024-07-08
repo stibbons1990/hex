@@ -41,7 +41,7 @@ needed, while the books are read from `/home/depot/books/`:
 # chown -R audiobookshelf.audiobookshelf /home/k8s/komga/
 ```
 
-One the directories and files a ready, we run Komga as the same
+Once the directories and files a ready, we run Komga as the same
 non-privileged user as Audiobookshelf, based on
 [Konga's `docker-compose`](https://komga.org/docs/installation/docker/#docker-compose):
 
