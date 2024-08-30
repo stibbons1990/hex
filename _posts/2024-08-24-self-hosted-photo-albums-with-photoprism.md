@@ -317,3 +317,30 @@ seems to apply here and nothing at all explains why
 
 Even disabling **all** the options to
 [Stack](https://docs.photoprism.app/user-guide/settings/library/#stacks) photos, *and then* forcing a full reindex.
+
+Additional (*significant*) issues:
+
+1. Images cannot be found by their file name; *despite* the file name
+   being stored in the EXIF `DocumentName` tag ([`0x010d`](https://exiftool.org/TagNames/EXIF.html)).
+1. *Stacks* includes 351 images (stacks) *despite* all my attempts at
+   disabling that feature, purging and reindexing.
+1. Images missing EXIF `DateTimeOriginal` (`0x9003`) get a *Taken on*
+   date of January 1st in the current year.
+1. Only 2 out of 1,854 images geotagged in Australia are recognized.
+1. *None* of the 25 folder under `/photoprism/originals/Travel/Australia` show up under *Folders*.
+1. All the folders show under *Library > Originals* but there is no
+   easy to even re-index a single folder.
+
+Other (not so minor) issues:
+
+1. All 3 layouts use square thumbnails.
+1. Some images *without* GPS tags are somehow *geolocated* in Canada.
+
+Other (really minor) issues:
+
+1. *Monochrome* includes a few images with quite a bit of color.
+1. *Panoramas* are essentially any images with an aspect ratio
+   beyond some threshold (e.g. 21:9), including small screenshots
+   and cropped photos.
+1. *Scans* includes just one photo, even though there are hundreds of
+   scanned film photos.
