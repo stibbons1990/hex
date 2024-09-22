@@ -1,5 +1,5 @@
 ---
-title:  "Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04"
+title:  "Kubernetes cluster DNS issues"
 date:   2024-09-22 12:14:00 +0200
 categories: linux ubuntu server kubernetes docker dns
 ---
