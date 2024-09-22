@@ -406,7 +406,7 @@ network:
       dhcp4: no
       dhcp6: no
       # Ser IP address & subnet mask
-      addresses: [ 10.0.0.2/24, 192.168.0.9/24 ]
+      addresses: [ 10.0.0.3/24, 192.168.0.3/24 ]
       # Set default gateway
       routes:
        - to: default
