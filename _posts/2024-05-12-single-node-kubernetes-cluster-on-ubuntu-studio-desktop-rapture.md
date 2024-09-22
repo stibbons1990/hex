@@ -145,12 +145,12 @@ To install the older **1.26** version, which is the one running
 in **Lexicon**, so that the future upgrade/s to newer versions
 can be tested in **Rapture**, the first step is to jump from the
 [Available Documentation Versions](https://kubernetes.io/docs/home/supported-doc-versions/)
-page to the [1.26 documentation](https://v1-26.docs.kubernetes.io/docs/home/supported-doc-versions/)
+page to the [1.26 documentation](https://v1-27.docs.kubernetes.io/docs/home/supported-doc-versions/)
 and from there to the starting point:
-[Getting started](https://v1-26.docs.kubernetes.io/docs/setup/).
+[Getting started](https://v1-27.docs.kubernetes.io/docs/setup/).
 
 Right from the start, things get *confusing*:
-[Download Kubernetes](https://v1-26.docs.kubernetes.io/releases/download/) lists a number of *Container Images* and points to
+[Download Kubernetes](https://v1-27.docs.kubernetes.io/releases/download/) lists a number of *Container Images* and points to
 [downloadkubernetes.com](https://www.downloadkubernetes.com/)
 to find the binaries, but there is no clear indication as to
 *which* binaries are *actually required*, or recommended.
@@ -310,11 +310,11 @@ run a Kubernetes cluster
 
 And now we come to the next major steps in the installation of
 a new Kubernetes cluster:
-*select a [container runtime](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)*.
+*select a [container runtime](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)*.
 
 ### Prerequisites
 
-[Forwarding IPv4 and letting iptables see bridged traffic](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
+[Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 are already enabled in Ubuntu:
 
 ```
@@ -329,6 +329,9 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 ```
+
+*Even so*, **these must be enabled explicitly** to avoid issues
+later, [*ask me how I know*]({{ site.baseurl }}/2024/09/22/upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.html).
 
 ### Install containerd
 
@@ -662,7 +665,7 @@ hello-world   latest    d2c94e258dcb   12 months ago   13.3kB
 With `containerd` installed and running, the next step is
 to update its configuration to
 
-*   Enable the use of [`systemd` cgroup driver](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd).
+*   Enable the use of [`systemd` cgroup driver](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd).
 *   Enable CRI integration, which is disabled by default
     when installing `containerd` from Ubuntu packages,
     but is needed to use `containerd` with Kubernetes.
@@ -694,7 +697,7 @@ and `kubeadm` fails to initialize the control pane.
 
 **Note:** despite a misleading note in the 1.26
 documentation, there is no need to manually configure the 
-[cgroup driver for kubelet](https://v1-26.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver).
+[cgroup driver for kubelet](https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver).
 because, already since v1.22,
 **`kubeadm` defaults it to `systemd`**.
 
@@ -741,24 +744,24 @@ Docker images were not lost as
 [it happened in Lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#ask-me-how-i-know).
 
 **Warning:** at the end of the
-[Container runtimes](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
+[Container runtimes](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
 documentation, it is suggested that the next step is to
-install a [network plugin](https://v1-26.docs.kubernetes.io/docs/concepts/cluster-administration/networking/#how-to-implement-the-kubernetes-networking-model).
+install a [network plugin](https://v1-27.docs.kubernetes.io/docs/concepts/cluster-administration/networking/#how-to-implement-the-kubernetes-networking-model).
 However, this should not be done before
 **bootstrapping** the cluster (see next).
 
 ## Bootstrap the cluster with `kubeadm`
 
 Having already
-[installed kubeadm, kubelet and kubectl](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)
+[installed kubeadm, kubelet and kubectl](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)
 the next step is to initialize the cluster:
-[Creating acluster with kubeadm](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
+[Creating acluster with kubeadm](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
 
 ### Initialize control-plane
 
 Having reviewed the requirements and having installed all
 the components already (see above), we proceed to
-[Initializing your control-plane node](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#initializing-your-control-plane-node) with:
+[Initializing your control-plane node](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#initializing-your-control-plane-node) with:
 
 *  `--cri-socket=/run/containerd/containerd.sock` to make
    sure Kubernetes uses the `containerd` runtime.
@@ -936,13 +939,13 @@ And *now* we can take care of the
 
 ### Network plugin
 
-[Installing a Pod network add-on](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network)
+[Installing a Pod network add-on](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network)
 is indeed the very next step after
 *initializing the control-plane node*.
 
 Once again, far from being clear and offering a
 direction to follow, the documentation simply points to
-[a non-exhaustive list of networking addons](https://v1-26.docs.kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy)
+[a non-exhaustive list of networking addons](https://v1-27.docs.kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy)
 supported by Kubernetes, without much of a hint as to
 which one/s may be a good choice for each scenario.
 
@@ -975,7 +978,7 @@ daemonset.apps/kube-flannel-ds   1         1         1       1            1     
 ### Enable single-node cluster as Worker node
 
 Before anything else is allowed to run in this cluster,
-[Control plane node isolation](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation)
+[Control plane node isolation](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation)
 must be setup. By default, for security reasons,
 the cluster will not schedule Pods to run in this node
 because it is running the control plane. This is reflected
@@ -1056,7 +1059,7 @@ for simple persistent storage in local file systems.
 
 #### DO NOT `kubeadm join`
 
-[Joining your nodes](https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#join-nodes)
+[Joining your nodes](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#join-nodes)
 is only to be done by **other** nodes, no the master.
 The master node is *already joined* and `kubeadm`
 [will not allow joining itself *again*](https://kodekloud.com/community/t/kubeadm-join-fails/337178/3).
@@ -1212,7 +1215,7 @@ routing is required to reach MetalLB IP addresses.
 The first service to leverage all the above infrastructure,
 including virtual IP addresses from the
 [MetalLB Load Balancer](#metallb-load-balancer), is the
-[Kubernetes Dashboard](https://v1-26.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
+[Kubernetes Dashboard](https://v1-27.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
 
 Once again, this service is deployed by manifest:
 
@@ -1281,11 +1284,11 @@ a login token:
 The [Authentication](kubernetes.io/docs/admin/authentication/)
 link is broken; the documentation that seems most relevant to
 authenticating Service Accounts to acess the dashboard is the
-[Authenticating](https://v1-26.docs.kubernetes.io/docs/reference/access-authn-authz/authentication/) page, which
+[Authenticating](https://v1-27.docs.kubernetes.io/docs/reference/access-authn-authz/authentication/) page, which
 does not quite explain how to create a Service Account,
 grant it access to the dashboard *and then* obtain a token.
 Neither does the documentation to
-[Deploy **and Access** the Kubernetes Dashboard](https://v1-26.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
+[Deploy **and Access** the Kubernetes Dashboard](https://v1-27.docs.kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/).
 
 For this, I really had to resort to the
 [Creating Kubernetes Admin User for Accessing Dashboard](https://computingforgeeks.com/create-admin-user-to-access-kubernetes-dashboard/)
