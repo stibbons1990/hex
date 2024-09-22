@@ -532,7 +532,7 @@ network:
 To keep BTRFS file systems healthy, it is recommended to
 [run a weekly scrub](http://marc.merlins.org/perso/btrfs/post_2014-03-19_Btrfs-Tips_-Btrfs-Scrub-and-Btrfs-Filesystem-Repair.html)
 to check everything for consistency. For this, I run
-[the script]()
+[the script](https://marc.merlins.org/linux/scripts/btrfs-scrub)
 from crontab every Saturday morning, early enough that it will
 be done by the time anyone wakes up.
 
