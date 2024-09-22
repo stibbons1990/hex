@@ -1,5 +1,5 @@
 ---
-title:  "Upgrading kubeadm clusters"
+title:  "Checking deployments before upgrading kubeadm clusters"
 date:   2024-08-22 22:11:12 +0200
 categories: linux ubuntu server kubernetes docker
 ---
