@@ -611,6 +611,106 @@ finally solved:
 4. Minecraft is running again; it started up pretty much as soon
    as the DNS service was reachable again.
 
+### Not Over Yet
+
+Just a couple days later I noticed in the Kubernetes dashboard that
+the `coredns` deployment was broken because both pods were crash-looping:
+
+```
+# kubectl get all -A | grep -i dns
+kube-system            pod/coredns-5d78c9869d-9xbh4                    0/1     CrashLoopBackOff   81 (2m14s ago)   2d12h
+kube-system            pod/coredns-5d78c9869d-w8954                    0/1     CrashLoopBackOff   81 (2m30s ago)   2d12h
+kube-system            service/kube-dns                             ClusterIP      10.96.0.10       <none>          53/UDP,53/TCP,9153/TCP                                                                          135d
+kube-system            deployment.apps/coredns                     0/2     2            0           135d
+kube-system            replicaset.apps/coredns-5d78c9869d                    2         2         0       2d12h
+kube-system            replicaset.apps/coredns-787d4945fb                    0         0         0       135d
+
+# get ep kube-dns --namespace=kube-system
+NAME       ENDPOINTS   AGE
+kube-dns               135d
+
+# kubectl -n kube-system logs coredns-5d78c9869d-9xbh4 -f
+.:53
+[INFO] plugin/reload: Running configuration SHA512 = c0af6acba93e75312d34dc3f6c44bf8573acff497d229202a4a49405ad5d8266c556ca6f83ba0c9e74088593095f714ba5b916d197aa693d6120af8451160b80
+CoreDNS-1.10.1
+linux/amd64, go1.20, 055b2c3
+[FATAL] plugin/loop: Loop (127.0.0.1:42071 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 5799046874759025118.6581212788663693097."
+
+# kubectl -n kube-system logs coredns-5d78c9869d-w8954 -f
+[INFO] plugin/ready: Still waiting on: "kubernetes"
+.:53
+[INFO] plugin/reload: Running configuration SHA512 = c0af6acba93e75312d34dc3f6c44bf8573acff497d229202a4a49405ad5d8266c556ca6f83ba0c9e74088593095f714ba5b916d197aa693d6120af8451160b80
+CoreDNS-1.10.1
+linux/amd64, go1.20, 055b2c3
+[FATAL] plugin/loop: Loop (127.0.0.1:42908 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 426107543664332041.3956332948985369701."
+
+# kubectl get ep kube-dns --namespace=kube-system
+NAME       ENDPOINTS   AGE
+kube-dns               135d
+
+# nslookup k8s.io 10.96.0.10
+;; communications error to 10.96.0.10#53: connection refused
+;; communications error to 10.96.0.10#53: connection refused
+;; communications error to 10.96.0.10#53: connection refused
+;; no servers could be reached
+```
+
+The
+[Troubleshooting](https://coredns.io/plugins/loop#troubleshooting)
+page explains this is because a DNs loop has been detected and
+recommend making sure that `kubelet` configuration points to the
+*real* `resolve.conf`... which it already does:
+
+```
+# grep -iA2 resolv /var/lib/kubelet/config.yaml
+resolvConf: /run/systemd/resolve/resolv.conf
+rotateCertificates: true
+runtimeRequestTimeout: 0s
+
+# cat /run/systemd/resolve/resolv.conf
+nameserver 62.2.24.158
+nameserver 62.2.17.61
+search .
+```
+
+At least the bridging of traffic seems to be fine:
+
+```
+# sysctl -a | egrep 'net.ipv4.ip_forward|net.bridge.bridge-nf-call-ip'
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.ipv4.ip_forward_update_priority = 1
+net.ipv4.ip_forward_use_pmtu = 0
+
+# cat /etc/resolv.conf
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+
+# iptables -L
+
+Chain KUBE-SERVICES (2 references)
+target     prot opt source               destination         
+REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:metrics has no endpoints */ reject-with icmp-port-unreachable
+REJECT     udp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns has no endpoints */ reject-with icmp-port-unreachable
+REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns-tcp has no endpoints */ reject-with icmp-port-unreachable
+```
+
+[Troubleshooting Loops In Kubernetes Clusters](https://coredns.io/plugins/loop/#troubleshooting-loops-in-kubernetes-clusters)
+seems very generic so I turn to searching for more answer and find
+a few clues... but not enough.
+
+Maybe I should just
+[disable local dns cache on ubuntu](https://www.google.com/search?q=disable+local+dns+cache+on+ubuntu&oq=disable+local+dns+cache+on+ubuntu&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIICAEQABgWGB4yCggCEAAYgAQYogTSAQg0NDYxajBqN6gCALACAA&sourceid=chrome&ie=UTF-8)?
+
+```
+# netstat -tulpn | grep '\<53\>'
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      2280/systemd-resolv 
+udp        0      0 127.0.0.53:53           0.0.0.0:*                           2280/systemd-resolv
+```
+
+
 ### What Did Not Work
 
 #### Workaround around IP tables rules
