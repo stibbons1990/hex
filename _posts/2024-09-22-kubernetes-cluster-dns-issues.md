@@ -710,6 +710,198 @@ tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      
 udp        0      0 127.0.0.53:53           0.0.0.0:*                           2280/systemd-resolv
 ```
 
+Comparing `/etc/resolv.conf` between the two servers, it seems odd
+that the one in Rapture has `search .`; that doesn't seem right.
+
+This can be overriden via Netplan:
+
+```
+# tail -3 /etc/resolv.conf 
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+
+# vi /etc/netplan/01-network-manager-all.yaml 
+```
+
+Add `search` under `nameservers` and apply the change:
+
+```yaml
+      nameservers:
+      # Set DNS name servers
+        search: [v.cable.com]
+```
+
+```
+# netplan apply
+
+# tail -3 /etc/resolv.conf 
+nameserver 127.0.0.53
+options edns0 trust-ad
+search v.cable.com
+```
+
+**Note:** `netplan apply` showed a couple of warnings, one due to
+[Ubuntu bug #2041727](https://bugs.launchpad.net/ubuntu/+source/netplan.io/+bug/2041727)
+(solved with `apt install openvswitch-switch`) and another one due
+to having the same default route on 2 interfaces (it was needed in
+only one of them).
+
+All the above still did not help; both `coredns` pods keep
+crash-looping with the same error about a lop being detected for
+zone "."; even after forcing them to restart with
+
+```
+# kubectl scale --replicas=0 deployment.apps/coredns -n kube-system
+# sleep 10
+# kubectl scale --replicas=2 deployment.apps/coredns -n kube-system
+```
+
+[Flushing the local DNS cache](https://www.howtogeek.com/how-to-flush-dns-cache-in-ubuntu/)
+also did not help:
+
+```
+root@rapture:~# resolvectl statistics
+DNSSEC supported by current servers: no
+
+Transactions              
+Current Transactions: 0
+  Total Transactions: 4486
+                          
+Cache                     
+  Current Cache Size: 56
+          Cache Hits: 61
+        Cache Misses: 339
+                          
+DNSSEC Verdicts           
+              Secure: 0
+            Insecure: 0
+               Bogus: 0
+       Indeterminate: 0
+root@rapture:~# resolvectl flush-caches
+root@rapture:~# resolvectl statistics
+DNSSEC supported by current servers: no
+
+Transactions              
+Current Transactions: 0
+  Total Transactions: 4490
+                          
+Cache                     
+  Current Cache Size: 0
+          Cache Hits: 63
+        Cache Misses: 341
+                          
+DNSSEC Verdicts           
+              Secure: 0
+            Insecure: 0
+               Bogus: 0
+       Indeterminate: 0
+```
+
+The next thing to try is entirely
+[Disabling Local DNS Caching](https://tecadmin.net/disable-local-dns-caching-ubuntu/).
+
+```
+# systemctl list-units --type=service | grep -E 'systemd-resolved|dnsmasq' 
+  systemd-resolved.service                                                                  loaded active running Network Name Resolution
+
+# vi /etc/systemd/resolved.conf
+```
+
+```ini
+[Resolve]
+Domains=v.cablecom.net
+Cache=no
+```
+
+```
+# systemctl restart systemd-resolved
+root@rapture:~# dig tecadmin.net
+
+; <<>> DiG 9.18.28-0ubuntu0.22.04.1-Ubuntu <<>> tecadmin.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14739
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;tecadmin.net.                  IN      A
+
+;; ANSWER SECTION:
+tecadmin.net.           150     IN      A       104.21.25.106
+tecadmin.net.           150     IN      A       172.67.134.5
+
+;; Query time: 39 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
+;; WHEN: Wed Sep 25 20:37:28 CEST 2024
+;; MSG SIZE  rcvd: 73
+
+# kubectl get pods -n kube-system | grep -i dns
+coredns-5d78c9869d-gv9q5          0/1     CrashLoopBackOff   4 (14s ago)   107s
+coredns-5d78c9869d-zv5rt          0/1     CrashLoopBackOff   4 (8s ago)    107s
+
+# kubectl -n kube-system logs coredns-5d78c9869d-zv5rt
+.:53
+[INFO] plugin/reload: Running configuration SHA512 = c0af6acba93e75312d34dc3f6c44bf8573acff497d229202a4a49405ad5d8266c556ca6f83ba0c9e74088593095f714ba5b916d197aa693d6120af8451160b80
+CoreDNS-1.10.1
+linux/amd64, go1.20, 055b2c3
+[FATAL] plugin/loop: Loop (127.0.0.1:48053 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 2605680300388702341.222935474922528127."
+
+```
+
+This does change the TTL but is still making DNS queries go to the
+local DNS service on `127.0.0.53`; so this still does not help.
+
+To get the local DNS service on `127.0.0.53` *out of the way* the
+configuration in `/etc/systemd/resolved.conf` must disable the
+DNS sbut listener:
+
+```ini
+[Resolve]
+DNSStubListener=no
+```
+
+This gets DNS requests answered directly by the non-local DNS
+servers, but even this still does not help removing the loop!
+
+```
+# systemctl restart systemd-resolved
+
+# dig tecadmin.net
+
+; <<>> DiG 9.18.28-0ubuntu0.22.04.1-Ubuntu <<>> tecadmin.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46975
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;tecadmin.net.                  IN      A
+
+;; ANSWER SECTION:
+tecadmin.net.           300     IN      A       104.21.25.106
+tecadmin.net.           300     IN      A       172.67.134.5
+
+;; Query time: 19 msec
+;; SERVER: 62.2.24.158#53(62.2.24.158) (UDP)
+;; WHEN: Wed Sep 25 20:48:57 CEST 2024
+;; MSG SIZE  rcvd: 73
+
+# kubectl get pods -n kube-system | grep -i dns
+coredns-5d78c9869d-489wl          0/1     CrashLoopBackOff   4 (61s ago)    2m49s
+coredns-5d78c9869d-pwn9x          0/1     CrashLoopBackOff   4 (68s ago)    2m49s
+
+# kubectl -n kube-system logs coredns-5d78c9869d-489wl
+.:53
+[INFO] plugin/reload: Running configuration SHA512 = c0af6acba93e75312d34dc3f6c44bf8573acff497d229202a4a49405ad5d8266c556ca6f83ba0c9e74088593095f714ba5b916d197aa693d6120af8451160b80
+CoreDNS-1.10.1
+linux/amd64, go1.20, 055b2c3
+[FATAL] plugin/loop: Loop (127.0.0.1:43216 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 7289571247349402084.8563501253473529468."
+```
 
 ### What Did Not Work
 
