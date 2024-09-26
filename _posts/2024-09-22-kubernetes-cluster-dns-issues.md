@@ -5,13 +5,12 @@ categories: linux ubuntu server kubernetes docker dns
 ---
 
 **TL;DR:**
-
 [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 is **not optional**; even if it [looks like it]({{ site.baseurl }}/2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.html#prerequisites).
 Skipping that crucial step that takes a few minutes eventually led
 to wasting over 3 hours troubleshooting a issue that, apparently,
-*nobody has ever solved on the Internet before*. Naturally, because
-*nobody should ever need to*.
+*nobody has ever solved on the Internet before*. Naturally,
+because *nobody should ever need to*.
 
 ### The Problem(s)
 
