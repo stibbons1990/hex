@@ -802,7 +802,8 @@ The next thing to try is entirely
 
 ```
 # systemctl list-units --type=service | grep -E 'systemd-resolved|dnsmasq' 
-  systemd-resolved.service                                                                  loaded active running Network Name Resolution
+  systemd-resolved.service
+             loaded active running Network Name Resolution
 
 # vi /etc/systemd/resolved.conf
 ```
