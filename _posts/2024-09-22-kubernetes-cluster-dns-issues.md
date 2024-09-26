@@ -869,6 +869,12 @@ servers, but even this still does not help removing the loop!
 ```
 # systemctl restart systemd-resolved
 
+# nslookup k8s.io 127.0.0.53
+;; communications error to 127.0.0.1#53: connection refused
+;; communications error to 127.0.0.1#53: connection refused
+;; communications error to 127.0.0.1#53: connection refused
+;; no servers could be reached
+
 # dig tecadmin.net
 
 ; <<>> DiG 9.18.28-0ubuntu0.22.04.1-Ubuntu <<>> tecadmin.net
@@ -902,6 +908,87 @@ CoreDNS-1.10.1
 linux/amd64, go1.20, 055b2c3
 [FATAL] plugin/loop: Loop (127.0.0.1:43216 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 7289571247349402084.8563501253473529468."
 ```
+
+The next thing I can think of trying is the *quick and dirty fix*
+[Troubleshooting Loops In Kubernetes Clusters](https://coredns.io/plugins/loop/#troubleshooting-loops-in-kubernetes-clusters)
+mentions as the last resort; there is just **no** DNS listening
+on 127.0.0.53 anyway so may as well forward it to a real one.
+
+```
+# kubectl get -n kube-system cm/coredns -o yaml
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        log
+        errors
+        health {
+           lameduck 5s
+        }
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           fallthrough in-addr.arpa ip6.arpa
+           ttl 30
+        }
+        prometheus :9153
+        forward . /etc/resolv.conf {
+           max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2024-05-12T10:52:00Z"
+  name: coredns
+  namespace: kube-system
+  resourceVersion: "5838688"
+  uid: d29d50a6-7f42-4046-b157-f93876807af1
+
+# kubectl -n kube-system edit configmaps coredns -o yaml
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        log
+        errors
+        health {
+           lameduck 5s
+        }
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           fallthrough in-addr.arpa ip6.arpa
+           ttl 30
+        }
+        prometheus :9153
+        forward . 62.2.24.158 {
+           max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2024-05-12T10:52:00Z"
+  name: coredns
+  namespace: kube-system
+  resourceVersion: "5959049"
+  uid: d29d50a6-7f42-4046-b157-f93876807af1
+
+# systemctl restart kubelet
+
+# kubectl get pods -n kube-system | grep dns
+coredns-55cb58b774-ph8qz          1/1     Running   33 (5m39s ago)   23h
+coredns-55cb58b774-rd6wg          1/1     Running   33 (5m30s ago)   23h
+```
+
+***Finally!!!*** Now we wait and see if this *really fixed it*...
 
 ### What Did Not Work
 
