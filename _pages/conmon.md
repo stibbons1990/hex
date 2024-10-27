@@ -56,6 +56,8 @@ and test
 Create a `monitoring` database (name can be different,
 then update the `DBNAME` variable in the `conmon` scripts).
 
+## Install Conmon
+
 Choose *a* version of the `conmon` script and install it as
 `/usr/local/bin/conmon` and run it as a service by creating
 `/etc/systemd/system/conmon.service` as follows:
