@@ -18,6 +18,8 @@ Speech <->
 https://cloud.google.com/speech-to-text/docs/speech-to-text-requests#synchronous-requests
 https://cloud.google.com/text-to-speech/docs/ssml
 
+https://www.themirror.space/
+
 Protoprism
 https://github.com/p80n/photoprism-helm
 https://docs.photoprism.app/getting-started/advanced/kubernetes/
