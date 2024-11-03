@@ -1,6 +1,6 @@
 ---
 title:  "Ubuntu Studio 24.04 on Rapture, Gaming PC (and more)"
-date:   2022-11-12 22:11:12 +0200
+date:   2024-11-03 12:11:12 +0200
 categories: linux ubuntu installation setup
 ---
 
@@ -114,7 +114,7 @@ file systems across multiple devices **with redundancy**
 *hot data* on the faster storage (NVME) and rebalance unused
 data back to slower storage (SATA).
 
-### New BtrFS Home
+#### New BtrFS Home
 
 Create a new `btrfs` file system to test the new SSD, while
 we're waiting for the upcoming Ubuntu 24.04 release:
@@ -209,3 +209,146 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sdb        3.7T  3.0T  667G  83% /home/new-ssd
 /dev/nvme1n1p4  3.5T  2.4T  1.2T  69% /home/new-m2
 ```
+
+### Installation
+
+With the above partitions prepared well in advance, to
+[Install Ubuntu Studio 24.04]({{ baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
+the process *should* be as simple, easy and smooth as it
+was with other systems.
+
+Alas, it wasn't. Even after setting up all the partition
+correctly for the new install, the installer would not
+allow selecting the correct device for to install the
+boot loader in it: `nvme1n1` is grayed out!
+
+This problem is one I had seen recently, but didn't write
+down what the solution was.
+
+While search (in vain) for others facing the same issue,
+I took advantage of being in a live USB system and
+cloned the current Ubuntu Studio 22.04 root partition
+(`nvme0n1p6`) onto what *would* have been the new Ubuntu
+Studio 24.04 root partition (`nvme1n1p2`), in case this
+may come in handy later.
+
+**Important:** after cloning a root file system, the
+`/etc/fstab` file in the new clone must be updated with
+the correct UUID of that partition.
+
+If the (new) EFI partition has not been formatted yet;
+format it as **FAT32**:
+
+```
+# mkfs.fat -F32 /dev/nvme1n1p1
+mkfs.fat 4.2 (2021-01-31)
+
+# lsblk -f
+nvme1n1
+│
+├─nvme1n1p1
+│    vfat   FAT32       73CC-6E86
+...
+├─nvme1n1p2
+│    ext4   1.0         409501ea-d63d-49b2-bd45-3b876404dc53
+
+nvme0n1
+│
+...
+└─nvme0n1p6
+     ext4   1.0         de317ca5-96dd-49a7-b72b-4bd050a8d15c   20.8G    67% /var/snap/firefox/common/host-hunspell
+```
+
+The mount the new root and edit `/etc/fstab` in it:
+
+```
+# mount /dev/nvme1n1p2 /media/cdrom/
+# vi /media/cdrom/etc/fstab
+...
+# <file system>             <mount point>  <type>  <options>  <dump>  <pass>
+UUID=73CC-6E86                            /boot/efi      vfat    umask=0077 0 2
+UUID=409501ea-d63d-49b2-bd45-3b876404dc53 /              ext4    defaults,discard 0 1
+...
+```
+
+One potential problem is that no partition in `nvme1n1` 
+has tbe `boot` flag. It appears all bootable partitions
+that are working have flags `boot, esp` so the solution
+may be simply to add those flags. At the very least, this
+seems like it is necessary, if not sufficient:
+
+```
+# parted /dev/nvme1n1
+GNU Parted 3.4
+Using /dev/nvme1n1
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+(parted) print                                                            
+Model: KINGSTON SFYRD4000G (nvme)
+Disk /dev/nvme1n1: 4001GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  273MB   272MB                primary  msftdata
+ 2      273MB   80.5GB  80.3GB  ext4         primary
+ 4      161GB   4001GB  3840GB  btrfs        primary
+
+(parted) toggle 1 boot
+(parted) print
+Model: KINGSTON SFYRD4000G (nvme)
+Disk /dev/nvme1n1: 4001GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  273MB   272MB                primary  boot, esp
+ 2      273MB   80.5GB  80.3GB  ext4         primary
+ 4      161GB   4001GB  3840GB  btrfs        primary
+```
+
+**Note:** `boot` and `esp` are the same flag; if you
+toggle both you end up with the initial state.
+
+At this point, decided to follow 
+[askubuntu.com/a/1463655](https://askubuntu.com/a/1463655)
+to fully cloned the current system onto the new 4TB
+NVME and try to boot from it.
+
+```
+# mount /dev/nvme1n1p2 /media/cdrom/
+# mount /dev/nvme1n1p1 /media/cdrom/boot/efi/
+
+# grub-install \
+  --target x86_64-efi \
+  --efi-directory /media/cdrom/boot/efi \
+  --boot-directory /media/cdrom/boot
+Installing for x86_64-efi platform.
+Installation finished. No error reported.
+
+# grub-mkconfig -o /media/cdrom/boot/grub/grub.cfg
+Sourcing file `/etc/default/grub'
+Sourcing file `/etc/default/grub.d/init-select.cfg'
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-5.15.0-124-lowlatency
+Found initrd image: /boot/initrd.img-5.15.0-124-lowlatency
+Found linux image: /boot/vmlinuz-5.15.0-124-lowlatency
+Found initrd image: /boot/initrd.img-5.15.0-124-lowlatency
+Found linux image: /boot/vmlinuz-5.15.0-122-lowlatency
+Found initrd image: /boot/initrd.img-5.15.0-122-lowlatency
+Found linux image: /boot/vmlinuz-5.15.0-60-lowlatency
+Found initrd image: /boot/initrd.img-5.15.0-60-lowlatency
+Memtest86+ needs a 16-bit boot, that is not available on EFI, exiting
+Warning: os-prober will be executed to detect other bootable partitions.
+Its output will be used to detect bootable binaries on them and create new boot entries.
+Found Ubuntu 22.04.1 LTS (22.04) on /dev/nvme0n1p2
+Found Ubuntu 22.04.5 LTS (22.04) on /dev/nvme1n1p2
+Adding boot menu entry for UEFI Firmware Settings ...
+done
+```
+
+At this point there *should* be a boot loader, ready to
+boot, on thew new NVME. If anything, it looks like it
+would boot the *old old* 22.04.1 `nvme0n1p2` instead of
+the *old* (current) 22.04.5 `nvme0n1p6`.
