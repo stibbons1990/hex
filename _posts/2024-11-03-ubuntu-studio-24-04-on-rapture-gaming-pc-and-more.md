@@ -114,7 +114,7 @@ file systems across multiple devices **with redundancy**
 *hot data* on the faster storage (NVME) and rebalance unused
 data back to slower storage (SATA).
 
-#### New BtrFS Home
+### New BtrFS Home
 
 Create a new `btrfs` file system to test the new SSD, while
 we're waiting for the upcoming Ubuntu 24.04 release:
@@ -210,7 +210,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p4  3.5T  2.4T  1.2T  69% /home/new-m2
 ```
 
-### Installation
+## Installation
 
 With the above partitions prepared well in advance, to
 [Install Ubuntu Studio 24.04]({{ baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
@@ -352,3 +352,268 @@ At this point there *should* be a boot loader, ready to
 boot, on thew new NVME. If anything, it looks like it
 would boot the *old old* 22.04.1 `nvme0n1p2` instead of
 the *old* (current) 22.04.5 `nvme0n1p6`.
+
+Indeed upon reboot, the UEFI boot menu now shows both
+NVME disks and selecting the 4TB disk the new bootloader
+shows those entries. After this, the installation process
+was, finally, smooth and successful, installing the new
+boot loader in `nvme1n1`.
+
+This *new new* bootloader in `nvme1n1` now shows all 4
+systems available to boot
+- Ubuntu 22.04.1 in `nvme0n1p2` (have not used in some time)
+- Ubuntu 22.04.5 in `nvme0n1p6` (current daily driver)
+- Ubuntu 22.04.5 in `nvme1n1p2` (future backup daily driver)
+- Ubuntu 24.04.1 in `nvme1n1p3` (future daily driver)
+
+### Adjusting all `/etc/fstab` files
+
+To make sure all those root partitions are usable, their
+`/etc/fstab` files need to be adjusted to point to the
+correct `/boot/efi` partitions (the one in the same disk)
+and the new one will has a new UUID after the last
+installation:
+
+```
+# lsblk -f
+NAME FSTYPE FSVER LABEL UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+...
+nvme0n1
+│
+├─nvme0n1p1
+│                  
+├─nvme0n1p2
+│    ext4   1.0         833c6403-a771-46b2-bde8-704f2ab7e88b
+├─nvme0n1p3
+│    ext4   1.0         343f75fe-ec96-49fa-a4f8-0d32c69c1424
+├─nvme0n1p4
+│    vfat   FAT32 NO_LABEL
+│                       C38B-C318                             293.3M     2% /boot/efi
+├─nvme0n1p5
+│    btrfs              18238846-d411-4dcb-af87-a2d19a17fef3  654.9G    62% /home
+└─nvme0n1p6
+     ext4   1.0         de317ca5-96dd-49a7-b72b-4bd050a8d15c
+
+nvme1n1
+│
+├─nvme1n1p1
+│    vfat   FAT16       4485-0F5E
+├─nvme1n1p2
+│    ext4   1.0         409501ea-d63d-49b2-bd45-3b876404dc53   18.7G    69%
+├─nvme1n1p3
+│    ext4   1.0         1d30a16e-b4f6-4459-9b19-8c9093b0d047                
+└─nvme1n1p4
+     btrfs              8edfc3ba-4981-4423-8730-7e229bfa63f3      1T    71% /home/new-m2
+```
+
+Following the above order, make sure that each
+`/etc/fstab` file points to the correct partition/s:
+
+Ubuntu 22.04.1 in `nvme0n1p2` (not used in some time) is
+not even using an EFI partition at all; this one dates
+back to a time when this disk was used in legacy BIOS
+mode:
+
+```
+# df -h | grep nvme0n1p2
+/dev/nvme0n1p2   50G   27G   21G  57% /jellyfish
+# grep -E '/ |/bo'  /jellyfish/etc/fstab 
+UUID=833c6403-a771-46b2-bde8-704f2ab7e88b /              ext4    defaults   0 1
+```
+
+Ubuntu 22.04.5 in `nvme0n1p6` (current daily driver) has
+not changed, as expected:
+
+```
+# grep -E '/ |/bo'  /etc/fstab 
+UUID=C38B-C318                            /boot/efi      vfat    umask=0077 0 2
+UUID=de317ca5-96dd-49a7-b72b-4bd050a8d15c /              ext4    defaults,discard 0 1
+```
+
+Ubuntu 22.04.5 in `nvme1n1p2` (the *future backup* daily
+driver) is a clone of the one in `nvme0n1p6` **but** it
+is also on the newer NVME disk, so both partitions must
+be updated:
+- `/boot/efi` must point to `nvme1n1p1`
+- `/` must point to `nvme1n1p2`
+
+```
+# mount /dev/nvme1n1p2 /media/cdrom/
+# grep -E '/ |/bo'  /media/cdrom/etc/fstab 
+UUID=4485-0F5E                            /boot/efi      vfat    umask=0077 0 2
+UUID=409501ea-d63d-49b2-bd45-3b876404dc53 /              ext4    defaults,discard 0 1
+# umount /dev/nvme1n1p2
+```
+
+This being an updated copy of the current `/etc/fstab`
+file, it already has all the partitions currently in use.
+
+**Ubuntu 24.04.1** in `nvme1n1p3` (the **future** daily
+driver) should be already good to go; since it was just
+installed:
+
+```
+# mount /dev/nvme1n1p3 /noble
+# grep -E '/ |/bo'  /noble/etc/fstab 
+# / was on /dev/nvme1n1p3 during curtin installation
+/dev/disk/by-uuid/1d30a16e-b4f6-4459-9b19-8c9093b0d047 / ext4 defaults 0 1
+# /boot/efi was on /dev/nvme1n1p1 during curtin installation
+/dev/disk/by-uuid/4485-0F5E /boot/efi vfat defaults 0 1
+```
+
+### New mount points for all partitions
+
+The `/etc/fstab` in **Ubuntu 24.04.1** (`nvme1n1p3`) is
+missing all the *other* partitions currently in use, and
+includes a swap file that is unnecessary in a system with
+32 GB of RAM:
+
+```bash
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/nvme1n1p3 during curtin installation
+/dev/disk/by-uuid/1d30a16e-b4f6-4459-9b19-8c9093b0d047 / ext4 defaults 0 1
+# /boot/efi was on /dev/nvme1n1p1 during curtin installation
+/dev/disk/by-uuid/4485-0F5E /boot/efi vfat defaults 0 1
+# /home was on /dev/nvme1n1p4 during curtin installation
+/dev/disk/by-uuid/8edfc3ba-4981-4423-8730-7e229bfa63f3 /home btrfs defaults 0 1
+/swap.img       none    swap    sw      0       0
+```
+
+Because this PC has been *collecting* hard drives over
+the years, there are many additional partitions in use:
+
+```
+# df -h | head -1; df -h | grep -E 'nvme|sd.'
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p6   74G   49G   21G  71% /
+/dev/nvme0n1p4  300M  6.1M  294M   3% /boot/efi
+/dev/nvme0n1p5  1.7T  1.1T  655G  62% /home
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/nvme1n1p4  3.5T  2.5T  1.1T  71% /home/new-m2
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+/dev/nvme1n1p3   74G   22G   49G  31% /noble
+```
+
+For just about the same reason, there are also several
+symlinks strategically pointing from where thigns used
+to be to where they are now:
+
+```
+# ls -l /home/
+total 80
+lrwxrwxrwx 1 root   root      17 Sep 24  2022 depot -> /home/raid/depot/
+lrwxrwxrwx 1 root   root      16 May 12 19:37 k8s -> /home/new-m2/k8s
+lrwxrwxrwx 1 root   root      16 May 12 10:02 lib -> /home/new-m2/lib
+
+# ls -l /home/raid/depot/[av]*
+lrwxrwxrwx 1 coder coder 16 Aug 20  2023 /home/raid/depot/audio -> /home/raid/audio
+lrwxrwxrwx 1 coder coder 16 Aug 20  2023 /home/raid/depot/video -> /home/raid/video
+
+# ls -l /home/new-ssd/video
+lrwxrwxrwx 1 root root 16 Aug 20  2023 /home/new-ssd/video -> /home/raid/video
+```
+
+In the future daily driver, the old 2TB NVME should not
+be used, so it can be replaced later by a newer 4TB disk.
+
+To that effect, all data in `/dev/nvme0n1p5` must be
+copied over to `/dev/nvme1n1p4` and in fact most of it
+is already there. There are only a few users' home
+directories and empty directories (mount points):
+
+```
+# du -sh /home/*
+952G    /home/coder
+18G     /home/ernest
+134G    /home/manuel
+1.5G    /home/minecraft
+44K     /home/sam
+
+# du -sh /home/new-m2/*
+952G    /home/new-m2/coder
+18G     /home/new-m2/ernest
+1.5T    /home/new-m2/Fotos
+26G     /home/new-m2/k8s
+35G     /home/new-m2/lib
+134G    /home/new-m2/manuel
+1.5G    /home/new-m2/minecraft
+44K     /home/new-m2/sam
+
+# cd /home/new-m2/
+root@rapture:/home/new-m2# mkdir new-ssd raid ssd
+```
+
+#### Boot cloned Ubuntu Studio 22.04 without old NVME
+
+As an intermediate step to booting the new Ubuntu Studio
+24.04 later, boot the newly cloned Ubuntu Studio 22.04
+in `nvme1n1p3` **without** mounting the old NVME.
+
+With the above preparetions done in the new NVME, this
+*should* be as simple as mounting the new NVME on
+`/home` and simply *not mounting* the old NVME:
+
+```
+# mount /dev/nvme1n1p2 /media/cdrom/
+
+# vi /media/cdrom/etc/fstab
+...
+# Previous-new (June 2022) 2TB NVME SSD (/home)
+#UUID=18238846-d411-4dcb-af87-a2d19a17fef3 /home          btrfs   defaults,noatime,autodefrag,discard,compress=lzo 0 0
+
+# New-new 4TB M.2 SSD (newer /home; previously /home/new-m2)
+UUID=8edfc3ba-4981-4423-8730-7e229bfa63f3 /home      btrfs   defaults        0       0
+
+# umount /media/cdrom/
+```
+
+Reboot into the *newly cloned* **Ubuntu Studio 22.04**
+and check that everything works as usual. This would be
+the first green light to removing the old 2TB NVME disk
+from the system.
+
+Despite booting from the new bootloader in the 4TB NVME
+the **Ubuntu Studio 22.04.5 on /dev/nvme1n1p2** option, 
+somehow the system boots the *old old* root:
+
+```
+$ df-h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p6   74G   49G   22G  70% /
+/dev/nvme0n1p2   50G   27G   21G  57% /jellyfish
+/dev/nvme0n1p4  300M  6.1M  294M   3% /boot/efi
+/dev/nvme0n1p5  1.7T  1.1T  655G  62% /home
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/nvme1n1p4  3.5T  2.7T  887G  76% /home/new-m2
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+```
+
+The bootloader entry specifies the root file system as
+`409501ea-d63d-49b2-bd45-3b876404dc53` but it boots on
+`de317ca5-96dd-49a7-b72b-4bd050a8d15c`; despite the
+correct UUID in the new `/etc/fstab`.
+
+
+The goal for **24.04** is this:
+
+```
+# df -h | head -1; df -h | grep -E 'nvme|sd.'
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p3   74G   22G   49G  31% /
+/dev/nvme1n1p1  300M  6.1M  294M   3% /boot/efi
+/dev/nvme1n1p4  3.5T  2.5T  1.1T  71% /home/
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+/dev/nvme0n1p6   74G   49G   21G  71% /jammy
+```
+
+## First boot into Ubuntu Studio 24.04
