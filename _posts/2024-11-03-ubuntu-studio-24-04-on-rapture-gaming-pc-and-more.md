@@ -601,8 +601,113 @@ The bootloader entry specifies the root file system as
 `de317ca5-96dd-49a7-b72b-4bd050a8d15c`; despite the
 correct UUID in the new `/etc/fstab`.
 
+The problem is in precisely *this* entry in the boot
+loader, as is the only one that boots the kernel with
+the wrong `root=` parameter. This can be confirmed in the
+bootloader by pressing `e` after selecting the entry to
+boot the newly cloned Ubuntu 22.04:
 
-The goal for **24.04** is this:
+```
+setparams 'Ubuntu 22.04.5 LTS (22.04) (on /dev/nvme1n1p2)'
+
+        insmod part_gpt
+        insmod ext2
+        search --no-floppy --fs-uuid --set=root 409501ea-d63d-49b2-bd45-3b876404dc53
+        linux /boot/vmlinuz-5.15.0-124-lowlatency root=UUID=de317ca5-96dd-49a7-b72b-4bd050a8d15c ro threadirqs noquiet nosplash
+        initrd /boot/initrd.img-5.15.0-124-lowlatency
+```
+
+There is why the kernel is mounting the root from the old NMVE:
+the UUID in the `search` line is the desired root, the newly
+cloned 22.04 in the 4TB NVME, but the `linux` line is pointing
+to the old root in the 2TB NVME. Editing this value and then
+pressing `Ctrl+x` finally boots into the newly cloned 22.04
+and the old 2TB NVMe is not mounted or used at all:
+
+```
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p2   74G   51G   19G  74% /
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p4  3.5T  2.7T  887G  76% /home
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+```
+
+To make this change permanent, the answer (from **2019**) in
+https://askubuntu.com/a/1140397 seems to suggest that simply
+running `sudo update-grub` would pick up the correct root.
+This would make sense, but perhaps would be better to do it
+from the new 24.04 system. Perhaps the old root UUID has
+been left somewhere in the new root UUID, which would be
+updated by now.
+
+So the next move is to boot the new 24.04 system, but before
+doing that its `/etc/fstab` needs to be updated to **add** the
+additional partitions in the old SATA disks.
+
+First, lets add the 24.04 root as a read-only mount:
+
+```
+# vi /etc/fstab
+...
+# NEW Ubuntu Studio 24.04 root (nvme1n1p3)
+UUID=1d30a16e-b4f6-4459-9b19-8c9093b0d047 /noble      ext4   defaults,ro        0       0
+```
+
+Then update its `/etc/fstab` after remounting as read-write:
+
+```
+# mount /noble/ -o remount,rw
+
+# cat /etc/fstab \
+  | grep --color=no -C2 sd. \
+  >> /noble/etc/fstab 
+
+# cat /noble/etc/fstab
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/nvme1n1p3 during curtin installation
+/dev/disk/by-uuid/1d30a16e-b4f6-4459-9b19-8c9093b0d047 / ext4 defaults 0 1
+# /boot/efi was on /dev/nvme1n1p1 during curtin installation
+/dev/disk/by-uuid/4485-0F5E /boot/efi vfat defaults 0 1
+# /home was on /dev/nvme1n1p4 during curtin installation
+/dev/disk/by-uuid/8edfc3ba-4981-4423-8730-7e229bfa63f3 /home btrfs defaults 0 1
+/swap.img       none    swap    sw      0       0
+
+# Previous (June 2021) 4TB SSD (previous-previous /home)
+# /home/ssd is now on /dev/sde with a new UUID
+UUID=5cf65a95-4ae5-41ed-9a14-7d7fbeee1951 /home/ssd       btrfs   defaults        0       2
+
+# /home/raid was on /dev/sdb during installation
+UUID=a4ee872d-b985-445f-94a2-15232e93dcd5 /home/raid      btrfs   defaults        0       0
+
+# New (Jan 2023) 4TB SSD (Crucial MX)
+# Always write slowly! e.g.
+# rsync -turva --bwlimit=500000 /home/depot/audio/* /home/ssd/audio/
+UUID=6b809fc0-0b85-4041-ac25-47ec4682f5f5 /home/new-ssd      btrfs   defaults        0       0
+```
+
+Finally, comment out the line for the swap file (`/swap.img`),
+because that won't be necessary in a system with 32GB of RAM,
+and add a line to mount the newly clone 22.04 as read-only:
+
+```
+# mkdir /noble/jammy
+# vi /noble/etc/fstab
+...
+# Ubuntu Studio 22.04 root (ro)
+UUID=409501ea-d63d-49b2-bd45-3b876404dc53 /jammy      ext4   defaults,ro        0       0
+```
+
+With all these adjustments, after booting into the new
+**Ubuntu Studio 24.04** this should be what is mounted:
 
 ```
 # df -h | head -1; df -h | grep -E 'nvme|sd.'
@@ -613,7 +718,10 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
 /dev/sdc        3.7T  2.9T  833G  78% /home/ssd
 /dev/sda        5.5T  5.1T  370G  94% /home/raid
-/dev/nvme0n1p6   74G   49G   21G  71% /jammy
+/dev/nvme1n1p2   74G   51G   19G  74% /jammy
 ```
+
+And then it will be a better time to run `sudo update-grub`
+to hopefully pick up the correct root for the new 22.04.
 
 ## First boot into Ubuntu Studio 24.04
