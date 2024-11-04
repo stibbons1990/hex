@@ -725,3 +725,70 @@ And then it will be a better time to run `sudo update-grub`
 to hopefully pick up the correct root for the new 22.04.
 
 ## First boot into Ubuntu Studio 24.04
+
+Upon first booting, popup about audio and reboot.
+
+Then df shows:
+
+```
+# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           3.2G  2.6M  3.2G   1% /run
+/dev/nvme1n1p3   74G   22G   48G  32% /
+tmpfs            16G     0   16G   0% /dev/shm
+tmpfs           5.0M   24K  5.0M   1% /run/lock
+efivarfs        128K   51K   73K  42% /sys/firmware/efi/efivars
+/dev/nvme1n1p2   74G   51G   19G  74% /jammy
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p4  3.5T  2.7T  887G  76% /home
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+tmpfs           3.2G  136K  3.2G   1% /run/user/1000
+```
+
+Running `sudo update-grub` did not help fix the root UUID for
+`nvme1n1p2`; it actually *unfixed* the one that was correct!
+
+Instead, it is necessary to edit `/boot/grub/grub.cfg` as
+suggested in https://superuser.com/a/485763 and replace
+`nvme0n1p6` UUID with that of `nvme1n1p2` for all entries
+under the name `Ubuntu 22.04.5 LTS (22.04) (on /dev/nvme1n1p2)`
+*and then simply reboot*. This does lead to the *new old*
+system (22.04 in the new NVME) to boot correctly and `df -h`
+shows the desired partitions mounted:
+
+```
+$ df-h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p2   74G   51G   19G  73% /
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p3   74G   24G   47G  34% /noble
+/dev/nvme1n1p4  3.5T  2.7T  886G  76% /home
+/dev/sdc        3.7T  2.9T  833G  78% /home/ssd
+/dev/sdb        3.7T  2.1T  1.6T  57% /home/new-ssd
+/dev/sda        5.5T  5.1T  370G  94% /home/raid
+```
+
+**Warning:** running `sudo update-grub` will *unfix* the root UUID for `nvme1n1p2` *again*; and this will happen each time
+a new kernel is installed.
+
+### Install Essential Packages
+
+Before proceeding further, install a few basic APT packages:
+
+```
+# apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
+  gkrellm-xkb gkrellm-cpufreq geeqie playonlinux exfat-fuse \
+  clementine id3v2 htop vnstat neofetch tigervnc-viewer sox \
+  scummvm wine gamemode python-is-python3 exiv2 rename scrot \
+  speedtest-cli xcalib python3-pip netcat-openbsd jstest-gtk \
+  etherwake python3-selenium lm-sensors sysstat tor unrar \
+  ttf-mscorefonts-installer winetricks icc-profiles ffmpeg \
+  iotop-c xdotool redshift-gtk inxi vainfo vdpauinfo mpv \
+  tigervnc-tools screen -y
+```
+
+This is the same list of *Essential Packages* that from the
+[Ubuntu Studio 24.04 for a young artist]({{ baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404).
+
