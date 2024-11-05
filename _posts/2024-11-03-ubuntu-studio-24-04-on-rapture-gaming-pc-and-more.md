@@ -45,8 +45,7 @@ installed in my PC, including 20 GB in `/usr` and 13 GB in
 
 First,
 [create a GPT partition table](https://serverfault.com/a/709952)
-(`label`), then create
-the partitions
+(`label`), then create the partitions
 [with `optimal` alignment](https://unix.stackexchange.com/a/49274)
 
 ```
@@ -83,6 +82,27 @@ Device             Start        End    Sectors  Size Type
 /dev/nvme1n1p2    532480  157286399  156753920 74.7G Linux filesystem
 /dev/nvme1n1p3 157286400  314572799  157286400   75G Linux filesystem
 /dev/nvme1n1p4 314572800 7814035455 7499462656  3.5T Linux filesystem
+```
+
+**Note:** in retrospect, it seems to be necessary to also apply the
+`boot` flag to the EFI partition; otherwise the Ubuntu installer will
+not offer the possibility of installing the boot loader in this disk:
+
+```
+# parted /dev/nvme1n1 toggle 1 boot
+
+# parted /dev/nvme1n1 print
+Model: KINGSTON SFYRD4000G (nvme)
+Disk /dev/nvme1n1: 4001GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  273MB   272MB                primary  boot, esp
+ 2      273MB   80.5GB  80.3GB               primary
+ 3      80.5GB  161GB   80.5GB               primary
+ 4      161GB   4001GB  3840GB               primary
 ```
 
 Partitions can be created during the installation of the
@@ -213,7 +233,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 ## Installation
 
 With the above partitions prepared well in advance, to
-[Install Ubuntu Studio 24.04]({{ baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
+[Install Ubuntu Studio 24.04]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
 the process *should* be as simple, easy and smooth as it
 was with other systems.
 
@@ -726,9 +746,11 @@ to hopefully pick up the correct root for the new 22.04.
 
 ## First boot into Ubuntu Studio 24.04
 
-Upon first booting, popup about audio and reboot.
+The first time booting into the new system, right after login for
+the first time an additional reboot is required for the
+[Ubuntu Studio Audio Configuration]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html##ubuntu-studio-audio-configuration).
 
-Then df shows:
+After rebooting again, `df` shows partitions are mounted like this:
 
 ```
 # df -h
@@ -746,9 +768,11 @@ efivarfs        128K   51K   73K  42% /sys/firmware/efi/efivars
 /dev/sda        5.5T  5.1T  370G  94% /home/raid
 tmpfs           3.2G  136K  3.2G   1% /run/user/1000
 ```
+### Fix boot for cloned Ubuntu Studio 22.04
 
-Running `sudo update-grub` did not help fix the root UUID for
-`nvme1n1p2`; it actually *unfixed* the one that was correct!
+Contrary to initial expectaions, running `sudo update-grub` on the
+new 24.04 system did not help fix the root UUID for `nvme1n1p2`;
+it actually *unfixed* the one that was correct!
 
 Instead, it is necessary to edit `/boot/grub/grub.cfg` as
 suggested in https://superuser.com/a/485763 and replace
@@ -773,9 +797,139 @@ Filesystem      Size  Used Avail Use% Mounted on
 **Warning:** running `sudo update-grub` will *unfix* the root UUID for `nvme1n1p2` *again*; and this will happen each time
 a new kernel is installed.
 
+Once the *new old* 22.04 system is *reliably* bootable, it can be
+left alone as a fallback system, and continue setting up the new one.
+
+
+### Multiple IPs on LAN
+
+Connecting to the local wired network provides a dynamic IP address
+that may change over time, but it is more convenient to have fixed
+IP addresses. Moreover, the DHCP range is shared with the wireless
+network, we want to have an additional wired-only LAN and set *both*
+IP addresses on the same NIC.
+
+To this effect, copy `/etc/netplan/01-network-manager-all.yaml` from
+the old system, change the network interface name if different (run
+`ip a` to check) and apply the changes with `netplan apply`:
+
+```
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp5s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 04:42:1a:97:4e:47 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.0.2/24 brd 192.168.0.255 scope global dynamic noprefixroute enp5s0
+       valid_lft 78508sec preferred_lft 78508sec
+    inet6 fe80::642:1aff:fe97:4e47/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+Network interface is `enp5s0`; 
+
+
+```yaml
+# Dual static IP on LAN, nothing else.
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp4s0:
+      dhcp4: no
+      dhcp6: no
+      # Ser IP address & subnet mask
+      addresses: [ 10.0.0.2/24, 192.168.0.2/24 ]
+      nameservers:
+      # Set DNS name servers
+        search: [v.cablecom.net]
+        addresses: [62.2.24.158, 62.2.17.61]
+    enp5s0:
+      dhcp4: no
+      dhcp6: no
+      # Ser IP address & subnet mask
+      addresses: [ 10.0.0.2/24, 192.168.0.2/24 ]
+      # Set default gateway
+      routes:
+        - to: default
+          via: 192.168.0.1
+      nameservers:
+      # Set DNS name servers
+        search: [v.cablecom.net]
+        addresses: [62.2.24.158, 62.2.17.61]
+```
+
+```
+# chmod 400 /etc/netplan/01-network-manager-all.yam
+# netplan apply
+
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp5s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 04:42:1a:97:4e:47 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.2/24 brd 10.0.0.255 scope global enp5s0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.2/24 metric 100 brd 192.168.0.255 scope global dynamic enp5s0
+       valid_lft 86382sec preferred_lft 86382sec
+```
+
+### SSH Server
+
+Ubuntu Studio doesn't enable the SSH server by default, but we want
+this to adjust the system remotely:
+
+```
+# apt install ssh -y
+# sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+# systemctl enable --now ssh
+```
+
+**Note:** remember to copy over files under `/root` from
+previous system/s, in case it contains useful scripts (and/or
+SSH keys worth keeping under `.ssh`).
+
+```
+# rm /root/.ssh/authorized_keys 
+# rmdir /root/.ssh/ 
+# cp -a /mnt/root/.ssh/ /root/
+```
+
+### `/etc/hosts`
+
+Having the old system's root partition mounted (see above),
+copy over `/etc/hosts` so that connections to local hosts work as
+smoothly as in the old system (e.g. for
+[Continuous Monitoring](#continuous-monitoring)).
+
+Better yet, **append** the old `/etc/hosts` to the new one, then
+edit the new one to remove redundant lines. There are a few
+interesting lines in the new one:
+
+```
+# Standard host addresses
+127.0.0.1 localhost
+127.0.1.1 rapture
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
 ### Install Essential Packages
 
-Before proceeding further, install a few basic APT packages:
+Start by installing a few
+[essential packages]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-essential-packages):
 
 ```
 # apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
@@ -789,6 +943,416 @@ Before proceeding further, install a few basic APT packages:
   tigervnc-tools screen -y
 ```
 
-This is the same list of *Essential Packages* that from the
-[Ubuntu Studio 24.04 for a young artist]({{ baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404).
+After installing these **Redshift** is immediately available.
 
+Even before installing any packages **KDE Connect** is already
+running, which comes in very handy if it was already setup.
+
+At this point a reboot should not be necessary.
+
+## Install Additional Software
+
+### Google Chrome
+
+Installing [Google Chrome](https://google.com/chrome) is as
+simple as downloading the Debian package and installing it:
+
+```
+# dpkg -i google-chrome-stable_current_amd64.deb
+```
+
+### ActivityWatch
+
+As soon as Chrome is started, the ActivityWatch extension complains
+that it can't connect to the server, because it only runs locally.
+
+Install the latest version of [ActivityWatch]({{ site.baseurl }}/2024/06/30/self-hosted-time-tracking-with-activitywatch.html)
+and then run `/opt/activitywatch/aw-qt` manually once.
+This should already be in the **Autostart** settings, if it was
+setup previously, so it only needs to be run manually this once. 
+
+### Steam
+
+Installing Steam from Snap 
+[couldn't be simplers](https://unixhint.com/install-steam-on-ubuntu-24-04/):
+
+```
+# snap install steam
+steam 1.0.0.81 from Canonical✓ installed
+```
+
+**Note:** [snapcraft.io/steam](https://snapcraft.io/steam) is
+provided by Canonical.
+
+When runing the Steam client for the first time, a pop-up shows up
+advising to install additional 32-bit drivers *for best experience*
+
+```
+# dpkg --add-architecture i386
+# apt update
+# apt install libnvidia-gl-550:i386 -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  gcc-14-base:i386 libbsd0:i386 libc6:i386 libdrm2:i386 libffi8:i386 libgcc-s1:i386 libidn2-0:i386 libmd0:i386
+  libnvidia-egl-wayland1:i386 libunistring5:i386 libwayland-client0:i386 libwayland-server0:i386 libx11-6:i386
+  libxau6:i386 libxcb1:i386 libxdmcp6:i386 libxext6:i386
+Suggested packages:
+  glibc-doc:i386 locales:i386 libnss-nis:i386 libnss-nisplus:i386
+The following NEW packages will be installed:
+  gcc-14-base:i386 libbsd0:i386 libc6:i386 libdrm2:i386 libffi8:i386 libgcc-s1:i386 libidn2-0:i386 libmd0:i386
+  libnvidia-egl-wayland1:i386 libnvidia-gl-550:i386 libunistring5:i386 libwayland-client0:i386 libwayland-server0:i386
+  libx11-6:i386 libxau6:i386 libxcb1:i386 libxdmcp6:i386 libxext6:i386
+0 upgraded, 18 newly installed, 0 to remove and 6 not upgraded.
+```
+
+It should also be possible to install the official Steam client, with
+[the non-snap alternative]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#non-snap-alternative). This doesn't seems necessary anymore.
+
+### Minecraft Java Edition
+
+To avoid taking chances, copy the Minecraft launcher from the
+previous system:
+
+```
+# cp -a /jammy/opt/minecraft-launcher/ /opt/
+```
+
+It works perfectly right after installing; no need to login again.
+
+In contrast, trying to re-download Minecraft Java Edition
+[seems to lead nowhere good]({{ site.baseurl }}/2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.html).
+
+### Minecraft Bedrock Edition
+
+There is an **unofficial**
+[Minecraft Bedrock Launcher](https://flathub.org/apps/io.mrarm.mcpelauncher),
+including smiple steps to install it on
+[Debian / Ubuntu](https://mcpelauncher.readthedocs.io/en/latest/getting_started/index.html#debian-ubuntu).
+This has not seemed necessary so far, since the family enjoys
+playing the Java edition more.
+
+### Blender
+
+[Blender 4.2 LTS](https://www.blender.org/) is already available
+even for Ubuntu 22.04 via 
+[snapcraft.io/blender](https://snapcraft.io/blender)
+so there is no reason to install it any other way:
+
+```
+# snap install blender --classic
+blender 4.2.3 from Blender Foundation (blenderfoundation✓) installed
+```
+
+### Continuous Monitoring
+
+Install the
+[multi-thread version]({{ site.baseurl }}/conmon/#deploy-to-pcs)
+of the `conmon` script as `/usr/local/bin/conmon` and
+[run it as a service]({{ site.baseurl }}/conmon/#install-conmon);
+create `/etc/systemd/system/conmon.service` as follows:
+
+```ini
+[Unit]
+Description=Continuous Monitoring
+
+[Service]
+ExecStart=/usr/local/bin/conmon
+Restart=on-failure
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable and start the services in `systemd`:
+
+```
+# systemctl enable conmon.service
+# systemctl daemon-reload
+# systemctl start conmon.service
+# systemctl status conmon.service
+```
+
+#### Hardware Sensors
+
+Initially there is only a limited amount of hardware sensors:
+
+```
+# sensors -A
+nvme-pci-0400
+Composite:    +36.9°C  (low  = -20.1°C, high = +83.8°C)
+                       (crit = +88.8°C)
+Sensor 2:     +72.8°C  
+
+k10temp-pci-00c3
+Tctl:         +42.5°C  
+Tccd2:        +36.0°C  
+
+nvme-pci-0100
+Composite:    +42.9°C  (low  = -273.1°C, high = +84.8°C)
+                       (crit = +84.8°C)
+Sensor 1:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C) 
+```
+
+HDD temperatures are available by loading the drivetemp kernel module:
+
+```
+# echo drivetemp > /etc/modules-load.d/drivetemp.conf
+# modprobe drivetemp
+# # sensors -A
+drivetemp-scsi-9-0
+temp1:        +40.0°C  (low  =  +0.0°C, high = +55.0°C)
+                       (crit low = -40.0°C, crit = +70.0°C)
+                       (lowest = +24.0°C, highest = +40.0°C)
+
+drivetemp-scsi-5-0
+temp1:        +29.0°C  (low  =  +0.0°C, high = +70.0°C)
+                       (crit low =  +0.0°C, crit = +70.0°C)
+                       (lowest = +25.0°C, highest = +34.0°C)
+
+drivetemp-scsi-2-0
+temp1:        +40.0°C  (low  =  +0.0°C, high = +60.0°C)
+                       (crit low = -40.0°C, crit = +70.0°C)
+                       (lowest = +24.0°C, highest = +40.0°C)
+
+nvme-pci-0400
+Composite:    +36.9°C  (low  = -20.1°C, high = +83.8°C)
+                       (crit = +88.8°C)
+Sensor 2:     +72.8°C  
+
+k10temp-pci-00c3
+Tctl:         +42.5°C  
+Tccd2:        +36.0°C  
+
+drivetemp-scsi-8-0
+temp1:        +36.0°C  (low  =  +0.0°C, high = +60.0°C)
+                       (crit low = -41.0°C, crit = +85.0°C)
+                       (lowest = +22.0°C, highest = +36.0°C)
+
+drivetemp-scsi-4-0
+temp1:        +29.0°C  (low  =  +0.0°C, high = +100.0°C)
+                       (crit low =  +0.0°C, crit = +100.0°C)
+                       (lowest = +25.0°C, highest = +29.0°C)
+
+nvme-pci-0100
+Composite:    +42.9°C  (low  = -273.1°C, high = +84.8°C)
+                       (crit = +84.8°C)
+Sensor 1:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+```
+
+## System Configuration
+
+The above having covered **installing** software, there are still
+system configurations that need to be tweaked.
+
+### APT respositories clean-up
+
+Ubuntu Studio 24.04 seems to consistently need a little
+[APT respositories clean-up]({{ site.baseurl }}2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#apt-respositories-clean-up); just comment out the last line
+in `/etc/apt/sources.list.d/dvd.list` to let `noble-security` be
+defined (only) in `ubuntu.sources`.
+
+### Ubuntu Pro
+
+When updating the system with `apt full-upgrade -y` a notice comes
+up about additional security updates:
+
+```
+Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
+  libdcmtk17t64 libcjson1 libavdevice60 ffmpeg libpostproc57 libavcodec60
+  libavutil58 libswscale7 libswresample4 libavformat60 libavfilter9
+Learn more about Ubuntu Pro at https://ubuntu.com/pro
+```
+
+This being a new system, indeed it's not attached to an Ubuntu Pro
+account (the old system was):
+
+```
+# pro security-status
+3213 packages installed:
+     1642 packages from Ubuntu Main/Restricted repository
+     1569 packages from Ubuntu Universe/Multiverse repository
+     1 package from a third party
+     1 package no longer available for download
+
+To get more information about the packages, run
+    pro security-status --help
+for a list of available options.
+
+This machine is receiving security patching for Ubuntu Main/Restricted
+repository until 2029.
+This machine is NOT attached to an Ubuntu Pro subscription.
+
+Ubuntu Pro with 'esm-infra' enabled provides security updates for
+Main/Restricted packages until 2034.
+
+Ubuntu Pro with 'esm-apps' enabled provides security updates for
+Universe/Multiverse packages until 2034. There are 11 pending security updates.
+
+Try Ubuntu Pro with a free personal subscription on up to 5 machines.
+Learn more at https://ubuntu.com/pro
+```
+
+After creating an Ubuntu account a token is available to use with
+`pro attach`:
+
+```
+# pro attach ...
+Enabling Ubuntu Pro: ESM Apps
+Ubuntu Pro: ESM Apps enabled
+Enabling Ubuntu Pro: ESM Infra
+Ubuntu Pro: ESM Infra enabled
+Enabling Livepatch
+Livepatch enabled
+This machine is now attached to 'Ubuntu Pro - free personal subscription'
+
+SERVICE          ENTITLED  STATUS       DESCRIPTION
+anbox-cloud      yes       disabled     Scalable Android in the cloud
+esm-apps         yes       enabled      Expanded Security Maintenance for Applications
+esm-infra        yes       enabled      Expanded Security Maintenance for Infrastructure
+landscape        yes       disabled     Management and administration tool for Ubuntu
+livepatch        yes       warning      Current kernel is not covered by livepatch
+realtime-kernel* yes       disabled     Ubuntu kernel with PREEMPT_RT patches integrated
+
+ * Service has variants
+
+NOTICES
+Operation in progress: pro attach
+The current kernel (6.8.0-47-lowlatency, x86_64) is not covered by livepatch.
+Covered kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning.
+
+For a list of all Ubuntu Pro services and variants, run 'pro status --all'
+Enable services with: pro enable <service>
+
+     Account: ponder.stibbons@uu.am
+Subscription: Ubuntu Pro - free personal subscription
+
+# pro status --all
+SERVICE          ENTITLED  STATUS       DESCRIPTION
+anbox-cloud      yes       disabled     Scalable Android in the cloud
+cc-eal           yes       n/a          Common Criteria EAL2 Provisioning Packages
+esm-apps         yes       enabled      Expanded Security Maintenance for Applications
+esm-infra        yes       enabled      Expanded Security Maintenance for Infrastructure
+fips             yes       n/a          NIST-certified FIPS crypto packages
+fips-preview     yes       n/a          Preview of FIPS crypto packages undergoing certification with NIST
+fips-updates     yes       n/a          FIPS compliant crypto packages with stable security updates
+landscape        yes       disabled     Management and administration tool for Ubuntu
+livepatch        yes       warning      Current kernel is not covered by livepatch
+realtime-kernel  yes       disabled     Ubuntu kernel with PREEMPT_RT patches integrated
+├ generic        yes       disabled     Generic version of the RT kernel (default)
+├ intel-iotg     yes       n/a          RT kernel optimized for Intel IOTG platform
+└ raspi          yes       n/a          24.04 Real-time kernel optimised for Raspberry Pi
+ros              yes       n/a          Security Updates for the Robot Operating System
+ros-updates      yes       n/a          All Updates for the Robot Operating System
+usg              yes       n/a          Security compliance and audit tools
+
+NOTICES
+The current kernel (6.8.0-47-lowlatency, x86_64) is not covered by livepatch.
+Covered kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning.
+
+Enable services with: pro enable <service>
+```
+
+Now the system can be updated *again* with `apt full-upgrade -y`
+to receive those additional security updates:
+
+```
+# apt full-upgrade -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+The following upgrades have been deferred due to phasing:
+  python3-distupgrade ubuntu-release-upgrader-core
+  ubuntu-release-upgrader-qt
+The following packages will be upgraded:
+  ffmpeg libavcodec60 libavdevice60 libavfilter9 libavformat60 libavutil58
+  libcjson1 libdcmtk17t64 libpostproc57 libswresample4 libswscale7
+11 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+11 esm-apps security updates
+```
+
+### Make SDDM Look Good
+
+Ubuntu Studio 24.04 uses 
+[Simple Desktop Display Manager (SDDM)](https://wiki.archlinux.org/title/SDDM)
+([sddm/sddm](https://github.com/sddm/sddm) in GitHub)
+which is quite good looking out of the box, but I like to
+customize this for each computer.
+
+For most computers my favorite SDDM theme is
+[Breeze-Noir-Dark](https://store.kde.org/p/1361460),
+which I like to install system-wide.
+
+When it's already installed in the old system, it can be simply
+copied over to the new one:
+
+```
+# cp -a /jammy/usr/share/sddm/themes/breeze-noir-dark/ \
+  /usr/share/sddm/themes/
+```
+
+Otherwise, install it from its source:
+
+```
+# unzip Breeze-Noir-Dark.zip
+# mv Breeze-Noir-Dark /usr/share/sddm/themes/
+```
+
+**Note:** action icons won’t render if the directory name is
+changed. If needed, change the directory name in the `iconSource`
+fields in `Main.qml` to match final directory name so icons show.
+
+Other than installing this theme, all I really change in it
+is the background image to use 
+[The Rapture [3440x1440]](https://www.flickr.com/photos/douglastofoli/27740699244/).
+
+```
+# mv welcome-to-rapture-opportunity-awaits-3440x1440.jpg \
+  /usr/share/sddm/themes/breeze-noir-dark
+# cd /usr/share/sddm/themes/breeze-noir-dark
+# vi theme.conf
+background=/usr/share/sddm/themes/breeze-noir-dark/welcome-to-rapture-opportunity-awaits-3440x1440.jpg
+# vi theme.conf.user
+background=welcome-to-rapture-opportunity-awaits-3440x1440.jpg
+```
+
+**Additionally**, as this is new in Ubuntu 24.04, the theme has to
+be selected by adding a `[Theme]` section in the system config
+in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
+
+```ini
+[General]
+InputMethod=
+
+[Theme]
+Current="Breeze-Noir-Dark"
+EnableAvatars=True
+```
+
+[Reportedly](https://superuser.com/questions/1720931/how-to-configure-sddm-in-kubuntu-22-04-where-is-config-file),
+you have to **create** the `/etc/sddm.conf.d` directory to add
+the *Local configuration* file that allows setting the theme:
+
+```
+# mkdir /etc/sddm.conf.d
+# vi /etc/sddm.conf.d/ubuntustudio.conf
+```
+
+Besides setting the theme, it is also good to limit the range of
+user ids so that only human users show up:
+
+```ini
+[Theme]
+Current=Breeze-Noir-Dark
+
+[Users]
+MaximumUid=1003
+MinimumUid=1000
+```
