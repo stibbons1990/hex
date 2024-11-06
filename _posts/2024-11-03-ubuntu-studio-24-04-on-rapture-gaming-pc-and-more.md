@@ -1306,24 +1306,14 @@ For most computers my favorite SDDM theme is
 [Breeze-Noir-Dark](https://store.kde.org/p/1361460),
 which I like to install system-wide.
 
-When it's already installed in the old system, it can be simply
-copied over to the new one:
-
 ```
-# cp -a /jammy/usr/share/sddm/themes/breeze-noir-dark/ \
-  /usr/share/sddm/themes/
-```
-
-Otherwise, install it from its source:
-
-```
-# unzip Breeze-Noir-Dark.zip
-# mv Breeze-Noir-Dark /usr/share/sddm/themes/
+# unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
 ```
 
 **Note:** action icons won’t render if the directory name is
-changed. If needed, change the directory name in the `iconSource`
-fields in `Main.qml` to match final directory name so icons show.
+changed. If needed, change the directory name in the `iconSource` fields in `Main.qml` to match final directory name
+so icons show. This is not the only thing that breaks when
+changing the directory name.
 
 Other than installing this theme, all I really change in it
 is the background image to use 
@@ -1331,11 +1321,18 @@ is the background image to use
 
 ```
 # mv welcome-to-rapture-opportunity-awaits-3440x1440.jpg \
-  /usr/share/sddm/themes/breeze-noir-dark
-# cd /usr/share/sddm/themes/breeze-noir-dark
+  /usr/share/sddm/themes/Breeze-Noir-Dark/
+# cd /usr/share/sddm/themes/Breeze-Noir-Dark/
+
 # vi theme.conf
-background=/usr/share/sddm/themes/breeze-noir-dark/welcome-to-rapture-opportunity-awaits-3440x1440.jpg
+[General]
+type=image
+color=#132e43
+background=/usr/share/sddm/themes/Breeze-Noir-Dark/welcome-to-rapture-opportunity-awaits-3440x1440.jpg
+
 # vi theme.conf.user
+[General]
+type=image
 background=welcome-to-rapture-opportunity-awaits-3440x1440.jpg
 ```
 
@@ -1377,6 +1374,30 @@ It seems no longer necessary to manually add Redshift to one's
 desktop session. Previously, it would be necessary to launch
 **Autostart** and **Add Application…** to add Redshift.
 
+### Make `dmesg` non-privileged
+
+Since Ubuntu 22.04, `dmesg` has become a privileged operation
+by default:
+
+```
+$ dmesg
+dmesg: read kernel buffer failed: Operation not permitted
+```
+
+This is controlled by 
+
+```
+# sysctl kernel.dmesg_restrict
+kernel.dmesg_restrict = 1
+```
+
+To revert this default, and make it permanent
+([source](https://archived.forum.manjaro.org/t/why-did-dmesg-become-a-priveleged-operation-suddenly/86468/3)):
+
+```
+# echo 'kernel.dmesg_restrict=0' | tee -a /etc/sysctl.d/99-sysctl.conf
+```
+
 ### Waiting for initial location to become available...
 
 However, redshift in Ubuntu 24.04 seems to be susceptible to
@@ -1413,8 +1434,57 @@ $ redshift-qt
 "Waiting for initial location to become available..."
 ```
 
+In the end, it was again necessary to manually add Redshift to the
+desktop session. Previously, it would be necessary to launch
+**Autostart** and **Add Application…** to add `redshift-qt`.
+
 This *may* be related to the **Update** app failing with
 [Cannot Refresh Cache Whilst Offline](https://www.reddit.com/r/Actualfixes/comments/1cek3rg/fix_cockpit_cannot_refresh_cache_whilst_offline/),
 apparently becuase 
 [Cockpit just 'needs' Network Manager](https://askubuntu.com/a/1336040), but there is a
-[Solution](https://cockpit-project.org/faq#error-message-about-being-offline).
+[Solution](https://cockpit-project.org/faq#error-message-about-being-offline),
+involving the creation of a *fake* network interface.
+
+```
+root@rapture:~# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp5s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 04:42:1a:97:4e:47 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.2/24 brd 10.0.0.255 scope global enp5s0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.2/24 metric 100 brd 192.168.0.255 scope global dynamic enp5s0
+       valid_lft 85940sec preferred_lft 85940sec
+    inet6 fe80::642:1aff:fe97:4e47/64 scope link 
+       valid_lft forever preferred_lft forever
+
+# nmcli con add type dummy con-name fake ifname fake0 ip4 1.2.3.4/24 gw4 1.2.3.1
+Connection 'fake' (f7fe724b-5aa8-4988-b21b-aa9dc96dae1a) successfully added.
+
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp5s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 04:42:1a:97:4e:47 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.2/24 brd 10.0.0.255 scope global enp5s0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.2/24 metric 100 brd 192.168.0.255 scope global dynamic enp5s0
+       valid_lft 85937sec preferred_lft 85937sec
+    inet6 fe80::642:1aff:fe97:4e47/64 scope link 
+       valid_lft forever preferred_lft forever
+3: fake0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/ether ce:56:b8:58:f8:32 brd ff:ff:ff:ff:ff:ff
+    inet 1.2.3.4/24 brd 1.2.3.255 scope global noprefixroute fake0
+       valid_lft forever preferred_lft forever
+```
+
+This doesn't seem to affect anything else's connectivity, but
+at least now the **Updates** application no longer fails.
