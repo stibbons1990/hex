@@ -952,6 +952,22 @@ At this point a reboot should not be necessary.
 
 ## Install Additional Software
 
+### Brave browser
+
+Install from the
+[Release Channel](https://brave.com/linux/#release-channel-installation):
+
+```
+# curl -fsSLo \
+  /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+  https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+
+# echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+| tee /etc/apt/sources.list.d/brave-browser-release.list
+
+# apt update && apt install brave-browser -y
+```
+
 ### Google Chrome
 
 Installing [Google Chrome](https://google.com/chrome) is as
@@ -1356,3 +1372,49 @@ Current=Breeze-Noir-Dark
 MaximumUid=1003
 MinimumUid=1000
 ```
+
+It seems no longer necessary to manually add Redshift to one's
+desktop session. Previously, it would be necessary to launch
+**Autostart** and **Add Application…** to add Redshift.
+
+### Waiting for initial location to become available...
+
+However, redshift in Ubuntu 24.04 seems to be susceptible to
+crashing whenever toggleing it on/off or adjusting the color
+temperature. *Despite* the setting above to force specific
+coordinates manually, it tries to fetch location from an online
+service that is not available: a pop-up error tells:
+
+> Redshift has terminated unexpectedly with exit code 0:  
+> Waiting for initial location to become available...
+
+The same is seen when running `redshift-qt` in a shell, then trying
+to adjust the color temperature:
+
+```
+$ redshift-qt
+"Solar elevations: day above 3.0, night below -6.0"
+"Temperatures: 4500K at day, 3500K at night"
+"Brightness: 1.00:0.70"
+"Gamma (Daytime): 0.700, 0.700, 0.700"
+"Gamma (Night): 0.700, 0.700, 0.700"
+"Location: 48.00 N, 8.00 E"
+"Color temperature: 6500K"
+"Brightness: 1.00"
+"Status: Enabled"
+"Period: Night"
+"Color temperature: 3500K"
+"Brightness: 0.70"
+
+"Status: Disabled"
+"Period: None"
+"Color temperature: 6500K"
+"Brightness: 1.00"
+"Waiting for initial location to become available..."
+```
+
+This *may* be related to the **Update** app failing with
+[Cannot Refresh Cache Whilst Offline](https://www.reddit.com/r/Actualfixes/comments/1cek3rg/fix_cockpit_cannot_refresh_cache_whilst_offline/),
+apparently becuase 
+[Cockpit just 'needs' Network Manager](https://askubuntu.com/a/1336040), but there is a
+[Solution](https://cockpit-project.org/faq#error-message-about-being-offline).
