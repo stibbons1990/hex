@@ -1306,6 +1306,338 @@ $ /opt/arduino/arduino-ide
 Trace/breakpoint trap (core dumped)
 ```
 
+### FMNT Autofirma
+
+Requesting personal certificates from the FMNT the requires configuracion-previa:
+
+Download the
+[AutoFirma 1.8 para Debian Linux](https://firmaelectronica.gob.es/Home/Descargas.html)
+and the
+[Configurador FNMT-RCM para GNU/Linux 64 bits (DEB)](https://www.sede.fnmt.gob.es/descargas/descarga-software/instalacion-software-generacion-de-claves)
+packages and `unzip` the AutoFirma package and install both, but
+**first** install dependencies (`libnss` and Java Runtime Environment):
+
+```
+# apt install default-jre libnss3-tools -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+libnss3-tools is already the newest version (2:3.98-1build1).
+The following additional packages will be installed:
+  ca-certificates-java default-jre-headless java-common libatk-wrapper-java
+  libatk-wrapper-java-jni openjdk-21-jre openjdk-21-jre-headless
+Suggested packages:
+  fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei
+  | fonts-wqy-zenhei fonts-indic
+The following NEW packages will be installed:
+  ca-certificates-java default-jre default-jre-headless java-common
+  libatk-wrapper-java libatk-wrapper-java-jni openjdk-21-jre
+  openjdk-21-jre-headless
+0 upgraded, 8 newly installed, 0 to remove and 14 not upgraded.
+Need to get 46.9 MB of archives.
+After this operation, 203 MB of additional disk space will be used.
+Get:1 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 ca-certificates-java all 20240118 [11.6 kB]
+Get:2 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 java-common all 0.75+exp1 [6,798 B]
+Get:3 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre-headless amd64 21.0.4+7-1ubuntu2~24.04 [46.6 MB]
+Get:4 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre-headless amd64 2:1.21-75+exp1 [3,094 B]
+Get:5 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre amd64 21.0.4+7-1ubuntu2~24.04 [227 kB]
+Get:6 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre amd64 2:1.21-75+exp1 [922 B]
+Get:7 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java all 0.40.0-3build2 [54.3 kB]
+Get:8 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java-jni amd64 0.40.0-3build2 [46.4 kB]
+Fetched 46.9 MB in 1s (38.9 MB/s)                  
+Selecting previously unselected package ca-certificates-java.
+(Reading database ... 430136 files and directories currently installed.)
+Preparing to unpack .../0-ca-certificates-java_20240118_all.deb ...
+Unpacking ca-certificates-java (20240118) ...
+Selecting previously unselected package java-common.
+Preparing to unpack .../1-java-common_0.75+exp1_all.deb ...
+Unpacking java-common (0.75+exp1) ...
+Selecting previously unselected package openjdk-21-jre-headless:amd64.
+Preparing to unpack .../2-openjdk-21-jre-headless_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
+Unpacking openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+Selecting previously unselected package default-jre-headless.
+Preparing to unpack .../3-default-jre-headless_2%3a1.21-75+exp1_amd64.deb ...
+Unpacking default-jre-headless (2:1.21-75+exp1) ...
+Selecting previously unselected package openjdk-21-jre:amd64.
+Preparing to unpack .../4-openjdk-21-jre_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
+Unpacking openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+Selecting previously unselected package default-jre.
+Preparing to unpack .../5-default-jre_2%3a1.21-75+exp1_amd64.deb ...
+Unpacking default-jre (2:1.21-75+exp1) ...
+Selecting previously unselected package libatk-wrapper-java.
+Preparing to unpack .../6-libatk-wrapper-java_0.40.0-3build2_all.deb ...
+Unpacking libatk-wrapper-java (0.40.0-3build2) ...
+Selecting previously unselected package libatk-wrapper-java-jni:amd64.
+Preparing to unpack .../7-libatk-wrapper-java-jni_0.40.0-3build2_amd64.deb ...
+Unpacking libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+Setting up java-common (0.75+exp1) ...
+Setting up libatk-wrapper-java (0.40.0-3build2) ...
+Setting up ca-certificates-java (20240118) ...
+No JRE found. Skipping Java certificates setup.
+Setting up openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/java to provide /usr/bin/java (java) in auto mode
+update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/jpackage to provide /usr/bin/jpackage (jpackage) in auto mode
+update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/keytool to provide /usr/bin/keytool (keytool) in auto mode
+update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/rmiregistry to provide /usr/bin/rmiregistry (rmiregistry) in auto mode
+update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/lib/jexec to provide /usr/bin/jexec (jexec) in auto mode
+Setting up libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for desktop-file-utils (0.27-2build1) ...
+Processing triggers for hicolor-icon-theme (0.17-2) ...
+Processing triggers for ca-certificates-java (20240118) ...
+Adding debian:ACCVRAIZ1.pem
+Adding debian:AC_RAIZ_FNMT-RCM.pem
+Adding debian:AC_RAIZ_FNMT-RCM_SERVIDORES_SEGUROS.pem
+Adding debian:ANF_Secure_Server_Root_CA.pem
+Adding debian:Actalis_Authentication_Root_CA.pem
+Adding debian:AffirmTrust_Commercial.pem
+Adding debian:AffirmTrust_Networking.pem
+Adding debian:AffirmTrust_Premium.pem
+Adding debian:AffirmTrust_Premium_ECC.pem
+Adding debian:Amazon_Root_CA_1.pem
+Adding debian:Amazon_Root_CA_2.pem
+Adding debian:Amazon_Root_CA_3.pem
+Adding debian:Amazon_Root_CA_4.pem
+Adding debian:Atos_TrustedRoot_2011.pem
+Adding debian:Atos_TrustedRoot_Root_CA_ECC_TLS_2021.pem
+Adding debian:Atos_TrustedRoot_Root_CA_RSA_TLS_2021.pem
+Adding debian:Autoridad_de_Certificacion_Firmaprofesional_CIF_A62634068.pem
+Adding debian:BJCA_Global_Root_CA1.pem
+Adding debian:BJCA_Global_Root_CA2.pem
+Adding debian:Baltimore_CyberTrust_Root.pem
+Adding debian:Buypass_Class_2_Root_CA.pem
+Adding debian:Buypass_Class_3_Root_CA.pem
+Adding debian:CA_Disig_Root_R2.pem
+Adding debian:CFCA_EV_ROOT.pem
+Adding debian:COMODO_Certification_Authority.pem
+Adding debian:COMODO_ECC_Certification_Authority.pem
+Adding debian:COMODO_RSA_Certification_Authority.pem
+Adding debian:Certainly_Root_E1.pem
+Adding debian:Certainly_Root_R1.pem
+Adding debian:Certigna.pem
+Adding debian:Certigna_Root_CA.pem
+Adding debian:Certum_EC-384_CA.pem
+Adding debian:Certum_Trusted_Network_CA.pem
+Adding debian:Certum_Trusted_Network_CA_2.pem
+Adding debian:Certum_Trusted_Root_CA.pem
+Adding debian:CommScope_Public_Trust_ECC_Root-01.pem
+Adding debian:CommScope_Public_Trust_ECC_Root-02.pem
+Adding debian:CommScope_Public_Trust_RSA_Root-01.pem
+Adding debian:CommScope_Public_Trust_RSA_Root-02.pem
+Adding debian:Comodo_AAA_Services_root.pem
+Adding debian:D-TRUST_BR_Root_CA_1_2020.pem
+Adding debian:D-TRUST_EV_Root_CA_1_2020.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_2009.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_EV_2009.pem
+Adding debian:DigiCert_Assured_ID_Root_CA.pem
+Adding debian:DigiCert_Assured_ID_Root_G2.pem
+Adding debian:DigiCert_Assured_ID_Root_G3.pem
+Adding debian:DigiCert_Global_Root_CA.pem
+Adding debian:DigiCert_Global_Root_G2.pem
+Adding debian:DigiCert_Global_Root_G3.pem
+Adding debian:DigiCert_High_Assurance_EV_Root_CA.pem
+Adding debian:DigiCert_TLS_ECC_P384_Root_G5.pem
+Adding debian:DigiCert_TLS_RSA4096_Root_G5.pem
+Adding debian:DigiCert_Trusted_Root_G4.pem
+Adding debian:Entrust.net_Premium_2048_Secure_Server_CA.pem
+Adding debian:Entrust_Root_Certification_Authority.pem
+Adding debian:Entrust_Root_Certification_Authority_-_EC1.pem
+Adding debian:Entrust_Root_Certification_Authority_-_G2.pem
+Adding debian:Entrust_Root_Certification_Authority_-_G4.pem
+Adding debian:GDCA_TrustAUTH_R5_ROOT.pem
+Adding debian:GLOBALTRUST_2020.pem
+Adding debian:GTS_Root_R1.pem
+Adding debian:GTS_Root_R2.pem
+Adding debian:GTS_Root_R3.pem
+Adding debian:GTS_Root_R4.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R4.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R5.pem
+Adding debian:GlobalSign_Root_CA.pem
+Adding debian:GlobalSign_Root_CA_-_R3.pem
+Adding debian:GlobalSign_Root_CA_-_R6.pem
+Adding debian:GlobalSign_Root_E46.pem
+Adding debian:GlobalSign_Root_R46.pem
+Adding debian:Go_Daddy_Class_2_CA.pem
+Adding debian:Go_Daddy_Root_Certificate_Authority_-_G2.pem
+Adding debian:HARICA_TLS_ECC_Root_CA_2021.pem
+Adding debian:HARICA_TLS_RSA_Root_CA_2021.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_ECC_RootCA_2015.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_RootCA_2015.pem
+Adding debian:HiPKI_Root_CA_-_G1.pem
+Adding debian:Hongkong_Post_Root_CA_3.pem
+Adding debian:ISRG_Root_X1.pem
+Adding debian:ISRG_Root_X2.pem
+Adding debian:IdenTrust_Commercial_Root_CA_1.pem
+Adding debian:IdenTrust_Public_Sector_Root_CA_1.pem
+Adding debian:Izenpe.com.pem
+Adding debian:Microsec_e-Szigno_Root_CA_2009.pem
+Adding debian:Microsoft_ECC_Root_Certificate_Authority_2017.pem
+Adding debian:Microsoft_RSA_Root_Certificate_Authority_2017.pem
+Adding debian:NAVER_Global_Root_Certification_Authority.pem
+Warning: there was a problem reading the certificate file /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem. Message:
+  /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem (No such file or directory)
+Adding debian:OISTE_WISeKey_Global_Root_GB_CA.pem
+Adding debian:OISTE_WISeKey_Global_Root_GC_CA.pem
+Adding debian:QuoVadis_Root_CA_1_G3.pem
+Adding debian:QuoVadis_Root_CA_2.pem
+Adding debian:QuoVadis_Root_CA_2_G3.pem
+Adding debian:QuoVadis_Root_CA_3.pem
+Adding debian:QuoVadis_Root_CA_3_G3.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_ECC.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_RSA_R2.pem
+Adding debian:SSL.com_Root_Certification_Authority_ECC.pem
+Adding debian:SSL.com_Root_Certification_Authority_RSA.pem
+Adding debian:SSL.com_TLS_ECC_Root_CA_2022.pem
+Adding debian:SSL.com_TLS_RSA_Root_CA_2022.pem
+Adding debian:SZAFIR_ROOT_CA2.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_E46.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_R46.pem
+Adding debian:SecureSign_RootCA11.pem
+Adding debian:SecureTrust_CA.pem
+Adding debian:Secure_Global_CA.pem
+Adding debian:Security_Communication_ECC_RootCA1.pem
+Adding debian:Security_Communication_RootCA2.pem
+Adding debian:Security_Communication_RootCA3.pem
+Adding debian:Security_Communication_Root_CA.pem
+Adding debian:Starfield_Class_2_CA.pem
+Adding debian:Starfield_Root_Certificate_Authority_-_G2.pem
+Adding debian:Starfield_Services_Root_Certificate_Authority_-_G2.pem
+Adding debian:SwissSign_Gold_CA_-_G2.pem
+Adding debian:SwissSign_Silver_CA_-_G2.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_2.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_3.pem
+Adding debian:TUBITAK_Kamu_SM_SSL_Kok_Sertifikasi_-_Surum_1.pem
+Adding debian:TWCA_Global_Root_CA.pem
+Adding debian:TWCA_Root_Certification_Authority.pem
+Adding debian:TeliaSonera_Root_CA_v1.pem
+Adding debian:Telia_Root_CA_v2.pem
+Adding debian:TrustAsia_Global_Root_CA_G3.pem
+Adding debian:TrustAsia_Global_Root_CA_G4.pem
+Adding debian:Trustwave_Global_Certification_Authority.pem
+Adding debian:Trustwave_Global_ECC_P256_Certification_Authority.pem
+Adding debian:Trustwave_Global_ECC_P384_Certification_Authority.pem
+Adding debian:TunTrust_Root_CA.pem
+Adding debian:UCA_Extended_Validation_Root.pem
+Adding debian:UCA_Global_G2_Root.pem
+Adding debian:USERTrust_ECC_Certification_Authority.pem
+Adding debian:USERTrust_RSA_Certification_Authority.pem
+Adding debian:XRamp_Global_CA_Root.pem
+Adding debian:certSIGN_ROOT_CA.pem
+Adding debian:certSIGN_Root_CA_G2.pem
+Adding debian:e-Szigno_Root_CA_2017.pem
+Adding debian:ePKI_Root_Certification_Authority.pem
+Adding debian:emSign_ECC_Root_CA_-_C3.pem
+Adding debian:emSign_ECC_Root_CA_-_G3.pem
+Adding debian:emSign_Root_CA_-_C1.pem
+Adding debian:emSign_Root_CA_-_G1.pem
+Adding debian:vTrus_ECC_Root_CA.pem
+Adding debian:vTrus_Root_CA.pem
+done.
+Setting up openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+Setting up default-jre-headless (2:1.21-75+exp1) ...
+Setting up default-jre (2:1.21-75+exp1) ...
+```
+
+The last action (`Adding debian:AutoFirma_ROOT.pem`) is **critical**
+for the installation of `AutoFirma`:
+
+```
+# gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb 
+/usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
+  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Reading state information... Done
+
+AutoFirma - Cliente @firma
+Do you want to install the software package? [y/N]:y
+/usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
+  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+(Reading database ... 430504 files and directories currently installed.)
+Preparing to unpack ./AutoFirma_1_8_3.deb ...
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+Se ha borrado el certificado CA en el almacenamiento del sistema
+Unpacking autofirma (1.8.3) over (1.8.3) ...
+Desinstalación completada con exito
+Setting up autofirma (1.8.3) ...
+Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.AutoFirmaConfigurator <init>
+INFO: Se configurara la aplicacion en modo nativo
+Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConsoleManager getConsole
+INFO: Se utilizara la consola de tipo I/O
+Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Identificando directorio de aplicación...
+Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Directorio de aplicación: /usr/lib/AutoFirma
+Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Generando certificado para la comunicación con el navegador web...
+Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Se guarda el almacén de claves en el directorio de instalación de la aplicación
+Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Se va a instalar el certificado en el almacen de Mozilla Firefox
+Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorFirefoxLinux createScriptsToSystemKeyStore
+INFO: Comprobamos que se encuentre certutil en el sistema
+Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+INFO: Fin de la configuración
+Generacion de certificados
+Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
+Updating certificates in /etc/ssl/certs...
+rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
+1 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+Instalacion del certificado CA en el almacenamiento del sistema
+Processing triggers for ca-certificates-java (20240118) ...
+Adding debian:AutoFirma_ROOT.pem
+done.
+Processing triggers for desktop-file-utils (0.27-2build1) ...
+```
+
+Without a JRE installed, the installation of `AutoFirma` will fails
+when `AutoFirma_ROOT.pem` cannot be found:
+
+```
+# unzip AutoFirma_Linux_Debian.zip
+# gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb 
+/usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
+  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Reading state information... Done
+
+AutoFirma - Cliente @firma
+Do you want to install the software package? [y/N]:y
+/usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
+  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+Selecting previously unselected package autofirma.
+(Reading database ... 430119 files and directories currently installed.)
+Preparing to unpack ./AutoFirma_1_8_3.deb ...
+Unpacking autofirma (1.8.3) ...
+Setting up autofirma (1.8.3) ...
+/var/lib/dpkg/info/autofirma.postinst: 3: java: not found
+Generacion de certificados
+Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
+Could not open file or uri for loading certificate from /usr/lib/AutoFirma/AutoFirma_ROOT.cer
+40474AFDD37D0000:error:16000069:STORE routines:ossl_store_get0_loader_int:unregistered scheme:../crypto/store/store_register.c:237:scheme=file
+40474AFDD37D0000:error:80000002:system library:file_open:No such file or directory:../providers/implementations/storemgmt/file_store.c:267:calling stat(/usr/lib/AutoFirma/AutoFirma_ROOT.cer)
+Unable to load certificate
+mv: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.pem': No such file or directory
+cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+Instalacion del certificado CA en el almacenamiento del sistema
+rm: cannot remove '/usr/lib/AutoFirma/script.sh': No such file or directory
+rm: cannot remove '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+Processing triggers for desktop-file-utils (0.27-2build1) ...
+```
+
 ### DisplayCal
 
 [DisplayCAL](https://displaycal.net/) is no longer maintained, it was dropped from
