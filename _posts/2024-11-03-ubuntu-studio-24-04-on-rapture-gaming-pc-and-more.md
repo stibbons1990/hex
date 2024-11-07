@@ -939,8 +939,8 @@ Start by installing a few
   speedtest-cli xcalib python3-pip netcat-openbsd jstest-gtk \
   etherwake python3-selenium lm-sensors sysstat tor unrar \
   ttf-mscorefonts-installer winetricks icc-profiles ffmpeg \
-  iotop-c xdotool redshift-gtk inxi vainfo vdpauinfo mpv \
-  tigervnc-tools screen -y
+  iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv \
+  tigervnc-tools screen lutris xsane -y
 ```
 
 After installing these **Redshift** is immediately available.
@@ -1292,6 +1292,46 @@ The following packages will be upgraded:
   libcjson1 libdcmtk17t64 libpostproc57 libswresample4 libswscale7
 11 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
 11 esm-apps security updates
+```
+
+### Fix failed locale settings
+
+Every time `dpkg` runs, `perl` reports failed locale settings:
+
+```
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+        LANGUAGE = "en_US:en",
+        LC_ALL = (unset),
+        LC_TIME = "en_CH.UTF-8",
+        LC_MONETARY = "de_CH.UTF-8",
+        LC_ADDRESS = "C.UTF-8",
+        LC_TELEPHONE = "C.UTF-8",
+        LC_NAME = "C.UTF-8",
+        LC_MEASUREMENT = "de_CH.UTF-8",
+        LC_IDENTIFICATION = "C.UTF-8",
+        LC_NUMERIC = "de_CH.UTF-8",
+        LC_PAPER = "C.UTF-8",
+        LANG = "en_US.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to a fallback locale ("en_US.UTF-8").
+locale: Cannot set LC_ALL to default locale: No such file or directory
+```
+
+To fix this, set `LC_ALL` globally:
+
+```
+# echo 'LC_ALL="en_US.UTF-8"' >> /etc/environment
+```
+
+Re/generate the desired locales, e.g. at least `en_US.UTF-8`.
+
+```
+# dpkg-reconfigure locales
+Generating locales (this might take a while)...
+  en_US.UTF-8... done
+  ...
+Generation complete.
 ```
 
 ### Make SDDM Look Good
