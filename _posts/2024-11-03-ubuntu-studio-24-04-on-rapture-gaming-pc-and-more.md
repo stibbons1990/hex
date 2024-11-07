@@ -939,8 +939,8 @@ Start by installing a few
   speedtest-cli xcalib python3-pip netcat-openbsd jstest-gtk \
   etherwake python3-selenium lm-sensors sysstat tor unrar \
   ttf-mscorefonts-installer winetricks icc-profiles ffmpeg \
-  iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv \
-  tigervnc-tools screen lutris xsane -y
+  iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv xsane \
+  tigervnc-tools screen lutris libxxf86vm-dev displaycal -y
 ```
 
 After installing these **Redshift** is immediately available.
@@ -1240,6 +1240,22 @@ intrusion0:               ALARM
 intrusion1:               ALARM
 beep_enable:              disabled
 ```
+
+### DisplayCal
+
+[DisplayCAL](https://displaycal.net/) is no longer maintained, it was dropped from
+Ubuntu 20.04 because it would not work with Python 3, but was still possible to build
+with python2.7 packages. Later, that was no longer possible in Ubuntu 22.04, so a new
+port to Python 3 was started: the
+[DisplayCAL Python 3 Project](https://github.com/eoyilmaz/displaycal-py3/tree/develop?tab=readme-ov-file#displaycal-python-3-project).
+
+Back in late 2022, the best method around was in (French)
+[DisplayCAL en Python 3](https://ignace72.eu/displaycal-en-python-3.html)
+and required only a few basic packages.
+
+As or late 2024, the new project has its own
+[Installation Instructions (Linux)](https://github.com/eoyilmaz/displaycal-py3/blob/develop/docs/install_instructions_linux.md)
+but in Ubuntu Studio 24.04 none of this is necessary; `apt install displaycal` will do.
 
 ## System Configuration
 
