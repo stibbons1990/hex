@@ -1118,7 +1118,7 @@ HDD temperatures are available by loading the drivetemp kernel module:
 ```
 # echo drivetemp > /etc/modules-load.d/drivetemp.conf
 # modprobe drivetemp
-# # sensors -A
+# sensors -A
 drivetemp-scsi-9-0
 temp1:        +40.0°C  (low  =  +0.0°C, high = +55.0°C)
                        (crit low = -40.0°C, crit = +70.0°C)
@@ -1158,6 +1158,87 @@ Composite:    +42.9°C  (low  = -273.1°C, high = +84.8°C)
                        (crit = +84.8°C)
 Sensor 1:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
 Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+```
+
+##### Motherboard Sensors (NCT6798D)
+
+The [ASUS TUF X-570-PRO WIFI II](https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-x570-pro-wifi-ii/techspec/)
+motherboard initially shows only the South bridge sensors
+(`k10temp`); to gain access to the full range of sensors
+load the additional driver `nct6775`:
+
+```
+# echo nct6775 > /etc/modules-load.d/nct6775.conf
+# modprobe nct6775
+```
+
+When loading this driver, `dmesg` should show a single line:
+
+```
+nct6775: Found NCT6798D or compatible chip at 0x2e:0x290
+```
+
+Previously (in Ubuntu Studio 22.04 in late 2022) this driver
+would encounter a conflict and sensors would not be available:
+
+```
+nct6775: Found NCT6798D or compatible chip at 0x2e:0x290
+ACPI Warning: SystemIO range 0x0000000000000295-0x0000000000000296 conflicts with OpRegion 0x0000000000000290-0x0000000000000299 (\AMW0.SHWM) (20210730/utaddress-204)
+ACPI: OSL: Resource conflict; ACPI support missing from driver?
+```
+
+As for late 2024, the driver encounters no conflict, and the
+output from `sensors -A` shows the `nct6798-isa-0290` with
+many additional sensors:
+
+```
+nct6798-isa-0290
+in0:                        1.39 V  (min =  +0.00 V, max =  +1.74 V)
+in1:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in2:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in3:                        3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in4:                        1.02 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in5:                      864.00 mV (min =  +0.00 V, max =  +0.00 V)
+in6:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in7:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in8:                        3.30 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in9:                        1.82 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in10:                     464.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+in11:                     960.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+in12:                       1.04 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in13:                     1000.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+in14:                       1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+fan1:                     1337 RPM  (min =    0 RPM)
+fan2:                     1021 RPM  (min =    0 RPM)
+fan3:                      963 RPM  (min =    0 RPM)
+fan4:                      964 RPM  (min =    0 RPM)
+fan5:                        0 RPM  (min =    0 RPM)
+fan6:                        0 RPM  (min =    0 RPM)
+fan7:                        0 RPM  (min =    0 RPM)
+SYSTIN:                    +33.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +125.0°C)  sensor = thermistor
+CPUTIN:                    +38.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +125.0°C)  sensor = thermistor
+AUXTIN0:                   +26.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +125.0°C)  sensor = thermistor
+AUXTIN1:                   +67.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +125.0°C)  sensor = thermistor
+AUXTIN2:                   +27.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +100.0°C)  sensor = thermistor
+AUXTIN3:                   +25.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +100.0°C)  sensor = thermistor
+AUXTIN4:                   +33.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                    (crit = +100.0°C)
+PECI Agent 0 Calibration:  +58.0°C  (high = +80.0°C, hyst = +75.0°C)
+PCH_CHIP_CPU_MAX_TEMP:      +0.0°C  
+PCH_CHIP_TEMP:              +0.0°C  
+PCH_CPU_TEMP:               +0.0°C  
+PCH_MCH_TEMP:               +0.0°C  
+TSI0_TEMP:                 +69.6°C  
+TSI1_TEMP:                 +61.2°C  
+intrusion0:               ALARM
+intrusion1:               ALARM
+beep_enable:              disabled
 ```
 
 ## System Configuration
