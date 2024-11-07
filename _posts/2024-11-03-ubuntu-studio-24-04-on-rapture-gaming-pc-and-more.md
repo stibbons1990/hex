@@ -1283,6 +1283,29 @@ The solution, albeit possibly only a temporary one, is to
   -- --no-sandbox "$@"
 ```
 
+### Arduino IDE
+
+The Arduino IDE in Ubuntu 22.04 (in `/jammy/opt/arduino`) will be
+out of date, so it pays to install the latest/nightly version:
+
+```
+# wget https://downloads.arduino.cc/arduino-ide/nightly/arduino-ide_nightly-latest_Linux_64bit.zip
+# unzip  arduino-ide_nightly-latest_Linux_64bit.zip
+# mv arduino-ide_nightly-20241106_Linux_64bit/ /opt/arduino/
+# chmod 4755 /opt/arduino/chrome-sandbox
+```
+
+Upon launching the Arduino IDE, a notification card offers updating
+installed libraries, which comes in vary handy to update them all.
+
+**Note:** without the `chmod 4755` command, the IDEA refuses to run:
+
+```
+$ /opt/arduino/arduino-ide
+[1917080:1107/234610.122185:FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /opt/arduino/chrome-sandbox is owned by root and has mode 4755.
+Trace/breakpoint trap (core dumped)
+```
+
 ### DisplayCal
 
 [DisplayCAL](https://displaycal.net/) is no longer maintained, it was dropped from
