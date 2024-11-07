@@ -1241,6 +1241,48 @@ intrusion1:               ALARM
 beep_enable:              disabled
 ```
 
+### Itch.io
+
+There is a binary in `.itch/itch` but it doesn’t work, it seem to have launched the app but the app itself is nowhere to be seen:
+
+```
+$ .itch/itch
+2024/11/07 23:27:26 itch-setup will log to /tmp/itch-setup-log.txt
+2024/11/07 23:27:26 =========================================
+2024/11/07 23:27:26 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-11-07 23:27:26.862907105 +0100 CET m=+0.002170433" with arguments:
+2024/11/07 23:27:26 "/home/coder/.itch/itch-setup"
+2024/11/07 23:27:26 "--prefer-launch"
+2024/11/07 23:27:26 "--appname"
+2024/11/07 23:27:26 "itch"
+2024/11/07 23:27:26 "--"
+2024/11/07 23:27:26 =========================================
+2024/11/07 23:27:26 App name specified on command-line: itch
+2024/11/07 23:27:26 Locale:  en-US
+2024/11/07 23:27:26 Initializing installer GUI...
+2024/11/07 23:27:26 Using GTK UI
+
+(process:1496821): Gtk-WARNING **: 23:27:26.864: Locale not supported by C library.
+        Using the fallback 'C' locale.
+2024/11/07 23:27:26 Initializing (itch) multiverse @ (/home/coder/.itch)
+2024/11/07 23:27:26 (/home/coder/.itch)(current = "26.1.9", ready = "")
+2024/11/07 23:27:26 Launch preferred, attempting...
+2024/11/07 23:27:26 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
+2024/11/07 23:27:26 Kernel should support SUID sandboxing, leaving it enabled
+2024/11/07 23:27:26 App launched, getting out of the way
+```
+
+The solution, albeit possibly only a temporary one, is to
+[disable sandboxing](https://www.reddit.com/r/pop_os/comments/uocj8p/itchio_launcher_crashing_on_startup_ever_sense/)
+([source](https://itch.io/t/1760026/itch-app-official-is-closing-at-launch-fedora-linux)) by adding the
+`--no-sandbox` in `.itch/itch`:
+
+```bash
+#!/bin/sh
+/home/coder/.itch/itch-setup \
+  --prefer-launch --appname itch \
+  -- --no-sandbox "$@"
+```
+
 ### DisplayCal
 
 [DisplayCAL](https://displaycal.net/) is no longer maintained, it was dropped from
