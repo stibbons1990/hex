@@ -2168,20 +2168,20 @@ Although also somewhat visible in Ubuntu Studio 22.04, the *log spam*
 from `audit` seems to flood `dmesg` output a lot more in 24.04:
 
 ```
-[  393.042591] audit: type=1107 audit(1731359486.714:247): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+audit: type=1107 audit(1731359486.714:247): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
                 exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
 ...
                 exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
-[ 1052.028969] audit: type=1107 audit(1731360145.704:378): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+audit: type=1107 audit(1731360145.704:378): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
                 exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
-[ 1052.132205] audit: type=1400 audit(1731360145.807:379): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=12  capname="net_admin"
-[ 1052.132224] audit: type=1400 audit(1731360145.807:380): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=38  capname="perfmon"
-[ 1052.323211] audit: type=1400 audit(1731360145.998:381): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=12  capname="net_admin"
-[ 1052.323236] audit: type=1400 audit(1731360145.998:382): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=38  capname="perfmon"
-[ 1057.028885] audit: type=1107 audit(1731360150.704:383): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+audit: type=1400 audit(1731360145.807:379): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=12  capname="net_admin"
+audit: type=1400 audit(1731360145.807:380): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=38  capname="perfmon"
+audit: type=1400 audit(1731360145.998:381): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=12  capname="net_admin"
+audit: type=1400 audit(1731360145.998:382): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=38  capname="perfmon"
+audit: type=1107 audit(1731360150.704:383): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
                 exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
 ...
-[ 1639.920058] audit: type=1107 audit(1731360733.595:484): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+audit: type=1107 audit(1731360733.595:484): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
                 exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
 ```
 
@@ -2204,4 +2204,216 @@ The following NEW packages will be installed:
 0 upgraded, 2 newly installed, 0 to remove and 5 not upgraded.
 Need to get 274 kB of archives.
 After this operation, 893 kB of additional disk space will be used.
+```
+
+### Bluetooth controller and devices
+
+Since
+[the death of Wi-Fi and Bluetooth]({{ site.baseurl }}/2023/09/09/the-death-of-wifi-and-bluetooth.html)
+chipset in this PC motherboard,
+bluetooth devices have been out of the question but also not needed.
+
+However, in yet another attempt to get some of these devices to work,
+a cheap USB 4.0 [ASUS USB-BT400](https://www.asus.com/us/networking-iot-servers/adapters/all-series/usbbt400/)
+was added. Upon plugging it, the following shows up in `dmesg`:
+
+```
+usb 3-2: new full-speed USB device number 4 using xhci_hcd
+usb 3-2: New USB device found, idVendor=0b05, idProduct=17cb, bcdDevice= 1.12
+usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 3-2: Product: BCM20702A0
+usb 3-2: Manufacturer: Broadcom Corp
+usb 3-2: SerialNumber: 5CF370AB7D8C
+Bluetooth: hci0: BCM: chip id 63
+Bluetooth: hci0: BCM: features 0x07
+Bluetooth: hci0: BCM20702A
+Bluetooth: hci0: BCM20702A1 (001.002.014) build 0000
+Bluetooth: hci0: BCM: firmware Patch file not found, tried:
+Bluetooth: hci0: BCM: 'brcm/BCM20702A1-0b05-17cb.hcd'
+Bluetooth: hci0: BCM: 'brcm/BCM-0b05-17cb.hcd'
+Bluetooth: MGMT ver 1.22
+```
+
+Despite the messages about firmware patch files not being found,
+the controller seems to work just fine.
+
+However, the firmware can (and should) be updated from the
+[winterheart/broadcom-bt-firmware](https://github.com/winterheart/broadcom-bt-firmware)
+repository. Following the
+[Detection and manual installation](https://github.com/winterheart/broadcom-bt-firmware?tab=readme-ov-file#detection-and-manual-installation)
+method, use `BCM20702A1-0b05-17cb.hcd` (**and not others**):
+
+```
+# cd /lib/firmware/brcm
+# ls -l | grep -i bcm
+lrwxrwxrwx 1 root root     21 Sep 13 10:49 BCM-0a5c-6410.hcd.zst -> BCM-0bb4-0306.hcd.zst
+-rw-r--r-- 1 root root  36998 Sep 13 10:49 BCM-0bb4-0306.hcd.zst
+-rw-r--r-- 1 root root 171803 Sep 13 10:49 bcm4329-fullmac-4.bin.zst
+-rw-r--r-- 1 root root  27425 Sep 13 10:49 bcm43xx-0.fw.zst
+-rw-r--r-- 1 root root    115 Sep 13 10:49 bcm43xx_hdr-0.fw.zst
+
+# wget https://github.com/winterheart/broadcom-bt-firmware/blob/master/brcm/BCM20702A1-0b05-17cb.hcd
+```
+
+Unplug the controller, reboot the PC and plug the controller again.
+Then, the following shows up in `dmesg`:
+
+```
+usb 3-2: new full-speed USB device number 3 using xhci_hcd
+usb 3-2: New USB device found, idVendor=0b05, idProduct=17cb, bcdDevice= 1.12
+usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 3-2: Product: BCM20702A0
+usb 3-2: Manufacturer: Broadcom Corp
+usb 3-2: SerialNumber: 5CF370AB7D8C
+Bluetooth: Core ver 2.22
+NET: Registered PF_BLUETOOTH protocol family
+Bluetooth: HCI device and connection manager initialized
+Bluetooth: HCI socket layer initialized
+Bluetooth: L2CAP socket layer initialized
+Bluetooth: SCO socket layer initialized
+usbcore: registered new interface driver btusb
+Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+Bluetooth: BNEP filters: protocol multicast
+Bluetooth: BNEP socket layer initialized
+Bluetooth: hci0: BCM: chip id 63
+Bluetooth: hci0: BCM: features 0x07
+Bluetooth: hci0: BCM20702A
+Bluetooth: hci0: BCM20702A1 (001.002.014) build 0000
+Bluetooth: hci0: BCM20702A1 'brcm/BCM20702A1-0b05-17cb.hcd' Patch
+Bluetooth: hci0: command 0x0a0a tx timeout
+Bluetooth: hci0: BCM: Patch command 0a0a failed (-110)
+Bluetooth: hci0: BCM: Patch failed (-110)
+Bluetooth: hci0: command 0x1001 tx timeout
+Bluetooth: hci0: BCM: Reading local version info failed (-110)
+```
+
+In the face of these timeouts, and considering the firmware file has not
+been updated in the last 8 years, it seems most sensible to remove it:
+
+```
+# rm /lib/firmware/brcm/BCM20702A1-0b05-17cb.hcd
+```
+
+Unplug the controller, reboot the PC and plug the controller again.
+Then, the following shows up in `dmesg`:
+
+```
+usb 3-2: new full-speed USB device number 3 using xhci_hcd
+usb 3-2: New USB device found, idVendor=0b05, idProduct=17cb, bcdDevice= 1.12
+usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 3-2: Product: BCM20702A0
+usb 3-2: Manufacturer: Broadcom Corp
+usb 3-2: SerialNumber: 5CF370AB7D8C
+Bluetooth: Core ver 2.22
+NET: Registered PF_BLUETOOTH protocol family
+Bluetooth: HCI device and connection manager initialized
+Bluetooth: HCI socket layer initialized
+Bluetooth: L2CAP socket layer initialized
+Bluetooth: SCO socket layer initialized
+usbcore: registered new interface driver btusb
+Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+Bluetooth: BNEP filters: protocol multicast
+Bluetooth: BNEP socket layer initialized
+Bluetooth: hci0: BCM: chip id 63
+Bluetooth: hci0: BCM: features 0x07
+Bluetooth: hci0: BCM20702A
+Bluetooth: hci0: BCM20702A1 (001.002.014) build 0000
+Bluetooth: hci0: BCM: firmware Patch file not found, tried:
+Bluetooth: hci0: BCM: 'brcm/BCM20702A1-0b05-17cb.hcd'
+Bluetooth: hci0: BCM: 'brcm/BCM-0b05-17cb.hcd'
+Bluetooth: MGMT ver 1.22
+NET: Registered PF_ALG protocol family
+Bluetooth: RFCOMM TTY layer initialized
+Bluetooth: RFCOMM socket layer initialized
+Bluetooth: RFCOMM ver 1.11
+```
+
+**Warning:** The above method is recommened in other forums, but there are
+[reports](https://itsfoss.community/t/bluetooth-failure-after-upgrading-the-bcm20702a0-device-in-ubuntu-22-04-1-lts/9937#the-path-of-the-location-where-the-latest-linux-driver-for-broadcom-bluetooth-firmware-for-dongledevice-bcm20702a-is-available-on-the-github-website-is-given-at-the-link-above-3)
+of this method leading to *bluetooth system stopped working*, upon
+which the (only) recommended workaround is reinstall the system.
+
+#### PlayStation Dual Shock 4 controller 
+
+The Dual Shock 4 controller works perfectly (with all features) over
+any USB 2.0 cable, using over Bluetooth is not always really necessary.
+
+The controller is easy enough to *pair* (hold *Share* and press *PS* button)
+but after that the system always fails to **connect** to it.
+During this (failed) attempt, the following shows up in `dmesg`:
+
+```
+Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+Bluetooth: HIDP socket layer initialized
+playstation 0005:054C:09CC.0019: unknown main item tag 0x0
+playstation 0005:054C:09CC.0019: hidraw22: BLUETOOTH HID v1.00 Gamepad [Wireless Controller] on 5c:f3:70:ab:7d:8c
+input: Wireless Controller as /devices/pci0000:00/0000:00:01.2/0000:02:00.0/0000:03:08.0/0000:06:00.3/usb3/3-2/3-2:1.0/bluetooth/hci0/hci0:12/0005:054C:09CC.0019/input/input46
+input: Wireless Controller Motion Sensors as /devices/pci0000:00/0000:00:01.2/0000:02:00.0/0000:03:08.0/0000:06:00.3/usb3/3-2/3-2:1.0/bluetooth/hci0/hci0:12/0005:054C:09CC.0019/input/input47
+input: Wireless Controller Touchpad as /devices/pci0000:00/0000:00:01.2/0000:02:00.0/0000:03:08.0/0000:06:00.3/usb3/3-2/3-2:1.0/bluetooth/hci0/hci0:12/0005:054C:09CC.0019/input/input48
+playstation 0005:054C:09CC.0019: Registered DualShock4 controller hw_version=0x0000b400 fw_version=0x0000a007
+```
+
+Following the instructions to use `blueoothctl` in
+[wiki.gentoo.org/wiki/Sony_DualShock#DualShock_4](https://wiki.gentoo.org/wiki/Sony_DualShock#DualShock_4)
+also led to multiple failed attempts to connect, failing with
+`Failed to connect: org.bluez.Error.Failed br-connection-create-socket`
+
+```
+[bluetooth]# agent on
+Agent is already registered
+default-agentdefault-agent
+[bluetooth]# Default agent request successful
+[bluetooth]# power on
+[bluetooth]# Changing power on succeeded
+discoverable onscoverable on
+[bluetooth]# hci0 new_settings: powered connectable bondable ssp br/edr le secure-conn 
+[bluetooth]# hci0 new_settings: powered connectable discoverable bondable ssp br/edr le secure-conn 
+[bluetooth]# Changing discoverable on succeeded
+[bluetooth]# [CHG] Controller 5C:F3:70:AB:7D:8C Discoverable: yes
+[bluetooth]# pairable on
+[bluetooth]# scan on
+[bluetooth]# SetDiscoveryFilter success
+[bluetooth]# Discovery started
+...
+Device DC:0C:2D:DE:61:D1 Wireless Controller
+...
+[bluetooth]# [NEW] Device DC:0C:2D:DE:61:D1 Wireless Controller
+pair DC:0C:2D:DE:61:D1C:2D:DE:61:D1
+Attempting to pair with DC:0C:2D:DE:61:D1
+[CHG] Device DC:0C:2D:DE:61:D1 Connected: yes
+[Wireless Controller]# [CHG] Device DC:0C:2D:DE:61:D1 Bonded: yes
+[Wireless Controller]# [CHG] Device DC:0C:2D:DE:61:D1 WakeAllowed: yes
+[Wireless Controller]# [CHG] Device DC:0C:2D:DE:61:D1 ServicesResolved: yes
+[Wireless Controller]# [CHG] Device DC:0C:2D:DE:61:D1 Paired: yes
+[Wireless Controller]# Pairing successful
+[Wireless Controller]# [CHG] Device DC:0C:2D:DE:61:D1 ServicesResolved: no
+[CHG] Device DC:0C:2D:DE:61:D1 Connected: no
+
+[bluetooth]# trust DC:0C:2D:DE:61:D1
+[bluetooth]# Changing DC:0C:2D:DE:61:D1 trust succeeded
+[bluetooth]# connect DC:0C:2D:DE:61:D1
+Attempting to connect to DC:0C:2D:DE:61:D1
+[bluetooth]# Failed to connect: org.bluez.Error.Failed br-connection-create-socket
+```
+
+After many failed attempts, and with no clear reason, a system notification
+popped up asking whether the trust the device, and upon selecting
+**Always Trust** (or similar) the connection was established and the
+controller was finally usable.
+
+[Other](https://www.reddit.com/r/linux_gaming/comments/115kx4d/ds4_via_bluetooth_on_ubuntu_2204_connects_and/)
+[reports](https://askubuntu.com/questions/1385658/using-dualshock-4-and-dualsense-controller-over-bluetooth)
+recommend using `blueoothctl` and confirmed it worked, although
+[in some cases it is necessary to *re-pair and re-connect*](https://www.reddit.com/r/linux_gaming/comments/ouejd1/ps4_controller_via_bluetooth_any_luck/).
+
+For this purpose this handy `repair-bluetooth.sh` script is useful:
+
+```bash
+DS4DEV="DC:0C:2D:DE:61:D1" 
+CMDS=("power on" "agent on" "default-agent" "remove ${DS4DEV}" "scan on" "pair ${DS4DEV}" "trust ${DS4DEV}" "connect ${DS4DEV}" "scan off") 
+for CMD in "${CMDS[@]}"
+do
+	sh -c echo "$CMD" | bluetoothctl
+	sleep 0.5
+done
 ```
