@@ -2417,3 +2417,33 @@ do
 	sleep 0.5
 done
 ```
+
+##### Battery level and charging status
+
+Once the Dual Shock 4 controller is connected, the battery charging status
+and current capacity can be checked with `upower`:
+
+```
+$ upower -e
+/org/freedesktop/UPower/devices/battery_hidpp_battery_0
+/org/freedesktop/UPower/devices/battery_ps_controller_battery_dco0co2dodeo61od1
+/org/freedesktop/UPower/devices/DisplayDevice
+
+$ upower -i /org/freedesktop/UPower/devices/battery_ps_controller_battery_dco0co2dodeo61od1
+  native-path:          ps-controller-battery-dc:0c:2d:de:61:d1
+  model:                Wireless Controller
+  serial:               dc:0c:2d:de:61:d1
+  power supply:         no
+  updated:              Thu 14 Nov 2024 08:40:39 PM CET (26 seconds ago)
+  has history:          yes
+  has statistics:       yes
+  touchpad
+    present:             yes
+    rechargeable:        yes
+    state:               charging
+    warning-level:       none
+    percentage:          25%
+    icon-name:          'battery-low-charging-symbolic'
+  History (charge):
+    1731613239  25.000  charging
+```
