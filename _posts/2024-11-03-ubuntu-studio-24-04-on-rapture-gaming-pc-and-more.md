@@ -940,7 +940,8 @@ Start by installing a few
   etherwake python3-selenium lm-sensors sysstat tor unrar \
   ttf-mscorefonts-installer winetricks icc-profiles ffmpeg \
   iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv xsane \
-  tigervnc-tools screen lutris libxxf86vm-dev displaycal -y
+  tigervnc-tools screen lutris libxxf86vm-dev displaycal \
+  python3-absl python3-unidecode -y
 ```
 
 After installing these **Redshift** is immediately available.
@@ -1975,12 +1976,13 @@ desktop session. Previously, it would be necessary to launch
 This *may* be related to the **Update** app failing with
 [Cannot Refresh Cache Whilst Offline](https://www.reddit.com/r/Actualfixes/comments/1cek3rg/fix_cockpit_cannot_refresh_cache_whilst_offline/),
 apparently becuase 
-[Cockpit just 'needs' Network Manager](https://askubuntu.com/a/1336040), but there is a
+[Cockpit just 'needs' Network Manager](https://askubuntu.com/a/1336040),
+but there is a
 [Solution](https://cockpit-project.org/faq#error-message-about-being-offline),
 involving the creation of a *fake* network interface.
 
 ```
-root@rapture:~# ip a
+# ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
@@ -2022,3 +2024,184 @@ Connection 'fake' (f7fe724b-5aa8-4988-b21b-aa9dc96dae1a) successfully added.
 
 This doesn't seem to affect anything else's connectivity, but
 at least now the **Updates** application no longer fails.
+
+### Weekly btrfs scrub
+
+To keep BTRFS file systems healthy, it is recommended to
+[run a weekly scrub](http://marc.merlins.org/perso/btrfs/post_2014-03-19_Btrfs-Tips_-Btrfs-Scrub-and-Btrfs-Filesystem-Repair.html)
+to check everything for consistency. For this, I run
+[the script](https://marc.merlins.org/linux/scripts/btrfs-scrub)
+from crontab every Saturday night.
+
+```
+# wget -O /usr/local/bin/btrfs-scrub-all \
+  http://marc.merlins.org/linux/scripts/btrfs-scrub
+
+# apt install inn -y
+
+# crontab -e
+...
+# m h  dom mon dow   command
+50 23 * * 6 /usr/local/bin/btrfs-scrub-all
+```
+
+[Marc MERLIN](https://marc.merlins.org/) keeps the script updated,
+so each systme may benefit from a few modifications, e.g.
+1. Remove tests for laptop battery status, when running on a PC.
+2. Set the `BTRFS_SCRUB_SKIP` to filter out partitions to skip.
+
+```bash
+#! /bin/bash
+
+# By Marc MERLIN <marc_soft@merlins.org> 2014/03/20
+# License: Apache-2.0
+# http://marc.merlins.org/perso/btrfs/post_2014-03-19_Btrfs-Tips_-Btrfs-Scrub-and-Btrfs-Filesystem-Repair.html
+
+which btrfs >/dev/null || exit 0
+export PATH=/usr/local/bin:/sbin:$PATH
+
+FILTER='(^Dumping|balancing, usage)'
+BTRFS_SCRUB_SKIP="sda"
+source /etc/btrfs_config 2>/dev/null
+test -n "$DEVS" || DEVS=$(grep '\<btrfs\>' /proc/mounts | awk '{ print $1 }' | sort -u | grep -v $BTRFS_SCRUB_SKIP)
+for btrfs in $DEVS
+do
+    tail -n 0 -f /var/log/syslog | grep "BTRFS" | grep -Ev '(disk space caching is enabled|unlinked .* orphans|turning on discard|device label .* devid .* transid|enabling SSD mode|BTRFS: has skinny extents|BTRFS: device label|BTRFS info )' &
+    mountpoint="$(grep "$btrfs" /proc/mounts | awk '{ print $2 }' | sort | head -1)"
+    logger -s "Quick Metadata and Data Balance of $mountpoint ($btrfs)" >&2
+    # Even in 4.3 kernels, you can still get in places where balance
+    # won't work (no place left, until you run a -m0 one first)
+    # I'm told that proactively rebalancing metadata may not be a good idea.
+    #btrfs balance start -musage=20 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # but a null rebalance should help corner cases:
+    sleep 10
+    btrfs balance start -musage=0 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # After metadata, let's do data:
+    sleep 10
+    btrfs balance start -dusage=0 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    sleep 10
+    btrfs balance start -dusage=20 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # And now we do scrub. Note that scrub can fail with "no space left
+    # on device" if you're very out of balance.
+    logger -s "Starting scrub of $mountpoint" >&2
+    echo btrfs scrub start -Bd $mountpoint
+    # -r is read only, but won't fix a redundant array.
+    #ionice -c 3 nice -10 btrfs scrub start -Bdr $mountpoint
+    time ionice -c 3 nice -10 btrfs scrub start -Bd $mountpoint
+    pkill -f 'tail -n 0 -f /var/log/syslog'
+    logger "Ended scrub of $mountpoint" >&2
+done
+```
+
+**Note:** setting `BTRFS_SCRUB_SKIP="sda"` prefents Btrfs balancing from running
+every week on the larger 6TB RAID 1 array of HDD, because that takes too long.
+
+```
+# /usr/local/bin/btrfs-scrub-all
+<13>Nov 11 23:54:17 root: Quick Metadata and Data Balance of /home (/dev/nvme1n1p4)
+Done, had to relocate 0 out of 2695 chunks
+Done, had to relocate 0 out of 2695 chunks
+Done, had to relocate 1 out of 2695 chunks
+<13>Nov 11 23:54:48 root: Starting scrub of /home
+btrfs scrub start -Bd /home
+Starting scrub on devid 1
+
+Scrub device /dev/nvme1n1p4 (id 1) done
+Scrub started:    Mon Nov 11 23:54:48 2024
+Status:           finished
+Duration:         0:14:39
+Total to scrub:   2.63TiB
+Rate:             3.06GiB/s
+Error summary:    no errors found
+
+real    14m39.641s
+user    0m0.001s
+sys     3m40.063s
+<13>Nov 12 00:09:27 root: Quick Metadata and Data Balance of /home/new-ssd (/dev/sdb)
+Done, had to relocate 0 out of 2086 chunks
+Done, had to relocate 0 out of 2086 chunks
+Done, had to relocate 42 out of 2086 chunks
+<13>Nov 12 00:10:22 root: Starting scrub of /home/new-ssd
+btrfs scrub start -Bd /home/new-ssd
+Starting scrub on devid 1
+
+Scrub device /dev/sdb (id 1) done
+Scrub started:    Tue Nov 12 00:10:22 2024
+Status:           finished
+Duration:         1:20:26
+Total to scrub:   1.98TiB
+Rate:             431.00MiB/s
+Error summary:    no errors found
+
+real    80m25.930s
+user    0m0.004s
+sys     2m45.709s
+<13>Nov 12 01:30:48 root: Quick Metadata and Data Balance of /home/ssd (/dev/sdc)
+Done, had to relocate 0 out of 2937 chunks
+Done, had to relocate 0 out of 2937 chunks
+Done, had to relocate 0 out of 2937 chunks
+<13>Nov 12 01:31:18 root: Starting scrub of /home/ssd
+btrfs scrub start -Bd /home/ssd
+Starting scrub on devid 1
+
+Scrub device /dev/sdc (id 1) done
+Scrub started:    Tue Nov 12 01:31:18 2024
+Status:           finished
+Duration:         1:49:18
+Total to scrub:   2.82TiB
+Rate:             451.50MiB/s
+Error summary:    no errors found
+
+real    109m17.722s
+user    0m0.002s
+sys     4m34.310s
+```
+
+The whole process takes about 15 minutes for the 4TB NVMe SSD, then something
+between 1 and 2 hours for each of the 4TB SATA SSDs:
+
+![Disk I/O and SSD temperatures chart show btrfs scrub]({{ media }}/rapture-btrfs-scrub-grafana.png)
+
+### Stop apparmor spew in the logs
+
+Although also somewhat visible in Ubuntu Studio 22.04, the *log spam*
+from `audit` seems to flood `dmesg` output a lot more in 24.04:
+
+```
+[  393.042591] audit: type=1107 audit(1731359486.714:247): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+                exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
+...
+                exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
+[ 1052.028969] audit: type=1107 audit(1731360145.704:378): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+                exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
+[ 1052.132205] audit: type=1400 audit(1731360145.807:379): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=12  capname="net_admin"
+[ 1052.132224] audit: type=1400 audit(1731360145.807:380): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344504 comm="snap-confine" capability=38  capname="perfmon"
+[ 1052.323211] audit: type=1400 audit(1731360145.998:381): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=12  capname="net_admin"
+[ 1052.323236] audit: type=1400 audit(1731360145.998:382): apparmor="DENIED" operation="capable" class="cap" profile="/usr/lib/snapd/snap-confine" pid=344893 comm="snap-confine" capability=38  capname="perfmon"
+[ 1057.028885] audit: type=1107 audit(1731360150.704:383): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+                exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
+...
+[ 1639.920058] audit: type=1107 audit(1731360733.595:484): pid=2329 uid=101 auid=4294967295 ses=4294967295 subj=unconfined msg='apparmor="DENIED" operation="dbus_signal"  bus="system" path="/com/redhat/PrinterSpooler" interface="com.redhat.PrinterSpooler" member="QueueChanged" mask="send" name="org.freedesktop.DBus" pid=3909 label="snap.cups.cupsd" peer_pid=110058 peer_label="plasmashell"
+                exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
+```
+
+No worries, it is rather easy to
+[stop apparmor spew in dmesg](https://askubuntu.com/questions/1336845/how-to-stop-apparmor-spew-in-the-logs),
+just install `auditd` and (most of) the messages will go to
+`/var/log/kern.log` instead.
+
+```
+# apt install auditd -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  libauparse0t64
+Suggested packages:
+  audispd-plugins
+The following NEW packages will be installed:
+  auditd libauparse0t64
+0 upgraded, 2 newly installed, 0 to remove and 5 not upgraded.
+Need to get 274 kB of archives.
+After this operation, 893 kB of additional disk space will be used.
+```
