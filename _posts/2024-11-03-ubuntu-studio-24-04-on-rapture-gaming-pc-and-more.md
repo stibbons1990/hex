@@ -768,6 +768,7 @@ efivarfs        128K   51K   73K  42% /sys/firmware/efi/efivars
 /dev/sda        5.5T  5.1T  370G  94% /home/raid
 tmpfs           3.2G  136K  3.2G   1% /run/user/1000
 ```
+
 ### Fix boot for cloned Ubuntu Studio 22.04
 
 Contrary to initial expectaions, running `sudo update-grub` on the
@@ -800,7 +801,6 @@ a new kernel is installed.
 Once the *new old* 22.04 system is *reliably* bootable, it can be
 left alone as a fallback system, and continue setting up the new one.
 
-
 ### Multiple IPs on LAN
 
 Connecting to the local wired network provides a dynamic IP address
@@ -830,7 +830,6 @@ the old system, change the network interface name if different (run
 ```
 
 Network interface is `enp5s0`; 
-
 
 ```yaml
 # Dual static IP on LAN, nothing else.
