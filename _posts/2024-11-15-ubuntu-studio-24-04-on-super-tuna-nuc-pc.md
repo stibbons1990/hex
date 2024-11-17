@@ -10,20 +10,64 @@ Installing Ubuntu Studio 24.04 on an Nuc PC desktop.
 
 ## Preparation
 
-### Partitions
+The following components are chosen for a most compact, possible portable
+desktop setup, to be running 24x7 without taking much space:
 
-## Installation
+- [ASUS Arena Canyon NUC13ANKI5](https://www.simplynuc.media/wp-content/uploads/2023/07/Arena-Canyon-i5-v5-Slim-NUC13ANKi5-v5-v1.1.pdf)
+  with a 13th Generation Intel® Core™ i5-1340P and integrated Intel® UHD Graphics; and
+  - [Kingston FURY Impact DDR4 Memory](https://www.kingston.com/en/memory/gaming/kingston-fury-impact-ddr4-memory)
+    (32 GB, 3200 MHz, DDR4).
+  - [Kingston FURY Renegade PCIe 4.0 NVMe M.2 SSD](https://www.kingston.com/latam/ssd/gaming/kingston-fury-renegade-nvme-m2-ssd)
+- 14" Full HD 1080p Portable Monitor 
+  [Verbatim PM-14](https://www.verbatim-europe.com/en/portable-monitors/products/portable-monitor-14-full-hd-1080p-pm14-49590)
+- Logitech
+  [K400 Plus Wireless Touch Keyboard](https://www.logitech.com/en-eu/shop/p/k400-plus-touchpad-keyboard)
 
-## First boot into Ubuntu Studio 24.04
+## Install Ubuntu Studio 24.04
 
-### Disable Power Saving / Suspend
+Prepared the USB stick with `usb-creator-kde` and booted into
+it, then used the “Install Ubuntu” launcher on the desktop.
+
+1. Plug the USB stick and turn the PC on.
+1. Press **`F8`** to select the boot device and choose the
+   **UEFI: ...** option.
+1. In the Grub menu, choose to **Try or Install Ubuntu**.
+1. Select language (English) and then **Install Ubuntu**.
+1. Select keyboard layout (can be from a different language).
+1. Select the appropriate wireless or **wireless network**.
+1. Select **Install Ubuntu Studio**.
+1. Select Type of install: **Interactive Installation**.
+1. Enable the options to **Install third-party software for graphics**
+   and Wifi hardware and **Download and install support for additional**
+   **media formats**.
+1. Select **Manual Installation**
+   * Use the arrow keys to navigate down to the **nvme0n1** disk.
+   * Set **nvme0n1p1** (300 MB) as **EFI System Partition** mounted on `/boot/efi`
+   * Set **nvme0n1p2** (60 GB) as **ext4** mounted on `/`
+   * Leave **nvme0n1p3** (60 GB) alone (to be used for Ubuntu 26.04)
+   * Set **nvme0n1p4** (3.88 TB) as **Leave formatted as Btrfs** mounted on `/home`
+   * Set **Device for boot loader installation** to **nvme0n1**
+1. Click on **Next** to confirm the partition selection.
+1. Confirm first non-root user name (`coder`) and computer
+   name (`super-tuna`).
+1. Select time zone (seems to be detected correctly).
+1. Review the choices and click on **Install** to start copying files.
+1. Once it's done, select **Restart**
+   (remove install media and hit `Enter`).
+
+**Note:** 60 GB should be a enough for the root partition for the amount
+of software that tends to be installed in my PC, which won't be much.
+
+### First boot into Ubuntu Studio 24.04
+
+#### Disable Power Saving / Suspend
 
 This desktop will need to continue running as normal even when left alone for
 extended periods of time. To avoid interruptions, open the **Energy Saving**
 section in **System Settings** and disable **Screen Energy Saving** and
 **Suspend session**.
 
-### SSH Server
+#### SSH Server
 
 Ubuntu Studio doesn't enable the SSH server by default, but we want
 this to adjust the system remotely:
@@ -52,80 +96,85 @@ from the DHCP server:
        valid_lft forever preferred_lft forever
     inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
-2: enp86s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+2: enp86s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
     link/ether 48:21:0b:57:51:92 brd ff:ff:ff:ff:ff:ff
-3: enx5c857e3e1129: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 5c:85:7e:3e:11:29 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.0.155/24 brd 192.168.0.255 scope global dynamic noprefixroute enx5c857e3e1129
-       valid_lft 85319sec preferred_lft 85319sec
-    inet6 fe80::ced1:e05d:c0f6:9c66/64 scope link noprefixroute 
+    inet 192.168.0.68/24 brd 192.168.0.255 scope global dynamic noprefixroute enp86s0
+       valid_lft 85819sec preferred_lft 85819sec
+    inet6 fe80::4a21:bff:fe57:5192/64 scope link 
        valid_lft forever preferred_lft forever
+3: enx5c857e3e1129: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast state DOWN group default qlen 1000
+    link/ether 5c:85:7e:3e:11:29 brd ff:ff:ff:ff:ff:ff
 4: wlo1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
     link/ether e0:c2:64:39:17:73 brd ff:ff:ff:ff:ff:ff
     altname wlp0s20f3
     inet 192.168.0.17/24 brd 192.168.0.255 scope global dynamic noprefixroute wlo1
-       valid_lft 85323sec preferred_lft 85323sec
-    inet6 fe80::91b8:5761:d1bd:1d52/64 scope link noprefixroute 
+       valid_lft 85820sec preferred_lft 85820sec
+    inet6 fe80::56d1:3cea:139:daaf/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
-### Install Essential Packages
+## Install Essential Packages
 
 Start by installing a **subset** of the
-[essential packages]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-essential-packages):
+[essential packages]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-essential-packages), plus a few more 
+that have been found necessary later (e.g. `auditd` to
+[stop apparmor spew in the logs]({{ site.baseurl }}/2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.html#stop-apparmor-spew-in-the-logs)):
 
 ```
 # apt install gdebi-core wget vim curl geeqie playonlinux \
-  exfat-fuse clementine id3v2 htop vnstat sox wine \
+  exfat-fuse clementine id3v2 htop vnstat sox wine smem \
   python-is-python3 exiv2 rename scrot xcalib python3-pip \
   netcat-openbsd python3-selenium lm-sensors sysstat tor \
   unrar ttf-mscorefonts-installer winetricks icc-profiles \
   ffmpeg iotop-c xdotool inxi mpv screen libxxf86vm-dev \
-  displaycal intel-gpu-tools redshift-qt -y
+  displaycal intel-gpu-tools redshift-qt auditd -y
 Reading package lists... Done
 Building dependency tree... Done
 Reading state information... Done
-wget is already the newest version (1.21.4-1ubuntu4.1).
-wget set to manually installed.
-netcat-openbsd is already the newest version (1.226-1ubuntu2).
-netcat-openbsd set to manually installed.
-sysstat is already the newest version (12.6.1-2).
-sysstat set to manually installed.
-ffmpeg is already the newest version (7:6.1.1-3ubuntu5).
-ffmpeg set to manually installed.
-displaycal is already the newest version (3.9.11-2ubuntu0.24.04.1).
-displaycal set to manually installed.
 The following additional packages will be installed:
-  cabextract chromium-browser chromium-chromedriver exiftran fonts-wine fuseiso geeqie-common
-  icoutils libasound2-plugins libcapi20-3t64 libgpod-common libgpod4t64 liblastfm5-1
-  liblua5.3-0 libmspack0t64 libmygpo-qt5-1 libosmesa6 libpython3-dev libpython3.12-dev
-  libsgutils2-1.46-2 libutempter0 libwine libxdo3 libxkbregistry0 libz-mingw-w64 python3-dev
-  python3-exceptiongroup python3-h11 python3-natsort python3-outcome python3-sniffio
-  python3-trio python3-trio-websocket python3-wsproto python3.12-dev redshift tor-geoipdb
-  torsocks tree vim-runtime webp-pixbuf-loader wine64
+  cabextract chromium-browser chromium-chromedriver exiftran fonts-wine
+  fuseiso geeqie-common icoutils libasound2-plugins libaudit-common
+  libaudit1 libauparse0t64 libcapi20-3t64 libegl-mesa0 libegl1-mesa-dev
+  libgbm1 libgl1-mesa-dri libglapi-mesa libglx-mesa0 libgpod-common
+  libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
+  libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
+  libutempter0 libwine libxatracker2 libxdo3 libxkbregistry0 libz-mingw-w64
+  mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers python3-dev
+  python3-exceptiongroup python3-h11 python3-natsort python3-outcome
+  python3-sniffio python3-trio python3-trio-websocket python3-wsproto
+  python3.12-dev redshift tor-geoipdb torsocks tree vim-common vim-runtime
+  vim-tiny webp-pixbuf-loader wine64 xxd
 Suggested packages:
-  xpaint libjpeg-progs libterm-readline-gnu-perl | libterm-readline-perl-perl
-  libxml-dumper-perl sg3-utils fancontrol read-edid i2c-tools libcuda1 winbind
-  python-natsort-doc byobu | screenie | iselect libsox-fmt-all mixmaster torbrowser-launcher
-  apparmor-utils nyx obfs4proxy ctags vim-doc vim-scripts vnstati q4wine wine-binfmt dosbox
-  wine64-preloader
+  audispd-plugins xpaint libjpeg-progs libterm-readline-gnu-perl
+  | libterm-readline-perl-perl libxml-dumper-perl sg3-utils fancontrol
+  read-edid i2c-tools libcuda1 winbind python-natsort-doc byobu | screenie
+  | iselect libsox-fmt-all mixmaster torbrowser-launcher apparmor-utils nyx
+  obfs4proxy ctags vim-doc vim-scripts indent vnstati q4wine wine-binfmt
+  dosbox wine64-preloader
 Recommended packages:
   wine32
 The following NEW packages will be installed:
-  cabextract chromium-browser chromium-chromedriver clementine curl exfat-fuse exiftran exiv2
-  fonts-wine fuseiso gdebi-core geeqie geeqie-common htop icc-profiles icoutils id3v2
-  intel-gpu-tools inxi iotop-c libasound2-plugins libcapi20-3t64 libgpod-common libgpod4t64
-  liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1 libosmesa6 libpython3-dev
-  libpython3.12-dev libsgutils2-1.46-2 libutempter0 libwine libxdo3 libxkbregistry0
-  libxxf86vm-dev libz-mingw-w64 lm-sensors mpv playonlinux python-is-python3 python3-dev
-  python3-exceptiongroup python3-h11 python3-natsort python3-outcome python3-pip
-  python3-selenium python3-sniffio python3-trio python3-trio-websocket python3-wsproto
-  python3.12-dev redshift redshift-qt rename screen scrot sox tor tor-geoipdb torsocks tree
-  ttf-mscorefonts-installer unrar vim vim-runtime vnstat webp-pixbuf-loader wine wine64
-  winetricks xcalib xdotool
-0 upgraded, 75 newly installed, 0 to remove and 16 not upgraded.
-Need to get 215 MB of archives.
-After this operation, 964 MB of additional disk space will be used.
+  auditd cabextract chromium-browser chromium-chromedriver clementine curl
+  exfat-fuse exiftran exiv2 fonts-wine fuseiso gdebi-core geeqie
+  geeqie-common htop icc-profiles icoutils id3v2 intel-gpu-tools inxi
+  iotop-c libasound2-plugins libauparse0t64 libcapi20-3t64 libgpod-common
+  libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
+  libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
+  libutempter0 libwine libxdo3 libxkbregistry0 libxxf86vm-dev libz-mingw-w64
+  lm-sensors mpv playonlinux python-is-python3 python3-dev
+  python3-exceptiongroup python3-h11 python3-natsort python3-outcome
+  python3-pip python3-selenium python3-sniffio python3-trio
+  python3-trio-websocket python3-wsproto python3.12-dev redshift redshift-qt
+  rename screen scrot sox tor tor-geoipdb torsocks tree
+  ttf-mscorefonts-installer unrar vim vim-runtime vnstat webp-pixbuf-loader
+  wine wine64 winetricks xcalib xdotool
+The following packages will be upgraded:
+  libaudit-common libaudit1 libegl-mesa0 libegl1-mesa-dev libgbm1
+  libgl1-mesa-dri libglapi-mesa libglx-mesa0 libxatracker2 mesa-va-drivers
+  mesa-vdpau-drivers mesa-vulkan-drivers vim-common vim-tiny xxd
+15 upgraded, 77 newly installed, 0 to remove and 71 not upgraded.
+Need to get 247 MB of archives.
+After this operation, 965 MB of additional disk space will be used.
 ```
 
 ### Brave browser
@@ -196,39 +245,39 @@ All hardware sensors are supported out of the box:
 
 ```
 # sensors -A
-coretemp-isa-0000
-Package id 0:  +56.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 0:        +50.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 4:        +47.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 8:        +52.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 12:       +49.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 16:       +54.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 17:       +54.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 18:       +54.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 19:       +54.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 20:       +55.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 21:       +55.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 22:       +55.0°C  (high = +100.0°C, crit = +100.0°C)
-Core 23:       +55.0°C  (high = +100.0°C, crit = +100.0°C)
+iwlwifi_1-virtual-0
+temp1:        +37.0°C  
 
 ucsi_source_psy_USBC000:001-isa-0000
 in0:           0.00 V  (min =  +0.00 V, max =  +0.00 V)
 curr1:         0.00 A  (max =  +0.00 A)
 
 acpitz-acpi-0
-temp1:        +58.0°C  
+temp1:        +43.0°C  
 
-iwlwifi_1-virtual-0
-temp1:        +39.0°C  
+coretemp-isa-0000
+Package id 0:  +43.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 0:        +36.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 4:        +34.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 8:        +35.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 12:       +34.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 16:       +40.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 17:       +40.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 18:       +40.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 19:       +40.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 20:       +42.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 21:       +42.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 22:       +41.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 23:       +41.0°C  (high = +100.0°C, crit = +100.0°C)
 
 ucsi_source_psy_USBC000:002-isa-0000
 in0:           0.00 V  (min =  +0.00 V, max =  +0.00 V)
 curr1:         3.00 A  (max =  +0.00 A)
 
 nvme-pci-0100
-Composite:    +30.9°C  (low  = -20.1°C, high = +83.8°C)
+Composite:    +25.9°C  (low  = -20.1°C, high = +83.8°C)
                        (crit = +88.8°C)
-Sensor 2:     +47.9°C  
+Sensor 2:     +64.8°C  
 
 ```
 
@@ -349,82 +398,6 @@ Need to get 19.3 MB of archives.
 After this operation, 9216 B of additional disk space will be used.
 ```
 
-### Make SDDM Look Good
-
-Ubuntu Studio 24.04 uses 
-[Simple Desktop Display Manager (SDDM)](https://wiki.archlinux.org/title/SDDM)
-([sddm/sddm](https://github.com/sddm/sddm) in GitHub)
-which is quite good looking out of the box, but I like to
-customize this for each computer.
-
-For most computers my favorite SDDM theme is
-[Breeze-Noir-Dark](https://store.kde.org/p/1361460),
-which I like to install system-wide.
-
-```
-# unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
-```
-
-**Note:** action icons won’t render if the directory name is
-changed. If needed, change the directory name in the `iconSource` fields in `Main.qml` to match final directory name
-so icons show. This is not the only thing that breaks when
-changing the directory name.
-
-Other than installing this theme, all I really change in it
-is the background image to use 
-[The Rapture [3440x1440]](https://www.flickr.com/photos/douglastofoli/27740699244/).
-
-```
-# mv Super-Tuna.jpg \
-  /usr/share/sddm/themes/Breeze-Noir-Dark/
-# cd /usr/share/sddm/themes/Breeze-Noir-Dark/
-
-# vi theme.conf
-[General]
-type=image
-color=#132e43
-background=/usr/share/sddm/themes/Breeze-Noir-Dark/Super-Tuna.jpg
-
-# vi theme.conf.user
-[General]
-type=image
-background=Super-Tuna.jpg
-```
-
-**Additionally**, as this is new in Ubuntu 24.04, the theme has to
-be selected by adding a `[Theme]` section in the system config
-in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
-
-```ini
-[General]
-InputMethod=
-
-[Theme]
-Current="Breeze-Noir-Dark"
-EnableAvatars=True
-```
-
-[Reportedly](https://superuser.com/questions/1720931/how-to-configure-sddm-in-kubuntu-22-04-where-is-config-file),
-you have to **create** the `/etc/sddm.conf.d` directory to add
-the *Local configuration* file that allows setting the theme:
-
-```
-# mkdir /etc/sddm.conf.d
-# vi /etc/sddm.conf.d/ubuntustudio.conf
-```
-
-Besides setting the theme, it is also good to limit the range of
-user ids so that only human users show up:
-
-```ini
-[Theme]
-Current=Breeze-Noir-Dark
-
-[Users]
-MaximumUid=1001
-MinimumUid=1000
-```
-
 ### Make `dmesg` non-privileged
 
 Since Ubuntu 22.04, `dmesg` has become a privileged operation
@@ -460,8 +433,6 @@ from crontab every Saturday night.
 ```
 # wget -O /usr/local/bin/btrfs-scrub-all \
   http://marc.merlins.org/linux/scripts/btrfs-scrub
-
-# apt install inn -y
 
 # crontab -e
 ...
@@ -517,59 +488,223 @@ do
 done
 ```
 
-**Note:** setting `BTRFS_SCRUB_SKIP="sda"` prefents Btrfs balancing from running
-every week on the larger 6TB RAID 1 array of HDD, because that takes too long.
+**Note:** setting `BTRFS_SCRUB_SKIP="sda"` prevents Btrfs balancing from
+running on USB external storage if attached; not really necessary, but the
+script fails if this variable is left empty.
 
 ```
 # /usr/local/bin/btrfs-scrub-all
-<13>Nov 16 00:25:47 root: Quick Metadata and Data Balance of /home (/dev/nvme0n1p4)
-Done, had to relocate 0 out of 6 chunks
-Done, had to relocate 0 out of 6 chunks
-Done, had to relocate 3 out of 6 chunks
-<13>Nov 16 00:26:17 root: Starting scrub of /home
+<13>Nov 17 22:23:49 root: Quick Metadata and Data Balance of /home (/dev/nvme0n1p4)
+Done, had to relocate 0 out of 1536 chunks
+Done, had to relocate 0 out of 1536 chunks
+Done, had to relocate 0 out of 1536 chunks
+<13>Nov 17 22:24:19 root: Starting scrub of /home
 btrfs scrub start -Bd /home
 Starting scrub on devid 1
 
 Scrub device /dev/nvme0n1p4 (id 1) done
-Scrub started:    Sat Nov 16 00:26:17 2024
+Scrub started:    Sun Nov 17 22:24:19 2024
 Status:           finished
-Duration:         0:00:00
-Total to scrub:   45.99MiB
-Rate:             45.99MiB/s
+Duration:         0:06:50
+Total to scrub:   1.48TiB
+Rate:             3.71GiB/s
 Error summary:    no errors found
 
-real    0m0.025s
-user    0m0.001s
-sys     0m0.018s
+real    6m49.944s
+user    0m0.002s
+sys     4m41.299s
 ```
 
-The whole process takes about 25 seconds because the 4TB NVMe SSD is
-mostly empty, with only 52 MB used.
+The whole process takes about 7 minutes with the 4TB NVMe SSD about
+43% full, with 1.5T used.
 
-### Stop apparmor spew in the logs
+![Resources used on a 7-minute run of btrfs scrub]({{ media }}/super-tuna-last-15-min-with-btrfs-scrub.png)
 
-Although also somewhat visible in Ubuntu Studio 22.04, the *log spam*
-from `audit` seems to flood `dmesg` output a lot more in 24.04.
+### Make SDDM Look Good
 
-No worries, it is rather easy to
-[stop apparmor spew in dmesg](https://askubuntu.com/questions/1336845/how-to-stop-apparmor-spew-in-the-logs),
-just install `auditd` and (most of) the messages will go to
-`/var/log/kern.log` instead.
+Ubuntu Studio 24.04 uses 
+[Simple Desktop Display Manager (SDDM)](https://wiki.archlinux.org/title/SDDM)
+([sddm/sddm](https://github.com/sddm/sddm) in GitHub)
+which is quite good looking out of the box, but I like to
+customize this for each computer.
+
+For most computers my favorite SDDM theme is
+[Breeze-Noir-Dark](https://store.kde.org/p/1361460),
+which I like to install system-wide.
 
 ```
-# apt install auditd -y
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-The following additional packages will be installed:
-  libauparse0t64
-Suggested packages:
-  audispd-plugins
-The following NEW packages will be installed:
-  auditd libauparse0t64
-0 upgraded, 2 newly installed, 0 to remove and 5 not upgraded.
-Need to get 274 kB of archives.
-After this operation, 893 kB of additional disk space will be used.
+# unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
+```
+
+**Note:** action icons won’t render if the directory name is
+changed. If needed, change the directory name in the `iconSource` fields in `Main.qml` to match final directory name
+so icons show. This is not the only thing that breaks when
+changing the directory name.
+
+Other than installing this theme, all I really change in it
+is the background image to use 
+[Super Tuna (1920x1080)](https://www.nme.com/news/music/bts-jin-surprises-fans-super-tuna-birthday-celebration-3111626).
+
+```
+# mv Super-Tuna.jpg \
+  /usr/share/sddm/themes/Breeze-Noir-Dark/
+# cd /usr/share/sddm/themes/Breeze-Noir-Dark/
+
+# vi theme.conf
+[General]
+type=image
+color=#132e43
+background=/usr/share/sddm/themes/Breeze-Noir-Dark/Super-Tuna.jpg
+
+# vi theme.conf.user
+[General]
+type=image
+background=Super-Tuna.jpg
+```
+
+**Additionally**, as this is new in Ubuntu 24.04, the theme has to
+be selected by adding a `[Theme]` section in the system config
+in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
+
+```ini
+[General]
+InputMethod=
+
+[Theme]
+Current="Breeze-Noir-Dark"
+EnableAvatars=True
+```
+
+[Reportedly](https://superuser.com/questions/1720931/how-to-configure-sddm-in-kubuntu-22-04-where-is-config-file),
+you have to **create** the `/etc/sddm.conf.d` directory to add
+the *Local configuration* file that allows setting the theme:
+
+```
+# mkdir /etc/sddm.conf.d
+# vi /etc/sddm.conf.d/ubuntustudio.conf
+```
+
+Besides setting the theme, it is also good to limit the range of
+user ids so that only human users show up:
+
+```ini
+[Theme]
+Current=Breeze-Noir-Dark
+
+[Users]
+MaximumUid=1001
+MinimumUid=1000
+```
+
+### Bluetooth controller and devices
+
+The following shows up in `dmesg`:
+
+```
+Bluetooth: Core ver 2.22
+NET: Registered PF_BLUETOOTH protocol family
+Bluetooth: HCI device and connection manager initialized
+Bluetooth: HCI socket layer initialized
+Bluetooth: L2CAP socket layer initialized
+Bluetooth: SCO socket layer initialized
+Bluetooth: hci0: Device revision is 0
+Bluetooth: hci0: Secure boot is enabled
+Bluetooth: hci0: OTP lock is enabled
+Bluetooth: hci0: API lock is enabled
+Bluetooth: hci0: Debug lock is disabled
+Bluetooth: hci0: Minimum firmware build 1 week 10 2014
+Bluetooth: hci0: Bootloader timestamp 2019.40 buildtype 1 build 38
+Bluetooth: hci0: DSM reset method type: 0x00
+Bluetooth: hci0: Found device firmware: intel/ibt-0040-0041.sfi
+Bluetooth: hci0: Boot Address: 0x100800
+Bluetooth: hci0: Firmware Version: 60-48.23
+Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+Bluetooth: BNEP filters: protocol multicast
+Bluetooth: BNEP socket layer initialized
+Bluetooth: hci0: Waiting for firmware download to complete
+Bluetooth: hci0: Firmware loaded in 1536493 usecs
+Bluetooth: hci0: Waiting for device to boot
+Bluetooth: hci0: Device booted in 15625 usecs
+Bluetooth: hci0: Malformed MSFT vendor event: 0x02
+Bluetooth: hci0: Found Intel DDC parameters: intel/ibt-0040-0041.ddc
+Bluetooth: hci0: Applying Intel DDC parameters completed
+Bluetooth: hci0: Firmware timestamp 2023.48 buildtype 1 build 75324
+Bluetooth: hci0: Firmware SHA1: 0x23bac558
+Bluetooth: MGMT ver 1.22
+```
+
+**TODO: pair headphones**
+
+## Appendix: What Was Undone
+
+This section describes problems that were encountered only the first time
+installing Ubuntu Studio 24.04, some of which never were resolved.
+
+### Remove CUPS
+
+On two occassions `cupsd` has suddently gone up to 200% CPU usage and
+stayed up there for 30+ minutes with no sign of and end to come.
+
+```
+root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
+root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
+root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
+root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
+```
+
+```
+# snap services
+Servicio                                             Encendido  Actual  Notas
+canonical-livepatch.canonical-livepatchd             activado   activo  -
+cups.cups-browsed                                    activado   activo  -
+cups.cupsd                                           activado   activo  -
+firmware-updater.firmware-notifier                   activado   -       user,timer-activated
+firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado   -       user
+root@super-tuna:~# snap stop cups
+Detenido.
+root@super-tuna:~# snap disable cups
+cups desactivado
+
+# ps aux | grep cupsd
+root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
+root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
+
+# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
+==> /var/log/cups/access_log <==
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
+localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
+localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
+localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
+localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
+
+==> /var/log/cups/error_log <==
+E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
+
+# snap services
+Servicio                                             Encendido    Actual    Notas
+canonical-livepatch.canonical-livepatchd             activado     activo    -
+cups.cups-browsed                                    desactivado  inactivo  -
+cups.cupsd                                           desactivado  inactivo  -
+firmware-updater.firmware-notifier                   activado     -         user,timer-activated
+firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado     -         user
+```
+
+```
+# killall /usr/sbin/cupsd
+root@super-tuna:~# ps aux | grep /usr/sbin/cupsd
+root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
+
+# killall /usr/sbin/cupsd
+# ps aux | grep /usr/sbin/cupsd
+root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
 ```
 
 ### Stop Memory Leaks
@@ -925,109 +1060,37 @@ PageTables:        27176 kB
 
 https://tecadmin.net/how-to-add-swap-in-ubuntu-24-04/
 
-### Remove CUPS
+#### Apparently Gone After Reinstalling
 
-On two occassions `cupsd` has suddently gone up to 200% CPU usage and
-stayed up there for 30+ minutes with no sign of and end to come.
+Out of frustation with this opaque memory leak and a few other details,
+decided to reinstall Ubuntu Studio 24.04 anew.
 
-```
-root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
-root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
-root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
-root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
-```
+Along the way had to
+[update the BIOS](https://www.intel.com/content/www/us/en/support/articles/000005636/intel-nuc.html)
+(to version 33) because until that update the systen would not boot
+from the USB start-up disk, even though it had booted from it only minutes ago.
 
-```
-# snap services
-Servicio                                             Encendido  Actual  Notas
-canonical-livepatch.canonical-livepatchd             activado   activo  -
-cups.cups-browsed                                    activado   activo  -
-cups.cupsd                                           activado   activo  -
-firmware-updater.firmware-notifier                   activado   -       user,timer-activated
-firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado   -       user
-root@super-tuna:~# snap stop cups
-Detenido.
-root@super-tuna:~# snap disable cups
-cups desactivado
+Eventually, most to fhe above setup was restored and yet the memory leak
+was no longer happening:
 
-# ps aux | grep cupsd
-root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
-root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
+![Memory usage in a 2-hour period with memory leak]({{ media }}/super-tuna-2-h-with-memory-leak.png)
 
-# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
-==> /var/log/cups/access_log <==
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
-localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
-localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
-localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
-localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
+Moroever, it seems the CPU cores are running visible cooler now:
 
-==> /var/log/cups/error_log <==
-E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
+![Memory usage in a 2-hour period withou memory leak]({{ media }}/super-tuna-2-h-without-memory-leak.png)
 
-# snap services
-Servicio                                             Encendido    Actual    Notas
-canonical-livepatch.canonical-livepatchd             activado     activo    -
-cups.cups-browsed                                    desactivado  inactivo  -
-cups.cupsd                                           desactivado  inactivo  -
-firmware-updater.firmware-notifier                   activado     -         user,timer-activated
-firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado     -         user
-```
+#### But Why?
+
+A few things were different when reinstalling the system.
+
+First, the system language was left as its default value: English.
+This *should* be irrelevant, but when the system locazation affects
+everything down to the output from commands, it might just happen that
+different number format and/or translated messages may trigger bugs.
+
+Also, the weekly Btrfs scrub doesn't seem to really need `inn` or any
+of its dependencies, so this installation step was skipped:
 
 ```
-# killall /usr/sbin/cupsd
-root@super-tuna:~# ps aux | grep /usr/sbin/cupsd
-root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
-
-# killall /usr/sbin/cupsd
-# ps aux | grep /usr/sbin/cupsd
-root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
+# apt install inn -y
 ```
-
-
-### Bluetooth controller and devices
-
-The following shows up in `dmesg`:
-
-```
-Bluetooth: Core ver 2.22
-NET: Registered PF_BLUETOOTH protocol family
-Bluetooth: HCI device and connection manager initialized
-Bluetooth: HCI socket layer initialized
-Bluetooth: L2CAP socket layer initialized
-Bluetooth: SCO socket layer initialized
-Bluetooth: hci0: Device revision is 0
-Bluetooth: hci0: Secure boot is enabled
-Bluetooth: hci0: OTP lock is enabled
-Bluetooth: hci0: API lock is enabled
-Bluetooth: hci0: Debug lock is disabled
-Bluetooth: hci0: Minimum firmware build 1 week 10 2014
-Bluetooth: hci0: Bootloader timestamp 2019.40 buildtype 1 build 38
-Bluetooth: hci0: DSM reset method type: 0x00
-Bluetooth: hci0: Found device firmware: intel/ibt-0040-0041.sfi
-Bluetooth: hci0: Boot Address: 0x100800
-Bluetooth: hci0: Firmware Version: 60-48.23
-Bluetooth: BNEP (Ethernet Emulation) ver 1.3
-Bluetooth: BNEP filters: protocol multicast
-Bluetooth: BNEP socket layer initialized
-Bluetooth: hci0: Waiting for firmware download to complete
-Bluetooth: hci0: Firmware loaded in 1536493 usecs
-Bluetooth: hci0: Waiting for device to boot
-Bluetooth: hci0: Device booted in 15625 usecs
-Bluetooth: hci0: Malformed MSFT vendor event: 0x02
-Bluetooth: hci0: Found Intel DDC parameters: intel/ibt-0040-0041.ddc
-Bluetooth: hci0: Applying Intel DDC parameters completed
-Bluetooth: hci0: Firmware timestamp 2023.48 buildtype 1 build 75324
-Bluetooth: hci0: Firmware SHA1: 0x23bac558
-Bluetooth: MGMT ver 1.22
-```
-
-**TODO: pair headphones**
