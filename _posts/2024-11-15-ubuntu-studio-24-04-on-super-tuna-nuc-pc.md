@@ -832,6 +832,167 @@ To compare again, the biggest user of kernel dynamic memory is
 - `btrfs_inode` in `rapture`, with 1,149,792K after a good 20 hours up
 - `kmalloc-rnd-12-8k` in `super-tuna`, with 2,391,360K after barely 1 hour up
 
+**5 ours later** `kmalloc-rnd-12-8k` in `super-tuna` is up **13.71 GB** again:
+
+```
+# smem -twk
+Area                           Used      Cache   Noncache 
+firmware/hardware                 0          0          0 
+kernel image                      0          0          0 
+kernel dynamic memory         16.4G       2.2G      14.2G 
+userspace memory               1.6G     534.1M       1.1G 
+free memory                   12.9G      12.9G          0 
+----------------------------------------------------------
+                              30.9G      15.6G      15.3G 
+# smem -wp
+Area                           Used      Cache   Noncache 
+firmware/hardware             0.00%      0.00%      0.00% 
+kernel image                  0.00%      0.00%      0.00% 
+kernel dynamic memory        53.19%      7.08%     46.11% 
+userspace memory              5.24%      1.69%      3.55% 
+free memory                  41.57%     41.57%      0.00% 
+
+# lsmod | sort -nr -k 2 | head -3
+i915                 4284416  59
+xe                   2711552  0
+btrfs                2015232  1
+
+# slabtop -o | sort -r -n -k 7 | head -10
+1797400 1797400 100%    8.00K 449350        4  14379200K kmalloc-rnd-12-8k      
+ 22302  22302 100%    1.16K    826       27     26432K ext4_inode_cache       
+117432 116955  99%    0.19K   2796       42     22368K dentry                 
+ 22900  22835  99%    0.62K    916       25     14656K inode_cache            
+ 20944  20925  99%    0.57K    748       28     11968K radix_tree_node        
+ 72324  69525  96%    0.14K   2583       28     10332K kernfs_node_cache      
+   954    946  99%   10.25K    318        3     10176K task_struct            
+ 13754  13041  94%    0.70K    299       46      9568K proc_inode_cache       
+ 48510  47450  97%    0.19K   1155       42      9240K cred_jar               
+ 85137  85137 100%    0.10K   2183       39      8732K buffer_head     
+```
+
+Google web search shows a single search result for `"kmalloc-rnd-12-8k"`
+[which does not lead to a conclusive solution](https://discussion.fedoraproject.org/t/kernel-memory-leak-fedora-40-nvidia-drivers-ollama/135038/29).
+
+```
+# cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
+kmalloc-rnd-12-8k 1962444 1962444   8192    4    8 : tunables    0    0    0 : slabdata 490611 490611      0
+
+# head -3 /proc/slabinfo; cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
+slabinfo - version: 2.1
+# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
+QIPCRTR               78     78    832   39    8 : tunables    0    0    0 : slabdata      2      2      0
+kmalloc-rnd-12-8k 1963068 1963068   8192    4    8 : tunables    0    0    0 : slabdata 490767 490767      0
+
+# free -h
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi        17Gi        11Gi       748Mi       2.7Gi        13Gi
+Swap:          8.0Gi          0B       8.0Gi
+
+# cat /proc/meminfo 
+MemTotal:       32404656 kB
+MemFree:        12123032 kB
+MemAvailable:   13785908 kB
+Buffers:          137656 kB
+Cached:          2610480 kB
+SwapCached:            0 kB
+Active:          1825832 kB
+Inactive:        1126328 kB
+Active(anon):     970752 kB
+Inactive(anon):        0 kB
+Active(file):     855080 kB
+Inactive(file):  1126328 kB
+Unevictable:      940008 kB
+Mlocked:          212356 kB
+SwapTotal:       8388604 kB
+SwapFree:        8388604 kB
+Zswap:                 0 kB
+Zswapped:              0 kB
+Dirty:               256 kB
+Writeback:             0 kB
+AnonPages:       1143976 kB
+Mapped:           548812 kB
+Shmem:            766728 kB
+KReclaimable:     101908 kB
+Slab:           16161044 kB
+SReclaimable:     101908 kB
+SUnreclaim:     16059136 kB
+KernelStack:       13280 kB
+PageTables:        27176 kB
+...
+```
+
+#### Maybe add more swap
+
+https://tecadmin.net/how-to-add-swap-in-ubuntu-24-04/
+
+### Remove CUPS
+
+On two occassions `cupsd` has suddently gone up to 200% CPU usage and
+stayed up there for 30+ minutes with no sign of and end to come.
+
+```
+root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
+root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
+root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
+root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
+```
+
+```
+# snap services
+Servicio                                             Encendido  Actual  Notas
+canonical-livepatch.canonical-livepatchd             activado   activo  -
+cups.cups-browsed                                    activado   activo  -
+cups.cupsd                                           activado   activo  -
+firmware-updater.firmware-notifier                   activado   -       user,timer-activated
+firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado   -       user
+root@super-tuna:~# snap stop cups
+Detenido.
+root@super-tuna:~# snap disable cups
+cups desactivado
+
+# ps aux | grep cupsd
+root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
+root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
+
+# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
+==> /var/log/cups/access_log <==
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
+localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
+localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
+localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
+localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
+
+==> /var/log/cups/error_log <==
+E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
+
+# snap services
+Servicio                                             Encendido    Actual    Notas
+canonical-livepatch.canonical-livepatchd             activado     activo    -
+cups.cups-browsed                                    desactivado  inactivo  -
+cups.cupsd                                           desactivado  inactivo  -
+firmware-updater.firmware-notifier                   activado     -         user,timer-activated
+firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado     -         user
+```
+
+```
+# killall /usr/sbin/cupsd
+root@super-tuna:~# ps aux | grep /usr/sbin/cupsd
+root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
+
+# killall /usr/sbin/cupsd
+# ps aux | grep /usr/sbin/cupsd
+root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
+```
+
+
 ### Bluetooth controller and devices
 
 The following shows up in `dmesg`:
