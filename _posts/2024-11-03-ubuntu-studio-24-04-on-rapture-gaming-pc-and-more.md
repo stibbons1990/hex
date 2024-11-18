@@ -2446,3 +2446,274 @@ $ upower -i /org/freedesktop/UPower/devices/battery_ps_controller_battery_dco0co
   History (charge):
     1731613239  25.000  charging
 ```
+
+### S.M.A.R.T. Monitoring
+
+Install
+[Smartmontools](https://help.ubuntu.com/community/Smartmontools)
+to setup up
+[S.M.A.R.T.](https://wiki.archlinux.org/index.php/S.M.A.R.T.)
+monitoring:
+
+```
+# apt install smartmontools gsmartcontrol libnotify-bin -y
+```
+
+Create `/usr/local/bin/smartdnotify` to notify when errors are found:
+
+```bash
+#!/bin/sh
+data=/root/smart-latest-error
+echo "SMARTD_FAILTYPE=$SMARTD_FAILTYPE" >> $data
+echo "SMARTD_MESSAGE=’$SMARTD_MESSAGE’" >> $data
+sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+```
+
+Configure `/etc/smartd.conf` to run this script:
+
+```bash
+DEVICESCAN -d removable -n standby -m root -M exec /usr/local/bin/smartdnotify
+```
+
+Restart the `smartd` service:
+
+```
+# systemctl restart smartd.service
+```
+
+Then add a scrip to re-notify: `/usr/local/bin/smartd-renotify`
+
+```bash
+#!/bin/sh
+latest=/root/smart-latest-error
+if [ -f $latest ] ; then
+  . $latest
+  if [ -n "$SMARTD_FAILTYPE" ]
+  then
+    sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+  fi
+fi
+```
+
+```
+# chmod +x /usr/local/bin/smartdnotify /usr/local/bin/smartd-renotify
+# crontab -e
+*/5 * * * * /usr/local/bin/smartd-renotify
+```
+
+#### ErrorCount in NVME
+
+Once in a while, the above monitoring reports an “ErrorCount” error.
+
+```
+# cat smart-latest-error 
+SMARTD_FAILTYPE=
+SMARTD_MESSAGE=
+SMARTD_FAILTYPE=
+SMARTD_MESSAGE=
+SMARTD_FAILTYPE=
+SMARTD_MESSAGE=
+...
+SMARTD_FAILTYPE=ErrorCount
+SMARTD_MESSAGE='Device: /dev/nvme0, number of Error Log entries increased from 1000 to 1020'
+SMARTD_FAILTYPE=ErrorCount
+SMARTD_MESSAGE='Device: /dev/nvme1, number of Error Log entries increased from 338 to 368'
+```
+
+```
+# smartctl -a /dev/nvme0
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Number:                       Samsung SSD 970 EVO Plus 2TB
+Serial Number:                      S4J4NX0T216141L
+Firmware Version:                   2B2QEXM7
+PCI Vendor/Subsystem ID:            0x144d
+IEEE OUI Identifier:                0x002538
+Total NVM Capacity:                 2,000,398,934,016 [2.00 TB]
+Unallocated NVM Capacity:           0
+Controller ID:                      4
+NVMe Version:                       1.3
+Number of Namespaces:               1
+Namespace 1 Size/Capacity:          2,000,398,934,016 [2.00 TB]
+Namespace 1 Utilization:            1,235,084,509,184 [1.23 TB]
+Namespace 1 Formatted LBA Size:     512
+Namespace 1 IEEE EUI-64:            002538 5221b08748
+Local Time is:                      Mon Nov 18 22:35:43 2024 CET
+Firmware Updates (0x16):            3 Slots, no Reset required
+Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+Optional NVM Commands (0x005f):     Comp Wr_Unc DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
+Log Page Attributes (0x03):         S/H_per_NS Cmd_Eff_Lg
+Maximum Data Transfer Size:         512 Pages
+Warning  Comp. Temp. Threshold:     85 Celsius
+Critical Comp. Temp. Threshold:     85 Celsius
+
+Supported Power States
+St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+ 0 +     7.50W       -        -    0  0  0  0        0       0
+ 1 +     5.90W       -        -    1  1  1  1        0       0
+ 2 +     3.60W       -        -    2  2  2  2        0       0
+ 3 -   0.0700W       -        -    3  3  3  3      210    1200
+ 4 -   0.0050W       -        -    4  4  4  4     2000    8000
+
+Supported LBA Sizes (NSID 0x1)
+Id Fmt  Data  Metadt  Rel_Perf
+ 0 +     512       0         0
+
+=== START OF SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART/Health Information (NVMe Log 0x02)
+Critical Warning:                   0x00
+Temperature:                        41 Celsius
+Available Spare:                    100%
+Available Spare Threshold:          10%
+Percentage Used:                    1%
+Data Units Read:                    279,103,719 [142 TB]
+Data Units Written:                 118,255,818 [60.5 TB]
+Host Read Commands:                 552,324,221
+Host Write Commands:                1,104,801,710
+Controller Busy Time:               10,076
+Power Cycles:                       800
+Power On Hours:                     4,834
+Unsafe Shutdowns:                   7
+Media and Data Integrity Errors:    0
+Error Information Log Entries:      1,048
+Warning  Comp. Temperature Time:    0
+Critical Comp. Temperature Time:    0
+Temperature Sensor 1:               41 Celsius
+Temperature Sensor 2:               44 Celsius
+
+Error Information (NVMe Log 0x01, 16 of 64 entries)
+Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
+  0       1048     0  0x0008  0x4004      -            0     0     -  Invalid Field in Command
+
+Self-test Log (NVMe Log 0x06)
+Self-test status: No self-test in progress
+No Self-tests Logged
+
+# smartctl -a /dev/nvme1
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Number:                       KINGSTON SFYRD4000G
+Serial Number:                      50026B76866DA9CA
+Firmware Version:                   EIFK31.6
+PCI Vendor/Subsystem ID:            0x2646
+IEEE OUI Identifier:                0x0026b7
+Total NVM Capacity:                 4,000,787,030,016 [4.00 TB]
+Unallocated NVM Capacity:           0
+Controller ID:                      1
+NVMe Version:                       1.4
+Number of Namespaces:               1
+Namespace 1 Size/Capacity:          4,000,787,030,016 [4.00 TB]
+Namespace 1 Formatted LBA Size:     512
+Namespace 1 IEEE EUI-64:            0026b7 6866da9ca5
+Local Time is:                      Mon Nov 18 22:36:00 2024 CET
+Firmware Updates (0x12):            1 Slot, no Reset required
+Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+Optional NVM Commands (0x005d):     Comp DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
+Log Page Attributes (0x08):         Telmtry_Lg
+Maximum Data Transfer Size:         512 Pages
+Warning  Comp. Temp. Threshold:     84 Celsius
+Critical Comp. Temp. Threshold:     89 Celsius
+
+Supported Power States
+St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+ 0 +     8.80W       -        -    0  0  0  0        0       0
+ 1 +     7.10W       -        -    1  1  1  1        0       0
+ 2 +     5.20W       -        -    2  2  2  2        0       0
+ 3 -   0.0620W       -        -    3  3  3  3     2500    7500
+ 4 -   0.0620W       -        -    4  4  4  4     2500    7500
+
+Supported LBA Sizes (NSID 0x1)
+Id Fmt  Data  Metadt  Rel_Perf
+ 0 +     512       0         2
+ 1 -    4096       0         1
+
+=== START OF SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART/Health Information (NVMe Log 0x02)
+Critical Warning:                   0x00
+Temperature:                        41 Celsius
+Available Spare:                    100%
+Available Spare Threshold:          10%
+Percentage Used:                    0%
+Data Units Read:                    154,185,434 [78.9 TB]
+Data Units Written:                 15,777,901 [8.07 TB]
+Host Read Commands:                 219,252,510
+Host Write Commands:                109,668,538
+Controller Busy Time:               653
+Power Cycles:                       174
+Power On Hours:                     2,079
+Unsafe Shutdowns:                   1
+Media and Data Integrity Errors:    0
+Error Information Log Entries:      472
+Warning  Comp. Temperature Time:    0
+Critical Comp. Temperature Time:    0
+Temperature Sensor 2:               73 Celsius
+Thermal Temp. 1 Total Time:         6429
+
+Error Information (NVMe Log 0x01, 16 of 63 entries)
+Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
+  0        472     0  0x101b  0x4004      -            0     1     -  Invalid Field in Command
+  1        471     0  0x3001  0x4004      -            0     1     -  Invalid Field in Command
+  2        470     0  0x0003  0x4004  0x028            0     0     -  Invalid Field in Command
+  3        469     0  0x0011  0x4004      -            0     0     -  Invalid Field in Command
+
+Self-test Log (NVMe Log 0x06)
+Self-test status: No self-test in progress
+No Self-tests Logged
+```
+
+However, most of the entries are the same: not an error at all:
+
+```
+# nvme error-log /dev/nvme0 | grep status_field | sort | uniq -c
+     63 status_field    : 0(Successful Completion: The command completed without error)
+      1 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+
+# nvme error-log /dev/nvme1 | grep status_field | sort | uniq -c
+     59 status_field    : 0(Successful Completion: The command completed without error)
+      4 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+```
+
+Update `/usr/local/bin/smartdnotify` and `/usr/local/bin/smartd-renotify`
+to ignore only those entries that are not errors (`status_field: 0`):
+
+```bash
+#!/bin/sh
+
+# Ignore NVME "error" entries that are not errors.
+elog=/root/smart-latest-error-log-entry
+nvme error-log /dev/nvme0 | tail -16 > $elog
+grep -q 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
+
+# Otherwise, log and notify the error.
+data=/root/smart-latest-error
+echo "SMARTD_FAILTYPE=$SMARTD_FAILTYPE" >> $data
+echo "SMARTD_MESSAGE=’$SMARTD_MESSAGE’" >> $data
+sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+```
+
+```bash
+#!/bin/sh
+
+# Ignore NVME "error" entries that are not errors.
+elog=/root/smart-latest-error-log-entry
+nvme error-log /dev/nvme0 | tail -16 > $elog
+grep -q 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
+
+# Otherwise, re-notify.
+latest=/root/smart-latest-error
+if [ -f $latest ] ; then
+  . $latest
+  if [ -n "$SMARTD_FAILTYPE" ]
+  then
+    sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+  fi
+fi
+```
