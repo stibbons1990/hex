@@ -2690,6 +2690,7 @@ to ignore only those entries that are not errors (`status_field: 0`):
 # Ignore NVME "error" entries that are not errors.
 elog=/root/smart-latest-error-log-entry
 nvme error-log /dev/nvme0 | tail -16 > $elog
+nvme error-log /dev/nvme1 | tail -16 >> $elog
 grep -q 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
 
 # Otherwise, log and notify the error.
@@ -2705,6 +2706,7 @@ sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus n
 # Ignore NVME "error" entries that are not errors.
 elog=/root/smart-latest-error-log-entry
 nvme error-log /dev/nvme0 | tail -16 > $elog
+nvme error-log /dev/nvme1 | tail -16 >> $elog
 grep -q 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
 
 # Otherwise, re-notify.
