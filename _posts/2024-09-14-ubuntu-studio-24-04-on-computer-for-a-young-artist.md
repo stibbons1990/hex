@@ -996,6 +996,29 @@ so there is no reason to install it any other way:
 blender 4.2.1 from Blender Foundation (blenderfoundation✓) installed
 ```
 
+### Visual Studio Code
+
+The artist wants to learn how to create websites and wants to use
+[Visual Studio Code](https://code.visualstudio.com/)
+to comfortably edit HTML, CSS, JavaScript, etc.
+
+[Installation](https://code.visualstudio.com/docs/setup/linux) is fairly simple,
+so much a single `.deb` file can be installed directly, but the apt repository
+can also be installed manually with the following script:
+
+```
+# apt-get install apt-transport-https gpg wget -y
+# wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+  | gpg --dearmor > packages.microsoft.gpg
+# install -D -o root -g root -m 644 packages.microsoft.gpg \
+  /etc/apt/keyrings/packages.microsoft.gpg
+# echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+  | tee /etc/apt/sources.list.d/vscode.list > /dev/null
+# rm -f packages.microsoft.gpg
+# apt update
+# apt install code -y
+```
+
 ### OpenToonz
 
 The artist may want to try using
