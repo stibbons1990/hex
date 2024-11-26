@@ -2719,3 +2719,127 @@ if [ -f $latest ] ; then
   fi
 fi
 ```
+
+## Appendix
+
+### 2nd New NVMe SSD
+
+Once the new system had been a reliable daily driver and there was no need to
+boot back into the old 2TB NVMe SSD, it was time to replace it with a new
+4TB NVMe SSD (and, this time, one with a headsink).
+
+This *new new* SSD gets the same [Partitions](#partitions) as the *old new*
+SSD; the goal is to be able to boot from either of these.
+
+```
+# parted /dev/nvme0n1 --script -- mklabel gpt
+# parted -a optimal /dev/nvme0n1 mkpart primary fat32 0% 260MiB
+# parted -a optimal /dev/nvme0n1 mkpart primary ext4 260MiB 75GiB
+# parted -a optimal /dev/nvme0n1 mkpart primary ext4 75GiB 150GiB
+# parted -a optimal /dev/nvme0n1 mkpart primary btrfs 150GiB 100%
+# parted /dev/nvme0n1 toggle 1 boot
+# parted /dev/nvme0n1 print                         
+Model: KINGSTON SFYRDK4000G (nvme)
+Disk /dev/nvme0n1: 4001GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  273MB   272MB                primary  boot, esp
+ 2      273MB   80.5GB  80.3GB               primary
+ 3      80.5GB  161GB   80.5GB               primary
+ 4      161GB   4001GB  3840GB               primary
+
+# fdisk -l /dev/nvme0n1 
+Disk /dev/nvme0n1: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
+Disk model: KINGSTON SFYRDK4000G                    
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 97991032-0F17-48B4-B658-C1D033F89E73
+
+Device             Start        End    Sectors  Size Type
+/dev/nvme0n1p1      2048     532479     530432  259M EFI System
+/dev/nvme0n1p2    532480  157286399  156753920 74.7G Linux filesystem
+/dev/nvme0n1p3 157286400  314572799  157286400   75G Linux filesystem
+/dev/nvme0n1p4 314572800 7814035455 7499462656  3.5T Linux filesystem
+
+# mkfs.ext4 /dev/nvme0n1p2
+# mkfs.ext4 /dev/nvme0n1p3
+# mkfs.btrfs /dev/nvme0n1p4
+```
+
+This finally allows taking the *old* new 4TB NVMe SSD down from 81% to a more
+comfortable __% so that installing big Steam games is not a problem.
+
+```
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p3   74G   33G   38G  47% /
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p2   74G   51G   19G  73% /jammy
+/dev/nvme1n1p4  3.5T  2.9T  680G  81% /home
+/dev/sdc        3.7T  2.9T  831G  78% /home/ssd
+/dev/sdb        3.7T  2.0T  1.7T  55% /home/new-ssd
+/dev/sda        5.5T  5.1T  425G  93% /home/raid
+/dev/nvme0n1p4  3.5T  5.8M  3.5T   1% /home/new-m2
+
+$ time rsync -ua /home/Fotos/ /home/new-m2/Fotos/
+
+sent 1,621,093,379,224 bytes  received 3,164,279 bytes  711,475,331.80 bytes/sec
+total size is 1,620,950,812,470  speedup is 1.00
+
+real    37m57.967s
+user    11m33.723s
+sys     31m42.640s
+
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p3   74G   33G   37G  47% /
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p2   74G   51G   19G  73% /jammy
+/dev/nvme1n1p4  3.5T  2.9T  680G  81% /home
+/dev/sdc        3.7T  2.9T  831G  78% /home/ssd
+/dev/sdb        3.7T  2.0T  1.7T  55% /home/new-ssd
+/dev/sda        5.5T  5.1T  425G  93% /home/raid
+/dev/nvme0n1p4  3.5T  1.5T  2.1T  43% /home/new-m2
+```
+
+There goes 1.5T of photos that can now be removed from the *old new* SSD,
+but as an additional precaution let `rsync` check that files really are
+identical on both disks now, using the `-c` flag to 
+[skip based on checksum, not mod-time & size](https://stackoverflow.com/a/19540611):
+
+```
+$ time rsync -cuva /home/Fotos/ /home/new-m2/Fotos/
+sending incremental file list
+
+sent 6,297,699 bytes  received 4,541 bytes  4,783.48 bytes/sec
+total size is 1,620,950,812,470  speedup is 257,202.33
+
+real    21m57.232s
+user    2m20.143s
+sys     18m48.906s
+```
+
+At this point the old copy can be confidently removed; there are other copies
+elsewhere too, the checking of the checksum was intended to check the file
+integrity in the *new new* disk because it will now become the canonical
+copy that is backed up everywhere else:
+
+```
+$ rm -rf /home/Fotos/
+$ ln -sf /home/new-m2/Fotos/ $HOME/
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p3   74G   35G   35G  50% /
+/dev/nvme1n1p1  259M  6.2M  253M   3% /boot/efi
+/dev/nvme1n1p2   74G   51G   19G  73% /jammy
+/dev/nvme1n1p4  3.5T  1.4T  2.2T  39% /home
+/dev/sdc        3.7T  2.9T  831G  78% /home/ssd
+/dev/sdb        3.7T  2.0T  1.7T  55% /home/new-ssd
+/dev/sda        5.5T  5.1T  425G  93% /home/raid
+/dev/nvme0n1p4  3.5T  1.5T  2.1T  43% /home/new-m2
+```
