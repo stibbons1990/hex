@@ -30,6 +30,8 @@ in the network:
    obtained via the **Get report** method in the
    [myStrom REST API](https://api.mystrom.ch/) from one or
    more smart plug/switch devices that report energy usage.
+*  [conmon-tapo.py](#conmon-tapopy) reports temperature, humidity,
+   power consumption and other monitoring data from TAPO devices.
 
 ## Kubernetes Setup
 
@@ -1271,4 +1273,145 @@ while true; do
     done
     post_lines_to_influxdb
 done
+```
+
+### `conmon-tapo.py`
+
+```python
+#!/usr/bin/env python3
+
+"""Script to poll TAPO devices for monitoring data and post it to InfluxDB.
+
+Run conmon-tapo --help to see all available options.
+
+Usage:
+  conmon-tapo [options]
+
+Requires:
+  absl-py
+  https://github.com/abseil/abseil-py
+
+  tapo
+  https://github.com/mihai-dinculescu/tapo/
+"""
+
+import asyncio
+import json
+import os
+import socket
+import sys
+import time
+import yaml
+
+from absl import app, flags
+from datetime import datetime
+from influxdb import InfluxDBClient
+
+from tapo import ApiClient
+from tapo.requests import EnergyDataInterval
+from tapo.responses import T31XResult
+
+FLAGS = flags.FLAGS
+
+flags.DEFINE_string(
+    "config",
+    "/etc/conmon/tapo.yaml",
+    "Configuration file with settings for InfluxDB and Tapo devices.",
+    short_name="c"
+)
+
+
+def load_config(filepath):
+    with open(filepath) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    # Override values from environment variables.
+    for section in ("influxdb", "tapo_auth"):
+        for variable in config[section]:
+            if variable[-8:] in ("username", "password"):
+                env_value = os.getenv(config[section][variable])
+                if env_value:
+                    config[section][variable] = env_value
+    return config
+
+
+async def fetch_reports(config):
+    client = ApiClient(**config["tapo_auth"])
+    reports = []
+    for device in config["devices"]:
+        model = device["model"]
+        report=dict(model=model)
+        if model == "H100":
+            device_conn = await client.h100(device["ip"])
+            device_info = await device_conn.get_device_info()
+            report=dict(
+                model=device_info.to_dict().get("model"),
+                nickname=device_info.to_dict().get("nickname")
+            )
+            children=[]
+            child_device_list = await device_conn.get_child_device_list()
+            for child in child_device_list:
+                if isinstance(child, T31XResult):
+                    t315 = await device_conn.t315(device_id=child.device_id)
+                    children.append(dict(
+                        model="T315",
+                        nickname=child.nickname,
+                        humidity=child.current_humidity,
+                        temperature=child.current_temperature
+                    ))
+            report.update(dict(children=children))
+        elif model in ("P110", "P115"):
+            device_conn = await client.p110(device["ip"])
+            device_info = await device_conn.get_device_info()
+            energy_usage = await device_conn.get_energy_usage()
+            report=dict(
+                model=device_info.to_dict().get("model"),
+                nickname=device_info.to_dict().get("nickname"),
+                current_power=float(energy_usage.to_dict().get("current_power")/1000)
+            )
+        reports.append(report)
+    return reports
+
+
+def json_body_point(measurement, value, ts, tags):
+    tags.update(dict(host=socket.gethostname()))
+    return {
+      "measurement": measurement,
+      "tags": tags,
+      "time": ts,
+      "fields": {
+        "value": value
+      }
+    }
+
+
+def json_body_points_from_report(report, ts):
+    json_body = []
+    tags = dict(model=report["model"], nickname=report["nickname"])
+    for field in report:
+        if field in ("model", "nickname"): continue
+        json_body.append(json_body_point("tapo_%s" % field, report[field], ts, tags))
+    return json_body
+
+
+def post_reports(config, reports):
+    client = InfluxDBClient(**config["influxdb"])
+    json_body = []
+    ts = int(1000000000 * time.mktime(time.localtime()))
+    for report in reports:
+        if "children" in report:
+            for child in report["children"]:
+                json_body.extend(json_body_points_from_report(child, ts))
+        else:
+            json_body.extend(json_body_points_from_report(report, ts))
+    client.write_points(json_body)
+
+
+def main(argv):
+    config = load_config(FLAGS.config)
+    reports = asyncio.run(fetch_reports(config))
+    post_reports(config, reports)
+
+
+if __name__ == "__main__":
+    app.run(main)
 ```
