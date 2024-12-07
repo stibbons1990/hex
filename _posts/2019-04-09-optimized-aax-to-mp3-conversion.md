@@ -199,13 +199,15 @@ APIC (Attached picture): ()[, 0]: image/jpeg, 89607 bytes
 
 ![CPU usage of AAXtoMP3 vs aax2mp3]({{ media }}/AAXtoMP3-vs-aax2mp3-long.png)
 
-## aax2mp3
+## Code
 
 The gist of this is using `xargs` to parallelize the
 extraction and encoding of individual chapters.
 This would probably be better using
 [GNU parallel](https://www.gnu.org/software/parallel/), but
 I learned about that one a few months too late.
+
+### `aax2mp3.sh`
 
 The main script `aax2mp3.sh` does most of the work.
 
@@ -216,34 +218,32 @@ different file: `~/audible_activation_bytes`
 #!/bin/bash
 #
 # Convert DRM'ed AAX audibooks (e.g. Audible) to DRMless MP3 audio.
-# If available, cover.jpg file will be use for artwork.
+# Cover art is extracted from AAX files if present,
+# otherwise cover.jpg file will be use for artwork.
 
-# File names.
+# File names and target destinations in local (output) and remote targets.
 input=$1
-art=cover.jpg
 ext=${1##*.}
 mp3=${1/.$ext/.mp3}
+output="/home/depot/audio/Audiobooks"
+remote="lexicon:/home/depot/audio/Audiobooks/"
 
-if [ "$2" == "wy" ]
-then
-  echo "INFO: final diretory will include (year)"
+if [ "$2" == "wy" ]; then
+    echo "INFO: final diretory will include (year)"
 fi
 
-if [ ! -f "$1" ]
-then
-  echo "FATAL: $1 is missing, this will cause encoding to fail!"
-  exit 1
-fi
-
-if [ ! -f "$art" ]
-then
-  echo "FATAL: $art is missing, this will cause encoding to fail!"
-  exit 1
+if [ ! -f "$1" ]; then
+    echo "FATAL: $1 is missing, this will cause encoding to fail!"
+    exit 1
 fi
 
 # Obtain activation bytes.
 $activation_bytes
 activation_bytes=$(head -1 ~/.audible_activation_bytes)
+
+# Extract cover art. This will overwrite cover.jpg only if cover art is found.
+art="cover.jpg"
+ffmpeg -activation_bytes $activation_bytes -i "$input" -an -c:v copy -y "$art"
 
 # Extract uncompressed audio.
 ffmpeg -activation_bytes $activation_bytes -i "$input" -vn -c:a mp3 -y "$mp3"
@@ -251,7 +251,7 @@ ffmpeg -activation_bytes $activation_bytes -i "$input" -vn -c:a mp3 -y "$mp3"
 # Extract metadata and chapters.
 chapters=chapters.txt
 metadata=metadata.txt
-ffprobe -activation_bytes $activation_bytes -i "$input" -show_chapters > $chapters 2> $metadata
+ffprobe -activation_bytes $activation_bytes -i "$input" -show_chapters >$chapters 2>$metadata
 genre=28 # Vocal
 album=$(grep '^    title' $metadata | sed 's/.* : //')
 artist=$(grep '^    artist' $metadata | sed 's/.* : //')
@@ -262,44 +262,43 @@ echo "$album ($year), by $artist"
 track=0
 numtracks=$(grep -c title chapters.txt)
 tabdata=chapters.tab
-grep title chapters.txt | cut -f2 -d'=' | while read title
-do
-  track=$((track+1))
-  start=$(grep -B5 "title=$title$" chapters.txt | grep start_time | cut -f2 -d=)
-  end=$(grep -B5 "title=$title$" chapters.txt | grep end_time | cut -f2 -d=)
-  wav="$track. $title.wav"
-  chapter=${wav/.wav/.mp3}
-  echo -e "$track\t$start\t$end\t$title"
-done > $tabdata
+grep title chapters.txt | cut -f2 -d'=' | while read title; do
+    track=$((track + 1))
+    start=$(grep -B5 "title=$title$" chapters.txt | grep start_time | cut -f2 -d=)
+    end=$(grep -B5 "title=$title$" chapters.txt | grep end_time | cut -f2 -d=)
+    wav="$track. $title.wav"
+    chapter=${wav/.wav/.mp3}
+    echo -e "$track\t$start\t$end\t$title"
+done >$tabdata
 
 # Process chapters in parallel.
 cut -f1 $tabdata | xargs --max-procs=10 -n 1 aax2mp3-chapter.sh $mp3 $metadata $tabdata
 
 # Move processed chapters into author/book directory.
-author="$(id3v2 -l 1.*.mp3| grep TPE1 | cut -f2 -d: | cut -f1 -d, | sed 's/^ //')"
+author="$(id3v2 -l 1.*.mp3 | grep TPE1 | cut -f2 -d: | cut -f1 -d, | sed 's/^ //')"
 title="$(id3v2 -l 1.*.mp3 | grep TALB | cut -f2 -d: | sed 's/^ //')"
 bookdir="$(echo "$author/$title" | sed 's/ /./g' | sed "s/'//g" | sed 's/\.\././g' | sed 's/&/and/g')"
-if [ "$2" == "wy" ]
-then
-  echo "INFO: final diretory will include (year)"
-  bookdir="$bookdir.($year)"
+if [ "$2" == "wy" ]; then
+    echo "INFO: final diretory will include (year)"
+    bookdir="$bookdir.($year)"
 fi
 echo "$bookdir"
 mkdir -p "$bookdir"
-echo "$bookdir" > .bookdirs
-rename 's/^/0/' ?.\ Cha*
-ls -lh $art *Chapter*.mp3 "$bookdir"
-mv -fv $art *Chapter*.mp3 "$bookdir"
+echo "$bookdir" >.bookdirs
+rename 's/^/0/' ?.\ Chapter*
+rename 's/^/0/' ?.\ Kapitel*
+ls -lh $art *Kapitel*.mp3 *Chapter*.mp3 "$bookdir"
+mv -fv $art *Kapitel*.mp3 *Chapter*.mp3 "$bookdir"
 
 # Move the book to destinations.
 # Note: DO NOT let destdir end in /
-destdir="$(echo /home/depot/audio/Audiobooks/$author | sed 's/ /./g' | sed "s/'//g" | sed 's/\.\././g')"
-rsync -turva "$bookdir" lexicon:/home/depot/audio/Audiobooks/
+destdir="$(echo "$output/$author" | sed 's/ /./g' | sed "s/'//g" | sed 's/\.\././g')"
+rsync -turva "$bookdir" "$remote"
 mkdir -p "$destdir"
 mv -fv "$bookdir" "$destdir"
 
 # Clean-up
-rm -f chapters.t* *Chapter*.wav *_ep*.mp3 $input
+rm -f chapters.t* *Kapitel*.wav *Chapter*.wav *_ep*.mp3 $input
 ```
 
 The `--max-procs` flag is set to *only* **10** so that a few
@@ -307,6 +306,8 @@ CPU cores are left for other tasks. In a pinch this value
 can be increased to the number of CPU **threads**, if the
 system won't be used by anybody in the meantime, to further
 reduce the time it takes to encode chapters.
+
+### `aax2mp3-chapter.sh`
 
 And to process each chapter, here is 
 `aax2mp3-chapter.sh`
@@ -336,6 +337,23 @@ title=$(grep "^$track[[:blank:]]" $tabdata | cut -f4)
 numtracks=$(cat $tabdata | wc -l)
 wav="$track. $title.wav"
 chapter=${wav/.wav/.mp3}
-ffmpeg -nostdin -i "$mp3" -vn -c:a pcm_s16le -f wav -ss $start -to $end -y "$wav"
-lame -S --tt "$title" --ta "$artist" --tl "$album" --ty $year --tn $track/$numtracks --tg $genre --ti $art "$wav" "$chapter"
+ffmpeg \
+    -nostdin \
+    -i "$mp3" \
+    -vn \
+    -c:a pcm_s16le \
+    -f wav \
+    -ss $start \
+    -to $end \
+    -y "$wav"
+lame \
+    -S \
+    --tt "$title" \
+    --ta "$artist" \
+    --tl "$album" \
+    --ty $year \
+    --tn $track/$numtracks \
+    --tg $genre \
+    --ti $art \
+    "$wav" "$chapter"
 ```
