@@ -33,8 +33,6 @@ theme:
   font:
     text: Merriweather Sans
     code: Red Hat Mono
-  features:
-    - navigation.footer
   icon:
     logo: fontawesome/solid/hat-wizard
   palette:
