@@ -312,41 +312,26 @@ To fix this, add a step to install the plugin in the
       - run: mkdocs gh-deploy --force
 ``` 
 
-Now the workflow finishes successfully, but the site
-is not updated at all, the old content remains unchanged.
-
-The last messages in the runner seem to imply the site
-*should* have been updated, but there is also a hint
-about the `gh-pages` branch not being used?
-
-``` 
-INFO    -  Copying '/home/runner/work/hex/hex/site' to 'gh-pages' branch and pushing to GitHub.
-remote: 
-remote: Create a pull request for 'gh-pages' on GitHub by visiting:        
-remote:      https://github.com/stibbons1990/hex/pull/new/gh-pages        
-remote: 
-To https://github.com/stibbons1990/hex
- * [new branch]      gh-pages -> gh-pages
-INFO    -  Your documentation should shortly be available at: https://stibbons1990.github.io/hex/
-``` 
-
-Switching under "Build and deployment", under "Source",
-to select **Deploy from a branch** does not help.
+Now the workflow finishes successfully, and the site
+is updated, which means it's mostly empty because the
+old content needs to be moved under `docs/blog/posts`.
 
 ### Migrate old content
 
 The files under `docs/blog/posts` can be created by **moving** the
 files already existing under `_posts`, previously published by Jekyll,
 with a few modifications:
-- replace 
+
+- metadata `date` must be **only** a date (e.g. `2024-12-03`)
+- metadata `categories` must be a list in YAML format
+- media files are moved under `docs/blog/media/`
+  [using the command line](hex/assets/media/2019-04-09-optimized-aax-to-mp3-conversion)
+  [`git mv`](https://git-scm.com/docs/git-mv).
 
 ## Appendix
 
 For a quick overview, watch
 [Material for MkDocs: Full Tutorial To Build And Deploy Your Docs Portal](https://www.youtube.com/watch?v=xlABhbnNrfI).
-
-Use [GitHub Actions](https://squidfunk.github.io/mkdocs-material/publishing-your-site/#with-github-actions)
-to automatically publish the blog on GitHub Pages when pushing commits to the remote repo.
 
 Check [Beautiful Pages on GitLab with mkdocs](https://yodamad.hashnode.dev/beautiful-pages-on-gitlab-with-mkdocs)
 for additional inspiration on how to create and publish the blog.
