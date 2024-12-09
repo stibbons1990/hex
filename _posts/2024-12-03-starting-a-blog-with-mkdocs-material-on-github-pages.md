@@ -296,6 +296,45 @@ required files are missing. The next commit should include at least
                 posts/
                     2024-12-01-test.md   # A post
 
+When trying to use the `macros` plugin, the workflow
+will also fail, this time with
+
+```
+ERROR   -  Config value 'plugins': The "macros" plugin is not installed
+``` 
+
+To fix this, add a step to install the plugin in the
+`.github/workflows/ci.yml` just before deploying:
+
+``` yaml
+      - run: pip install mkdocs-material 
+      - run: pip install mkdocs-macros-plugin
+      - run: mkdocs gh-deploy --force
+``` 
+
+Now the workflow finishes successfully, but the site
+is not updated at all, the old content remains unchanged.
+
+The last messages in the runner seem to imply the site
+*should* have been updated, but there is also a hint
+about the `gh-pages` branch not being used?
+
+``` 
+INFO    -  Copying '/home/runner/work/hex/hex/site' to 'gh-pages' branch and pushing to GitHub.
+remote: 
+remote: Create a pull request for 'gh-pages' on GitHub by visiting:        
+remote:      https://github.com/stibbons1990/hex/pull/new/gh-pages        
+remote: 
+To https://github.com/stibbons1990/hex
+ * [new branch]      gh-pages -> gh-pages
+INFO    -  Your documentation should shortly be available at: https://stibbons1990.github.io/hex/
+``` 
+
+Switching under "Build and deployment", under "Source",
+to select **Deploy from a branch** does not help.
+
+### Migrate old content
+
 The files under `docs/blog/posts` can be created by **moving** the
 files already existing under `_posts`, previously published by Jekyll,
 with a few modifications:
