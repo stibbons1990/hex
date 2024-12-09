@@ -325,8 +325,30 @@ with a few modifications:
 - metadata `date` must be **only** a date (e.g. `2024-12-03`)
 - metadata `categories` must be a list in YAML format
 - media files are moved under `docs/blog/media/`
-  [using the command line](hex/assets/media/2019-04-09-optimized-aax-to-mp3-conversion)
+  [using the command line](https://docs.github.com/en/repositories/working-with-files/managing-files/moving-a-file-to-a-new-location#moving-a-file-to-a-new-location-using-the-command-line)
   [`git mv`](https://git-scm.com/docs/git-mv).
+
+```
+$ mkdir docs/blog/media docs/blog/posts
+$ git mv assets/media/2019-04-09-optimized-aax-to-mp3-conversion/ docs/blog/media/
+$ git mv _posts/2019-04-09-optimized-aax-to-mp3-conversion.md docs/blog/posts/
+$ git ci -m "Move post 2019-04-09-optimized-aax-to-mp3-conversion to mkdocs blog" .
+$ git push
+Username for 'https://github.com': stibbons1990
+Password for 'https://stibbons1990@github.com': 
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (9/9), 807 bytes | 807.00 KiB/s, done.
+Total 9 (delta 4), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (4/4), completed with 3 local objects.
+To https://github.com/stibbons1990/hex.git
+   fad437b..dd05782  main -> main
+```
+
+**Note:** instead of the password, use a
+[fine-grain token for personal access](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token).
 
 ## Appendix
 
