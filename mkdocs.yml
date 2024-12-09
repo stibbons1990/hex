@@ -1,0 +1,54 @@
+copyright: Copyright &copy; 2019-2025 Ponder Stibbons
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - About This Place: 'index.md'
+  - Continuous Monitoring: 'conmon.md'
+  - Unexpected Linux Adventures: 'blog/index.md'
+plugins:
+  - blog:
+      pagination: true
+      pagination_per_page: 10
+  - macros:
+      on_undefined: strict
+site_name: Inadvisably Applied Magic
+site_url: https://stibbons1990.github.io/hex/
+theme:
+  name: material
+  font:
+    text: Merriweather Sans
+    code: Red Hat Mono
+  features:
+    - navigation.footer
+  icon:
+    logo: fontawesome/solid/hat-wizard
+  palette:
+    # Dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Dark mode
+    # Light mode
+    - scheme: default
+      primary: deep purple
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Light mode
