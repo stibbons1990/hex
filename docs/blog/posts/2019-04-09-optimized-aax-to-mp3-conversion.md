@@ -1,16 +1,20 @@
 ---
-title:  "Optimized AAX-to-MP3 conversion"
-date:   2019-04-09 19:04:09 +0200
-categories: linux bash audible mp3 aax plex
+date: 2019-04-09
+title: Optimized AAX-to-MP3 conversion
+categories:
+  - Audible
+  - Bash
+  - MP3
+  - Plex
 ---
 
 Audible is great, and the app is not bad, but I find Plex and
 other apps more attractive to use for audiobooks. Now, if
 only I could *take my books home*...
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/","" %}
+<!-- more --> 
 
-![Audiobooks collection in PLEX]({{ media }}/Audiobooks-in-PLEX.png)
+![Audiobooks collection in PLEX](../media/2019-04-09-optimized-aax-to-mp3-conversion/Audiobooks-in-PLEX.png)
 
 ***Added Bonus: pick your own choice of book covers!***
 
@@ -193,11 +197,11 @@ APIC (Attached picture): ()[, 0]: image/jpeg, 89607 bytes
 
 ### Short book: 3h 18m converted in 3m 50s
 
-![CPU usage of AAXtoMP3 vs aax2mp3]({{ media }}/AAXtoMP3-vs-aax2mp3.png)
+![CPU usage of AAXtoMP3 vs aax2mp3](../media/2019-04-09-optimized-aax-to-mp3-conversion/AAXtoMP3-vs-aax2mp3.png)
 
 ### Long book: 28h 42m converted in m s
 
-![CPU usage of AAXtoMP3 vs aax2mp3]({{ media }}/AAXtoMP3-vs-aax2mp3-long.png)
+![CPU usage of AAXtoMP3 vs aax2mp3](../media/2019-04-09-optimized-aax-to-mp3-conversion/AAXtoMP3-vs-aax2mp3-long.png)
 
 ## Code
 
@@ -211,10 +215,11 @@ I learned about that one a few months too late.
 
 The main script `aax2mp3.sh` does most of the work.
 
-**Note:** this script takes the activation codes from a
-different file: `~/audible_activation_bytes`
+!!! note
+    This script takes the activation codes from a
+    different file: `~/audible_activation_bytes`
 
-```bash
+```bash linenums="1" title="aax2mp3.sh"
 #!/bin/bash
 #
 # Convert DRM'ed AAX audibooks (e.g. Audible) to DRMless MP3 audio.
@@ -225,7 +230,7 @@ different file: `~/audible_activation_bytes`
 input=$1
 ext=${1##*.}
 mp3=${1/.$ext/.mp3}
-output="/home/depot/audio/Audiobooks"
+output="/home/raid/audio/Audiobooks"
 remote="lexicon:/home/depot/audio/Audiobooks/"
 
 if [ "$2" == "wy" ]; then
@@ -312,7 +317,7 @@ reduce the time it takes to encode chapters.
 And to process each chapter, here is 
 `aax2mp3-chapter.sh`
 
-```bash
+```bash linenums="1" title="aax2mp3-chapter.sh"
 #!/bin/bash
 #
 # Split and encode a single audiobook chapter, to use with xargs.
