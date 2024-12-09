@@ -24,6 +24,8 @@ plugins:
   - blog:
       pagination: true
       pagination_per_page: 10
+  - macros:
+      on_undefined: strict
 site_name: Inadvisably Applied Magic
 site_url: https://stibbons1990.github.io/hex/
 theme:
