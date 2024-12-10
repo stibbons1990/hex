@@ -299,7 +299,7 @@ system configurations that need to be tweaked.
 ### APT respositories clean-up
 
 Ubuntu Studio 24.04 seems to consistently need a little
-[APT respositories clean-up](../../../..2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#apt-respositories-clean-up); just comment out the last line
+[APT respositories clean-up](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#apt-respositories-clean-up); just comment out the last line
 in `/etc/apt/sources.list.d/dvd.list` to let `noble-security` be
 defined (only) in `ubuntu.sources`.
 

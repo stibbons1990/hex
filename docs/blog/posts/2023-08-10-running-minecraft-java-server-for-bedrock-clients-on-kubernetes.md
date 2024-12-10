@@ -404,7 +404,7 @@ script in the [Appendix](#appendix-more-server-commands)
 below.
 
 **Note:** these commands must be run as the user who
-has [the credentials to run `kubectl`](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#bootstrap):
+has [the credentials to run `kubectl`](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#bootstrap):
 
 ```
 $ crontab -e

@@ -148,7 +148,7 @@ returns more results, including a few that finally offer
 hints in the right direction.
 
 **TL;DR:** *By default, the certificate expires after 365 days.* That tracks, because the 
-[Kubernetex cluster in lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[Kubernetex cluster in lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
 was created *exactly a little* over one year ago,
 on Mar 22, **2023**:
 

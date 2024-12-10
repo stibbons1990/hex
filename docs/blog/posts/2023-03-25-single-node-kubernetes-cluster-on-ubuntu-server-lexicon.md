@@ -12,7 +12,7 @@ title: Single-node Kubernetes cluster on Ubuntu Server (lexicon)
 After playing around with a few Docker containers and Docker
 compose, I decided it was time to dive into Kubernetes.
 But I only have one server:
-[lexicon](../../../../2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md).
+[lexicon](2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md).
 
 <!-- more --> 
 

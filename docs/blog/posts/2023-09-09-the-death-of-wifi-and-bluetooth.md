@@ -86,7 +86,7 @@ Later, you may be able to recover those lines from logs (more on this below).
 The recover tool shows up but the only option that seems useful at this point is to `Drop to root shell` so there we go.
 
 The system freezes again after just a few seconds, barely enough time to find the
-[script to restart a USB controller](../../../../2023/08/27/xhci-host-controller-not-responding-assume-dead.html),
+[script to restart a USB controller](2023-08-27-xhci-host-controller-not-responding-assume-dead.md),
 but not time enough to run it.
 
 *This is ridiculous!* How can I possibly even try anything if the whole system freezes within seconds?
@@ -191,7 +191,7 @@ after booting when the Wireless controller is not disabled.
 
 None of the above actually show who to disable a malfunctioning USB
 device, so I tried unbind command from the
-[script to restart a USB controller](../../../../2023/08/27/xhci-host-controller-not-responding-assume-dead.html).
+[script to restart a USB controller](2023-08-27-xhci-host-controller-not-responding-assume-dead.md).
 
 ```
 root@(none):/# /root/restart-usb.sh 0000:05:00.1

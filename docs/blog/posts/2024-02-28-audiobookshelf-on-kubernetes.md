@@ -11,7 +11,7 @@ categories:
 title: Audiobookshelf on Kubernetes
 ---
 
-[Migrating a Plex Media Server to Kubernetes](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
+[Migrating a Plex Media Server to Kubernetes](2023-09-16-migrating-a-plex-media-server-to-kubernetes.md),
 was a significant improvement for the *maintenance* of the Plex Media
 Server I use to listen to podcasts and audiobooks, to keep me company
 while I play games, but after all these years Plex remains a

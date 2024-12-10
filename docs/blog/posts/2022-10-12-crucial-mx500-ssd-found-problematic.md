@@ -458,7 +458,7 @@ reproduces the error almost immediately:
 ## Root Cause Confirmed
 
 Shortly after dealing with this problem in
-[Lexicon](../../../../2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
+[Lexicon](2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
 the very same problem reproduced with *another* Crucial MX500 SSD
 on a different system (**Rapture**) with a
 [ASUS PRIME X370-PRO](https://www.linuxlookup.com/review/asus_prime_x370_pro_motherboard_review) motherboard, which is
