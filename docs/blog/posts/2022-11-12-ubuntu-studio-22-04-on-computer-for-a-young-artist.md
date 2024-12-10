@@ -268,7 +268,7 @@ UUID=18238846-d411-4dcb-af87-a2d19a17fef3 /home btrfs   defaults 0 2
 
 ### Continuous Monitoring
 
-To have [detailed system and process monitoring](2020-03-31-detailed-system-and-process-monitoring.md), install the **`conmon-mt`** (multi-thread) script from
+To have [detailed system and process monitoring](2020-03-21-detailed-system-and-process-monitoring.md), install the **`conmon-mt`** (multi-thread) script from
 [**Continuous Monitoring**](../../conmon.md).
 
 Once it's running, go to Grafana and save a copy of the

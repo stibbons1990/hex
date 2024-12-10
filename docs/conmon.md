@@ -6,7 +6,7 @@ permalink: /conmon/
 ## About Continuous Monitoring
 
 This is the latest, most complete version of the scripts for
-[Detailed system and process monitoring](../blog/2020/03/31/detailed-system-and-process-monitoring.html).
+[Detailed system and process monitoring](blog/posts/2020-03-31-detailed-system-and-process-monitoring.md).
 
 To run in slow systems such as Raspberry Pi computers, including any one from the 
 [Zero W (v1)](https://www.raspberrypi.com/products/raspberry-pi-zero-w/)
@@ -38,9 +38,9 @@ in the network:
 ## Kubernetes Setup
 
 This setup has been 
-[migrated](../blog/2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes.html)
+[migrated](blog/posts/2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md)
 to run on a
-[single-node Kubernetes cluster](../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[single-node Kubernetes cluster](blog/posts/2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
 and the scripts have been updated to support dual-targeting
 InfluxDB over HTTP without auth and/or HTTPS with Basic Auth.
 

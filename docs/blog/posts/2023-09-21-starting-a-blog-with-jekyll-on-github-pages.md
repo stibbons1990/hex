@@ -324,7 +324,7 @@ search: false
 
 $max-width: 1900px;
 
-@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes/skins/{{% site.minimal_mistakes_skin | default: 'default' %}}"; // skin
 @import "minimal-mistakes"; // main partials
 ```
 

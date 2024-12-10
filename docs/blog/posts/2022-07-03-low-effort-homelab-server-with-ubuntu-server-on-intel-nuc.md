@@ -46,12 +46,12 @@ I kept this build low-cost by choosing the low-end on the CPU:
 
 Encouraged by a sudden price fall (by 15% down to $300), and
 spurred by the recent
-[failure of 6TB HDD RAID](../../../../2022/09/27/undead-yes-unraid-no.md),
+[failure of 6TB HDD RAID](2022-09-27-undead-yes-unraid-no.md),
 I added a
 [Crucial MX500 4TB 3D NAND SATA SSD](https://www.crucial.com/ssd/mx500/ct4000mx500ssd1) to serve as an backup to some of my
 precious files in that cursed RAID.
 
-Turns out, [Crucial MX500 SSD are problematic](../../../../2022/10/12/crucial-mx500-ssd-found-problematic.md).
+Turns out, [Crucial MX500 SSD are problematic](2022-10-12-crucial-mx500-ssd-found-problematic.md).
 
 ### Update #2 (2023-09-23)
 
@@ -575,5 +575,5 @@ still quite small package.
 
 Watch this space for links to future posts!
 
-*  **2022-10-12** [Crucial MX500 SSD found problematic](../../../../2022/10/12/crucial-mx500-ssd-found-problematic.md)
-*  **2023-09-16** [Migrating a Plex Media Server to Kubernetes](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.md)
+*  **2022-10-12** [Crucial MX500 SSD found problematic](2022-10-12-crucial-mx500-ssd-found-problematic.md)
+*  **2023-09-16** [Migrating a Plex Media Server to Kubernetes](2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)

@@ -396,15 +396,12 @@ is no need to keep the server running overnight because
 this is a private server, not used from multiple
 timezones.
 
-Find the
-[`minecraft-start-k8s`](#minecraft-start-k8s)
-and
-[`minecraft-stop-k8s`](#minecraft-stop-k8s)
-script in the [Appendix](#appendix-more-server-commands)
-below.
+Find the [`minecraft-start-k8s`](#minecraft-start-k8s)
+and [`minecraft-stop-k8s`](#minecraft-stop-k8s)
+script in the [Appendix](#appendix-more-server-commands) below.
 
-**Note:** these commands must be run as the user who
-has [the credentials to run `kubectl`](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#bootstrap):
+**Note:** these commands must be run as the user who has
+[the credentials to run `kubectl`](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#bootstrap):
 
 ```
 $ crontab -e
