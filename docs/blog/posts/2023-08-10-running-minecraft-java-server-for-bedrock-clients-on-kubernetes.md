@@ -1,7 +1,15 @@
 ---
-title:  "Running Minecraft Java Server for Bedrock clients on Kubernetes"
-date:   2023-08-10 23:08:10 +0200
-categories: ubuntu server linux kubernetes docker minecraft java bedrock
+date: 2023-08-10
+categories:
+ - ubuntu
+ - server
+ - linux
+ - kubernetes
+ - docker
+ - minecraft
+ - java
+ - bedrock
+title: Running Minecraft Java Server for Bedrock clients on Kubernetes
 ---
 
 Minecraft Java Edition requires that servers match the
@@ -9,7 +17,7 @@ version of the clients and updating the server each time
 is a bit of a chore, so it is more convenient to run it
 on the Kubernetes cluster.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 ## Basic Setup
 
@@ -396,7 +404,7 @@ script in the [Appendix](#appendix-more-server-commands)
 below.
 
 **Note:** these commands must be run as the user who
-has [the credentials to run `kubectl`]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#bootstrap):
+has [the credentials to run `kubectl`](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#bootstrap):
 
 ```
 $ crontab -e

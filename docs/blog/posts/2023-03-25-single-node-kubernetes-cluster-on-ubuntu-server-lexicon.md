@@ -1,15 +1,20 @@
 ---
-title:  "Single-node Kubernetes cluster on Ubuntu Server (lexicon)"
-date:   2023-03-25 23:03:25 +0200
-categories: ubuntu server linux kubernetes docker
+date: 2023-03-25
+categories:
+ - ubuntu
+ - server
+ - linux
+ - kubernetes
+ - docker
+title: Single-node Kubernetes cluster on Ubuntu Server (lexicon)
 ---
 
 After playing around with a few Docker containers and Docker
 compose, I decided it was time to dive into Kubernetes.
 But I only have one server:
-[lexicon]({{ site.baseurl }}/2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.html).
+[lexicon](../../../../2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md).
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 For the most part I followed
 [Computing for Geeks](https://computingforgeeks.com/)'

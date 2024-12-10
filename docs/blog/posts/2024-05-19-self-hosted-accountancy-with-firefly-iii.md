@@ -1,17 +1,23 @@
 ---
-title:  "Self-hosted accountancy with Firefly III"
-date:   2024-05-19 14:05:19 +0200
-categories: linux kubernetes docker server firefly-iii self-hosted
+date: 2024-05-19
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - firefly-iii
+ - self-hosted
+title: Self-hosted accountancy with Firefly III
 ---
 
 Keep track of expenses and stuff is hard, thankless work.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 Over the years I've done it, with varying degrees of *success*,
 using a variety of solutions including my first ever
 [LAMP](https://es.wikipedia.org/wiki/LAMP) project, right after
-learning PHP and MySQL, and one my bank's own built-in solutions
+learning PHP and MySQL, and once my bank's own built-in solutions
 until they unceremonously took it away with no notice.
 
 After this last disappointment, I decided to go the self-hosted
@@ -325,7 +331,7 @@ to create an account and get started:
 a valid certificated for this service; the HTTPS connection will
 be secure only after this pod has finished its job. 
 
-![Signup form]({{ media }}/firefly-iii-signup.png)
+![Signup form](../media/2024-05-19-self-hosted-accountancy-with-firefly-iii/firefly-iii-signup.png)
 
 **Note**: the password **must** have at least 16 characters, which
 is more than Chrome will use when *suggesting a strong password*.

@@ -1,15 +1,22 @@
 ---
-title:  "Self-hosted eBook library with Komga"
-date:   2024-05-26 16:05:24 +0200
-categories: linux kubernetes docker server ebook komga self-hosted
+date: 2024-05-26
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - ebook
+ - komga
+ - self-hosted
+title: Self-hosted eBook library with Komga
 ---
 
 After weeks of using
-[Audiobookshelf]({{ site.baseurl }}/2024/02/28/audiobookshelf-on-kubernetes.html)
+[Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html)
 to listen to audiobooks daily, it dawned on me that the PDF reader
 was probably not the best I could be using.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 Then is also dawned on me that Audible is not my only source of
 eBooks; I have a few from HumbleBundle deals and a few indipendent
@@ -20,7 +27,7 @@ where they could all be conveniently navigated and read.
 
 Until now. Enter... [Komga](https://komga.org/).
 
-![Contents of the Art library]({{ media }}/komga-art.png)
+![Contents of the Art library](../media/2024-05-26-self-hosted-ebook-library-with-komga/komga-art.png)
 
 Komga is described as *a media server for your comics, mangas,
 BDs, magazines and eBooks*. Most importantly, for me, is that it
@@ -30,7 +37,7 @@ few others.
 ## Installation
 
 To deploy Komga in Kubernetes, the setup is essentially a fork of
-[Audiobookshelf]({{ site.baseurl }}/2024/02/28/audiobookshelf-on-kubernetes.html)
+[Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html)
 deployment.
 
 A single phisical volume to store the application's databases is
@@ -275,7 +282,7 @@ All individual books are stored under a `books` subdirectory under
 each library directory, and then this name is set as the
 **One-Shots directory** for every library:
 
-![Setup for the Art library]({{ media }}/komga-art-setup.png)
+![Setup for the Art library](../media/2024-05-26-self-hosted-ebook-library-with-komga/komga-art-setup.png)
 
 ## Alternatives
 

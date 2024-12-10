@@ -1,11 +1,18 @@
 ---
-title:  "Getting started with Dragon Age: Origins - Ultimate Edition"
-date:   2023-09-23 06:06:06 +0200
-categories: steam proton videogames ea bioware
+date: 2023-09-23
+categories:
+ - steam
+ - proton
+ - videogames
+ - ea
+ - bioware
+title: "Getting started with Dragon Age: Origins - Ultimate Edition"
 ---
 
 [Dragon Age: Origins - Ultimate Edition](https://store.steampowered.com/app/47810/Dragon_Age_Origins__Ultimate_Edition/)
 was on sale since last weekend, and today I *fell for it*.
+
+<!-- more --> 
 
 Before purchasing the game, I checked all recent
 [Proton reports for Dragon Age: Origins - Ultimate Edition](https://www.protondb.com/app/47810),

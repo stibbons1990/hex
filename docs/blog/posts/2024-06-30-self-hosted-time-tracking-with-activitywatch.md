@@ -1,7 +1,14 @@
 ---
-title:  "Self-hosted time tracking with ActivityWatch"
-date:   2024-06-30 12:30:24 +0200
-categories: linux kubernetes docker server ActivityWatch time-tracking self-hosted
+date: 2024-06-30
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - ActivityWatch
+ - time-tracking
+ - self-hosted
+title: Self-hosted time tracking with ActivityWatch
 ---
 
 A big chunk of my time is spent **at** the computer, also during
@@ -9,6 +16,8 @@ my downtime, and there is no clear separation between study,
 chores, entertainment, etc. *Work* happens at other computers,
 where time flies by sometimes at ridiculous speeds. I often find
 myself wondering *where did my day/week go?*
+
+<!-- more -->
 
 For some time I've been using a badly-cobbled-together solution
 with Bash scripts doing a few basic operations, all the time:
@@ -27,8 +36,6 @@ answer with numbers: *because this week, out of 40 hours, ...*
 At home, however, the results have been very underwhelming. This
 is due to completely different behaviour patterns, which is where
 I hope [ActivityWatch](https://activitywatch.net/) will help.
-
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
 
 ### Installation
 
@@ -56,7 +63,7 @@ After about 2 hours of having this running, while
 activities just as messing about with audiobooks and learning
 languages:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-dashboard.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-dashboard.png)
 
 ### Configuration
 
@@ -69,20 +76,20 @@ because it defauls to the *unknown* hostname. Click on
 **Show options** and select the appropriate hostname, then
 a list of common words show with their associated times:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-categorization-helper-2.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-categorization-helper-2.png)
 
 New categories can be added here to match these words, but
 in this section the UI does not allow creating new *parent*
 categories:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-categorization-helper-3.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-categorization-helper-3.png)
 
 Following the link to the **Settings** page one can create a
 whole new *branch*, e.g. here a new **Learning** *root*
 category is created for all activites related to learning
 and studying:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-categorization-helper-4.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-categorization-helper-4.png)
 
 To create additional categories, it is useful to follow the
 **Uncategorized** link under **Top Categories** in the
@@ -90,7 +97,7 @@ dashboard, to see what makes up most of the *uncategorized*
 time. For instance, here it is clear that most of the time
 is spent in activities related to Audiobooks:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-categorization-helper-6.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-categorization-helper-6.png)
 
 After a few more tweaks and, of course, finding the **dark**
 theme in the Setting, this is finally looking much better:

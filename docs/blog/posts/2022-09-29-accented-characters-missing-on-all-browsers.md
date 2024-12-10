@@ -1,7 +1,11 @@
 ---
-title:  "Accented characters missing on all browsers"
-date:   2022-09-29 20:09:29 +0200
-categories: linux locales chrome firefox
+date: 2022-09-29
+categories:
+ - linux
+ - locales
+ - chrome
+ - firefox
+title: Accented characters missing on all browsers
 ---
 
 At some point all browsers in my PC started to refuse showing
@@ -9,6 +13,8 @@ accented characters (e.g. **è**) when the correct keys are pressed
 (first **`** then **e**). This started happening before reinstalling the OS ([Ubuntu Studio 22.04](https://ubuntustudio.org/2022/04/ubuntu-studio-22-04-lts-released/)).
 Reinstalling the system, which came about for other reasons,
 did not help.
+
+<!-- more --> 
 
 This problem was specific to web browsers only, even though it
 affected all of them equally. Typing accented characters continued

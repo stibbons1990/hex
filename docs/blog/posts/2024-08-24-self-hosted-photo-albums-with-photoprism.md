@@ -1,14 +1,21 @@
 ---
-title:  "Self-hosted photo albums with PhotoPrism®"
-date:   2024-08-24 16:05:24 +0200
-categories: linux kubernetes docker server self-hosted photo-albums photoprism
+date: 2024-08-24
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - self-hosted
+ - photo-albums
+ - photoprism
+title: Self-hosted photo albums with PhotoPrism®
 ---
 
 [PhotoPrism®](https://www.photoprism.app/) is *an AI-Powered Photos App
-for the Decentralized Web* I heard some good comments about.I tried it [on my *other* Kubernetes cluster]({{ site.baseurl }}/2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.html)
+for the Decentralized Web* I heard some good comments about.I tried it [on my *other* Kubernetes cluster](../../../../2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md)
 and here are impressions so far.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 The following deployment is based on the PhotoPrism®
 [Setup Using Docker Compose](https://docs.photoprism.app/getting-started/docker-compose/):
@@ -267,7 +274,7 @@ so that I can directly visit http://photoprism.rapture.uu.am
 But before using the web application, PhotoPrism® needs some time to
 scan and index the images. In this case, it was a good half hour:
 
-![CPU load from PhotoPrism indexing and video playback]({{ media }}/photoprism_cpu_load_index_and_video_playback.png)
+![CPU load from PhotoPrism indexing and video playback](../media/2024-08-24-self-hosted-photo-albums-with-photoprism/photoprism_cpu_load_index_and_video_playback.png)
 
 The second CPU-intensive task was a rather lengthy preprocessing of a
 movie. I tried to watch it simply because I was surprised to find that
@@ -296,7 +303,7 @@ took to even start playing. PhotoPrism® spent a good 20 minutes running
 that was originally 5.9G. That was taking up nearly 10% of the 17G
 under `/photoprism/storage` and all the while all I cold see was
 
-![CPU load from PhotoPrism indexing and video playback]({{ media }}/photoprism_video_playback.png)
+![CPU load from PhotoPrism indexing and video playback](../media/2024-08-24-self-hosted-photo-albums-with-photoprism/photoprism_video_playback.png)
 
 But the most surprising, and eventually frustrating of all, was that
 only a small portion of the overall photo library appears to have been

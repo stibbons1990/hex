@@ -1,7 +1,11 @@
 ---
-title:  "Ubuntu Studio 22.04 on Computer, for a young artist"
-date:   2022-11-12 22:11:12 +0200
-categories: linux ubuntu installation setup
+date: 2022-11-12
+categories:
+ - linux
+ - ubuntu
+ - installation
+ - setup
+title: Ubuntu Studio 22.04 on Computer, for a young artist
 ---
 
 The young artist in the house, who will soon have an upgraded
@@ -9,7 +13,7 @@ PC for the new year, will be then running
 [**Ubuntu Studio**](https://ubuntustudio.org/) **22.04**,
 made for creative people.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 The current system is running Ubuntu Studio 20.04 on a *very*
 old system, based on an AMD Phenom II X4 and an Asus M4A89GTD
@@ -264,8 +268,8 @@ UUID=18238846-d411-4dcb-af87-a2d19a17fef3 /home btrfs   defaults 0 2
 
 ### Continuous Monitoring
 
-To have [detailed system and process monitoring]({{ site.baseurl }}/2020/03/31/detailed-system-and-process-monitoring.html), install the **`conmon-mt`** (multi-thread) script from
-[**Continuous Monitoring**]({{ site.baseurl }}/conmon).
+To have [detailed system and process monitoring](../../../../2020/03/31/detailed-system-and-process-monitoring.html), install the **`conmon-mt`** (multi-thread) script from
+[**Continuous Monitoring**](../../../../conmon.md).
 
 Once it's running, go to Grafana and save a copy of the
 **Rapture** dashboard as **New Computer**, then update all the
@@ -582,7 +586,7 @@ My personal choice of shortcut to
 **Activate Redshift Control Widget** is
 **`Ctrl+Alt+Shift+R`**.
 
-![Shorcuts setting for Activate Redshift Control Widget]({{ media }}/redshift-shortcut.png)
+![Shorcuts setting for Activate Redshift Control Widget](../media/2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist/redshift-shortcut.png)
 
 **Note:** it seems no longer necessary to manually add
 Redshift to the user's desktop session. Previously, it would

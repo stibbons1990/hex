@@ -1,7 +1,16 @@
 ---
-title:  "Self-hosted music streaming with Navidrome"
-date:   2024-10-26 15:16:26 +0200
-categories: linux kubernetes docker server self-hosted music streaming media navidrome
+date: 2024-10-26
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - self-hosted
+ - music
+ - streaming
+ - media
+ - navidrome
+title: Self-hosted music streaming with Navidrome
 ---
 
 [Navidrome](https://www.navidrome.org/about/) is *a self-hosted,
@@ -11,10 +20,10 @@ device* I heard about in the
 [Linux Matters](https://linuxmatters.sh/37/) podcast.
 
 I tried it on
-[my little Kubernetes cluster]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[my little Kubernetes cluster](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
 and here are impressions so far.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 The following deployment is based on the Navidrome
 [Installing with Docker](https://www.navidrome.org/docs/installation/docker/):
@@ -229,7 +238,7 @@ the server will detect and scan music files and, as they are
 found, make them available for playback. The web player works
 *doesn't look like much* but works very nicely:
 
-![Navidrome web player playing music]({{ media }}/navidrome-web-player.png)
+![Navidrome web player playing music](../media/2024-10-26-self-hosted-music-streaming-with-navidrome/navidrome-web-player.png)
 
 This web player alone already satisfy my first need, which is to
 listen to music while working, i.e. from a computer. For the
@@ -257,13 +266,13 @@ available directly from Google Play:
  </tr>
  <tr>
   <td>
-   <img src="{{ media }}/GoSONIC.png" />
+   <img src="../media/2024-10-26-self-hosted-music-streaming-with-navidrome/GoSONIC.png" />
   </td>
   <td>
-   <img src="{{ media }}/Symfonium.png" />
+   <img src="../media/2024-10-26-self-hosted-music-streaming-with-navidrome/Symfonium.png" />
   </td>
   <td>
-   <img src="{{ media }}/Ultrasonic.png" />
+   <img src="../media/2024-10-26-self-hosted-music-streaming-with-navidrome/Ultrasonic.png" />
   </td>
  </tr>
 </table>

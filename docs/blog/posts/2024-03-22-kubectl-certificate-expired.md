@@ -1,7 +1,12 @@
 ---
-title:  "Kubernetes Certificate Expired"
-date:   2024-03-22 23:03:05 +0200
-categories: ubuntu server linux kubernetes docker
+date: 2024-03-22
+categories:
+ - ubuntu
+ - server
+ - linux
+ - kubernetes
+ - docker
+title: Kubernetes Certificate Expired
 ---
 
 ## Yet Another Unexpected Hump
@@ -9,6 +14,8 @@ categories: ubuntu server linux kubernetes docker
 The regular user is unable to connect to the Kubernetes API
 server because the x509 certificate expired on
 2024-03-21T21:37:37Z (nearly 24 hours ago):
+
+<!-- more --> 
 
 ```
 $ kubectl get all -n minecraft-server
@@ -141,7 +148,7 @@ returns more results, including a few that finally offer
 hints in the right direction.
 
 **TL;DR:** *By default, the certificate expires after 365 days.* That tracks, because the 
-[Kubernetex cluster in lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[Kubernetex cluster in lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
 was created *exactly a little* over one year ago,
 on Mar 22, **2023**:
 

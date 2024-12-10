@@ -1,16 +1,22 @@
 ---
-title:  "Low-effort homelab server with Ubuntu Server on Intel NUC"
-date:   2022-07-03 22:07:03 +0200
-categories: linux hardware ubuntu server btrfs intelnuc
+date: 2022-07-03
+categories:
+ - Linux
+ - Hardware
+ - Ubuntu
+ - Server
+ - Btrfs
+ - Intel NUC
+title: Low-effort homelab server with Ubuntu Server on Intel NUC
 ---
 
 *Need. More. Server. Need. More. POWER!!!*
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/","" %}
-
 But only a little bit, maybe *just enough* to run a Minecraft
 server, which refuses to start on my **Raspberry Pi 4**
 because it has only a meagre 2 GB of RAM.
+
+<!-- more --> 
 
 I had known about Intel NUC tiny PCs for a while, and
 how handy they can be to have a dedicated physical PC for
@@ -40,12 +46,12 @@ I kept this build low-cost by choosing the low-end on the CPU:
 
 Encouraged by a sudden price fall (by 15% down to $300), and
 spurred by the recent
-[failure of 6TB HDD RAID](https://stibbons1990.github.io/hex/2022/09/27/undead-yes-unraid-no.html),
+[failure of 6TB HDD RAID](../../../../2022/09/27/undead-yes-unraid-no.md),
 I added a
 [Crucial MX500 4TB 3D NAND SATA SSD](https://www.crucial.com/ssd/mx500/ct4000mx500ssd1) to serve as an backup to some of my
 precious files in that cursed RAID.
 
-Turns out, [Crucial MX500 SSD are problematic]({{ site.baseurl }}/2022/10/12/crucial-mx500-ssd-found-problematic.html).
+Turns out, [Crucial MX500 SSD are problematic](../../../../2022/10/12/crucial-mx500-ssd-found-problematic.md).
 
 ### Update #2 (2023-09-23)
 
@@ -59,7 +65,7 @@ did one process (InfluxDB) got up to 17 GB of *used* RAM,
 most likely because I made an *unreasonable request* such as
 retrieving too many days' worth of data.
 
-![RAM usage chart shows InfluxDB taking up to 21 GB at peak]({{ media }}/ram-used-17gb-influxdb.png)
+![RAM usage chart shows InfluxDB taking up to 21 GB at peak](../media/2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc/ram-used-17gb-influxdb.png)
 
 ## Ubuntu Desktop 22.04
 
@@ -372,9 +378,11 @@ PermitEmptyPasswords no
 # systemctl restart sshd
 ```
 
-**Note:** the reason for doing this is obvious after looking at
-`/var/log/auth.log` once the SSH port has been exposed externally
-for a while. Before doing this, there were **100,240** failed attempts to ssh in as `root` from **2,765 IPs**.
+!!! note
+    The reason for doing this is obvious after looking at
+    `/var/log/auth.log` once the SSH port has been exposed externally
+    for a while. Before doing this, there were **100,240** failed attempts
+    to ssh in as `root` from **2,765 IPs**.
 
 #### Setup Fail2Ban
 
@@ -544,7 +552,7 @@ be done by the time anyone wakes up.
 
 The whole process takes less than 10 minutes with a 2TB NVMe SSD:
 
-![Disk I/O and SSD temperatures chart show btrfs scrub taking less than 10 minutes, maxing out NVMe SSD bandwidth]({{ media }}/lexicon-btrfs-scrub-grafana.png)
+![Disk I/O and SSD temperatures chart show btrfs scrub taking less than 10 minutes, maxing out NVMe SSD bandwidth](../media/2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc/lexicon-btrfs-scrub-grafana.png)
 
 ## Conclusion
 
@@ -567,5 +575,5 @@ still quite small package.
 
 Watch this space for links to future posts!
 
-*  **2022-10-12** [Crucial MX500 SSD found problematic]({{ site.baseurl }}/2022/10/12/crucial-mx500-ssd-found-problematic.html)
-*  **2023-09-16** [Migrating a Plex Media Server to Kubernetes]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html)
+*  **2022-10-12** [Crucial MX500 SSD found problematic](../../../../2022/10/12/crucial-mx500-ssd-found-problematic.md)
+*  **2023-09-16** [Migrating a Plex Media Server to Kubernetes](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.md)

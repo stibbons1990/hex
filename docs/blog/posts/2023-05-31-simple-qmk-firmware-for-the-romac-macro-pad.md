@@ -1,13 +1,17 @@
 ---
-title:  "Simple QMK firmware for the RoMac macro pad"
-date:   2023-05-31 23:05:31 +0200
-categories: keyboard macropad qmk firmware
+date: 2023-05-31
+categories:
+ - keyboard
+ - macropad
+ - qmk
+ - firmware
+title: Simple QMK firmware for the RoMac macro pad
 ---
 
 QMK firmware for the RoMac macro pad was not *simple enough*
 for me, so I had to make my own.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 The [RoMac Macro Pad](https://github.com/The-Royal/The_Royal_Open-Source-Projects/blob/master/01%20-%20Complete%20Kits/The_RoMac_rev2.1/README.md)
 is a wonderful, very useful 12-key macro pad that can be a
@@ -21,7 +25,7 @@ This macro pad, which can be purchased from
 [Relegendable Keycaps](https://mechboards.co.uk/collections/keycaps/products/mx-relegendable-keycap)
 that are great to custom-label each key.
 
-![RoMac macro pad as seen from above]({{ media }}/romac-macro-pad.png)
+![RoMac macro pad as seen from above](../media/2023-05-31-simple-qmk-firmware-for-the-romac-macro-pad/romac-macro-pad.png)
 
 **Warning: this is not a keyboard you can *just buy***.
 To build this keyboard you need to buy [the kit](https://mechboards.co.uk/collections/kits/products/romac-macro-pad?variant=40366789034189),

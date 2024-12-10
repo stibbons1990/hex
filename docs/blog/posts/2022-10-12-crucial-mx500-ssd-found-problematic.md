@@ -1,11 +1,19 @@
 ---
-title:  "Crucial MX500 SSD found problematic"
-date:   2022-10-12 22:10:12 +0200
-categories: linux hardware ubuntu server crucial ssd
+date: 2022-10-12
+categories:
+ - linux
+ - hardware
+ - ubuntu
+ - server
+ - crucial
+ - ssd
+title: Crucial MX500 SSD found problematic
 ---
 
 Crucial MX500 SSD are problematic, in strange ways they
 should not be.
+
+<!-- more --> 
 
 ## Prologue
 
@@ -450,7 +458,7 @@ reproduces the error almost immediately:
 ## Root Cause Confirmed
 
 Shortly after dealing with this problem in
-[Lexicon]({{ site.baseurl }}/2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.html),
+[Lexicon](../../../../2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
 the very same problem reproduced with *another* Crucial MX500 SSD
 on a different system (**Rapture**) with a
 [ASUS PRIME X370-PRO](https://www.linuxlookup.com/review/asus_prime_x370_pro_motherboard_review) motherboard, which is

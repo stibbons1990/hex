@@ -1,12 +1,20 @@
 ---
-title:  "The death of Wi-Fi and Bluetooth"
-date:   2023-09-09 20:09:29 +0200
-categories: linux xhci usb hardware failure workaround asus mediatek
+date: 2023-09-09
+categories:
+ - linux
+ - xhci
+ - usb
+ - hardware
+ - failure
+ - workaround
+ - asus
+ - mediatek
+title: The death of Wi-Fi and Bluetooth
 ---
 
 The Wi-Fi 6E & Bluetooth 5.2 controllers in my motherboard died today.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 Until the motherboard can be replaced, the solution is to disable
 both in the UEFI BIOS. This is the only state in which the PC boots
@@ -71,14 +79,14 @@ how to capture them as text?
 
 Have a smart phone (or other device with a fast camera) ready to take photos of messages as they show up. Be ready to take many photos so you can later find one that shows what you need.
 
-![Photo of timeout errors during boot sequence]({{ media }}/usb1-port4-error.jpg)
+![Photo of timeout errors during boot sequence](../media/2023-09-09-the-death-of-wifi-and-bluetooth/usb1-port4-error.jpg)
 
 Later, you may be able to recover those lines from logs (more on this below).
 
 The recover tool shows up but the only option that seems useful at this point is to `Drop to root shell` so there we go.
 
 The system freezes again after just a few seconds, barely enough time to find the
-[script to restart a USB controller]({{ site.baseurl }}/2023/08/27/xhci-host-controller-not-responding-assume-dead.html),
+[script to restart a USB controller](../../../../2023/08/27/xhci-host-controller-not-responding-assume-dead.html),
 but not time enough to run it.
 
 *This is ridiculous!* How can I possibly even try anything if the whole system freezes within seconds?
@@ -183,7 +191,7 @@ after booting when the Wireless controller is not disabled.
 
 None of the above actually show who to disable a malfunctioning USB
 device, so I tried unbind command from the
-[script to restart a USB controller]({{ site.baseurl }}/2023/08/27/xhci-host-controller-not-responding-assume-dead.html).
+[script to restart a USB controller](../../../../2023/08/27/xhci-host-controller-not-responding-assume-dead.html).
 
 ```
 root@(none):/# /root/restart-usb.sh 0000:05:00.1

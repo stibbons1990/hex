@@ -1,7 +1,11 @@
 ---
-title:  "Calibrating screen color with DisplayCAL"
-date:   2023-10-15 10:15:23 +0200
-categories: linux ubuntu python displaycal
+date: 2023-10-15
+categories:
+ - linux
+ - ubuntu
+ - python
+ - displaycal
+title: Calibrating screen color with DisplayCAL
 ---
 
 Calibrating screen color is *mostly optional* these days, if
@@ -13,7 +17,7 @@ so a few years ago I purchased a
 which is known to work on Linux, with
 [Argyll Color Management System](https://www.argyllcms.com/).
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 What doesn't always work so well is
 [DisplayCal](https://displaycal.net/). In fact,
@@ -385,7 +389,7 @@ StartupNotify=false
 X-KDE-SubstituteUID=false
 ```
 
-![Launcher icon for DisplayCAL]({{ media }}/DisplayCAL.png)
+![Launcher icon for DisplayCAL](../media/2023-10-15-calibrating-screen-color-with-displaycal/DisplayCAL.png)
 
 **Note:** Redshift must be disabled (or stopped) **before**
 using this launcher; otherwise it will very quickly override

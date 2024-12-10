@@ -1,13 +1,19 @@
 ---
-title:  "Recording audio in a loop"
-date:   2023-09-29 23:09:29 +0200
-categories: audio recording alsa headphones
+date: 2023-09-29
+categories:
+ - audio
+ - recording
+ - alsa
+ - headphones
+title: Recording audio in a loop
 ---
 
 Sometimes I wish I could hear what someone just said.
 Most of the times, me, which is *extra hard* to
 recall with precision. We tend to remember what we
 *meant* to say, not the actual exact same words.
+
+<!-- more --> 
 
 Normally it takes *only* about an hour, maybe two,
 to realize of the desire to *rewind* and listen back.

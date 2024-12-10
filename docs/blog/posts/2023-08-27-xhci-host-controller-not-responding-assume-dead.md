@@ -1,7 +1,15 @@
 ---
-title:  "xHCI host controller not responding, assume dead"
-date:   2023-08-27 20:08:27 +0200
-categories: linux xhci usb hardware failure glitch workaround timeout
+date: 2023-08-27
+categories:
+ - linux
+ - xhci
+ - usb
+ - hardware
+ - failure
+ - glitch
+ - workaround
+ - timeout
+title: xHCI host controller not responding, assume dead
 ---
 
 Today, a number of USB devices were unavailable for no apparent reason.
@@ -15,6 +23,8 @@ xhci_hcd 0000:0b:00.3: HC died; cleaning up
 ```
 
 Hmm, *assume dead...* that doesn’t sounds good.
+
+<!-- more --> 
 
 Searching for posts about these error messages,
 the best match that showed up was 

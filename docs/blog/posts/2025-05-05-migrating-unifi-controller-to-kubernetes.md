@@ -1,8 +1,15 @@
 ---
-title:  "Migrating UniFi Controller to Kubernetes"
-date:   2025-05-05 17:52:16 +0200
-categories: linux kubernetes docker server unifi
+date: 2025-05-05
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - unifi
+title: Migrating UniFi Controller to Kubernetes
 ---
+
+<!-- more -->
 
 Install
 [linuxserver.io/docker-unifi-network-application/](https://docs.linuxserver.io/images/docker-unifi-network-application/)

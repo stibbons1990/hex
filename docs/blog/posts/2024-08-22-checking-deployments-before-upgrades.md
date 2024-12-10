@@ -1,13 +1,20 @@
 ---
-title:  "Checking deployments before upgrading kubeadm clusters"
-date:   2024-08-22 22:11:12 +0200
-categories: linux ubuntu server kubernetes docker
+date: 2024-08-22
+categories:
+ - linux
+ - ubuntu
+ - server
+ - kubernetes
+ - docker
+title: Checking deployments before upgrading kubeadm clusters
 ---
 
 I've been meaning to upgrade Kubernetes ever since 
-[*Kubernetes Certificate Expired*]({{ site.baseurl }}/2024/03/22/kubectl-certificate-expired.html)
+[*Kubernetes Certificate Expired*](../../../../2024/03/22/kubectl-certificate-expired.md)
 about a year after setting up the
-[Kubernetes cluster in lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html).
+[Kubernetes cluster in lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
+
+<!-- more -->
 
 [Upgrading kubeadm clusters](https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
 is a bit of an involved process and a little intimidating at first,

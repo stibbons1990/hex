@@ -1,17 +1,27 @@
 ---
-title:  "Getbukkit Expired"
-date:   2024-03-15 15:03:05 +0200
-categories: ubuntu server linux kubernetes docker minecraft java bedrock
+date: 2024-03-15
+categories:
+ - ubuntu
+ - server
+ - linux
+ - kubernetes
+ - docker
+ - minecraft
+ - java
+ - bedrock
+title: Getbukkit Expired
 ---
 
 ## An Unexpected Minecraft "Update"
 
 One day while looking at the
-[monitoring]({{ site.baseurl }}/2020-03-21-detailed-system-and-process-monitoring.html)
-in [lexicon]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[monitoring](../../../../2020-03-21-detailed-system-and-process-monitoring.html)
+in [lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
 I noticed there was something *big* missing: the
-[minecraft server]({{ site.baseurl }}/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.html)
+[minecraft server](../../../../2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.html)
 that normally takes over 4GB of RAM was not running:
+
+<!-- more --> 
 
 ```
 $ kubectl get all -n minecraft-server
@@ -353,7 +363,7 @@ server is restarted it will automatically update them.
 1. Download the latest **Paper** version from https://hangar.papermc.io/GeyserMC/Geyser
 2. Copy it into `/home/k8s/minecraft-server/plugins/update`
 3. Restart the server with the 
-   [start/stop scripts]({{ site.baseurl }}/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.htmlhtml#minecraft-start-k8s)
+   [start/stop scripts](../../../../2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.htmlhtml#minecraft-start-k8s)
 
 This time, the Geyser plugin starts successfully:
 

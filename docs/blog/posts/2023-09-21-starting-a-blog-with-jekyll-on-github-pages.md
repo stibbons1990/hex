@@ -1,11 +1,18 @@
 ---
-title:  "Starting a blog with Jekyll on GitHub pages"
-date:   2023-09-21 06:06:06 +0200
-categories: github jekyll markdown blog migration
+date: 2023-09-21
+categories:
+ - github
+ - jekyll
+ - markdown
+ - blog
+ - migration
+title: Starting a blog with Jekyll on GitHub pages
 ---
 
 Over the last couple of weekends I've been trying a couple of blogging platforms,
 namely [WordPress.com](https://wordpress.com) and [Blogger](https://blogger.com).
+
+<!-- more --> 
 
 Each have their pros and cons, but to cut a story short:
 

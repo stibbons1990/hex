@@ -1,12 +1,23 @@
 ---
-title:  "Installing Utau on Ubuntu Studio 22.04"
-date:   2024-06-01 14:06:24 +0200
-categories: linux kubernetes docker server self-hosted music streaming media navidrome
+date: 2024-06-01
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - self-hosted
+ - music
+ - streaming
+ - media
+ - navidrome
+title: Installing Utau on Ubuntu Studio 22.04
 ---
 
 The young artist wanted to try
 [Utau](https://es.wikipedia.org/wiki/Utau),
 which as of May 24 was on version **v0.4.19のインストーラー修正版**.
+
+<!-- more -->
 
 Downloaded the installer
 [utau0419cInstaller.zip](https://utau2008.xrea.jp/downloads/utau0419cInstaller.zip)

@@ -1,10 +1,18 @@
 ---
-title:  "Starting a blog with mkdocs-material on GitHub pages"
-date:   2024-12-03 16:06:06 +0200
-categories: github markdown blog migration mkdocs material
+date: 2024-12-03
+categories:
+ - github
+ - markdown
+ - blog
+ - migration
+ - mkdocs
+ - material
+title: Starting a blog with mkdocs-material on GitHub pages
 ---
 
 ## Get Started with Material for MkDocs
+
+<!-- more -->
 
 ### Installation
 
@@ -215,7 +223,7 @@ it would be desirable to use
 [the `same-dir` plugin](https://github.com/oprypin/mkdocs-same-dir#mkdocs-same-dir).
 This is not used in this site, because there is more than a blog
 here; there are also *static pages* such as
-[Continuous Monitoring]({{ site.baseurl }}/conmon).
+[Continuous Monitoring](../../../../conmon.md).
 
 It can also be good to have a clear separation between the blog,
 as an otherwise unorganized timeline of events, and the more
@@ -329,6 +337,7 @@ once copied under `docs/blog/posts`:
 - media files are **moved** under `docs/blog/media/`
   [using the command line](https://docs.github.com/en/repositories/working-with-files/managing-files/moving-a-file-to-a-new-location#moving-a-file-to-a-new-location-using-the-command-line)
   [`git mv`](https://git-scm.com/docs/git-mv).
+- media files URLs are then relative to blog posts: `../media/`
 
 ```
 $ mkdir docs/blog/media

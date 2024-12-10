@@ -1,10 +1,17 @@
 ---
-title:  "Audiobookshelf on Kubernetes"
-date:   2024-02-28 02:28:24 +0200
-categories: linux kubernetes audiobookshelf docker server audiobooks self-hosted
+date: 2024-02-28
+categories:
+ - linux
+ - kubernetes
+ - audiobookshelf
+ - docker
+ - server
+ - audiobooks
+ - self-hosted
+title: Audiobookshelf on Kubernetes
 ---
 
-[Migrating a Plex Media Server to Kubernetes]({{ site.baseurl }}/2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
+[Migrating a Plex Media Server to Kubernetes](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.html),
 was a significant improvement for the *maintenance* of the Plex Media
 Server I use to listen to podcasts and audiobooks, to keep me company
 while I play games, but after all these years Plex remains a
@@ -12,9 +19,9 @@ while I play games, but after all these years Plex remains a
 
 ***Enter [audiobookshelf](https://www.audiobookshelf.org/)*** (because Emby and Jellyfin are also not great)
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
-![Audiobookshelf home page]({{ media }}/audiobookshelf-home.png)
+![Audiobookshelf home page](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-home.png)
 
 ## Installation on Kubernetes
 
@@ -433,7 +440,7 @@ libraries, although by default they will have access to all libraries.
 To complete the self-hosted audiobook service, there is also the mobile app
 [advplyr/audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app).
 
-![Audiobookshelf Android app]({{ media }}/audiobookshelf-phone.png)
+![Audiobookshelf Android app](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-phone.png)
 
 [Audiobookshelf Android app](https://play.google.com/store/apps/details?id=com.audiobookshelf.app&hl=en_US)
 can easily be installed from Google Play directly. The iOS app cannot
@@ -456,7 +463,7 @@ One of my favorite features of **audiobookshelf** is the ability
 to fetch book metadata and thus more clearly tell different
 versions of a book a part, e.g. abridged vs unabridged:
 
-![Audiobookshelf Match]({{ media }}/audiobookshelf-match.png)
+![Audiobookshelf Match](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-match.png)
 
 After selecting one matching book, metadata can be edited or even
 left out. This is very useful when an exact match cannot be found,
@@ -465,7 +472,7 @@ of its metadata while at the same time manually editing or adding
 as needed. After importing metadata, there are further options to
 add or edit book metadata in the **Details** tab:
 
-![Audiobookshelf Details]({{ media }}/audiobookshelf-details.png)
+![Audiobookshelf Details](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-details.png)
 
 I find it particularly useful to add or edit:
 
@@ -477,7 +484,7 @@ I find it particularly useful to add or edit:
 
 The **Series** field is interesting to then navigate books by series:
 
-![Audiobookshelf Series]({{ media }}/audiobookshelf-series.png)
+![Audiobookshelf Series](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-series.png)
 
 ### PDF Reader
 
@@ -486,7 +493,7 @@ read from the browser by clicking the corresponding icon
 e.g. this is (half) a page of Nick Offerman's
 [Good Clean Fun](https://nickofferman.co/books/good-clean-fun/):
 
-![Audiobookshelf eBook]({{ media }}/audiobookshelf-ebook.png)
+![Audiobookshelf eBook](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-ebook.png)
 
 ### Podcast Publication Dates
 
@@ -501,7 +508,7 @@ updating the separate tool to set the
 Once these are set in the MP3 files, **audiobookshell** will
 correctly parse and display them:
 
-![Audiobookshelf podcast episodes by publication date]({{ media }}/audiobookshelf-podcasts-bydate.png)
+![Audiobookshelf podcast episodes by publication date](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-podcasts-bydate.png)
 
 ### Podcast Progress
 
@@ -512,7 +519,7 @@ on the podcast cover indicating whether all episodes have been
 listed to already (black circle) or otherwise how many are yet to
 be listened to (yellow circle):
 
-![Audiobookshelf podcasts by title]({{ media }}/audiobookshelf-podcasts.png)
+![Audiobookshelf podcasts by title](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-podcasts.png)
 
 ## Missing Features
 
@@ -562,4 +569,4 @@ listen to several podcasts that cross-reference and even *invite on*
 each other. I have not found a *good* way to do this with Audiobookshelf,
 given the no-remove-option limitations, so I'm still using Plex.
 
-![Plex podcast playlist]({{ media }}/plex-podcasts-playlist.png)
+![Plex podcast playlist](../media/2024-02-28-audiobookshelf-on-kubernetes/plex-podcasts-playlist.png)

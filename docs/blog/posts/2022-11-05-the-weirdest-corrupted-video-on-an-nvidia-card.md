@@ -1,13 +1,20 @@
 ---
-title:  "The weirdest corrupted video on an NVidia card"
-date:   2022-11-05 22:11:05 +0200
-categories: linux hardware failure nvidia troubleshooting gpuburn cuda
+date: 2022-11-05
+categories:
+ - linux
+ - hardware
+ - failure
+ - nvidia
+ - troubleshooting
+ - gpuburn
+ - cuda
+title: The weirdest corrupted video on an NVidia card
 ---
 
 This is the kind of thing that makes you think,
 *this **really** only happens to me*.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more --> 
 
 Back in June, when the availability and price of graphics card
 finally approached *relatively* normal values, I got myself an new
@@ -158,7 +165,7 @@ because it ships with the latest NVidia driver.
 Having already removed everything else out of the way,
 including the OS, this last test also reproduced the problem:
 
-![Welcome dialog of live USB OS with NVidia drivers showing the same glitchy graphical artifacts]({{ media }}/nvidia-corrupted-video-on-popos-live-usb.jpg)
+![Welcome dialog of live USB OS with NVidia drivers showing the same glitchy graphical artifacts](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-popos-live-usb.jpg)
 
 Notice the glitch lines around the top-right corner and through the Select button, plus the fixed-size square area down-and-right from the mouse cursor. This area followed the cursor, as you can see in this video.
 
@@ -334,7 +341,7 @@ Tested 1 GPUs:
 Both operations brought the GPU to 100% utilization and about 90%
 of VRAM usage, but the first run went harder on power and thermals:
 
-![Chart of GPU load, temperature, fan and power usage during the 2 2-minute runs of gpu-burn]({{ media }}/nvidia-test-1.jpg)
+![Chart of GPU load, temperature, fan and power usage during the 2 2-minute runs of gpu-burn](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-1.jpg)
 
 Later I re-run `gpu-burn` for a longer time. The example in GitHub is
 to run for 1 hour, the recommendation I got in the NVidia forum was
@@ -382,7 +389,7 @@ Tested 1 GPUs:
 	GPU 0: OK
 ```
 
-![Chart of GPU load, temperature, fan and power usage during the 20-minute run of gpu-burn]({{ media }}/nvidia-test-2.jpg)
+![Chart of GPU load, temperature, fan and power usage during the 20-minute run of gpu-burn](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-2.jpg)
 
 ### `cuda-gpumemtest`
 
@@ -435,9 +442,9 @@ the issue happened again. And this time, worse than ever.
 
 Not only the corrupted graphics happened again, it was much worse. While previously it wouldn’t happen until Xorg started, now the graphics are corrupted as soon as Grub shows up, and the login screen that used to be barely corrupted is now extremely corrupted. These are just 2 consecutive frames from the video of SDDM (below):
 
-![Extremely corrupted video on the SDDM login manager (1 of 2)]({{ media }}/nvidia-corrupted-video-on-sddm-1.jpg)
+![Extremely corrupted video on the SDDM login manager (1 of 2)](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-1.jpg)
 
-![Extremely corrupted video on the SDDM login manager (2 of 2)]({{ media }}/nvidia-corrupted-video-on-sddm-2.jpg)
+![Extremely corrupted video on the SDDM login manager (2 of 2)](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg)
 
 <iframe width="1920" height="1080" src="https://www.youtube.com/embed/QaTqfMccrlc?si=heZtZuyQdUOeN9P7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 

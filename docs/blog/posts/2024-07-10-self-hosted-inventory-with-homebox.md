@@ -1,7 +1,14 @@
 ---
-title:  "Self-hosted inventory with Homebox"
-date:   2024-06-30 12:30:24 +0200
-categories: linux kubernetes docker server self-hosted homebox inventory
+date: 2024-06-30
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - self-hosted
+ - homebox
+ - inventory
+title: Self-hosted inventory with Homebox
 ---
 
 [Homebox](https://homebox.sysadminsmedia.com/en/)
@@ -9,7 +16,7 @@ categories: linux kubernetes docker server self-hosted homebox inventory
 which sounds *exactly* like what I want, to keep track of 
 *where things go*.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 ## Installation
 
@@ -19,7 +26,7 @@ which sounds *exactly* like what I want, to keep track of
 
 
 To deploy Homebox in Kubernetes, the setup is *yet another* fork
-of the [Audiobookshelf]({{ site.baseurl }}/2024/02/28/audiobookshelf-on-kubernetes.html)
+of the [Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.md)
 deployment.
 
 A single phisical volume to store the application's databases is
@@ -194,4 +201,4 @@ Homebox is available on
 remotely. The initial login screen allows self-registering an
 account and beyon that there is not much more to explain.
 
-![Homebox login]({{ media }}/homebox-login.png)
+![Homebox login](../media/2024-07-10-self-hosted-inventory-with-homebox/homebox-login.png)

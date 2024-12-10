@@ -3,8 +3,10 @@ title: Continuous Monitoring
 permalink: /conmon/
 ---
 
+## About Continuous Monitoring
+
 This is the latest, most complete version of the scripts for
-[Detailed system and process monitoring]({{ site.baseurl }}/2020/03/31/detailed-system-and-process-monitoring.html).
+[Detailed system and process monitoring](../blog/2020/03/31/detailed-system-and-process-monitoring.html).
 
 To run in slow systems such as Raspberry Pi computers, including any one from the 
 [Zero W (v1)](https://www.raspberrypi.com/products/raspberry-pi-zero-w/)
@@ -36,9 +38,9 @@ in the network:
 ## Kubernetes Setup
 
 This setup has been 
-[migrated]({{ site.baseurl }}/2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes.html)
+[migrated](../blog/2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes.html)
 to run on a
-[single-node Kubernetes cluster]({{ site.baseurl }}/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[single-node Kubernetes cluster](../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
 and the scripts have been updated to support dual-targeting
 InfluxDB over HTTP without auth and/or HTTPS with Basic Auth.
 
@@ -134,7 +136,7 @@ Finally, enable
 [anonymous authentication](https://grafana.com/docs/grafana/latest/setup-grafana/start-restart-grafana/#start-the-grafana-server-with-systemd).
 by tweaking `/etc/grafana/grafana.ini` as follows:
 
-```conf
+```ini
 #################################### Anonymous Auth ######################
 [auth.anonymous]
 # enable anonymous access
@@ -1282,10 +1284,10 @@ done
 
 """Script to poll TAPO devices for monitoring data and post it to InfluxDB.
 
-Run conmon-tapo --help to see all available options.
+Run sauron-tapo --help to see all available options.
 
 Usage:
-  conmon-tapo [options]
+  sauron-tapo [options]
 
 Requires:
   absl-py
@@ -1315,7 +1317,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string(
     "config",
-    "/etc/conmon/tapo.yaml",
+    "/etc/sauron/tapo.yaml",
     "Configuration file with settings for InfluxDB and Tapo devices.",
     short_name="c"
 )

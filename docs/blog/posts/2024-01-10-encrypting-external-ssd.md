@@ -1,7 +1,13 @@
 ---
-title:  "Encrypting external SSD"
-date:   2024-01-10 10:01:24 +0200
-categories: linux ubuntu encryption veracrypt luks cryptsetup
+date: 2024-01-10
+categories:
+ - linux
+ - ubuntu
+ - encryption
+ - veracrypt
+ - luks
+ - cryptsetup
+title: Encrypting external SSD
 ---
 
 There are least two major approaches to encrypt external
@@ -10,6 +16,8 @@ using the drive only on Linux, while using VeryCrypt is
 the one that keeps the disk readable on all major OSes.
 
 *Why not both?*
+
+<!-- more --> 
 
 ## Starting point: Samsung T7 Shield 4TB SSD
 

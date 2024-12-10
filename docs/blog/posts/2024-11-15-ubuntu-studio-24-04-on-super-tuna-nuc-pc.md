@@ -1,12 +1,18 @@
 ---
-title:  "Ubuntu Studio 24.04 on Super Tuna (Nuc PC)"
-date:   2024-11-15 21:11:12 +0200
-categories: linux ubuntu installation setup intel nuc
+date: 2024-11-15
+categories:
+ - linux
+ - ubuntu
+ - installation
+ - setup
+ - intel
+ - nuc
+title: Ubuntu Studio 24.04 on Super Tuna (Nuc PC)
 ---
 
 Installing Ubuntu Studio 24.04 on an Nuc PC desktop.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
+<!-- more -->
 
 ## Preparation
 
@@ -116,9 +122,9 @@ from the DHCP server:
 ## Install Essential Packages
 
 Start by installing a **subset** of the
-[essential packages]({{ site.baseurl }}/2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-essential-packages), plus a few more 
+[essential packages](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages), plus a few more 
 that have been found necessary later (e.g. `auditd` to
-[stop apparmor spew in the logs]({{ site.baseurl }}/2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.html#stop-apparmor-spew-in-the-logs)):
+[stop apparmor spew in the logs](../../../../2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
 
 ```
 # apt install gdebi-core wget vim curl geeqie playonlinux \
@@ -205,9 +211,9 @@ simple as downloading the Debian package and installing it:
 ### Continuous Monitoring
 
 Install the
-[multi-thread version]({{ site.baseurl }}/conmon/#deploy-to-pcs)
+[multi-thread version](../../../../conmon.md#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service]({{ site.baseurl }}/conmon/#install-conmon);
+[run it as a service](../../../../conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ```ini
@@ -293,7 +299,7 @@ system configurations that need to be tweaked.
 ### APT respositories clean-up
 
 Ubuntu Studio 24.04 seems to consistently need a little
-[APT respositories clean-up]({{ site.baseurl }}2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#apt-respositories-clean-up); just comment out the last line
+[APT respositories clean-up](../../../..2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#apt-respositories-clean-up); just comment out the last line
 in `/etc/apt/sources.list.d/dvd.list` to let `noble-security` be
 defined (only) in `ubuntu.sources`.
 
@@ -518,7 +524,7 @@ sys     4m41.299s
 The whole process takes about 7 minutes with the 4TB NVMe SSD about
 43% full, with 1.5T used.
 
-![Resources used on a 7-minute run of btrfs scrub]({{ media }}/super-tuna-last-15-min-with-btrfs-scrub.png)
+![Resources used on a 7-minute run of btrfs scrub](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-15-min-with-btrfs-scrub.png)
 
 ### Make SDDM Look Good
 
@@ -725,7 +731,7 @@ and that is not the case here. It is the *actually* `used` memory
 that has been growing steadily over hours and is only released upon
 rebooting:
 
-![Memory usage in the last 9 hours]({{ media }}/super-tuna-last-9-h.png)
+![Memory usage in the last 9 hours](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-9-h.png)
 
 Killing the most memory intensive process had previously made no dent:
 
@@ -786,7 +792,7 @@ Swap:           8191           0        8191
 
 Indeed this only releases the `buff/cache` memory, not that which is `used`:
 
-![Memory usage in the last 15 minutes]({{ media }}/super-tuna-last-15-min.png)
+![Memory usage in the last 15 minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-15-min.png)
 
 There was another hint somewhere (Red Hat Oracle documentation)
 about the number of "huge pages" but that is already set to zero:
@@ -797,7 +803,7 @@ about the number of "huge pages" but that is already set to zero:
 ```
 
 After a wider and deeper investigation
-(see ~1500 lines in [this log]({{ media }}/2024-11-16-14-50.txt))
+(see ~1500 lines in [this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt))
 it turned out be a memory leak bug in the `i915` driver:
 
 ```
@@ -910,7 +916,7 @@ with that one-line patch and see if that helps. Maybe reinstall the system.
 #### Maybe somewhere else
 
 If the `i915` is not behind this memory leak, the one other lead from
-[this log]({{ media }}/2024-11-16-14-50.txt) is, by far, the largest
+[this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt) is, by far, the largest
 user of kernel memory is `kmalloc-rnd-07-8k`:
 
 ```
@@ -1073,11 +1079,11 @@ from the USB start-up disk, even though it had booted from it only minutes ago.
 Eventually, most to fhe above setup was restored and yet the memory leak
 was no longer happening:
 
-![Memory usage in a 2-hour period with memory leak]({{ media }}/super-tuna-2-h-with-memory-leak.png)
+![Memory usage in a 2-hour period with memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-with-memory-leak.png)
 
 Moroever, it seems the CPU cores are running visible cooler now:
 
-![Memory usage in a 2-hour period withou memory leak]({{ media }}/super-tuna-2-h-without-memory-leak.png)
+![Memory usage in a 2-hour period withou memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-without-memory-leak.png)
 
 #### But Why?
 

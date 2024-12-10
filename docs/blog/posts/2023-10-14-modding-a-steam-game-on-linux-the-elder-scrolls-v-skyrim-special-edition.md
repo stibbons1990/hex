@@ -1,12 +1,20 @@
 ---
-title:  "Modding a Steam game on Linux: The Elder Scrolls V: Skyrim Special Edition"
-date:   2023-10-14 06:10:14 +0200
-categories: steam proton videogames bethesda skyrim mods
+date: 2023-10-14
+categories:
+ - steam
+ - proton
+ - videogames
+ - bethesda
+ - skyrim
+ - mods
+title: "Modding a Steam game on Linux: The Elder Scrolls V: Skyrim Special Edition"
 ---
 
 [The Elder Scrolls V: Skyrim Special Edition](https://store.steampowered.com/app/489830/The_Elder_Scrolls_V_Skyrim_Special_Edition/)
 is admittedly one of my favorite games, having poured 200
 hours and still wanted to go back and play it again.
+
+<!-- more --> 
 
 ## Vanilla game
 

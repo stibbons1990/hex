@@ -1,11 +1,11 @@
 ---
 date: 2019-04-09
-title: Optimized AAX-to-MP3 conversion
 categories:
   - Audible
   - Bash
   - MP3
   - Plex
+title: Optimized AAX-to-MP3 conversion
 ---
 
 Audible is great, and the app is not bad, but I find Plex and
@@ -63,7 +63,7 @@ works very well so, for a while, this was the tool I used.
 After a while, it started to bother me that the conversion
 took a long time and only used 1 CPU core, all the time.
 Having to convert a boatload of books and having a 12-core
-CPU, I was motivated to create my [`aax2mp3`](#aax2mp3sh)
+CPU, I was motivated to create my [`aax2mp3`](#aax2mp3)
 script to parallelize the encoding of chapters.
 
 The performance diffences is thus most notable with long
@@ -115,7 +115,7 @@ real    47m11.226s
 user    52m53.673s
 sys     4m37.468s
 
-]$  id3v2 -l Audiobook/Brandon\ Sanderson/Elantris-Tenth\ Anniversary\ Special\ Edition/Elantris-Tenth\ Anniversary\ Special\ Edition*\ 1.mp3
+$ id3v2 -l Audiobook/Brandon\ Sanderson/Elantris-Tenth\ Anniversary\ Special\ Edition/Elantris-Tenth\ Anniversary\ Special\ Edition*\ 1.mp3
 id3v2 tag info for Audiobook/Brandon Sanderson/Elantris-Tenth Anniversary Special Edition/Elantris-Tenth Anniversary Special Edition-01 Chapter 1.mp3:
 TRCK (Track number/Position in set): 1
 TPE1 (Lead performer(s)/Soloist(s)): Brandon Sanderson

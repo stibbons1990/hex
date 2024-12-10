@@ -1,13 +1,16 @@
 ---
-title:  "Undead Yes ─ UnRAID No"
-date:   2022-09-27 22:09:27 +0200
-categories: linux hardware failure raid btrfs
+date: 2022-09-27
+categories:
+ - Linux
+ - Hardware
+ - Failure
+ - RAID
+ - Btrfs
+title: Undead Yes ─ UnRAID No
 ---
 
 *My only NAS is my PC*. At least, what people would usually do with,
 or build a NAS for, I just do it with my PC.
-
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
 
 Most of my disk storage space is a
 [BTRFS RAID 1](https://btrfs.readthedocs.io/en/latest/mkfs.btrfs.html#mkfs-section-profiles)
@@ -29,7 +32,9 @@ it. And the end of this adventure, disks emerged victorious.
 
 Keeping reading to find out how the disks came back from the dead.
 
-![Illustration by Paul Kidby: Zombie leads a small parade of undead citizens with a wooden sign that reads UNDEAD YES - UNPERSON NO]({{ media }}/fresh_start_club.jpg)
+<!-- more --> 
+
+![Illustration by Paul Kidby: Zombie leads a small parade of undead citizens with a wooden sign that reads UNDEAD YES - UNPERSON NO](../media/2022-09-27-undead-yes-unraid-no/fresh_start_club.jpg)
 
 ## Meet My Disks
 
@@ -71,13 +76,13 @@ When the scrub starts, both disks are start reading at about 300 MB/s
 which is the normal for these disks. The problem starts when, after
 about one hour, `sdb` becomes inactive:
 
-![Disk I/O chart shows disk sdb becomes inactive around 2am]({{ media }}/1.png)
+![Disk I/O chart shows disk sdb becomes inactive around 2am](../media/2022-09-27-undead-yes-unraid-no/1.png)
 
 Before dropping down to zero, transfer (read) rate on `sdb` drops
 sharply on both disks, and that that time RAM usage drops sharply
 too, down to about half of its previous value:
 
-![RAM usage chart shows used RAM drops by about 50%]({{ media }}/2.png)
+![RAM usage chart shows used RAM drops by about 50%](../media/2022-09-27-undead-yes-unraid-no/2.png)
 
 At that time, which is about 3900 seconds after scrub starts on that
 disk, btrfs errors start showing up in dmesg warning of tasks being
@@ -192,9 +197,9 @@ Comparing these timings to read transfer rate on sdb:
 *  Then another burst of activity from 04:30 to 04:45 peaking at 62 MB/s
 *  Last, attempts of read activity every 10 minutes, tiny spikes of 500 **B/s**
 
-![Disk I/O chart shows disk sdb becomes slower in steps (1 of 3)]({{ media }}/3.png)
-![Disk I/O chart shows disk sdb becomes slower in steps (2 of 3)]({{ media }}/4.png)
-![Disk I/O chart shows disk sdb becomes slower in steps (3 of 3)]({{ media }}/5.png)
+![Disk I/O chart shows disk sdb becomes slower in steps (1 of 3)](../media/2022-09-27-undead-yes-unraid-no/3.png)
+![Disk I/O chart shows disk sdb becomes slower in steps (2 of 3)](../media/2022-09-27-undead-yes-unraid-no/4.png)
+![Disk I/O chart shows disk sdb becomes slower in steps (3 of 3)](../media/2022-09-27-undead-yes-unraid-no/5.png)
 
 At this point attempting to read `sdb` just doesn’t work at all;
 it times out without even a message on `dmesg` (it was from `btrfs`),
@@ -211,22 +216,22 @@ This attempt to read sdb produced just one spike shy of 10 kB/s,
 and then nothing more than the spikes of 512 B/s every 10 minutes,
 as above.
 
-### What happened to sdc
+### What happened to `sdc`
 
 Meanwhile, read activity on sdc started off pretty good at
 350-400 MB/s but then, after about an hour, it gradually slowed
 down from 380 MB/s to 250 MB/s over the next 5.5 hours, and then
 is started to intermittently drop abruptly to only 75 MB/s:
 
-![Disk I/O chart shows disk sdc becomes gradually slower over a period of 6.5 hours]({{ media }}/6.png)
+![Disk I/O chart shows disk sdc becomes gradually slower over a period of 6.5 hours](../media/2022-09-27-undead-yes-unraid-no/6.png)
 
 The rate of read from btrfs itself is significantly lower:
 
-![Process I/O chart shows btrfs read rate also becoming gradually slower over a period of 6.5 hours]({{ media }}/7.png)
+![Process I/O chart shows btrfs read rate also becoming gradually slower over a period of 6.5 hours](../media/2022-09-27-undead-yes-unraid-no/7.png)
 
 After about 12 hours, the read rate on sdc drops even lower, to 45 MB/s:
 
-![Disk I/O chart shows disk sdc becomes even slower]({{ media }}/8.png)
+![Disk I/O chart shows disk sdc becomes even slower](../media/2022-09-27-undead-yes-unraid-no/8.png)
 
 Thousands of operations are flagged by `handle_bad_sector` as
 *attempting to read beyond the end of the device*:
@@ -522,11 +527,11 @@ Pretty much exactly 3 hours later, the writing of random patterns
 finished at 140-150 MB/s and, when the writing of zeros started,
 transfer rate jumped up to 310-330 MB/s:
 
-![Disk I/O chart shows disk sdc transfer rate jumping up]({{ media }}/9.png)
+![Disk I/O chart shows disk sdc transfer rate jumping up](../media/2022-09-27-undead-yes-unraid-no/9.png)
 
 35 minutes later the downward trend is still there, just displaced by the upward jump. Eventually the operation finished, slowing down to 140-150 MB/s by the end of it.
 
-![Disk I/O chart shows disk sdc becomes even slower again]({{ media }}/10.png)
+![Disk I/O chart shows disk sdc becomes even slower again](../media/2022-09-27-undead-yes-unraid-no/10.png)
 
 The next step *would have been* wiping ~1% of the disk in each pass,
 starting from the end, in batches of 118394372 bytes:
@@ -553,7 +558,7 @@ As it turned out, this was not necessary. Surprised by the success
 in the first operation, I decided to do the same on `sdb` first.
 It took 20 hours, but it worked!
 
-![Disk I/O chart shows disk sdb with the same pattern as sdc]({{ media }}/11.png)
+![Disk I/O chart shows disk sdb with the same pattern as sdc](../media/2022-09-27-undead-yes-unraid-no/11.png)
 
 Both disks slowed down in the same pattern, but never timed out.
 This was very surprising given the I/O errors and timeouts they
@@ -588,7 +593,7 @@ sys     176m39.930s
 
 Once again, the data transfer rate slowed down over time at a pretty linear rate:
 
-![Disk I/O chart shows disks sdb and sdc becomes slower over time]({{ media }}/12.png)
+![Disk I/O chart shows disks sdb and sdc becomes slower over time](../media/2022-09-27-undead-yes-unraid-no/12.png)
 
 As I learned from a colleague, the progressive slow down is normal, caused by
 [outer cylinders being “faster”](https://superuser.com/questions/643013/are-partitions-to-the-inner-outer-edge-significantly-faster).
@@ -850,7 +855,7 @@ sys     10m56.105s
 
 Left both commands running in parallel, both running pretty fast, for the next ~10 hours:
 
-![Disk I/O chart shows disks sdb and sdc becomes slower over time]({{ media }}/13.png)
+![Disk I/O chart shows disks sdb and sdc becomes slower over time](../media/2022-09-27-undead-yes-unraid-no/13.png)
 
 The output is a list of bad blocks in each drive, which
 [btrfs can’t use](https://unix.stackexchange.com/questions/362241/can-btrfs-track-avoid-bad-blocks/362242#362242).

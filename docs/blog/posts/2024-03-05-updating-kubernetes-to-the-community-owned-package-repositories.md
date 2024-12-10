@@ -1,7 +1,12 @@
 ---
-title:  "Updating Kubernetes to the Community-Owned Package Repositories"
-date:   2024-03-05 22:03:05 +0200
-categories: linux kubernetes docker server ubuntu
+date: 2024-03-05
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - server
+ - ubuntu
+title: Updating Kubernetes to the Community-Owned Package Repositories
 ---
 
 ## An Unexpected Update
@@ -16,6 +21,8 @@ E: The repository 'https://apt.kubernetes.io kubernetes-xenial Release' no longe
 N: Updating from such a repository can't be done securely, and is therefore disabled by default.
 N: See apt-secure(8) manpage for repository creation and user configuration details.
 ```
+
+<!-- more --> 
 
 This was promptly reported already yesterday as
 [Ubuntu kubernetes-xenial package repository issue #123673](https://github.com/kubernetes/kubernetes/issues/123673) and quick triaged

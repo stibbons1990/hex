@@ -1,12 +1,19 @@
 ---
-title:  "Detailed system and process monitoring"
-date:   2020-03-31 20:03:21 +0200
-categories: linux raspberrypi ubuntu server monitoring influxdb grafana
+date: 2020-03-31
+categories:
+  - Linux
+  - RaspberryPi
+  - Ubuntu
+  - Server
+  - Monitoring
+  - InfluxDB
+  - Grafana
+title: Detailed system and process monitoring
 ---
 
-Never got the hang of telegraf, it was all too easy to cook my own monitoring...
+Never got the hang of `telegraf`, it was all too easy to cook my own monitoring...
 
-{% assign media = site.baseurl | append: "/assets/media/" | append: page.path | replace: ".md","" | replace: "_posts/","" %}
+<!-- more --> 
 
 ## Humble Beginnings
 
@@ -39,9 +46,9 @@ Blender (not multi-threaded) compared to using the
 [pulverize](https://github.com/sciactive/pulverize) tool to
 fully multi-thread the same task:
 
-![Chart of CPU usage over time showing a single Blender process never using much more than one CPU core]({{ media }}/blender-single-cpu-2017.png)
+![Chart of CPU usage over time showing a single Blender process never using much more than one CPU core](../media/2020-03-21-detailed-system-and-process-monitoring/blender-single-cpu-2017.png)
 
-![Chart of CPU usage over time showing how pulverize, running 4 Blender processes, most CPU cores most of the time]({{ media }}/pulverize-quad-cpu-2017.png)
+![Chart of CPU usage over time showing how pulverize, running 4 Blender processes, most CPU cores most of the time](../media/2020-03-21-detailed-system-and-process-monitoring/pulverize-quad-cpu-2017.png)
 
 This early ad-hoc effort resulted in a few scripts to
 measure per-proccess CPU usage, overall CPU with thermals,
@@ -290,7 +297,7 @@ Tweak `/etc/grafana/grafana.ini` as follows to enable
 [anonymous authentication](https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/#anonymous-authentication)
 and allow anonymous users to view dashboards in the default org:
 
-```conf
+```ini
 #################################### Anonymous Auth ######################
 [auth.anonymous]
 # enable anonymous access
@@ -373,7 +380,7 @@ done
 Create a new service to run this upon reboot, e.g. as
 `/etc/systemd/system/conmon.service`
 
-```systemd
+```ini
 [Unit]
 Description=Continuous Monitoring
 After=influxd.service
@@ -413,5 +420,4 @@ be added later, here are some ideas:
 - GPU load, VRAM, temperature, fan speed, power draw
 
 These and more may be added later, keep an eye on the full
-scripts in the **Continuous Monitoring** page
-[here]({{ site.baseurl }}/conmon).
+scripts in the [**Continuous Monitoring**](/conmon) page.

@@ -1,17 +1,23 @@
 ---
-title:  "Migrating a Plex Media Server to Kubernetes"
-date:   2023-09-16 20:09:16 +0200
-categories: linux kubernetes docker plex server
+date: 2023-09-16
+categories:
+ - linux
+ - kubernetes
+ - docker
+ - plex
+ - server
+title: Migrating a Plex Media Server to Kubernetes
 ---
+
 Running [Plex Media Server](https://www.plex.tv/) on Linux is easy.
 Updating it is easy too. Re-using the library from an old server on a
 new one is also quite easy.
 
-{% assign media = site.baseurl | append: "/assets/media/" | append:  page.path | replace: ".md","" | replace: "_posts/",""  %}
-
 That said, running anything in Kubernetes is only slightly harder
 *once*, and after that updates are *entirely automatic* and moving
 from one cluster to another would be *even easier*.
+
+<!-- more --> 
 
 ## Prologue
 
@@ -589,8 +595,8 @@ which is a good time. However, given the limited CPU in
 this server, even letting it run for 4 hours every day
 results in the CPU running quite hot for all that time:
 
-![Monitoring shows CPU running at 200% and around 90ºC]({{ media }}/lexicon-plex-cpu-load-and-temps.png)
-![Monitoring shows Plex running at 200% CPU load]({{ media }}/lexicon-plex-user-cpu-load.png)
+![Monitoring shows CPU running at 200% and around 90ºC](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/lexicon-plex-cpu-load-and-temps.png)
+![Monitoring shows Plex running at 200% CPU load](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/lexicon-plex-user-cpu-load.png)
 
 To get rid of this, I went to **Settings > Server > Library**
 to update
@@ -606,7 +612,7 @@ by setting their *frequency* to **never**:
    if this *could* be useful for audiobooks, it shouldn't be
    necessary given the rather high quality of their audio.
 
-![Plex Library Settings Disabling CPU-intensive tasks]({{ media }}/lexicon-plex-settings-library.png)
+![Plex Library Settings Disabling CPU-intensive tasks](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/lexicon-plex-settings-library.png)
 
 ## Epilogue
 
@@ -636,4 +642,4 @@ the as-of-yet open question is how to create that playlist.
 
 The migration went smoothly and, I am happy to report, both goals where achieved. Here is by beloved Podcast collection:
 
-![Extended screenshots of the album view of 36 podcasts]({{ media }}/podcasts-202309.jpg)
+![Extended screenshots of the album view of 36 podcasts](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/podcasts-202309.jpg)

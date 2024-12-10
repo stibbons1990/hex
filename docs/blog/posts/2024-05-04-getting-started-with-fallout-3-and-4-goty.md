@@ -1,7 +1,12 @@
 ---
-title:  "Getting started with Fallout 3 and 4 GOTY"
-date:   2024-05-04 07:50:06 +0200
-categories: steam proton videogames bethesda fallout
+date: 2024-05-04
+categories:
+ - steam
+ - proton
+ - videogames
+ - bethesda
+ - fallout
+title: Getting started with Fallout 3 and 4 GOTY
 ---
 
 A few weeks ago
@@ -13,6 +18,8 @@ that its story was weaker and it was more focused on exploration and combat.
 Well, people say the same (and I'd agree) about
 [The Elder Scrolls V: Skyrim](https://store.steampowered.com/app/489830/)
 and I spent already more than 200 hours on it and *still* want to go back.
+
+<!-- more --> 
 
 ## Fallout 4
 
