@@ -274,7 +274,7 @@ After this operation, 124 kB of additional disk space will be used.
 ## Publish to GitHub Pages
 
 To publis the new site to GitHub Pages, replacing the previous
-[site based on Jekyll](starting-a-blog-with-jekyll-on-github-pages.md), first *undo*
+[site based on Jekyll](2023-09-21-starting-a-blog-with-jekyll-on-github-pages.md), first *undo*
 some of the settings required by Jekyll, then setup the new flow.
 
 Replace the current flow with the new one
