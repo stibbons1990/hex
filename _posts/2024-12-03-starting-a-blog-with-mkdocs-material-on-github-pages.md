@@ -321,34 +321,42 @@ old content needs to be moved under `docs/blog/posts`.
 
 ### Migrate old content
 
-The files under `docs/blog/posts` can be created by **moving** the
-files already existing under `_posts`, previously published by Jekyll,
-with a few modifications:
+The files under `_posts` will need a number of modifications,
+once copied under `docs/blog/posts`:
 
 - metadata `date` must be **only** a date (e.g. `2024-12-03`)
 - metadata `categories` must be a list in YAML format
-- media files are moved under `docs/blog/media/`
+- media files are **moved** under `docs/blog/media/`
   [using the command line](https://docs.github.com/en/repositories/working-with-files/managing-files/moving-a-file-to-a-new-location#moving-a-file-to-a-new-location-using-the-command-line)
   [`git mv`](https://git-scm.com/docs/git-mv).
 
 ```
-$ mkdir docs/blog/media docs/blog/posts
-$ git mv assets/media/2019-04-09-optimized-aax-to-mp3-conversion/ docs/blog/media/
-$ git mv _posts/2019-04-09-optimized-aax-to-mp3-conversion.md docs/blog/posts/
-$ git ci -m "Move post 2019-04-09-optimized-aax-to-mp3-conversion to mkdocs blog" .
+$ mkdir docs/blog/media
+$ git mv assets/media/* docs/blog/media/
+$ git ci -m "Move media files to mkdocs blog" .
 $ git push
 Username for 'https://github.com': stibbons1990
 Password for 'https://stibbons1990@github.com': 
-Enumerating objects: 15, done.
-Counting objects: 100% (15/15), done.
-Delta compression using up to 16 threads
-Compressing objects: 100% (9/9), done.
-Writing objects: 100% (9/9), 807 bytes | 807.00 KiB/s, done.
-Total 9 (delta 4), reused 0 (delta 0), pack-reused 0
-remote: Resolving deltas: 100% (4/4), completed with 3 local objects.
-To https://github.com/stibbons1990/hex.git
-   fad437b..dd05782  main -> main
+...
 ```
+
+The files under `docs/blog/posts` can also be created by **moving** the
+files already existing under `_posts`, then making the necessary
+modifications in follow-up commits:
+
+```
+$ mkdir docs/blog/posts
+$ git mv _posts/*.md docs/blog/posts/
+$ git ci -m "Move posts to mkdocs blog" .
+$ git push
+Username for 'https://github.com': stibbons1990
+Password for 'https://stibbons1990@github.com': 
+
+```
+
+This second `git mv` operation will lead to many `WARNING` messages in the
+Action run of `mkdocs gh-deploy`, which can be used to track down all stray
+references that may need fixing.
 
 **Note:** instead of the password, use a
 [fine-grain token for personal access](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token).
