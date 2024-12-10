@@ -223,7 +223,7 @@ it would be desirable to use
 [the `same-dir` plugin](https://github.com/oprypin/mkdocs-same-dir#mkdocs-same-dir).
 This is not used in this site, because there is more than a blog
 here; there are also *static pages* such as
-[Continuous Monitoring](../../../../conmon.md).
+[Continuous Monitoring](../../../../../conmon.md).
 
 It can also be good to have a clear separation between the blog,
 as an otherwise unorganized timeline of events, and the more
@@ -274,7 +274,7 @@ After this operation, 124 kB of additional disk space will be used.
 ## Publish to GitHub Pages
 
 To publis the new site to GitHub Pages, replacing the previous
-[site based on Jekyll](../../../../starting-a-blog-with-jekyll-on-github-pages.html), first *undo*
+[site based on Jekyll](../../../../starting-a-blog-with-jekyll-on-github-pages.md), first *undo*
 some of the settings required by Jekyll, then setup the new flow.
 
 Replace the current flow with the new one
