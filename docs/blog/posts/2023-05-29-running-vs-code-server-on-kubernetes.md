@@ -168,7 +168,7 @@ $ kubectl apply -f code-server.yaml
 Add an **A record** for `code.ssl.uu.am` pointing to the external IP and go to
 [https://code.ssl.uu.am](https://code.ssl.uu.am)
 to get the certificate creation started,
-[forward port 80](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#monthly-renewal-of-certificates)
+[forward port 80](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#monthly-renewal-of-certificates-automated)
 to the `NodePort` of the `cm-acme-http-solver`:
 
 ```

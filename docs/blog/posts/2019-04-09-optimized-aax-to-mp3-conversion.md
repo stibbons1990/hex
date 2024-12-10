@@ -63,7 +63,7 @@ works very well so, for a while, this was the tool I used.
 After a while, it started to bother me that the conversion
 took a long time and only used 1 CPU core, all the time.
 Having to convert a boatload of books and having a 12-core
-CPU, I was motivated to create my [`aax2mp3`](#aax2mp3)
+CPU, I was motivated to create my [`aax2mp3`](#aax2mp3sh)
 script to parallelize the encoding of chapters.
 
 The performance diffences is thus most notable with long

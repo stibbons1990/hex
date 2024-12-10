@@ -430,7 +430,7 @@ sys     1m25.821s
 
 The whole process takes less than 10 minutes with a 2TB NVMe SSD:
 
-![Disk I/O and SSD temperatures chart show btrfs scrub taking less than 4 minutes, maxing out NVMe SSD bandwidth]({{ media }}/computer-btrfs-scrub-grafana.png)
+![Disk I/O and SSD temperatures chart show btrfs scrub taking less than 4 minutes, maxing out NVMe SSD bandwidth](../media/2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist/computer-btrfs-scrub-grafana.png)
 
 ### Create Users
 

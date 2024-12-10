@@ -1348,7 +1348,7 @@ and
 Need to make 2 big changes to the Nginx controller:
 
 1. [Install Let’s Encrypt certificate as a secret](#install-lets-encrypt-certificate-as-a-secret)
-1. [Add Ingress for Gitea](#add-ingress-for-gitea)
+1. [Add Ingress for the first pod](#add-ingress-for-the-first-pod)
 
 ##### Install Let’s Encrypt certificate as a secret
 

@@ -102,7 +102,7 @@ is spent in activities related to Audiobooks:
 After a few more tweaks and, of course, finding the **dark**
 theme in the Setting, this is finally looking much better:
 
-![ActivityWatch Dashboard]({{ media }}/activitywatch-categorization-helper-11.png)
+![ActivityWatch Dashboard](../media/2024-06-30-self-hosted-time-tracking-with-activitywatch/activitywatch-categorization-helper-11.png)
 
 ### Additional Wathers
 

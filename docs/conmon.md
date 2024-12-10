@@ -6,7 +6,7 @@ permalink: /conmon/
 ## About Continuous Monitoring
 
 This is the latest, most complete version of the scripts for
-[Detailed system and process monitoring](blog/posts/2020-03-31-detailed-system-and-process-monitoring.md).
+[Detailed system and process monitoring](blog/posts/2020-03-21-detailed-system-and-process-monitoring.md).
 
 To run in slow systems such as Raspberry Pi computers, including any one from the 
 [Zero W (v1)](https://www.raspberrypi.com/products/raspberry-pi-zero-w/)
