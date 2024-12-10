@@ -281,6 +281,9 @@ Replace the current flow with the new one
 1. Follow the link to **create your own**.
 1. Name it `ci.yml` and paste the YAML from
    [Publishing your site with GitHub Actions](https://squidfunk.github.io/mkdocs-material/publishing-your-site/#with-github-actions).
+1. Go back to "Build and deployment", and under "Source", switch 
+   back to **Deploy from a branch** and make sure the selected
+   branch is **gh-pages** (and the forder is **/ (root)**).
 1. Click on **Commit changes...**, then **Commit changes**.
 
 After this commit the workflow will start and, understandably, fail
