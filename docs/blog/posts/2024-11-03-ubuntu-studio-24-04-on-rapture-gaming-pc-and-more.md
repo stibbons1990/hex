@@ -237,7 +237,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 ## Installation
 
 With the above partitions prepared well in advance, to
-[Install Ubuntu Studio 24.04](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
+[Install Ubuntu Studio 24.04](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-ubuntu-studio-2404)
 the process *should* be as simple, easy and smooth as it
 was with other systems.
 
@@ -752,7 +752,7 @@ to hopefully pick up the correct root for the new 22.04.
 
 The first time booting into the new system, right after login for
 the first time an additional reboot is required for the
-[Ubuntu Studio Audio Configuration](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html##ubuntu-studio-audio-configuration).
+[Ubuntu Studio Audio Configuration](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md##ubuntu-studio-audio-configuration).
 
 After rebooting again, `df` shows partitions are mounted like this:
 
@@ -1666,7 +1666,7 @@ system configurations that need to be tweaked.
 ### APT respositories clean-up
 
 Ubuntu Studio 24.04 seems to consistently need a little
-[APT respositories clean-up](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html#apt-respositories-clean-up); just comment out the last line
+[APT respositories clean-up](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#apt-respositories-clean-up); just comment out the last line
 in `/etc/apt/sources.list.d/dvd.list` to let `noble-security` be
 defined (only) in `ubuntu.sources`.
 
@@ -2212,7 +2212,7 @@ After this operation, 893 kB of additional disk space will be used.
 ### Bluetooth controller and devices
 
 Since
-[the death of Wi-Fi and Bluetooth](2023-09-09-the-death-of-wifi-and-bluetooth.html)
+[the death of Wi-Fi and Bluetooth](2023-09-09-the-death-of-wifi-and-bluetooth.md)
 chipset in this PC motherboard,
 bluetooth devices have been out of the question but also not needed.
 
