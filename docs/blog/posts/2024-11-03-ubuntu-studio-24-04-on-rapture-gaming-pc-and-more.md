@@ -237,7 +237,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 ## Installation
 
 With the above partitions prepared well in advance, to
-[Install Ubuntu Studio 24.04](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
+[Install Ubuntu Studio 24.04](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html#install-ubuntu-studio-2404)
 the process *should* be as simple, easy and smooth as it
 was with other systems.
 
@@ -752,7 +752,7 @@ to hopefully pick up the correct root for the new 22.04.
 
 The first time booting into the new system, right after login for
 the first time an additional reboot is required for the
-[Ubuntu Studio Audio Configuration](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html##ubuntu-studio-audio-configuration).
+[Ubuntu Studio Audio Configuration](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html##ubuntu-studio-audio-configuration).
 
 After rebooting again, `df` shows partitions are mounted like this:
 
@@ -932,7 +932,7 @@ ff02::2 ip6-allrouters
 ### Install Essential Packages
 
 Start by installing a few
-[essential packages](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages):
+[essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages):
 
 ```
 # apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
@@ -986,7 +986,7 @@ simple as downloading the Debian package and installing it:
 As soon as Chrome is started, the ActivityWatch extension complains
 that it can't connect to the server, because it only runs locally.
 
-Install the latest version of [ActivityWatch](../../../../2024/06/30/self-hosted-time-tracking-with-activitywatch.md)
+Install the latest version of [ActivityWatch](2024-06-30-self-hosted-time-tracking-with-activitywatch.md)
 and then run `/opt/activitywatch/aw-qt` manually once.
 This should already be in the **Autostart** settings, if it was
 setup previously, so it only needs to be run manually this once. 
@@ -1028,7 +1028,7 @@ The following NEW packages will be installed:
 ```
 
 It should also be possible to install the official Steam client, with
-[the non-snap alternative](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative). This doesn't seems necessary anymore.
+[the non-snap alternative](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative). This doesn't seems necessary anymore.
 
 ### Minecraft Java Edition
 
@@ -1042,7 +1042,7 @@ previous system:
 It works perfectly right after installing; no need to login again.
 
 In contrast, trying to re-download Minecraft Java Edition
-[seems to lead nowhere good](../../../../2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md).
+[seems to lead nowhere good](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md).
 
 ### Minecraft Bedrock Edition
 
@@ -1068,9 +1068,9 @@ blender 4.2.3 from Blender Foundation (blenderfoundation✓) installed
 ### Continuous Monitoring
 
 Install the
-[multi-thread version](../../../../conmon.md#deploy-to-pcs)
+[multi-thread version](../../conmon.md#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service](../../../../conmon.md#install-conmon);
+[run it as a service](../../conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ```ini
@@ -1666,7 +1666,7 @@ system configurations that need to be tweaked.
 ### APT respositories clean-up
 
 Ubuntu Studio 24.04 seems to consistently need a little
-[APT respositories clean-up](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.html#apt-respositories-clean-up); just comment out the last line
+[APT respositories clean-up](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.html#apt-respositories-clean-up); just comment out the last line
 in `/etc/apt/sources.list.d/dvd.list` to let `noble-security` be
 defined (only) in `ubuntu.sources`.
 
@@ -2212,7 +2212,7 @@ After this operation, 893 kB of additional disk space will be used.
 ### Bluetooth controller and devices
 
 Since
-[the death of Wi-Fi and Bluetooth](../../../../2023/09/09/the-death-of-wifi-and-bluetooth.html)
+[the death of Wi-Fi and Bluetooth](2023-09-09-the-death-of-wifi-and-bluetooth.html)
 chipset in this PC motherboard,
 bluetooth devices have been out of the question but also not needed.
 

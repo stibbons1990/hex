@@ -122,9 +122,9 @@ from the DHCP server:
 ## Install Essential Packages
 
 Start by installing a **subset** of the
-[essential packages](../../../../2024/09/14/ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages), plus a few more 
+[essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages), plus a few more 
 that have been found necessary later (e.g. `auditd` to
-[stop apparmor spew in the logs](../../../../2024/11/03/ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
+[stop apparmor spew in the logs](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
 
 ```
 # apt install gdebi-core wget vim curl geeqie playonlinux \
@@ -211,9 +211,9 @@ simple as downloading the Debian package and installing it:
 ### Continuous Monitoring
 
 Install the
-[multi-thread version](../../../../conmon.md#deploy-to-pcs)
+[multi-thread version](../../conmon.md#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service](../../../../conmon.md#install-conmon);
+[run it as a service](../../conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ```ini
