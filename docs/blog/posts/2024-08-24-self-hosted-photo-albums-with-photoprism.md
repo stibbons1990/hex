@@ -12,7 +12,7 @@ title: Self-hosted photo albums with PhotoPrism®
 ---
 
 [PhotoPrism®](https://www.photoprism.app/) is *an AI-Powered Photos App
-for the Decentralized Web* I heard some good comments about.I tried it [on my *other* Kubernetes cluster](../../../../2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md)
+for the Decentralized Web* I heard some good comments about.I tried it [on my *other* Kubernetes cluster](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md)
 and here are impressions so far.
 
 <!-- more -->

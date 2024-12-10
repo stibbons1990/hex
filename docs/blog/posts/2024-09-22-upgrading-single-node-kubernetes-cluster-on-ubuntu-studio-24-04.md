@@ -10,16 +10,16 @@ title: Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04
 ---
 
 Last month I took a look at
-[checking deployments before upgrading kubeadm clusters](../../../../2024/08/22/checking-deployments-before-upgrades.md)
+[checking deployments before upgrading kubeadm clusters](2024-08-22-checking-deployments-before-upgrades.md)
 and found results *mostly* reassuring.
 
 <!-- more -->
 
 As a practice run to upgrade more complex setups, lets upgrade
-[the cluster running on the desktop PC](../../../../2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md),
+[the cluster running on the desktop PC](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md),
 which is only running a Plex Media Server (which recently become
 unresponsive) and the
-[PhotoPrism®](../../../../2024/08/24/self-hosted-photo-albums-with-photoprism.md) photo album (which
+[PhotoPrism®](2024-08-24-self-hosted-photo-albums-with-photoprism.md) photo album (which
 never worked well enough to be critical to me).
 
 The cluster is running version 1.26 (which is quite old):
@@ -661,6 +661,6 @@ services are up and running again.
 
 In the end the process seems to have gone pretty smoothly. With
 this out of the way, and given that
-[deployments passed checks for deprecations](../../../../2024/08/22/checking-deployments-before-upgrades.md),
+[deployments passed checks for deprecations](2024-08-22-checking-deployments-before-upgrades.md),
 the next step is to repeat this process for every minor version
 up to the latest.

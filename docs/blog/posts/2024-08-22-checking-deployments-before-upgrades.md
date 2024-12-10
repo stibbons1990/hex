@@ -10,9 +10,9 @@ title: Checking deployments before upgrading kubeadm clusters
 ---
 
 I've been meaning to upgrade Kubernetes ever since 
-[*Kubernetes Certificate Expired*](../../../../2024/03/22/kubectl-certificate-expired.md)
+[*Kubernetes Certificate Expired*](2024-03-22-kubectl-certificate-expired.md)
 about a year after setting up the
-[Kubernetes cluster in lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
+[Kubernetes cluster in lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
 
 <!-- more -->
 

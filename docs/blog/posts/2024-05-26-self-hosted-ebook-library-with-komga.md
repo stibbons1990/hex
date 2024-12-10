@@ -12,7 +12,7 @@ title: Self-hosted eBook library with Komga
 ---
 
 After weeks of using
-[Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html)
+[Audiobookshelf](2024-02-28-audiobookshelf-on-kubernetes.md)
 to listen to audiobooks daily, it dawned on me that the PDF reader
 was probably not the best I could be using.
 
@@ -37,7 +37,7 @@ few others.
 ## Installation
 
 To deploy Komga in Kubernetes, the setup is essentially a fork of
-[Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html)
+[Audiobookshelf](2024-02-28-audiobookshelf-on-kubernetes.md)
 deployment.
 
 A single phisical volume to store the application's databases is

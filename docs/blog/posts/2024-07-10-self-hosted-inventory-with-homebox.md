@@ -26,7 +26,7 @@ which sounds *exactly* like what I want, to keep track of
 
 
 To deploy Homebox in Kubernetes, the setup is *yet another* fork
-of the [Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.md)
+of the [Audiobookshelf](2024-02-28-audiobookshelf-on-kubernetes.md)
 deployment.
 
 A single phisical volume to store the application's databases is

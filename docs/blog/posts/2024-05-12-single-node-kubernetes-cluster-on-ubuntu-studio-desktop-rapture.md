@@ -12,7 +12,7 @@ title: Single-node Kubernetes cluster on Ubuntu Studio desktop (rapture)
 
 For a bit more than a year, I've been running self-hosted
 services on a
-[single-node Kubernetes cluster on Ubuntu server](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
+[single-node Kubernetes cluster on Ubuntu server](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html)
 and, while it has presented some troubles to shoot, I have
 grown used to the advantages of deploying services far more
 easily, without having to worry too much about their
@@ -31,19 +31,19 @@ me thinking it may be time to upgrade the cluster.
 First, following the removal of
 [Legacy Package Repositories](https://kubernetes.io/blog/2023/08/31/legacy-package-repository-deprecation/),
 I had to
-[update Kubernetes to the Community-Owned Package Repositories](../../../../2024/03/05/updating-kubernetes-to-the-community-owned-package-repositories.html),
+[update Kubernetes to the Community-Owned Package Repositories](2024-03-05-updating-kubernetes-to-the-community-owned-package-repositories.html),
 which didn't *directly* break anything but there *was*
-[an unexpected breakage](../../../../2024/03/05/updating-kubernetes-to-the-community-owned-package-repositories.html#an-unexpected-breakage)
+[an unexpected breakage](2024-03-05-updating-kubernetes-to-the-community-owned-package-repositories.html#an-unexpected-breakage)
 due to a
 [minor version mismatch](https://kubernetes.io/releases/version-skew-policy/#supported-versions),
 after which the cluster was left at version **1.26** as this
 was the one originall installed for the
-[single-node Kubernetes cluster on](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html).
+[single-node Kubernetes cluster on](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
 
 Then, just a few weeks later, the
-[Kubernetes Certificate Expired](../../../../2024/03/22/kubectl-certificate-expired.html)
+[Kubernetes Certificate Expired](2024-03-22-kubectl-certificate-expired.md)
 and eventually the solution was to perform a cumbersome
-[manual certificate renewal](../../../../2024/03/22/kubectl-certificate-expired.html#manual-certificate-renewal).
+[manual certificate renewal](2024-03-22-kubectl-certificate-expired.html#manual-certificate-renewal).
 While I'm still not entirely convince that it *will* work,
 apparently certificates *should* be automatically renewed when
 the Kubernetes cluster is upgraded to a higher *minor version*.
@@ -75,21 +75,21 @@ only to try things out with the peace of mind of not riksing
 ### More Motivation
 
 On the other hand, other incidents went rather well, e.g. when
-[Getbukkit Expired](../../../../2024/03/15/getbukkit-expired.html)
+[Getbukkit Expired](2024-03-15-getbukkit-expired.md)
 the solutions where relativly easy to apply and I suspect
 it was easier to update a single YAML file and `kubectl apply`
 than applying the same changes on a bespoke environment would
 have been.
 
 I have also been wanting to
-[migrate Plex Media Server to Kubernetes](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.html)
+[migrate Plex Media Server to Kubernetes](2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
 on my desktop PC, even though I barely use it.
 Precisely because I barely use this one, it would be nice to
 deploy it in Kubernetes and forget about it, letting Kubernetes
 handle updates which I'm not bothering with (not using it).
 
 I might also want to make more risky experiments with a
-[Minecraft Java Server for Bedrock clients](../../../../2023/08/10/running-minecraft-java-server-for-bedrock-clients-on-kubernetes.html),
+[Minecraft Java Server for Bedrock clients](2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md),
 something I'd feel better doing on my PC with a `world` nobody
 care about.
 
@@ -97,7 +97,7 @@ But what I think would be more interesting is trying some other
 applications I have not been able to run in Kubernetes so far, mostly because they are much more CPU-hungry than what a low-end
 Intel NUC can handle:
 
-*  [Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html) is *surprisingly* CPU
+*  [Audiobookshelf](2024-02-28-audiobookshelf-on-kubernetes.md) is *surprisingly* CPU
    intensive, not sure why but it is the one service that makes
    the CPU run hotter on a regular basis, although always in
    short spikes and never much above 100% (a single CPU core).
@@ -132,7 +132,7 @@ $ cd 1.26
 
 ## Install Kubernetes
 
-[Kubernetes installation in Lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#kubernetes)
+[Kubernetes installation in Lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#kubernetes)
 was based on 
 [Install Kubernetes Cluster on Ubuntu 22.04 using kubeadm](https://computingforgeeks.com/install-kubernetes-cluster-ubuntu-jammy/),
 [How to install Kubernetes on Ubuntu 22.04 Jammy Jellyfish Linux](https://linuxconfig.org/how-to-install-kubernetes-on-ubuntu-22-04-jammy-jellyfish-linux)
@@ -337,7 +337,7 @@ net.ipv4.ip_forward = 1
 ```
 
 *Even so*, **these must be enabled explicitly** to avoid issues
-later, [*ask me how I know*](../../../../2024/09/22/upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.html).
+later, [*ask me how I know*](2024-09-22-upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.html).
 
 ### Install containerd
 
@@ -709,7 +709,7 @@ because, already since v1.22,
 
 This would be a good time to do the same with 
 `/var/lib/docker` and, when using BTRFS, add this
-[Important Tweak for BTRFS](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#important-tweak-for-btrfs).
+[Important Tweak for BTRFS](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#important-tweak-for-btrfs).
 
 Fist, create `/etc/docker/daemon.json` with this:
 
@@ -747,7 +747,7 @@ move `/var/lib/docker` and start services again:
 Possibly because Docker was already using `overlay2`,
 possibly because the root partition is not using BTRFS,
 Docker images were not lost as
-[it happened in Lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#ask-me-how-i-know).
+[it happened in Lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#ask-me-how-i-know).
 
 **Warning:** at the end of the
 [Container runtimes](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
@@ -1447,11 +1447,11 @@ $ curl http://192.168.0.228/
 ## HTTPS with Let’s Encrypt
 
 The
-[Kubernetes setup for Let’s Encrypt in Lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#kubernetes-setup)
+[Kubernetes setup for Let’s Encrypt in Lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#kubernetes-setup)
 was riddled with *first-time issues*, but I was able to
-[Add Ingress for Kubernetes Dashboard](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#add-ingress-for-kubernetes-dashboard)
+[Add Ingress for Kubernetes Dashboard](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#add-ingress-for-kubernetes-dashboard)
 and setup en entirely
-[*automated* monthly renewal of certificates](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#monthly-renewal-of-certificates-automated).
+[*automated* monthly renewal of certificates](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#monthly-renewal-of-certificates-automated).
 However, the entire *Let’s Encrypt* system to obtain and
 renew certificates relies on external requests reaching the
 NGinx controller, which is precisely some to avoid here.
@@ -1481,7 +1481,7 @@ Before finding out that the
 [GitLab Helm chart](https://docs.gitlab.com/charts/) requires
 more CPU to be allocated than available, I spent some time to
 setup a
-[LocalPath PV provisioner in Lexicon](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#localpath-pv-provisioner)
+[LocalPath PV provisioner in Lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.html#localpath-pv-provisioner)
 but this was never really used. In the end, **all** services
 deployed in Lexicon are using `storageClassName: manual` with
 `hostPath` pointing to specific directories in local file
@@ -1495,7 +1495,7 @@ to fullfil all other
 
 ## Audiobookshelf
 
-[Audiobookshelf](../../../../2024/02/28/audiobookshelf-on-kubernetes.html) may be a good example to
+[Audiobookshelf](2024-02-28-audiobookshelf-on-kubernetes.html) may be a good example to
 check much better a service runs having many more CPU cores
 available. For this test, the deployment is limited to just
 audiobooks (no podcasts), stored under a different path
@@ -1819,7 +1819,7 @@ the service is not running:
 
 Migrating the Plex Media Server in Rapture to Kubernetes would
 be a repetition of the same exercise already done for the 
-[Plex Media Server deployment in Lexicon](../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes.html#kubernetes), with only a few changes:
+[Plex Media Server deployment in Lexicon](2023-09-16-migrating-a-plex-media-server-to-kubernetes.html#kubernetes), with only a few changes:
 
 *   Audio files are stored under `/home/raid/audio` but some
     of the libraries are pointing to `/home/depot/audio`

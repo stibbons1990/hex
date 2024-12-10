@@ -9,7 +9,7 @@ title:  "Ubuntu Studio 24.04 on Computer, for a young artist"
 ---
 
 It has been nearly two years since installing 
-[Ubuntu Studio 22.04 on Computer, for a young artist](../../../../2022/11/12/ubuntu-studio-22-04-on-computer-for-a-young-artist.md)
+[Ubuntu Studio 22.04 on Computer, for a young artist](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md)
 and so it is time to upgrade it to the next LTS version:
 [**Ubuntu Studio**](https://ubuntustudio.org/) **24.04**.
 
@@ -234,7 +234,7 @@ After this operation, 1,131 MB of additional disk space will be used.
 ```
 
 **Note:** a few packages are missing here, compared to those installed
-with [Ubuntu Studio 22.04](../../../../2022/11/12/ubuntu-studio-22-04-on-computer-for-a-young-artist.md#apt-packages):
+with [Ubuntu Studio 22.04](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md#apt-packages):
 - `netcat` is a virtual package now; instead of on its providers must
   be selected explicitly:
   - `netcat-openbsd` contains the OpenBSD rewrite of netcat,
@@ -307,9 +307,9 @@ Tdie:         +27.5°C
 ### Continuous Monitoring
 
 Install the
-[multi-thread version](../../../../conmon.md/#deploy-to-pcs)
+[multi-thread version](../../conmon.md/#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service](../../../../conmon.md/#install-conmon);
+[run it as a service](../../conmon.md/#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ```ini
@@ -954,7 +954,7 @@ previous system:
 It works perfectly right after installing; no need to login again.
 
 In contrast,
-[at least 2 years ago](../../../../2022/11/12/ubuntu-studio-22-04-on-computer-for-a-young-artist.md#minecraft)
+[at least 2 years ago](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md#minecraft)
 the [`Minecraft_staging.deb` launcher](https://launcher.mojang.com/mc-staging/download/Minecraft_staging.deb)
 no longer worked, because it only allows trying to log in with
 **Mojang accounts**, and those have been deprecated.

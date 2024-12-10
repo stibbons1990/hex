@@ -20,7 +20,7 @@ device* I heard about in the
 [Linux Matters](https://linuxmatters.sh/37/) podcast.
 
 I tried it on
-[my little Kubernetes cluster](../../../../2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
+[my little Kubernetes cluster](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
 and here are impressions so far.
 
 <!-- more -->

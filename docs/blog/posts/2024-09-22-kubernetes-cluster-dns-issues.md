@@ -12,7 +12,7 @@ title: Kubernetes cluster DNS issues
 
 **TL;DR:**
 [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
-is **not optional**; even if it [looks like it](../../../../2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites).
+is **not optional**; even if it [looks like it](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites).
 Skipping that crucial step that takes a few minutes eventually led
 to wasting over 3 hours troubleshooting a issue that, apparently,
 *nobody has ever solved on the Internet before*. Naturally,
@@ -23,7 +23,7 @@ because *nobody should ever need to*.
 ### The Problem(s)
 
 When I tried to *push* to Github from Visual Studio Code, after
-[upgrading the Kubernetes on Rapture](../../../../2024/09/22/upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.md)
+[upgrading the Kubernetes on Rapture](2024-09-22-upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.md)
 (which is the article I was trying to publish), it failed with:
 
 *Git: fatal: unable to access 'https://github.com/stibbons1990/hex.git/': Could not resolve host: github.com*
@@ -407,7 +407,7 @@ net.ipv4.ip_forward_update_priority = 1
 net.ipv4.ip_forward_use_pmtu = 0
 ```
 
-Comparing with what **was** there when checking [prerequisites](../../../../2024/05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites) in May, `net.bridge.*` variables are missing:
+Comparing with what **was** there when checking [prerequisites](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites) in May, `net.bridge.*` variables are missing:
 
 ```
 root@rapture:~# sysctl -a | egrep 'net.ipv4.ip_forward|net.bridge.bridge-nf-call-ip'
