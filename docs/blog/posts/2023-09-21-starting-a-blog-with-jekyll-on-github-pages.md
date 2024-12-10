@@ -314,6 +314,7 @@ the *entire*
 file under the project folder, as
 `assets/css/main.scss`, then add the `$max-width` variable override:
 
+{% raw %}
 ```scss
 ---
 # Only the main Sass file needs front matter (the dashes are enough)
@@ -324,9 +325,10 @@ search: false
 
 $max-width: 1900px;
 
-@import "minimal-mistakes/skins/{{% site.minimal_mistakes_skin | default: 'default' %}}"; // skin
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
 ```
+{% endraw %}
 
 #### Install Google Analytics
 

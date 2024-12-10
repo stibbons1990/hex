@@ -431,7 +431,8 @@ be created with *a whole new world*.
 
 The `minecraft-server-fortune` script ...
 
-```bash
+{% raw %}
+```bash title="minecraft-server-fortune"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -449,6 +450,7 @@ i=$(shuf -i 0-$((len-1)) -n 1)
 fortune=${fortunes[$i]}
 minecraft_server_cmd "say $fortune"
 ```
+{% endraw %}
 
 ### `minecraft-server-kick`
 
