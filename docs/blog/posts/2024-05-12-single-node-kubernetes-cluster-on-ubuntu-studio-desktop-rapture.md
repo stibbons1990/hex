@@ -1287,7 +1287,7 @@ a login token:
 
 ![Kubernetes Dashboard login page](../media/2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture/kubernetes-dashboard-login.png)
 
-The [Authentication](kubernetes.io/docs/admin/authentication/)
+The [Authentication](https://kubernetes.io/docs/admin/authentication/)
 link is broken; the documentation that seems most relevant to
 authenticating Service Accounts to acess the dashboard is the
 [Authenticating](https://v1-27.docs.kubernetes.io/docs/reference/access-authn-authz/authentication/) page, which
@@ -1342,7 +1342,7 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IkktZ05rdlNzcVNzb1F0S3VYYmo3TXlpMjdTU2ktUUhpSzQwcUNL
 
 **Note:** at this point the SSL certificate is not yet valid,
 this will be
-[addressed later](#add-ingress-for-kubernetes-dashboard)
+[addressed later](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#add-ingress-for-kubernetes-dashboard)
 by accessing the dashboard via an
 [Ingress Controller](#ingress-controller) with
 [HTTPS](#https-with-lets-encrypt).

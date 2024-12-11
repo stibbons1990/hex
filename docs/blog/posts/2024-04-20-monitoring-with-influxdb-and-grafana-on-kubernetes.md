@@ -13,7 +13,7 @@ title: Monitoring with InfluxDB and Grafana on Kubernetes
 
 Four years later, I *still* have not gotten the hang of
 telegraf, I'm *still* running my own home-made
-[detailed system and process monitoring](2020-03-31-detailed-system-and-process-monitoring.md)
+[detailed system and process monitoring](2020-03-21-detailed-system-and-process-monitoring.md)
 reporting to InfluxDB running *container-lessly* in
 [lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
 and I feel the time is up for moving these services
@@ -26,7 +26,7 @@ the cluster's infrastructure to expose these services
 
 ## Current Setup
 
-[Continuous Monitoring](../../conmon/) describes the current, complete setup with the OSS
+[Continuous Monitoring](../../conmon.md) describes the current, complete setup with the OSS
 versions of InfluxDB and Grafana.
 
 ## Kubernetes Deployment
@@ -701,7 +701,7 @@ replicaset.apps/influxdb-87c66ff6     0         0         0       17h
 
 ## Conmon Migration
 
-[Continuous Monitoring](../../conmon/)
+[Continuous Monitoring](../../conmon.md)
 can now be migrated to report metrics to a (new)
 database in the new InfluxDB and serve dashboards
 securely over HTTPS from the new Grafana.

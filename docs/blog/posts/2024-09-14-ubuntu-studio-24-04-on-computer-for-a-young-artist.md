@@ -560,7 +560,7 @@ that *just happens*: the first time logging in with a new user
 an **OK** button. Upon clicking this button, the system reboots.
 After logging in again, audio seems to work just fine.
 
-![Ubuntu Studio Audio Configuration]({{ media }}/computer-ubuntu-studio-audio-configuration.png)
+![Ubuntu Studio Audio Configuration](../media/2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist/computer-ubuntu-studio-audio-configuration.png)
 
 ### APT respositories clean-up
 
@@ -895,7 +895,7 @@ provided by Canonical.
 When runing the Steam client for the first time, a pop-up shows up
 advising to install additional 32-bit drivers *for best experience*
 
-![Recommended 32-bit drivers]({{ media }}/computer-ubuntu-studio-steam-recommended-32-bit-drivers.png)
+![Recommended 32-bit drivers](../media/2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist/computer-ubuntu-studio-steam-recommended-32-bit-drivers.png)
 
 ```
 # dpkg --add-architecture i386
