@@ -752,7 +752,7 @@ to hopefully pick up the correct root for the new 22.04.
 
 The first time booting into the new system, right after login for
 the first time an additional reboot is required for the
-[Ubuntu Studio Audio Configuration](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md##ubuntu-studio-audio-configuration).
+[Ubuntu Studio Audio Configuration](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#ubuntu-studio-audio-configuration).
 
 After rebooting again, `df` shows partitions are mounted like this:
 
