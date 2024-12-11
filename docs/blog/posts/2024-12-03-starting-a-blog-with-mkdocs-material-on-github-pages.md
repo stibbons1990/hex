@@ -7,59 +7,92 @@ categories:
  - migration
  - mkdocs
  - material
-title: Starting a blog with mkdocs-material on GitHub pages
 ---
+
+# Starting a blog with mkdocs-material on GitHub pages
+
+After about a year since
+[starting a blog with Jekyll on GitHub pages](2023-09-21-starting-a-blog-with-jekyll-on-github-pages.md),
+the time has come to step this blog's game up. Jekyll is good,
+but it makes copying text a bit hard sometimes (hard to see)
+and code blocks are lacking some features like showing file
+names and highlighting specific lines. These features, and more,
+are available in
+[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/),
+another Markdown-based documentation framwork that looks really good!
+
+<!-- more -->
 
 ## Get Started with Material for MkDocs
 
-<!-- more -->
+For a tutorial, see [Material for MkDocs: Full Tutorial To Build And Deploy Your Docs Portal](https://youtu.be/xlABhbnNrfI?si=b17fSmSDjA6yzpeq).
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xlABhbnNrfI?si=ngShg7A9gOXy1YXg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+For more inspiration, see also
+[Beautiful Pages on GitLab with mkdocs](https://yodamad.hashnode.dev/beautiful-pages-on-gitlab-with-mkdocs).
 
 ### Installation
 
 [Installation](https://squidfunk.github.io/mkdocs-material/getting-started/)
-of Material for MkDocs using `pip` is not recommended in Ubuntu Studio; an
-`error: externally-managed-environment` recommends using `apt install` instead:
+of Material for MkDocs using `pip` but this is not recommended in Ubuntu Studio:
+
+```
+$ pip install mkdocs-material
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+```
+
+Install using `apt install` instead:
 
 ```
 # apt install mkdocs-material mkdocs-material-extensions -y
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-The following additional packages will be installed:
-  ghp-import libjs-bootstrap4 libjs-lunr libjs-modernizr libjs-popper.js libjs-sizzle mkdocs
-  node-jquery python3-joblib python3-livereload python3-lunr python3-mergedeep python3-nltk
-  python3-pathspec python3-platformdirs python3-pymdownx python3-pyyaml-env-tag python3-regex
-  python3-tqdm
-Suggested packages:
-  libjs-es5-shim mkdocs-doc nodejs coffeescript node-less node-uglify python-livereload-doc
-  python3-django python3-slimmer python-lunr-doc
-Recommended packages:
-  prover9
-The following NEW packages will be installed:
-  ghp-import libjs-bootstrap4 libjs-lunr libjs-modernizr libjs-popper.js libjs-sizzle mkdocs
-  mkdocs-material mkdocs-material-extensions node-jquery python3-joblib python3-livereload
-  python3-lunr python3-mergedeep python3-nltk python3-pathspec python3-platformdirs
-  python3-pymdownx python3-pyyaml-env-tag python3-regex python3-tqdm
-0 upgraded, 21 newly installed, 0 to remove and 3 not upgraded.
-Need to get 8,721 kB of archives.
-After this operation, 41.4 MB of additional disk space will be used.
 ```
 
-**Note:** Material for MkDocs relies on `watchmedo` from 
-[gorakhargosh/watchdog](https://github.com/gorakhargosh/watchdog/tree/master?tab=readme-ov-file#shell-utilities)
-so wherever that is installed must be added to the `PATH` variable, e.g. in `.bashrc`
+??? quote "`# apt install mkdocs-material mkdocs-material-extensions -y`"
 
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
+    ```
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      ghp-import libjs-bootstrap4 libjs-lunr libjs-modernizr libjs-popper.js libjs-sizzle mkdocs
+      node-jquery python3-joblib python3-livereload python3-lunr python3-mergedeep python3-nltk
+      python3-pathspec python3-platformdirs python3-pymdownx python3-pyyaml-env-tag python3-regex
+      python3-tqdm
+    Suggested packages:
+      libjs-es5-shim mkdocs-doc nodejs coffeescript node-less node-uglify python-livereload-doc
+      python3-django python3-slimmer python-lunr-doc
+    Recommended packages:
+      prover9
+    The following NEW packages will be installed:
+      ghp-import libjs-bootstrap4 libjs-lunr libjs-modernizr libjs-popper.js libjs-sizzle mkdocs
+      mkdocs-material mkdocs-material-extensions node-jquery python3-joblib python3-livereload
+      python3-lunr python3-mergedeep python3-nltk python3-pathspec python3-platformdirs
+      python3-pymdownx python3-pyyaml-env-tag python3-regex python3-tqdm
+    0 upgraded, 21 newly installed, 0 to remove and 3 not upgraded.
+    Need to get 8,721 kB of archives.
+    After this operation, 41.4 MB of additional disk space will be used.
+    ```
+
+!!! note
+
+    Material for MkDocs relies on `watchmedo` from 
+    [gorakhargosh/watchdog](https://github.com/gorakhargosh/watchdog/tree/master?tab=readme-ov-file#shell-utilities)
+    so wherever that is installed must be added to the `PATH` variable, e.g. in `.bashrc`
+    ```bash
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
 
 ### Creating a new site
 
 Create a new directory for the new site, and initialize it:
 
 ```
-$ mkdir notes
-$ cd notes
 $ mkdocs new .
 INFO    -  Writing config file: ./mkdocs.yml
 INFO    -  Writing initial docs: ./docs/index.md
@@ -67,7 +100,7 @@ INFO    -  Writing initial docs: ./docs/index.md
 
 Setup the site name and URL in `mkdocs.yml`
 
-```yml
+``` yaml title="mkdocs.yml"
 site_name: Inadvisably Applied Magic
 theme:
   name: material
@@ -79,21 +112,40 @@ Run the local server and follow the link provided to see the new site:
 $ mkdocs serve
 ```
 
-Content can be added now to `docs/index.md` and any new files. Changes are picked up
-as soon as the files are saved to disk, the site will automatically refresh.
+??? quote "`$ mkdocs serve`"
 
-## Create a Blog
+    ```
+    INFO    -  Building documentation...
+    INFO    -  [macros] - Macros arguments: {'module_name': 'main',
+              'modules': [], 'render_by_default': True, 'include_dir': '',
+              'include_yaml': [], 'j2_block_start_string': '',
+              'j2_block_end_string': '', 'j2_variable_start_string': '',
+              'j2_variable_end_string': '', 'on_undefined': 'strict',
+              'on_error_fail': False, 'verbose': False}
+    INFO    -  [macros] - Extra filters (module): ['pretty']
+    INFO    -  Cleaning site directory
+    INFO    -  Documentation built in 6.55 seconds
+    INFO    -  [21:53:31] Watching paths for changes: 'docs', 'mkdocs.yml'
+    INFO    -  [21:53:31] Serving on http://127.0.0.1:8000/
+    ```
+
+Content can be added now to `docs/index.md` and any new files. Changes are picked up
+as soon as the files are saved to disk and the site will refresh automatically.
+
+## Creating a Blog
 
 [Set up a blog](https://squidfunk.github.io/mkdocs-material/setup/setting-up-a-blog/)
 using the built-in `blog` plugin.
 
-Alternatively, create a new repository with the **Use this template** button in the
-[Material for Mkdocs Blog Template](https://github.com/mkdocs-material/create-blog?tab=readme-ov-file#a-material-for-mkdocs-blog-template).
+!!! info ""
+
+    Alternatively, create a new repository with the **Use this template** button in the
+    [Material for Mkdocs Blog Template](https://github.com/mkdocs-material/create-blog?tab=readme-ov-file#a-material-for-mkdocs-blog-template).
 
 To create a blog with the built-in `blog` plugin, add it to the
 `mkdocs.yml`:
 
-```yaml
+``` yaml title="mkdocs.yml" hl_lines="2 3"
 site_name: Inadvisably Applied Magic
 plugins:
   - blog
@@ -104,59 +156,40 @@ theme:
 Now, as soon as the `blog` plugin is loaded, the server crashes and refuses
 to start again, because the  `paginate` module cannot be found:
 
-```
-$ mkdocs serve
-...
-  File "/usr/lib/python3/dist-packages/material/plugins/blog/plugin.py", line 38, in <module>
-    from paginate import Page as Pagination
-ModuleNotFoundError: No module named 'paginate'
-```
+!!! failure "`$ mkdocs serve`"
+
+    ```
+    ...
+      File "/usr/lib/python3/dist-packages/material/plugins/blog/plugin.py", line 38, in <module>
+        from paginate import Page as Pagination
+    ModuleNotFoundError: No module named 'paginate'
+    ```
 
 There is no system package in Ubuntu 24.04 that provides this module,
-so it must be installed via `pip`:
+so it must be installed via `pip` (forced with `--break-system-packages`):
 
-```
-$ sudo pip3 install paginate
-error: externally-managed-environment
+??? quote "`$ sudo pip3 install --break-system-packages paginate`"
 
-× This environment is externally managed
-╰─> To install Python packages system-wide, try apt install
-    python3-xyz, where xyz is the package you are trying to
-    install.
-    
-    If you wish to install a non-Debian-packaged Python package,
-    create a virtual environment using python3 -m venv path/to/venv.
-    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
-    sure you have python3-full installed.
-    
-    If you wish to install a non-Debian packaged Python application,
-    it may be easiest to use pipx install xyz, which will manage a
-    virtual environment for you. Make sure you have pipx installed.
-    
-    See /usr/share/doc/python3.12/README.venv for more information.
-
-note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
-hint: See PEP 668 for the detailed specification.
-
-$ sudo pip3 install --break-system-packages paginate
-Collecting paginate
-  Downloading paginate-0.5.7-py2.py3-none-any.whl.metadata (11 kB)
-Downloading paginate-0.5.7-py2.py3-none-any.whl (13 kB)
-Installing collected packages: paginate
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-mkdocs-material 9.4.0 requires pymdown-extensions~=10.2, but you have pymdown-extensions 9.5 which is incompatible.
-Successfully installed paginate-0.5.7
-WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
-```
+    ```
+    $ sudo pip3 install --break-system-packages paginate
+    Collecting paginate
+      Downloading paginate-0.5.7-py2.py3-none-any.whl.metadata (11 kB)
+    Downloading paginate-0.5.7-py2.py3-none-any.whl (13 kB)
+    Installing collected packages: paginate
+    ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+    mkdocs-material 9.4.0 requires pymdown-extensions~=10.2, but you have pymdown-extensions 9.5 which is incompatible.
+    Successfully installed paginate-0.5.7
+    WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+    ```
 
 ### Add a Post
 
 Posts can be any files under `docs/blog/posts/` so long as they have a `date`
 in their metadata section. It is convenient to add the date to the file name,
-e.g. `docs/blog/posts/2024-11-01-test.md`, but the `date` in the metadata will
-take precedence over that in the file name.
+e.g. `docs/blog/posts/2024-11-01-this-is-only-a-test.md`, but the `date` in the
+metadata will take precedence over that in the file name.
 
-```md
+``` markdown title="2024-11-01-this-is-only-a-test.md"
 ---
 date: 2024-11-01
 ---
@@ -175,7 +208,7 @@ Other interesting metadata is the `categories`, to classify and group posts
 under the **Archive** section, and the `slug` in case of really long titles
 getting URLs too long.
 
-```md
+``` markdown title="2024-11-01-this-is-only-a-test.md"
 ---
 date: 2024-11-01
 slug: this-is-only-a-test
@@ -237,18 +270,12 @@ using the `same-dir` plugin or not, `extra` data can be added to
 the `mkdocs.yml` configuration and used in content generation via
 the `macros` plugin:
 
-```yml
+``` yaml title="mkdocs.yml" hl_lines="1-3 6-7"
 extra:
   site:
     baseurl: http://127.0.0.1:8000/
-nav:
-  - About This Place: 'index.md'
-  - Continuous Monitoring: 'conmon.md'
-  - Blog: 'blog/index.md'
 plugins:
-  - blog:
-      pagination: true
-      pagination_per_page: 10
+  - blog
   - macros:
       on_undefined: strict
 site_name: Inadvisably Applied Magic
@@ -257,23 +284,24 @@ site_name: Inadvisably Applied Magic
 This may require installing the `macros` pluging in the system;
 in Ubuntu this requires installing `mkdocs-macros-plugin`:
 
-```
-# sudo apt install mkdocs-macros-plugin
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-The following additional packages will be installed:
-  python3-termcolor
-The following NEW packages will be installed:
-  mkdocs-macros-plugin python3-termcolor
-0 upgraded, 2 newly installed, 0 to remove and 3 not upgraded.
-Need to get 29.1 kB of archives.
-After this operation, 124 kB of additional disk space will be used.
-```
+??? quote "`# sudo apt install mkdocs-macros-plugin`"
+
+    ```
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      python3-termcolor
+    The following NEW packages will be installed:
+      mkdocs-macros-plugin python3-termcolor
+    0 upgraded, 2 newly installed, 0 to remove and 3 not upgraded.
+    Need to get 29.1 kB of archives.
+    After this operation, 124 kB of additional disk space will be used.
+    ```
 
 ## Publish to GitHub Pages
 
-To publis the new site to GitHub Pages, replacing the previous
+To publish the new site to GitHub Pages, replacing the previous
 [site based on Jekyll](2023-09-21-starting-a-blog-with-jekyll-on-github-pages.md), first *undo*
 some of the settings required by Jekyll, then setup the new flow.
 
@@ -293,6 +321,11 @@ Replace the current flow with the new one
    back to **Deploy from a branch** and make sure the selected
    branch is **gh-pages** (and the forder is **/ (root)**).
 1. Click on **Commit changes...**, then **Commit changes**.
+
+!!! tip
+    It would have been enough to simply create the `.github/workflows/ci.yml`
+    file and the "Build and deployment" settings under "Source" as they were,
+    so long as the selected branch is **gh-pages** (and the forder is **/ (root)**).
 
 After this commit the workflow will start and, understandably, fail
 with `Error: Config file 'mkdocs.yml' does not exist.` because the
@@ -367,13 +400,69 @@ This second `git mv` operation will lead to many `WARNING` messages in the
 Action run of `mkdocs gh-deploy`, which can be used to track down all stray
 references that may need fixing.
 
-**Note:** instead of the password, use a
-[fine-grain token for personal access](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token).
+!!! tip
+    Instead of the password, use a
+    [fine-grain token for personal access](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token).
 
-## Appendix
+## Final Tweaks
 
-For a quick overview, watch
-[Material for MkDocs: Full Tutorial To Build And Deploy Your Docs Portal](https://www.youtube.com/watch?v=xlABhbnNrfI).
+Many features were added to `mkdocs.yml` during the above process, such as adding 
+[Dark / Light themes switch](https://yodamad.hashnode.dev/beautiful-pages-on-gitlab-with-mkdocs#heading-dark-light-themes-switch),
+changing the colors and logo, etc. By the times this post was finished,
+this is what `mkdocs.yml` looked like:
 
-Check [Beautiful Pages on GitLab with mkdocs](https://yodamad.hashnode.dev/beautiful-pages-on-gitlab-with-mkdocs)
-for additional inspiration on how to create and publish the blog.
+``` yaml title="mkdocs.yml"
+copyright: Copyright &copy; 2019-2025 Ponder Stibbons
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - About This Place: 'index.md'
+  - Continuous Monitoring: 'conmon.md'
+  - Unexpected Linux Adventures: 'blog/index.md'
+plugins:
+  - blog:
+      draft: false
+      draft_on_serve: false
+      pagination: true
+      pagination_per_page: 10
+  - macros:
+      on_undefined: strict
+site_name: Inadvisably Applied Magic
+site_url: https://stibbons1990.github.io/hex/
+theme:
+  name: material
+  features:
+    - content.code.copy
+  icon:
+    logo: fontawesome/solid/hat-wizard
+  palette:
+    # Dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Dark mode
+    # Light mode
+    - scheme: default
+      primary: deep purple
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Light mode
+```

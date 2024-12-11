@@ -32,9 +32,8 @@ site_name: Inadvisably Applied Magic
 site_url: https://stibbons1990.github.io/hex/
 theme:
   name: material
-  font:
-    text: Merriweather Sans
-    code: Red Hat Mono
+  features:
+    - content.code.copy
   icon:
     logo: fontawesome/solid/hat-wizard
   palette:
