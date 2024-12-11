@@ -1,13 +1,15 @@
 ---
 date: 2025-05-05
+draft: true
 categories:
  - linux
  - kubernetes
  - docker
  - server
  - unifi
-title: Migrating UniFi Controller to Kubernetes
 ---
+
+# Migrating UniFi Controller to Kubernetes
 
 <!-- more -->
 
