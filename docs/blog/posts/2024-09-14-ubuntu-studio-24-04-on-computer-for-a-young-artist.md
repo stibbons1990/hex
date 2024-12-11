@@ -1046,7 +1046,7 @@ More importantly,
 patterns as it affects when our bodies create melatonin.
 
 This is why `redshift-gtk` was already installed as part of
-the first [APT packages](#apt-packages). What is left to do
+the [Essential Packages](#install-essential-packages). What is left to do
 for a full customization is to adjust the color temperature
 values and manual location in `~/.config/redshift.conf`
 
