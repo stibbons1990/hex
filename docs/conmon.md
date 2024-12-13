@@ -129,6 +129,7 @@ INFO[03-20|15:02:11] Connecting to DB                         logger=sqlstore db
 INFO[03-20|15:02:11] Starting DB migrations                   logger=migrator
 Admin password changed successfully ✔
 ```
+
 [Add your InfluxDB data source to Grafana](https://grafana.com/docs/grafana/latest/getting-started/get-started-grafana-influxdb/#add-your-influxdb-data-source-to-grafana),
 create a new Dashboard and **Add > Visualization** for each measurement.
 
@@ -161,7 +162,7 @@ In environments with multiple Raspberry Pi computers, it may
 be useful to use this script (`deploy-to-rpis`) to deploy the
 latest version of the script to all computers at once.
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Deplay conmon-st to Raspberry Pi hosts.
@@ -200,7 +201,7 @@ done
 
 ### `conmon-st`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -640,7 +641,7 @@ In environments with multiple (desktop / server) computers,
 it may be useful to use this script (`deploy-to-pcs`) to
 deploy the latest version of the script to all computers.
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Deplay conmon-mt to PC hosts.
@@ -679,7 +680,7 @@ done
 
 ### `conmon-mt`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -1136,7 +1137,7 @@ sleep 10000000000
 
 ### `conmon-speedtest`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 
 # InfluxDB target.
@@ -1189,7 +1190,7 @@ rm -f "${DATA}"
 
 ### `conmon-mystrom`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -1279,15 +1280,15 @@ done
 
 ### `conmon-tapo.py`
 
-```python
+``` py linenums="1"
 #!/usr/bin/env python3
 
 """Script to poll TAPO devices for monitoring data and post it to InfluxDB.
 
-Run sauron-tapo --help to see all available options.
+Run conmon-tapo --help to see all available options.
 
 Usage:
-  sauron-tapo [options]
+  conmon-tapo [options]
 
 Requires:
   absl-py
@@ -1317,7 +1318,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string(
     "config",
-    "/etc/sauron/tapo.yaml",
+    "/etc/conmon/tapo.yaml",
     "Configuration file with settings for InfluxDB and Tapo devices.",
     short_name="c"
 )

@@ -49,13 +49,10 @@ error: externally-managed-environment
 
 Install using `apt install` instead:
 
-```
-# apt install mkdocs-material mkdocs-material-extensions -y
-```
-
-??? quote "`# apt install mkdocs-material mkdocs-material-extensions -y`"
+??? terminal "`# apt install mkdocs-material mkdocs-material-extensions -y`"
 
     ```
+    # apt install mkdocs-material mkdocs-material-extensions -y
     Reading package lists... Done
     Building dependency tree... Done
     Reading state information... Done
@@ -108,13 +105,11 @@ theme:
 
 Run the local server and follow the link provided to see the new site:
 
-```
-$ mkdocs serve
-```
-
-??? quote "`$ mkdocs serve`"
+??? terminal "`$ mkdocs serve`"
 
     ```
+    $ mkdocs serve
+    ...
     INFO    -  Building documentation...
     INFO    -  [macros] - Macros arguments: {'module_name': 'main',
               'modules': [], 'render_by_default': True, 'include_dir': '',
@@ -168,7 +163,7 @@ to start again, because the  `paginate` module cannot be found:
 There is no system package in Ubuntu 24.04 that provides this module,
 so it must be installed via `pip` (forced with `--break-system-packages`):
 
-??? quote "`$ sudo pip3 install --break-system-packages paginate`"
+??? terminal "`$ sudo pip3 install --break-system-packages paginate`"
 
     ```
     $ sudo pip3 install --break-system-packages paginate
@@ -284,9 +279,10 @@ site_name: Inadvisably Applied Magic
 This may require installing the `macros` pluging in the system;
 in Ubuntu this requires installing `mkdocs-macros-plugin`:
 
-??? quote "`# sudo apt install mkdocs-macros-plugin`"
+??? terminal "`# sudo apt install mkdocs-macros-plugin`"
 
     ```
+    # sudo apt install mkdocs-macros-plugin
     Reading package lists... Done
     Building dependency tree... Done
     Reading state information... Done
@@ -350,7 +346,7 @@ ERROR   -  Config value 'plugins': The "macros" plugin is not installed
 To fix this, add a step to install the plugin in the
 `.github/workflows/ci.yml` just before deploying:
 
-``` yaml
+``` yaml title=".github/workflows/ci.yml"
       - run: pip install mkdocs-material 
       - run: pip install mkdocs-macros-plugin
       - run: mkdocs gh-deploy --force
@@ -413,6 +409,8 @@ this is what `mkdocs.yml` looked like:
 
 ``` yaml title="mkdocs.yml"
 copyright: Copyright &copy; 2019-2025 Ponder Stibbons
+extra_css:
+  - stylesheets/extra.css
 markdown_extensions:
   - admonition
   - attr_list
@@ -466,3 +464,74 @@ theme:
         icon: material/weather-night
         name: Light mode
 ```
+
+### Custom Terminal Admonition
+
+This blog contains many long sections capturing the output from running shell
+commands in a terminal emulator. These are often long, even *very long*, and
+most of the times need not be read, or even visible by default.
+
+To show these blocks differently, a custom `terminal` admonitions is used,
+based on the `pied-piper` example in
+[Custom admonitions](https://squidfunk.github.io/mkdocs-material/reference/admonitions/#custom-admonitions),
+using the SVG from the :fontawesome-solid-terminal: emoji for the icon:
+
+``` css title="stylesheets/extra.css"
+:root {
+    --md-admonition-icon--terminal: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M9.4 86.6c-12.5-12.5-12.5-32.7 0-45.2s32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L178.7 256 9.4 86.6zM256 416h288c17.7 0 32 14.3 32 32s-14.3 32-32 32H256c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>')
+  }
+  .md-typeset .admonition.terminal,
+  .md-typeset details.terminal {
+    border-color: rgb(43, 155, 70);
+  }
+  .md-typeset .terminal > .admonition-title,
+  .md-typeset .terminal > summary {
+    background-color: rgba(43, 155, 70, 0.1);
+  }
+  .md-typeset .terminal > .admonition-title::before,
+  .md-typeset .terminal > summary::before {
+    background-color: rgb(43, 155, 70);
+    -webkit-mask-image: var(--md-admonition-icon--terminal);
+            mask-image: var(--md-admonition-icon--terminal);
+  }
+```
+
+The admonition can be collapsed by default when the output is long.
+One down-side is that it's hard to copy the title of the admonition
+(the command to run), it is much easier to copy it from either the
+content (inside the admonition) and/or a separate code block
+*outside* the admonition.
+
+<div class="grid" markdown>
+
+??? terminal "`$ date -R`"
+
+    ```
+    $ date -R
+    Fri, 13 Dec 2024 23:05:53 +0100
+    ```
+
+!!! terminal "`$ date -R`"
+
+    ```
+    $ date -R
+    Fri, 13 Dec 2024 23:05:53 +0100
+    ```
+
+``` title="Custom Terminal Admonition"
+??? terminal "`$ date -R`"
+
+    ```
+    $ date -R
+    Fri, 13 Dec 2024 23:05:53 +0100
+    ```
+
+!!! terminal "`$ date -R`"
+
+    ```
+    $ date -R
+    Fri, 13 Dec 2024 23:05:53 +0100
+    ```
+```
+
+</div>
