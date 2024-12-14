@@ -37,7 +37,7 @@ For more inspiration, see also
 [Installation](https://squidfunk.github.io/mkdocs-material/getting-started/)
 of Material for MkDocs using `pip` but this is not recommended in Ubuntu Studio:
 
-```
+``` console
 $ pip install mkdocs-material
 error: externally-managed-environment
 
@@ -51,7 +51,7 @@ Install using `apt install` instead:
 
 ??? terminal "`# apt install mkdocs-material mkdocs-material-extensions -y`"
 
-    ```
+    ``` console
     # apt install mkdocs-material mkdocs-material-extensions -y
     Reading package lists... Done
     Building dependency tree... Done
@@ -89,7 +89,7 @@ Install using `apt install` instead:
 
 Create a new directory for the new site, and initialize it:
 
-```
+``` console
 $ mkdocs new .
 INFO    -  Writing config file: ./mkdocs.yml
 INFO    -  Writing initial docs: ./docs/index.md
@@ -107,7 +107,7 @@ Run the local server and follow the link provided to see the new site:
 
 ??? terminal "`$ mkdocs serve`"
 
-    ```
+    ``` console
     $ mkdocs serve
     ...
     INFO    -  Building documentation...
@@ -153,7 +153,7 @@ to start again, because the  `paginate` module cannot be found:
 
 !!! failure "`$ mkdocs serve`"
 
-    ```
+    ``` console
     ...
       File "/usr/lib/python3/dist-packages/material/plugins/blog/plugin.py", line 38, in <module>
         from paginate import Page as Pagination
@@ -165,7 +165,7 @@ so it must be installed via `pip` (forced with `--break-system-packages`):
 
 ??? terminal "`$ sudo pip3 install --break-system-packages paginate`"
 
-    ```
+    ``` console
     $ sudo pip3 install --break-system-packages paginate
     Collecting paginate
       Downloading paginate-0.5.7-py2.py3-none-any.whl.metadata (11 kB)
@@ -281,7 +281,7 @@ in Ubuntu this requires installing `mkdocs-macros-plugin`:
 
 ??? terminal "`# sudo apt install mkdocs-macros-plugin`"
 
-    ```
+    ``` console
     # sudo apt install mkdocs-macros-plugin
     Reading package lists... Done
     Building dependency tree... Done
@@ -339,7 +339,7 @@ required files are missing. The next commit should include at least
 When trying to use the `macros` plugin, the workflow
 will also fail, this time with
 
-```
+``` console
 ERROR   -  Config value 'plugins': The "macros" plugin is not installed
 ``` 
 
@@ -368,7 +368,7 @@ once copied under `docs/blog/posts`:
   [`git mv`](https://git-scm.com/docs/git-mv).
 - media files URLs are then relative to blog posts: `../media/`
 
-```
+``` console
 $ mkdir docs/blog/media
 $ git mv assets/media/* docs/blog/media/
 $ git ci -m "Move media files to mkdocs blog" .
@@ -382,7 +382,7 @@ The files under `docs/blog/posts` can also be created by **moving** the
 files already existing under `_posts`, then making the necessary
 modifications in follow-up commits:
 
-```
+``` console
 $ mkdir docs/blog/posts
 $ git mv _posts/*.md docs/blog/posts/
 $ git ci -m "Move posts to mkdocs blog" .
@@ -506,14 +506,14 @@ content (inside the admonition) and/or a separate code block
 
 ??? terminal "`$ date -R`"
 
-    ```
+    ``` console
     $ date -R
     Fri, 13 Dec 2024 23:05:53 +0100
     ```
 
 !!! terminal "`$ date -R`"
 
-    ```
+    ``` console
     $ date -R
     Fri, 13 Dec 2024 23:05:53 +0100
     ```
@@ -521,14 +521,14 @@ content (inside the admonition) and/or a separate code block
 ``` title="Custom Terminal Admonition"
 ??? terminal "`$ date -R`"
 
-    ```
+    ``` console
     $ date -R
     Fri, 13 Dec 2024 23:05:53 +0100
     ```
 
 !!! terminal "`$ date -R`"
 
-    ```
+    ``` console
     $ date -R
     Fri, 13 Dec 2024 23:05:53 +0100
     ```

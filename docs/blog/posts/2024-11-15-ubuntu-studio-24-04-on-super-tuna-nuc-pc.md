@@ -7,27 +7,29 @@ categories:
  - setup
  - intel
  - nuc
-title: Ubuntu Studio 24.04 on Super Tuna (Nuc PC)
+title: Ubuntu Studio 24.04 on Super Tuna (NUC PC)
 ---
 
-Installing Ubuntu Studio 24.04 on an Nuc PC desktop.
+This *would* be a very minimal journey of installing
+[Ubuntu Studio 24.04](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/)
+on a relatively new mid-range Intel® NUC 13 Pro mini PC, had it not gone wahoonie-shaped...
 
 <!-- more -->
 
 ## Preparation
 
-The following components are chosen for a most compact, possible portable
+The following components are chosen for a most compact, possibly *portable*
 desktop setup, to be running 24x7 without taking much space:
 
-- [ASUS Arena Canyon NUC13ANKI5](https://www.simplynuc.media/wp-content/uploads/2023/07/Arena-Canyon-i5-v5-Slim-NUC13ANKi5-v5-v1.1.pdf)
-  with a 13th Generation Intel® Core™ i5-1340P and integrated Intel® UHD Graphics; and
-  - [Kingston FURY Impact DDR4 Memory](https://www.kingston.com/en/memory/gaming/kingston-fury-impact-ddr4-memory)
-    (32 GB, 3200 MHz, DDR4).
-  - [Kingston FURY Renegade PCIe 4.0 NVMe M.2 SSD](https://www.kingston.com/latam/ssd/gaming/kingston-fury-renegade-nvme-m2-ssd)
+- [ASUS Arena Canyon NUC13ANKI5](https://www.simplynuc.media/wp-content/uploads/2023/07/Arena-Canyon-i5-v5-Slim-NUC13ANKi5-v5-v1.1.pdf).
+  with a 13th Generation Intel® Core™ i5-1340P and integrated Intel® UHD Graphics.
+- [Kingston FURY Impact DDR4 Memory](https://www.kingston.com/en/memory/gaming/kingston-fury-impact-ddr4-memory)
+  (32 GB, 3200 MHz, DDR4).
+- [Kingston FURY Renegade PCIe 4.0 NVMe M.2 SSD](https://www.kingston.com/latam/ssd/gaming/kingston-fury-renegade-nvme-m2-ssd).
 - 14" Full HD 1080p Portable Monitor 
-  [Verbatim PM-14](https://www.verbatim-europe.com/en/portable-monitors/products/portable-monitor-14-full-hd-1080p-pm14-49590)
+  [Verbatim PM-14](https://www.verbatim-europe.com/en/portable-monitors/products/portable-monitor-14-full-hd-1080p-pm14-49590).
 - Logitech
-  [K400 Plus Wireless Touch Keyboard](https://www.logitech.com/en-eu/shop/p/k400-plus-touchpad-keyboard)
+  [K400 Plus Wireless Touch Keyboard](https://www.logitech.com/en-eu/shop/p/k400-plus-touchpad-keyboard).
 
 ## Install Ubuntu Studio 24.04
 
@@ -43,16 +45,16 @@ it, then used the “Install Ubuntu” launcher on the desktop.
 1. Select the appropriate wireless or **wireless network**.
 1. Select **Install Ubuntu Studio**.
 1. Select Type of install: **Interactive Installation**.
-1. Enable the options to **Install third-party software for graphics**
-   and Wifi hardware and **Download and install support for additional**
-   **media formats**.
+1. Enable the options to
+    * **Install third-party software for graphics and Wifi hardware** and
+    * **Download and install support for additional media formats**.
 1. Select **Manual Installation**
-   * Use the arrow keys to navigate down to the **nvme0n1** disk.
-   * Set **nvme0n1p1** (300 MB) as **EFI System Partition** mounted on `/boot/efi`
-   * Set **nvme0n1p2** (60 GB) as **ext4** mounted on `/`
-   * Leave **nvme0n1p3** (60 GB) alone (to be used for Ubuntu 26.04)
-   * Set **nvme0n1p4** (3.88 TB) as **Leave formatted as Btrfs** mounted on `/home`
-   * Set **Device for boot loader installation** to **nvme0n1**
+    * Use the arrow keys to navigate down to the **nvme0n1** disk.
+    * Set **nvme0n1p1** (300 MB) as **EFI System Partition** mounted on `/boot/efi`
+    * Set **nvme0n1p2** (60 GB) as **ext4** mounted on `/`
+    * Leave **nvme0n1p3** (60 GB) alone (to be used for Ubuntu 26.04)
+    * Set **nvme0n1p4** (3.88 TB) as **Leave formatted as Btrfs** mounted on `/home`
+    * Set **Device for boot loader installation** to **nvme0n1**
 1. Click on **Next** to confirm the partition selection.
 1. Confirm first non-root user name (`coder`) and computer
    name (`super-tuna`).
@@ -61,8 +63,9 @@ it, then used the “Install Ubuntu” launcher on the desktop.
 1. Once it's done, select **Restart**
    (remove install media and hit `Enter`).
 
-**Note:** 60 GB should be a enough for the root partition for the amount
-of software that tends to be installed in my PC, which won't be much.
+!!! note
+    60 GB should be a enough for the root partition for the amount
+    of software that tends to be installed in this PC.
 
 ### First boot into Ubuntu Studio 24.04
 
@@ -78,7 +81,7 @@ section in **System Settings** and disable **Screen Energy Saving** and
 Ubuntu Studio doesn't enable the SSH server by default, but we want
 this to adjust the system remotely:
 
-```
+``` console
 # apt install ssh -y
 # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # systemctl enable --now ssh
@@ -94,7 +97,7 @@ This system will normally not be connected to the local wired network,
 so it is important to take note of both IP addresses it has obtained
 from the DHCP server:
 
-```
+``` console
 # ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -126,69 +129,70 @@ Start by installing a **subset** of the
 that have been found necessary later (e.g. `auditd` to
 [stop apparmor spew in the logs](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
 
-```
-# apt install gdebi-core wget vim curl geeqie playonlinux \
-  exfat-fuse clementine id3v2 htop vnstat sox wine smem \
-  python-is-python3 exiv2 rename scrot xcalib python3-pip \
-  netcat-openbsd python3-selenium lm-sensors sysstat tor \
-  unrar ttf-mscorefonts-installer winetricks icc-profiles \
-  ffmpeg iotop-c xdotool inxi mpv screen libxxf86vm-dev \
-  displaycal intel-gpu-tools redshift-qt auditd -y
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-The following additional packages will be installed:
-  cabextract chromium-browser chromium-chromedriver exiftran fonts-wine
-  fuseiso geeqie-common icoutils libasound2-plugins libaudit-common
-  libaudit1 libauparse0t64 libcapi20-3t64 libegl-mesa0 libegl1-mesa-dev
-  libgbm1 libgl1-mesa-dri libglapi-mesa libglx-mesa0 libgpod-common
-  libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
-  libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
-  libutempter0 libwine libxatracker2 libxdo3 libxkbregistry0 libz-mingw-w64
-  mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers python3-dev
-  python3-exceptiongroup python3-h11 python3-natsort python3-outcome
-  python3-sniffio python3-trio python3-trio-websocket python3-wsproto
-  python3.12-dev redshift tor-geoipdb torsocks tree vim-common vim-runtime
-  vim-tiny webp-pixbuf-loader wine64 xxd
-Suggested packages:
-  audispd-plugins xpaint libjpeg-progs libterm-readline-gnu-perl
-  | libterm-readline-perl-perl libxml-dumper-perl sg3-utils fancontrol
-  read-edid i2c-tools libcuda1 winbind python-natsort-doc byobu | screenie
-  | iselect libsox-fmt-all mixmaster torbrowser-launcher apparmor-utils nyx
-  obfs4proxy ctags vim-doc vim-scripts indent vnstati q4wine wine-binfmt
-  dosbox wine64-preloader
-Recommended packages:
-  wine32
-The following NEW packages will be installed:
-  auditd cabextract chromium-browser chromium-chromedriver clementine curl
-  exfat-fuse exiftran exiv2 fonts-wine fuseiso gdebi-core geeqie
-  geeqie-common htop icc-profiles icoutils id3v2 intel-gpu-tools inxi
-  iotop-c libasound2-plugins libauparse0t64 libcapi20-3t64 libgpod-common
-  libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
-  libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
-  libutempter0 libwine libxdo3 libxkbregistry0 libxxf86vm-dev libz-mingw-w64
-  lm-sensors mpv playonlinux python-is-python3 python3-dev
-  python3-exceptiongroup python3-h11 python3-natsort python3-outcome
-  python3-pip python3-selenium python3-sniffio python3-trio
-  python3-trio-websocket python3-wsproto python3.12-dev redshift redshift-qt
-  rename screen scrot sox tor tor-geoipdb torsocks tree
-  ttf-mscorefonts-installer unrar vim vim-runtime vnstat webp-pixbuf-loader
-  wine wine64 winetricks xcalib xdotool
-The following packages will be upgraded:
-  libaudit-common libaudit1 libegl-mesa0 libegl1-mesa-dev libgbm1
-  libgl1-mesa-dri libglapi-mesa libglx-mesa0 libxatracker2 mesa-va-drivers
-  mesa-vdpau-drivers mesa-vulkan-drivers vim-common vim-tiny xxd
-15 upgraded, 77 newly installed, 0 to remove and 71 not upgraded.
-Need to get 247 MB of archives.
-After this operation, 965 MB of additional disk space will be used.
-```
+??? terminal "`# apt install ...`"
+    ``` console
+    # apt install gdebi-core wget vim curl geeqie playonlinux \
+      exfat-fuse clementine id3v2 htop vnstat sox wine smem \
+      python-is-python3 exiv2 rename scrot xcalib python3-pip \
+      netcat-openbsd python3-selenium lm-sensors sysstat tor \
+      unrar ttf-mscorefonts-installer winetricks icc-profiles \
+      ffmpeg iotop-c xdotool inxi mpv screen libxxf86vm-dev \
+      displaycal intel-gpu-tools redshift-qt auditd -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      cabextract chromium-browser chromium-chromedriver exiftran fonts-wine
+      fuseiso geeqie-common icoutils libasound2-plugins libaudit-common
+      libaudit1 libauparse0t64 libcapi20-3t64 libegl-mesa0 libegl1-mesa-dev
+      libgbm1 libgl1-mesa-dri libglapi-mesa libglx-mesa0 libgpod-common
+      libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
+      libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
+      libutempter0 libwine libxatracker2 libxdo3 libxkbregistry0 libz-mingw-w64
+      mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers python3-dev
+      python3-exceptiongroup python3-h11 python3-natsort python3-outcome
+      python3-sniffio python3-trio python3-trio-websocket python3-wsproto
+      python3.12-dev redshift tor-geoipdb torsocks tree vim-common vim-runtime
+      vim-tiny webp-pixbuf-loader wine64 xxd
+    Suggested packages:
+      audispd-plugins xpaint libjpeg-progs libterm-readline-gnu-perl
+      | libterm-readline-perl-perl libxml-dumper-perl sg3-utils fancontrol
+      read-edid i2c-tools libcuda1 winbind python-natsort-doc byobu | screenie
+      | iselect libsox-fmt-all mixmaster torbrowser-launcher apparmor-utils nyx
+      obfs4proxy ctags vim-doc vim-scripts indent vnstati q4wine wine-binfmt
+      dosbox wine64-preloader
+    Recommended packages:
+      wine32
+    The following NEW packages will be installed:
+      auditd cabextract chromium-browser chromium-chromedriver clementine curl
+      exfat-fuse exiftran exiv2 fonts-wine fuseiso gdebi-core geeqie
+      geeqie-common htop icc-profiles icoutils id3v2 intel-gpu-tools inxi
+      iotop-c libasound2-plugins libauparse0t64 libcapi20-3t64 libgpod-common
+      libgpod4t64 liblastfm5-1 liblua5.3-0 libmspack0t64 libmygpo-qt5-1
+      libosmesa6 libpython3-dev libpython3.12-dev libsgutils2-1.46-2
+      libutempter0 libwine libxdo3 libxkbregistry0 libxxf86vm-dev libz-mingw-w64
+      lm-sensors mpv playonlinux python-is-python3 python3-dev
+      python3-exceptiongroup python3-h11 python3-natsort python3-outcome
+      python3-pip python3-selenium python3-sniffio python3-trio
+      python3-trio-websocket python3-wsproto python3.12-dev redshift redshift-qt
+      rename screen scrot sox tor tor-geoipdb torsocks tree
+      ttf-mscorefonts-installer unrar vim vim-runtime vnstat webp-pixbuf-loader
+      wine wine64 winetricks xcalib xdotool
+    The following packages will be upgraded:
+      libaudit-common libaudit1 libegl-mesa0 libegl1-mesa-dev libgbm1
+      libgl1-mesa-dri libglapi-mesa libglx-mesa0 libxatracker2 mesa-va-drivers
+      mesa-vdpau-drivers mesa-vulkan-drivers vim-common vim-tiny xxd
+    15 upgraded, 77 newly installed, 0 to remove and 71 not upgraded.
+    Need to get 247 MB of archives.
+    After this operation, 965 MB of additional disk space will be used.
+    ```
 
 ### Brave browser
 
 Install from the
 [Release Channel](https://brave.com/linux/#release-channel-installation):
 
-```
+``` console
 # curl -fsSLo \
   /usr/share/keyrings/brave-browser-archive-keyring.gpg \
   https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
@@ -204,7 +208,7 @@ Install from the
 Installing [Google Chrome](https://google.com/chrome) is as
 simple as downloading the Debian package and installing it:
 
-```
+``` console
 # dpkg -i google-chrome-stable_current_amd64.deb
 ```
 
@@ -231,7 +235,7 @@ WantedBy=multi-user.target
 
 Then enable and start the services in `systemd`:
 
-```
+``` console
 # systemctl enable conmon.service
 # systemctl daemon-reload
 # systemctl start conmon.service
@@ -241,7 +245,7 @@ Then enable and start the services in `systemd`:
 If not already adjusted, add at least the following lines
 to `/etc/hosts` so that `lexicon` is reachable:
 
-```
+``` console
 192.168.0.6     lexicon
 ```
 
@@ -249,7 +253,7 @@ to `/etc/hosts` so that `lexicon` is reachable:
 
 All hardware sensors are supported out of the box:
 
-```
+``` console
 # sensors -A
 iwlwifi_1-virtual-0
 temp1:        +37.0°C  
@@ -308,7 +312,7 @@ defined (only) in `ubuntu.sources`.
 When updating the system with `apt full-upgrade -y` a notice comes
 up about additional security updates:
 
-```
+``` console
 Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
   libdcmtk17t64 libcjson1 libavdevice60 ffmpeg libpostproc57 libavcodec60
   libavutil58 libswscale7 libswresample4 libavformat60 libavfilter9
@@ -318,7 +322,7 @@ Learn more about Ubuntu Pro at https://ubuntu.com/pro
 This being a new system, indeed it's not attached to an Ubuntu Pro
 account (the old system was):
 
-```
+``` console
 # pro security-status
 3131 packages installed:
      1589 packages from Ubuntu Main/Restricted repository
@@ -346,7 +350,7 @@ Learn more at https://ubuntu.com/pro
 After creating an Ubuntu account a token is available to use with
 `pro attach`:
 
-```
+``` console
 # pro attach ...
 Enabling Ubuntu Pro: ESM Apps
 Ubuntu Pro: ESM Apps enabled
@@ -382,7 +386,7 @@ Subscription: Ubuntu Pro - free personal subscription
 Now the system can be updated *again* with `apt full-upgrade -y`
 to receive those additional security updates:
 
-```
+``` console
 # apt full-upgrade -y
 Reading package lists... Done
 Building dependency tree... Done
@@ -409,14 +413,14 @@ After this operation, 9216 B of additional disk space will be used.
 Since Ubuntu 22.04, `dmesg` has become a privileged operation
 by default:
 
-```
+``` console
 $ dmesg
 dmesg: read kernel buffer failed: Operation not permitted
 ```
 
 This is controlled by 
 
-```
+``` console
 # sysctl kernel.dmesg_restrict
 kernel.dmesg_restrict = 1
 ```
@@ -424,7 +428,7 @@ kernel.dmesg_restrict = 1
 To revert this default, and make it permanent
 ([source](https://archived.forum.manjaro.org/t/why-did-dmesg-become-a-priveleged-operation-suddenly/86468/3)):
 
-```
+``` console
 # echo 'kernel.dmesg_restrict=0' | tee -a /etc/sysctl.d/99-sysctl.conf
 ```
 
@@ -436,7 +440,7 @@ to check everything for consistency. For this, I run
 [the script](https://marc.merlins.org/linux/scripts/btrfs-scrub)
 from crontab every Saturday night.
 
-```
+``` console
 # wget -O /usr/local/bin/btrfs-scrub-all \
   http://marc.merlins.org/linux/scripts/btrfs-scrub
 
@@ -498,7 +502,7 @@ done
 running on USB external storage if attached; not really necessary, but the
 script fails if this variable is left empty.
 
-```
+``` console
 # /usr/local/bin/btrfs-scrub-all
 <13>Nov 17 22:23:49 root: Quick Metadata and Data Balance of /home (/dev/nvme0n1p4)
 Done, had to relocate 0 out of 1536 chunks
@@ -538,7 +542,7 @@ For most computers my favorite SDDM theme is
 [Breeze-Noir-Dark](https://store.kde.org/p/1361460),
 which I like to install system-wide.
 
-```
+``` console
 # unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
 ```
 
@@ -551,7 +555,7 @@ Other than installing this theme, all I really change in it
 is the background image to use 
 [Super Tuna (1920x1080)](https://www.nme.com/news/music/bts-jin-surprises-fans-super-tuna-birthday-celebration-3111626).
 
-```
+``` console
 # mv Super-Tuna.jpg \
   /usr/share/sddm/themes/Breeze-Noir-Dark/
 # cd /usr/share/sddm/themes/Breeze-Noir-Dark/
@@ -585,7 +589,7 @@ EnableAvatars=True
 you have to **create** the `/etc/sddm.conf.d` directory to add
 the *Local configuration* file that allows setting the theme:
 
-```
+``` console
 # mkdir /etc/sddm.conf.d
 # vi /etc/sddm.conf.d/ubuntustudio.conf
 ```
@@ -606,7 +610,7 @@ MinimumUid=1000
 
 The following shows up in `dmesg`:
 
-```
+``` console
 Bluetooth: Core ver 2.22
 NET: Registered PF_BLUETOOTH protocol family
 Bluetooth: HCI device and connection manager initialized
@@ -651,14 +655,14 @@ installing Ubuntu Studio 24.04, some of which never were resolved.
 On two occassions `cupsd` has suddently gone up to 200% CPU usage and
 stayed up there for 30+ minutes with no sign of and end to come.
 
-```
+``` console
 root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
 root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
 root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
 root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
 ```
 
-```
+``` console
 # snap services
 Servicio                                             Encendido  Actual  Notas
 canonical-livepatch.canonical-livepatchd             activado   activo  -
@@ -703,7 +707,7 @@ firmware-updater.firmware-updater-app                activado     -         user
 snapd-desktop-integration.snapd-desktop-integration  activado     -         user
 ```
 
-```
+``` console
 # killall /usr/sbin/cupsd
 root@super-tuna:~# ps aux | grep /usr/sbin/cupsd
 root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
@@ -718,7 +722,7 @@ root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cup
 Only in this Nuc PC is Ubuntu Studio 24.04 showing a huge memory leak
 and it seems to be in the kernel rather than in any application/s:
 
-```
+``` console
 # free -h
                total        used        free      shared  buff/cache   available
 Mem:            30Gi        25Gi       1.6Gi       190Mi       4.2Gi       5.0Gi
@@ -735,7 +739,7 @@ rebooting:
 
 Killing the most memory intensive process had previously made no dent:
 
-```
+``` console
 # ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
 USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
 root     2661652   0.5   0.7   246360    1568376 ?      SLsl    07:57    0:13 /usr/bin/fluidsynth -is /usr/share/sounds/sf3/default-GM.sf3 HOME=/ro>
@@ -775,7 +779,7 @@ earlier, but this was not really a problematic case of
 The trick in [linuxatemyram.com](https://www.linuxatemyram.com/)
 to drop caches did not help:
 
-```
+``` console
 # echo 3 | sudo tee /proc/sys/vm/drop_caches
 3
 
@@ -797,7 +801,7 @@ Indeed this only releases the `buff/cache` memory, not that which is `used`:
 There was another hint somewhere (Red Hat Oracle documentation)
 about the number of "huge pages" but that is already set to zero:
 
-```
+``` console
 # cat /proc/sys/vm/nr_hugepages 
 0
 ```
@@ -806,7 +810,7 @@ After a wider and deeper investigation
 (see ~1500 lines in [this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt))
 it turned out be a memory leak bug in the `i915` driver:
 
-```
+``` console
 # apt install smem -y
 
 # smem -twk
@@ -865,7 +869,7 @@ However, this system is using the "vanilla" `i915` drivers and,
 after the memory has been released by rebooting the system,
 the drivers still show about the same size:
 
-```
+``` console
 # smem -twk
 Area                           Used      Cache   Noncache 
 firmware/hardware                 0          0          0 
@@ -919,7 +923,7 @@ If the `i915` is not behind this memory leak, the one other lead from
 [this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt) is, by far, the largest
 user of kernel memory is `kmalloc-rnd-07-8k`:
 
-```
+``` console
 # slabtop -o | head -10
  Active / Total Objects (% used)    : 3424282 / 3461230 (98,9%)
  Active / Total Slabs (% used)      : 507294 / 507294 (100,0%)
@@ -936,7 +940,7 @@ user of kernel memory is `kmalloc-rnd-07-8k`:
 That's a whooping **14.5 GB** used only by `kmalloc-rnd-07-8k`, which is
 released only after a reboot (although soon enough back up to nearly 2 GB):
 
-```
+``` console
 # slabtop -o | head -10
  Active / Total Objects (% used)    : 1413878 / 1435036 (98.5%)
  Active / Total Slabs (% used)      : 87550 / 87550 (100.0%)
@@ -952,7 +956,7 @@ released only after a reboot (although soon enough back up to nearly 2 GB):
 
 There is nothing like this on `rapture`, where `kmalloc-rnd-07-8k` is only 512K:
 
-```
+``` console
 root@rapture:~# slabtop -o | head -10
  Active / Total Objects (% used)    : 7453076 / 7724162 (96.5%)
  Active / Total Slabs (% used)      : 178099 / 178099 (100.0%)
