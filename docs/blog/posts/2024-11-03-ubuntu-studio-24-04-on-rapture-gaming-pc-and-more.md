@@ -1327,9 +1327,7 @@ out of date, so it pays to install the latest/nightly version:
 Upon launching the Arduino IDE, a notification card offers updating
 installed libraries, which comes in vary handy to update them all.
 
-??? warning
-
-    Without the `chmod 4755` command, the IDE refuses to run.
+??? warning "Without the `chmod 4755` command, the IDE refuses to run."
 
     ``` console
     $ /opt/arduino/arduino-ide
