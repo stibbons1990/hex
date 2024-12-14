@@ -457,7 +457,7 @@ so each systme may benefit from a few modifications, e.g.
 1. Remove tests for laptop battery status, when running on a PC.
 2. Set the `BTRFS_SCRUB_SKIP` to filter out partitions to skip.
 
-``` bash linenums="1" title="/usr/local/bin/btrfs-scrub-all" 
+``` bash linenums="1" title="/usr/local/bin/btrfs-scrub-all"
 #! /bin/bash
 
 # By Marc MERLIN <marc_soft@merlins.org> 2014/03/20

@@ -8,15 +8,15 @@ categories:
 title: Ubuntu Studio 24.04 on Rapture, Gaming PC (and more)
 ---
 
-Installing Ubuntu Studio 24.04 on my main PC, for Gaming, coding, media and more."
-
-<!-- more -->
+The time has came to update my main PC, which I use for gaming,
+coding, media production and just about everything, to 
+[Ubuntu Studio 24.04](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/).
 
 ## Considering Timing
 
 [Ubuntu Studio 24.04 LTS Released](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/)
-on April 25 but, as they themselves put it
-*since it’s just out, you may experience some issues, so you might want to wait a bit before upgrading*.
+on April 25th but, as they themselves put it *since it’s just out,
+you may experience some issues, so you might want to wait a bit before upgrading*.
 
 There doesn't seem to be anything particular scarey in release notes:
 
@@ -25,7 +25,9 @@ There doesn't seem to be anything particular scarey in release notes:
 *  [Noble Numbat Release Notes](https://discourse.ubuntu.com/t/noble-numbat-release-notes/39890/1)
 
 And my plan is not to upgrade in place; I like to keep the previous
-version around just in case I need a stable system to fall back to.
+version around, just in case I need a stable system to fall back to.
+
+<!-- more -->
 
 ## Preparation
 
@@ -40,10 +42,10 @@ and prepared partitions as follows:
 3. 75 GB Linux filesystem for the alternative root (ext4).
 4. 3.5T GB Linux filesystem for `/home` (btrfs).
 
-**Note:** 75 GB has proven to be a reasonable size for the
-root partition for the amount of software that tends to be
-installed in my PC, including 20 GB in `/usr` and 13 GB in
-`/snap`.
+!!! note 
+    75 GB has proven to be a reasonable size for the root partition
+    for the amount of software that tends to be installed in my PC,
+    including 20 GB in `/usr` and 13 GB in `/snap`.
 
 ### Partitions
 
@@ -52,7 +54,7 @@ First,
 (`label`), then create the partitions
 [with `optimal` alignment](https://unix.stackexchange.com/a/49274)
 
-```
+``` console
 # parted /dev/nvme1n1 --script -- mklabel gpt
 # parted -a optimal /dev/nvme1n1 mkpart primary fat32 0% 260MiB
 # parted -a optimal /dev/nvme1n1 mkpart primary ext4 260MiB 75GiB
@@ -88,34 +90,36 @@ Device             Start        End    Sectors  Size Type
 /dev/nvme1n1p4 314572800 7814035455 7499462656  3.5T Linux filesystem
 ```
 
-**Note:** in retrospect, it seems to be necessary to also apply the
-`boot` flag to the EFI partition; otherwise the Ubuntu installer will
-not offer the possibility of installing the boot loader in this disk:
+!!! note
 
-```
-# parted /dev/nvme1n1 toggle 1 boot
+    In retrospect, it seems to be necessary to also apply the
+    `boot` flag to the EFI partition; otherwise the Ubuntu installer will
+    not offer the possibility of installing the boot loader in this disk:
 
-# parted /dev/nvme1n1 print
-Model: KINGSTON SFYRD4000G (nvme)
-Disk /dev/nvme1n1: 4001GB
-Sector size (logical/physical): 512B/512B
-Partition Table: gpt
-Disk Flags: 
+    ``` console
+    # parted /dev/nvme1n1 toggle 1 boot
+    # parted /dev/nvme1n1 print
+    Model: KINGSTON SFYRD4000G (nvme)
+    Disk /dev/nvme1n1: 4001GB
+    Sector size (logical/physical): 512B/512B
+    Partition Table: gpt
+    Disk Flags: 
 
-Number  Start   End     Size    File system  Name     Flags
- 1      1049kB  273MB   272MB                primary  boot, esp
- 2      273MB   80.5GB  80.3GB               primary
- 3      80.5GB  161GB   80.5GB               primary
- 4      161GB   4001GB  3840GB               primary
-```
+    Number  Start   End     Size    File system  Name     Flags
+    1      1049kB  273MB   272MB                primary  boot, esp
+    2      273MB   80.5GB  80.3GB               primary
+    3      80.5GB  161GB   80.5GB               primary
+    4      161GB   4001GB  3840GB               primary
+    ```
 
 Partitions can be created during the installation of the
 system, there is no need to create them before hand because
 the previous M.2 SSD is not going anywhere any time soon.
 
 In the future, the previous (2 TB) M.2 SSD may be replaced with another 4 TB SSD, e.g.
-- [Kingston FURY Renegade with Heatsink](https://www.digitec.ch/en/s1/product/kingston-fury-renegade-with-heatsink-4000-gb-m2-2280-ssd-22903765) ($320+)
-- [Samsung 990 Pro with Heatsink](https://www.digitec.ch/en/s1/product/samsung-990-pro-with-heatsink-4000-gb-m2-2280-ssd-37728060) ($300+)
+
+*  [Kingston FURY Renegade with Heatsink](https://www.digitec.ch/en/s1/product/kingston-fury-renegade-with-heatsink-4000-gb-m2-2280-ssd-22903765) ($320+)
+*  [Samsung 990 Pro with Heatsink](https://www.digitec.ch/en/s1/product/samsung-990-pro-with-heatsink-4000-gb-m2-2280-ssd-37728060) ($300+).
 
 However, that replacement will likely not happen under 2026,
 once Ubuntu Studio 26.04 is installed and there is no longer
@@ -138,12 +142,19 @@ file systems across multiple devices **with redundancy**
 *hot data* on the faster storage (NVME) and rebalance unused
 data back to slower storage (SATA).
 
+!!! news "An update on bcachefs"
+
+    The future of bcachefs in the kernel is uncertain, and lots of things aren't looking good. For more details, see
+    [Bcachefs Changes Rejected Reportedly Due To CoC, Kernel Future "Uncertain"](https://www.phoronix.com/news/Bcachefs-Uncertain-Kernel-Issue).
+
+    For the time being, there is no plan to use bcachefs here.
+
 ### New BtrFS Home
 
 Create a new `btrfs` file system to test the new SSD, while
 we're waiting for the upcoming Ubuntu 24.04 release:
 
-```
+``` console
 # mkfs.btrfs /dev/nvme1n1p4
 btrfs-progs v5.16.2
 See http://btrfs.wiki.kernel.org for more information.
@@ -181,7 +192,7 @@ UUID=8edfc3ba-4981-4423-8730-7e229bfa63f3 /home/new-m2      btrfs   defaults    
 
 Suddently there is a lot of space available!
 
-```
+``` console
 $ df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p5  1.7T  1.2T  517G  70% /home
@@ -200,7 +211,7 @@ between 500 and 540 MB/s and the transfer took 48 minutes.
 There was little difference between using `rync -uva` vs
 `cp -av`.
 
-```
+``` console
 # time cp -a /home/ssd/Fotos /home/new-m2/
 
 real    48m39.874s
@@ -214,7 +225,7 @@ around 3000 MB/s, in practice the transfer speed fluctuates
 between 800 and 2500 MB/s and the transfer took 25 minutes,
 so just about twice as fast as the previous one.
 
-```
+``` console
 # time rsync -a /home/coder /home/new-m2/
 
 real    24m54.444s
@@ -224,7 +235,7 @@ sys     17m54.582s
 
 With these 2 transfers, the new M.2 SSD is nearly at 70%:
 
-```
+``` console
 $ df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p5  1.7T  1.2T  517G  70% /home
@@ -256,14 +267,15 @@ cloned the current Ubuntu Studio 22.04 root partition
 Studio 24.04 root partition (`nvme1n1p2`), in case this
 may come in handy later.
 
-**Important:** after cloning a root file system, the
-`/etc/fstab` file in the new clone must be updated with
-the correct UUID of that partition.
+!!! important
+
+    After cloning a root file system, the `/etc/fstab` file in the
+    new clone must be updated with the correct UUID of that partition.
 
 If the (new) EFI partition has not been formatted yet;
 format it as **FAT32**:
 
-```
+``` console
 # mkfs.fat -F32 /dev/nvme1n1p1
 mkfs.fat 4.2 (2021-01-31)
 
@@ -285,7 +297,7 @@ nvme0n1
 
 The mount the new root and edit `/etc/fstab` in it:
 
-```
+``` console
 # mount /dev/nvme1n1p2 /media/cdrom/
 # vi /media/cdrom/etc/fstab
 ...
@@ -301,7 +313,7 @@ that are working have flags `boot, esp` so the solution
 may be simply to add those flags. At the very least, this
 seems like it is necessary, if not sufficient:
 
-```
+``` console
 # parted /dev/nvme1n1
 GNU Parted 3.4
 Using /dev/nvme1n1
@@ -332,15 +344,16 @@ Number  Start   End     Size    File system  Name     Flags
  4      161GB   4001GB  3840GB  btrfs        primary
 ```
 
-**Note:** `boot` and `esp` are the same flag; if you
-toggle both you end up with the initial state.
+!!! note
+    The `boot` and `esp` flags are the same; if you
+    toggle both, you end up with the initial state.
 
 At this point, decided to follow 
 [askubuntu.com/a/1463655](https://askubuntu.com/a/1463655)
 to fully cloned the current system onto the new 4TB
 NVME and try to boot from it.
 
-```
+``` console
 # mount /dev/nvme1n1p2 /media/cdrom/
 # mount /dev/nvme1n1p1 /media/cdrom/boot/efi/
 
@@ -398,7 +411,7 @@ correct `/boot/efi` partitions (the one in the same disk)
 and the new one will has a new UUID after the last
 installation:
 
-```
+``` console
 # lsblk -f
 NAME FSTYPE FSVER LABEL UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
 ...
@@ -438,9 +451,10 @@ not even using an EFI partition at all; this one dates
 back to a time when this disk was used in legacy BIOS
 mode:
 
-```
+``` console
 # df -h | grep nvme0n1p2
 /dev/nvme0n1p2   50G   27G   21G  57% /jellyfish
+
 # grep -E '/ |/bo'  /jellyfish/etc/fstab 
 UUID=833c6403-a771-46b2-bde8-704f2ab7e88b /              ext4    defaults   0 1
 ```
@@ -448,20 +462,20 @@ UUID=833c6403-a771-46b2-bde8-704f2ab7e88b /              ext4    defaults   0 1
 Ubuntu 22.04.5 in `nvme0n1p6` (current daily driver) has
 not changed, as expected:
 
-```
+``` console
 # grep -E '/ |/bo'  /etc/fstab 
 UUID=C38B-C318                            /boot/efi      vfat    umask=0077 0 2
 UUID=de317ca5-96dd-49a7-b72b-4bd050a8d15c /              ext4    defaults,discard 0 1
 ```
 
-Ubuntu 22.04.5 in `nvme1n1p2` (the *future backup* daily
-driver) is a clone of the one in `nvme0n1p6` **but** it
-is also on the newer NVME disk, so both partitions must
-be updated:
-- `/boot/efi` must point to `nvme1n1p1`
-- `/` must point to `nvme1n1p2`
+Ubuntu 22.04.5 in `nvme1n1p2` (the *future backup* daily driver)
+is a clone of the one in `nvme0n1p6` **but** it is also on the 
+newer NVME disk, so both partitions must be updated:
 
-```
+*  `/boot/efi` must point to `nvme1n1p1`
+*  `/` must point to `nvme1n1p2`
+
+``` console
 # mount /dev/nvme1n1p2 /media/cdrom/
 # grep -E '/ |/bo'  /media/cdrom/etc/fstab 
 UUID=4485-0F5E                            /boot/efi      vfat    umask=0077 0 2
@@ -476,7 +490,7 @@ file, it already has all the partitions currently in use.
 driver) should be already good to go; since it was just
 installed:
 
-```
+``` console
 # mount /dev/nvme1n1p3 /noble
 # grep -E '/ |/bo'  /noble/etc/fstab 
 # / was on /dev/nvme1n1p3 during curtin installation
@@ -492,7 +506,7 @@ missing all the *other* partitions currently in use, and
 includes a swap file that is unnecessary in a system with
 32 GB of RAM:
 
-```bash
+``` bash linenums="1" title="/etc/fstab"
 # /etc/fstab: static file system information.
 #
 # Use 'blkid' to print the universally unique identifier for a
@@ -512,7 +526,7 @@ includes a swap file that is unnecessary in a system with
 Because this PC has been *collecting* hard drives over
 the years, there are many additional partitions in use:
 
-```
+``` console
 # df -h | head -1; df -h | grep -E 'nvme|sd.'
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p6   74G   49G   21G  71% /
@@ -529,7 +543,7 @@ For just about the same reason, there are also several
 symlinks strategically pointing from where thigns used
 to be to where they are now:
 
-```
+``` console
 # ls -l /home/
 total 80
 lrwxrwxrwx 1 root   root      17 Sep 24  2022 depot -> /home/raid/depot/
@@ -552,7 +566,7 @@ copied over to `/dev/nvme1n1p4` and in fact most of it
 is already there. There are only a few users' home
 directories and empty directories (mount points):
 
-```
+``` console
 # du -sh /home/*
 952G    /home/coder
 18G     /home/ernest
@@ -584,17 +598,19 @@ With the above preparetions done in the new NVME, this
 *should* be as simple as mounting the new NVME on
 `/home` and simply *not mounting* the old NVME:
 
-```
+``` console
 # mount /dev/nvme1n1p2 /media/cdrom/
+```
 
-# vi /media/cdrom/etc/fstab
-...
+``` bash title="/etc/fstab"
 # Previous-new (June 2022) 2TB NVME SSD (/home)
 #UUID=18238846-d411-4dcb-af87-a2d19a17fef3 /home          btrfs   defaults,noatime,autodefrag,discard,compress=lzo 0 0
 
 # New-new 4TB M.2 SSD (newer /home; previously /home/new-m2)
 UUID=8edfc3ba-4981-4423-8730-7e229bfa63f3 /home      btrfs   defaults        0       0
+```
 
+``` console
 # umount /media/cdrom/
 ```
 
@@ -607,7 +623,7 @@ Despite booting from the new bootloader in the 4TB NVME
 the **Ubuntu Studio 22.04.5 on /dev/nvme1n1p2** option, 
 somehow the system boots the *old old* root:
 
-```
+``` console
 $ df-h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p6   74G   49G   22G  70% /
@@ -648,7 +664,7 @@ to the old root in the 2TB NVME. Editing this value and then
 pressing `Ctrl+x` finally boots into the newly cloned 22.04
 and the old 2TB NVMe is not mounted or used at all:
 
-```
+``` console
 $ df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p2   74G   51G   19G  74% /
@@ -660,12 +676,12 @@ Filesystem      Size  Used Avail Use% Mounted on
 ```
 
 To make this change permanent, the answer (from **2019**) in
-https://askubuntu.com/a/1140397 seems to suggest that simply
-running `sudo update-grub` would pick up the correct root.
-This would make sense, but perhaps would be better to do it
-from the new 24.04 system. Perhaps the old root UUID has
-been left somewhere in the new root UUID, which would be
-updated by now.
+[askubuntu.com/a/1140397](https://askubuntu.com/a/1140397)
+seems to suggest that simply running `sudo update-grub` would
+pick up the correct root. This would make sense, but perhaps
+would be better to do it from the new 24.04 system. Perhaps
+the old root UUID has been left somewhere in the new root UUID,
+which would be updated by now.
 
 So the next move is to boot the new 24.04 system, but before
 doing that its `/etc/fstab` needs to be updated to **add** the
@@ -673,7 +689,7 @@ additional partitions in the old SATA disks.
 
 First, lets add the 24.04 root as a read-only mount:
 
-```
+``` console
 # vi /etc/fstab
 ...
 # NEW Ubuntu Studio 24.04 root (nvme1n1p3)
@@ -682,14 +698,15 @@ UUID=1d30a16e-b4f6-4459-9b19-8c9093b0d047 /noble      ext4   defaults,ro        
 
 Then update its `/etc/fstab` after remounting as read-write:
 
-```
+``` console
 # mount /noble/ -o remount,rw
 
 # cat /etc/fstab \
   | grep --color=no -C2 sd. \
   >> /noble/etc/fstab 
+```
 
-# cat /noble/etc/fstab
+``` fstab linenums="1" title="/noble/etc/fstab"
 # /etc/fstab: static file system information.
 #
 # Use 'blkid' to print the universally unique identifier for a
@@ -722,7 +739,7 @@ Finally, comment out the line for the swap file (`/swap.img`),
 because that won't be necessary in a system with 32GB of RAM,
 and add a line to mount the newly clone 22.04 as read-only:
 
-```
+``` console
 # mkdir /noble/jammy
 # vi /noble/etc/fstab
 ...
@@ -733,7 +750,7 @@ UUID=409501ea-d63d-49b2-bd45-3b876404dc53 /jammy      ext4   defaults,ro        
 With all these adjustments, after booting into the new
 **Ubuntu Studio 24.04** this should be what is mounted:
 
-```
+``` console
 # df -h | head -1; df -h | grep -E 'nvme|sd.'
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p3   74G   22G   49G  31% /
@@ -756,7 +773,7 @@ the first time an additional reboot is required for the
 
 After rebooting again, `df` shows partitions are mounted like this:
 
-```
+``` console
 # df -h
 Filesystem      Size  Used Avail Use% Mounted on
 tmpfs           3.2G  2.6M  3.2G   1% /run
@@ -787,7 +804,7 @@ under the name `Ubuntu 22.04.5 LTS (22.04) (on /dev/nvme1n1p2)`
 system (22.04 in the new NVME) to boot correctly and `df -h`
 shows the desired partitions mounted:
 
-```
+``` console
 $ df-h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p2   74G   51G   19G  73% /
@@ -817,7 +834,7 @@ To this effect, copy `/etc/netplan/01-network-manager-all.yaml` from
 the old system, change the network interface name if different (run
 `ip a` to check) and apply the changes with `netplan apply`:
 
-```
+``` console
 # ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -835,7 +852,7 @@ the old system, change the network interface name if different (run
 
 Network interface is `enp5s0`; 
 
-```yaml
+``` yaml linenums="1" title="/etc/netplan/01-network-manager-all.yaml"
 # Dual static IP on LAN, nothing else.
 network:
   version: 2
@@ -865,7 +882,7 @@ network:
         addresses: [62.2.24.158, 62.2.17.61]
 ```
 
-```
+``` console
 # chmod 400 /etc/netplan/01-network-manager-all.yam
 # netplan apply
 
@@ -889,17 +906,17 @@ network:
 Ubuntu Studio doesn't enable the SSH server by default, but we want
 this to adjust the system remotely:
 
-```
+``` console
 # apt install ssh -y
 # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # systemctl enable --now ssh
 ```
 
-**Note:** remember to copy over files under `/root` from
-previous system/s, in case it contains useful scripts (and/or
-SSH keys worth keeping under `.ssh`).
+!!! note
+    Remember to copy over files under `/root` from previous system/s, in case
+    it contains useful scripts (and/or SSH keys worth keeping under `.ssh`).
 
-```
+``` console
 # rm /root/.ssh/authorized_keys 
 # rmdir /root/.ssh/ 
 # cp -a /mnt/root/.ssh/ /root/
@@ -916,7 +933,7 @@ Better yet, **append** the old `/etc/hosts` to the new one, then
 edit the new one to remove redundant lines. There are a few
 interesting lines in the new one:
 
-```
+``` hosts title="/etc/hosts"
 # Standard host addresses
 127.0.0.1 localhost
 127.0.1.1 rapture
@@ -934,7 +951,7 @@ ff02::2 ip6-allrouters
 Start by installing a few
 [essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages):
 
-```
+``` console
 # apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
   gkrellm-xkb gkrellm-cpufreq geeqie playonlinux exfat-fuse \
   clementine id3v2 htop vnstat neofetch tigervnc-viewer sox \
@@ -947,7 +964,7 @@ Start by installing a few
   python3-absl python3-unidecode -y
 ```
 
-After installing these **Redshift** is immediately available.
+After installing these, **Redshift** is immediately available.
 
 Even before installing any packages **KDE Connect** is already
 running, which comes in very handy if it was already setup.
@@ -961,7 +978,7 @@ At this point a reboot should not be necessary.
 Install from the
 [Release Channel](https://brave.com/linux/#release-channel-installation):
 
-```
+``` console
 # curl -fsSLo \
   /usr/share/keyrings/brave-browser-archive-keyring.gpg \
   https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
@@ -977,7 +994,7 @@ Install from the
 Installing [Google Chrome](https://google.com/chrome) is as
 simple as downloading the Debian package and installing it:
 
-```
+``` console
 # dpkg -i google-chrome-stable_current_amd64.deb
 ```
 
@@ -996,7 +1013,7 @@ setup previously, so it only needs to be run manually this once.
 Installing Steam from Snap 
 [couldn't be simplers](https://unixhint.com/install-steam-on-ubuntu-24-04/):
 
-```
+``` console
 # snap install steam
 steam 1.0.0.81 from Canonical✓ installed
 ```
@@ -1007,7 +1024,7 @@ provided by Canonical.
 When runing the Steam client for the first time, a pop-up shows up
 advising to install additional 32-bit drivers *for best experience*
 
-```
+``` console
 # dpkg --add-architecture i386
 # apt update
 # apt install libnvidia-gl-550:i386 -y
@@ -1035,7 +1052,7 @@ It should also be possible to install the official Steam client, with
 To avoid taking chances, copy the Minecraft launcher from the
 previous system:
 
-```
+``` console
 # cp -a /jammy/opt/minecraft-launcher/ /opt/
 ```
 
@@ -1060,7 +1077,7 @@ even for Ubuntu 22.04 via
 [snapcraft.io/blender](https://snapcraft.io/blender)
 so there is no reason to install it any other way:
 
-```
+``` console
 # snap install blender --classic
 blender 4.2.3 from Blender Foundation (blenderfoundation✓) installed
 ```
@@ -1073,7 +1090,7 @@ of the `conmon` script as `/usr/local/bin/conmon` and
 [run it as a service](../../conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
-```ini
+``` ini linenums="1" title="/etc/systemd/system/conmon.service"
 [Unit]
 Description=Continuous Monitoring
 
@@ -1088,7 +1105,7 @@ WantedBy=multi-user.target
 
 Then enable and start the services in `systemd`:
 
-```
+``` console
 # systemctl enable conmon.service
 # systemctl daemon-reload
 # systemctl start conmon.service
@@ -1099,7 +1116,7 @@ Then enable and start the services in `systemd`:
 
 Initially there is only a limited amount of hardware sensors:
 
-```
+``` console
 # sensors -A
 nvme-pci-0400
 Composite:    +36.9°C  (low  = -20.1°C, high = +83.8°C)
@@ -1119,50 +1136,55 @@ Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
 
 HDD temperatures are available by loading the drivetemp kernel module:
 
-```
+``` console
 # echo drivetemp > /etc/modules-load.d/drivetemp.conf
 # modprobe drivetemp
-# sensors -A
-drivetemp-scsi-9-0
-temp1:        +40.0°C  (low  =  +0.0°C, high = +55.0°C)
-                       (crit low = -40.0°C, crit = +70.0°C)
-                       (lowest = +24.0°C, highest = +40.0°C)
-
-drivetemp-scsi-5-0
-temp1:        +29.0°C  (low  =  +0.0°C, high = +70.0°C)
-                       (crit low =  +0.0°C, crit = +70.0°C)
-                       (lowest = +25.0°C, highest = +34.0°C)
-
-drivetemp-scsi-2-0
-temp1:        +40.0°C  (low  =  +0.0°C, high = +60.0°C)
-                       (crit low = -40.0°C, crit = +70.0°C)
-                       (lowest = +24.0°C, highest = +40.0°C)
-
-nvme-pci-0400
-Composite:    +36.9°C  (low  = -20.1°C, high = +83.8°C)
-                       (crit = +88.8°C)
-Sensor 2:     +72.8°C  
-
-k10temp-pci-00c3
-Tctl:         +42.5°C  
-Tccd2:        +36.0°C  
-
-drivetemp-scsi-8-0
-temp1:        +36.0°C  (low  =  +0.0°C, high = +60.0°C)
-                       (crit low = -41.0°C, crit = +85.0°C)
-                       (lowest = +22.0°C, highest = +36.0°C)
-
-drivetemp-scsi-4-0
-temp1:        +29.0°C  (low  =  +0.0°C, high = +100.0°C)
-                       (crit low =  +0.0°C, crit = +100.0°C)
-                       (lowest = +25.0°C, highest = +29.0°C)
-
-nvme-pci-0100
-Composite:    +42.9°C  (low  = -273.1°C, high = +84.8°C)
-                       (crit = +84.8°C)
-Sensor 1:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
-Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
 ```
+
+??? terminal "`sensors -A`"
+
+    ``` console
+    # sensors -A
+    drivetemp-scsi-9-0
+    temp1:        +40.0°C  (low  =  +0.0°C, high = +55.0°C)
+                          (crit low = -40.0°C, crit = +70.0°C)
+                          (lowest = +24.0°C, highest = +40.0°C)
+
+    drivetemp-scsi-5-0
+    temp1:        +29.0°C  (low  =  +0.0°C, high = +70.0°C)
+                          (crit low =  +0.0°C, crit = +70.0°C)
+                          (lowest = +25.0°C, highest = +34.0°C)
+
+    drivetemp-scsi-2-0
+    temp1:        +40.0°C  (low  =  +0.0°C, high = +60.0°C)
+                          (crit low = -40.0°C, crit = +70.0°C)
+                          (lowest = +24.0°C, highest = +40.0°C)
+
+    nvme-pci-0400
+    Composite:    +36.9°C  (low  = -20.1°C, high = +83.8°C)
+                          (crit = +88.8°C)
+    Sensor 2:     +72.8°C  
+
+    k10temp-pci-00c3
+    Tctl:         +42.5°C  
+    Tccd2:        +36.0°C  
+
+    drivetemp-scsi-8-0
+    temp1:        +36.0°C  (low  =  +0.0°C, high = +60.0°C)
+                          (crit low = -41.0°C, crit = +85.0°C)
+                          (lowest = +22.0°C, highest = +36.0°C)
+
+    drivetemp-scsi-4-0
+    temp1:        +29.0°C  (low  =  +0.0°C, high = +100.0°C)
+                          (crit low =  +0.0°C, crit = +100.0°C)
+                          (lowest = +25.0°C, highest = +29.0°C)
+
+    nvme-pci-0100
+    Composite:    +42.9°C  (low  = -273.1°C, high = +84.8°C)
+                          (crit = +84.8°C)
+    Sensor 1:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+    Sensor 2:     +42.9°C  (low  = -273.1°C, high = +65261.8°C)
+    ```
 
 ##### Motherboard Sensors (NCT6798D)
 
@@ -1171,21 +1193,21 @@ motherboard initially shows only the South bridge sensors
 (`k10temp`); to gain access to the full range of sensors
 load the additional driver `nct6775`:
 
-```
+``` console
 # echo nct6775 > /etc/modules-load.d/nct6775.conf
 # modprobe nct6775
 ```
 
 When loading this driver, `dmesg` should show a single line:
 
-```
+``` console
 nct6775: Found NCT6798D or compatible chip at 0x2e:0x290
 ```
 
 Previously (in Ubuntu Studio 22.04 in late 2022) this driver
 would encounter a conflict and sensors would not be available:
 
-```
+``` console
 nct6775: Found NCT6798D or compatible chip at 0x2e:0x290
 ACPI Warning: SystemIO range 0x0000000000000295-0x0000000000000296 conflicts with OpRegion 0x0000000000000290-0x0000000000000299 (\AMW0.SHWM) (20210730/utaddress-204)
 ACPI: OSL: Resource conflict; ACPI support missing from driver?
@@ -1195,92 +1217,96 @@ As for late 2024, the driver encounters no conflict, and the
 output from `sensors -A` shows the `nct6798-isa-0290` with
 many additional sensors:
 
-```
-nct6798-isa-0290
-in0:                        1.39 V  (min =  +0.00 V, max =  +1.74 V)
-in1:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in2:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in3:                        3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in4:                        1.02 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in5:                      864.00 mV (min =  +0.00 V, max =  +0.00 V)
-in6:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in7:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in8:                        3.30 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in9:                        1.82 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in10:                     464.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
-in11:                     960.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
-in12:                       1.04 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in13:                     1000.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
-in14:                       1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-fan1:                     1337 RPM  (min =    0 RPM)
-fan2:                     1021 RPM  (min =    0 RPM)
-fan3:                      963 RPM  (min =    0 RPM)
-fan4:                      964 RPM  (min =    0 RPM)
-fan5:                        0 RPM  (min =    0 RPM)
-fan6:                        0 RPM  (min =    0 RPM)
-fan7:                        0 RPM  (min =    0 RPM)
-SYSTIN:                    +33.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +125.0°C)  sensor = thermistor
-CPUTIN:                    +38.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +125.0°C)  sensor = thermistor
-AUXTIN0:                   +26.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +125.0°C)  sensor = thermistor
-AUXTIN1:                   +67.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +125.0°C)  sensor = thermistor
-AUXTIN2:                   +27.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +100.0°C)  sensor = thermistor
-AUXTIN3:                   +25.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +100.0°C)  sensor = thermistor
-AUXTIN4:                   +33.0°C  (high = +80.0°C, hyst = +75.0°C)
-                                    (crit = +100.0°C)
-PECI Agent 0 Calibration:  +58.0°C  (high = +80.0°C, hyst = +75.0°C)
-PCH_CHIP_CPU_MAX_TEMP:      +0.0°C  
-PCH_CHIP_TEMP:              +0.0°C  
-PCH_CPU_TEMP:               +0.0°C  
-PCH_MCH_TEMP:               +0.0°C  
-TSI0_TEMP:                 +69.6°C  
-TSI1_TEMP:                 +61.2°C  
-intrusion0:               ALARM
-intrusion1:               ALARM
-beep_enable:              disabled
-```
+??? terminal "`nct6798-isa-0290`"
+
+    ```
+    nct6798-isa-0290
+    in0:                        1.39 V  (min =  +0.00 V, max =  +1.74 V)
+    in1:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in2:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in3:                        3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in4:                        1.02 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in5:                      864.00 mV (min =  +0.00 V, max =  +0.00 V)
+    in6:                        1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in7:                        3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in8:                        3.30 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in9:                        1.82 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in10:                     464.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in11:                     960.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in12:                       1.04 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in13:                     1000.00 mV (min =  +0.00 V, max =  +0.00 V)  ALARM
+    in14:                       1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+    fan1:                     1337 RPM  (min =    0 RPM)
+    fan2:                     1021 RPM  (min =    0 RPM)
+    fan3:                      963 RPM  (min =    0 RPM)
+    fan4:                      964 RPM  (min =    0 RPM)
+    fan5:                        0 RPM  (min =    0 RPM)
+    fan6:                        0 RPM  (min =    0 RPM)
+    fan7:                        0 RPM  (min =    0 RPM)
+    SYSTIN:                    +33.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +125.0°C)  sensor = thermistor
+    CPUTIN:                    +38.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +125.0°C)  sensor = thermistor
+    AUXTIN0:                   +26.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +125.0°C)  sensor = thermistor
+    AUXTIN1:                   +67.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +125.0°C)  sensor = thermistor
+    AUXTIN2:                   +27.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +100.0°C)  sensor = thermistor
+    AUXTIN3:                   +25.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +100.0°C)  sensor = thermistor
+    AUXTIN4:                   +33.0°C  (high = +80.0°C, hyst = +75.0°C)
+                                        (crit = +100.0°C)
+    PECI Agent 0 Calibration:  +58.0°C  (high = +80.0°C, hyst = +75.0°C)
+    PCH_CHIP_CPU_MAX_TEMP:      +0.0°C  
+    PCH_CHIP_TEMP:              +0.0°C  
+    PCH_CPU_TEMP:               +0.0°C  
+    PCH_MCH_TEMP:               +0.0°C  
+    TSI0_TEMP:                 +69.6°C  
+    TSI1_TEMP:                 +61.2°C  
+    intrusion0:               ALARM
+    intrusion1:               ALARM
+    beep_enable:              disabled
+    ```
 
 ### Itch.io
 
 There is a binary in `.itch/itch` but it doesn’t work, it seem to have launched the app but the app itself is nowhere to be seen:
 
-```
-$ .itch/itch
-2024/11/07 23:27:26 itch-setup will log to /tmp/itch-setup-log.txt
-2024/11/07 23:27:26 =========================================
-2024/11/07 23:27:26 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-11-07 23:27:26.862907105 +0100 CET m=+0.002170433" with arguments:
-2024/11/07 23:27:26 "/home/coder/.itch/itch-setup"
-2024/11/07 23:27:26 "--prefer-launch"
-2024/11/07 23:27:26 "--appname"
-2024/11/07 23:27:26 "itch"
-2024/11/07 23:27:26 "--"
-2024/11/07 23:27:26 =========================================
-2024/11/07 23:27:26 App name specified on command-line: itch
-2024/11/07 23:27:26 Locale:  en-US
-2024/11/07 23:27:26 Initializing installer GUI...
-2024/11/07 23:27:26 Using GTK UI
+??? terminal "`$ .itch/itch`"
 
-(process:1496821): Gtk-WARNING **: 23:27:26.864: Locale not supported by C library.
-        Using the fallback 'C' locale.
-2024/11/07 23:27:26 Initializing (itch) multiverse @ (/home/coder/.itch)
-2024/11/07 23:27:26 (/home/coder/.itch)(current = "26.1.9", ready = "")
-2024/11/07 23:27:26 Launch preferred, attempting...
-2024/11/07 23:27:26 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
-2024/11/07 23:27:26 Kernel should support SUID sandboxing, leaving it enabled
-2024/11/07 23:27:26 App launched, getting out of the way
-```
+    ``` console
+    $ .itch/itch
+    2024/11/07 23:27:26 itch-setup will log to /tmp/itch-setup-log.txt
+    2024/11/07 23:27:26 =========================================
+    2024/11/07 23:27:26 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-11-07 23:27:26.862907105 +0100 CET m=+0.002170433" with arguments:
+    2024/11/07 23:27:26 "/home/coder/.itch/itch-setup"
+    2024/11/07 23:27:26 "--prefer-launch"
+    2024/11/07 23:27:26 "--appname"
+    2024/11/07 23:27:26 "itch"
+    2024/11/07 23:27:26 "--"
+    2024/11/07 23:27:26 =========================================
+    2024/11/07 23:27:26 App name specified on command-line: itch
+    2024/11/07 23:27:26 Locale:  en-US
+    2024/11/07 23:27:26 Initializing installer GUI...
+    2024/11/07 23:27:26 Using GTK UI
+
+    (process:1496821): Gtk-WARNING **: 23:27:26.864: Locale not supported by C library.
+            Using the fallback 'C' locale.
+    2024/11/07 23:27:26 Initializing (itch) multiverse @ (/home/coder/.itch)
+    2024/11/07 23:27:26 (/home/coder/.itch)(current = "26.1.9", ready = "")
+    2024/11/07 23:27:26 Launch preferred, attempting...
+    2024/11/07 23:27:26 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
+    2024/11/07 23:27:26 Kernel should support SUID sandboxing, leaving it enabled
+    2024/11/07 23:27:26 App launched, getting out of the way
+    ```
 
 The solution, albeit possibly only a temporary one, is to
 [disable sandboxing](https://www.reddit.com/r/pop_os/comments/uocj8p/itchio_launcher_crashing_on_startup_ever_sense/)
 ([source](https://itch.io/t/1760026/itch-app-official-is-closing-at-launch-fedora-linux)) by adding the
 `--no-sandbox` in `.itch/itch`:
 
-```bash
+``` bash linenums="1" title=".itch/itch"
 #!/bin/sh
 /home/coder/.itch/itch-setup \
   --prefer-launch --appname itch \
@@ -1292,9 +1318,9 @@ The solution, albeit possibly only a temporary one, is to
 The Arduino IDE in Ubuntu 22.04 (in `/jammy/opt/arduino`) will be
 out of date, so it pays to install the latest/nightly version:
 
-```
+``` console
 # wget https://downloads.arduino.cc/arduino-ide/nightly/arduino-ide_nightly-latest_Linux_64bit.zip
-# unzip  arduino-ide_nightly-latest_Linux_64bit.zip
+# unzip arduino-ide_nightly-latest_Linux_64bit.zip
 # mv arduino-ide_nightly-20241106_Linux_64bit/ /opt/arduino/
 # chmod 4755 /opt/arduino/chrome-sandbox
 ```
@@ -1302,13 +1328,15 @@ out of date, so it pays to install the latest/nightly version:
 Upon launching the Arduino IDE, a notification card offers updating
 installed libraries, which comes in vary handy to update them all.
 
-**Note:** without the `chmod 4755` command, the IDEA refuses to run:
+??? warning
 
-```
-$ /opt/arduino/arduino-ide
-[1917080:1107/234610.122185:FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /opt/arduino/chrome-sandbox is owned by root and has mode 4755.
-Trace/breakpoint trap (core dumped)
-```
+    Without the `chmod 4755` command, the IDE refuses to run.
+
+    ``` console
+    $ /opt/arduino/arduino-ide
+    [1917080:1107/234610.122185:FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /opt/arduino/chrome-sandbox is owned by root and has mode 4755.
+    Trace/breakpoint trap (core dumped)
+    ```
 
 ### FMNT Autofirma
 
@@ -1321,326 +1349,332 @@ and the
 packages and `unzip` the AutoFirma package and install both, but
 **first** install dependencies (`libnss` and Java Runtime Environment):
 
-```
-# apt install default-jre libnss3-tools -y
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-libnss3-tools is already the newest version (2:3.98-1build1).
-The following additional packages will be installed:
-  ca-certificates-java default-jre-headless java-common libatk-wrapper-java
-  libatk-wrapper-java-jni openjdk-21-jre openjdk-21-jre-headless
-Suggested packages:
-  fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei
-  | fonts-wqy-zenhei fonts-indic
-The following NEW packages will be installed:
-  ca-certificates-java default-jre default-jre-headless java-common
-  libatk-wrapper-java libatk-wrapper-java-jni openjdk-21-jre
-  openjdk-21-jre-headless
-0 upgraded, 8 newly installed, 0 to remove and 14 not upgraded.
-Need to get 46.9 MB of archives.
-After this operation, 203 MB of additional disk space will be used.
-Get:1 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 ca-certificates-java all 20240118 [11.6 kB]
-Get:2 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 java-common all 0.75+exp1 [6,798 B]
-Get:3 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre-headless amd64 21.0.4+7-1ubuntu2~24.04 [46.6 MB]
-Get:4 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre-headless amd64 2:1.21-75+exp1 [3,094 B]
-Get:5 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre amd64 21.0.4+7-1ubuntu2~24.04 [227 kB]
-Get:6 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre amd64 2:1.21-75+exp1 [922 B]
-Get:7 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java all 0.40.0-3build2 [54.3 kB]
-Get:8 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java-jni amd64 0.40.0-3build2 [46.4 kB]
-Fetched 46.9 MB in 1s (38.9 MB/s)                  
-Selecting previously unselected package ca-certificates-java.
-(Reading database ... 430136 files and directories currently installed.)
-Preparing to unpack .../0-ca-certificates-java_20240118_all.deb ...
-Unpacking ca-certificates-java (20240118) ...
-Selecting previously unselected package java-common.
-Preparing to unpack .../1-java-common_0.75+exp1_all.deb ...
-Unpacking java-common (0.75+exp1) ...
-Selecting previously unselected package openjdk-21-jre-headless:amd64.
-Preparing to unpack .../2-openjdk-21-jre-headless_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
-Unpacking openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
-Selecting previously unselected package default-jre-headless.
-Preparing to unpack .../3-default-jre-headless_2%3a1.21-75+exp1_amd64.deb ...
-Unpacking default-jre-headless (2:1.21-75+exp1) ...
-Selecting previously unselected package openjdk-21-jre:amd64.
-Preparing to unpack .../4-openjdk-21-jre_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
-Unpacking openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
-Selecting previously unselected package default-jre.
-Preparing to unpack .../5-default-jre_2%3a1.21-75+exp1_amd64.deb ...
-Unpacking default-jre (2:1.21-75+exp1) ...
-Selecting previously unselected package libatk-wrapper-java.
-Preparing to unpack .../6-libatk-wrapper-java_0.40.0-3build2_all.deb ...
-Unpacking libatk-wrapper-java (0.40.0-3build2) ...
-Selecting previously unselected package libatk-wrapper-java-jni:amd64.
-Preparing to unpack .../7-libatk-wrapper-java-jni_0.40.0-3build2_amd64.deb ...
-Unpacking libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
-Setting up java-common (0.75+exp1) ...
-Setting up libatk-wrapper-java (0.40.0-3build2) ...
-Setting up ca-certificates-java (20240118) ...
-No JRE found. Skipping Java certificates setup.
-Setting up openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
-update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/java to provide /usr/bin/java (java) in auto mode
-update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/jpackage to provide /usr/bin/jpackage (jpackage) in auto mode
-update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/keytool to provide /usr/bin/keytool (keytool) in auto mode
-update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/rmiregistry to provide /usr/bin/rmiregistry (rmiregistry) in auto mode
-update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/lib/jexec to provide /usr/bin/jexec (jexec) in auto mode
-Setting up libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
-Processing triggers for man-db (2.12.0-4build2) ...
-Processing triggers for desktop-file-utils (0.27-2build1) ...
-Processing triggers for hicolor-icon-theme (0.17-2) ...
-Processing triggers for ca-certificates-java (20240118) ...
-Adding debian:ACCVRAIZ1.pem
-Adding debian:AC_RAIZ_FNMT-RCM.pem
-Adding debian:AC_RAIZ_FNMT-RCM_SERVIDORES_SEGUROS.pem
-Adding debian:ANF_Secure_Server_Root_CA.pem
-Adding debian:Actalis_Authentication_Root_CA.pem
-Adding debian:AffirmTrust_Commercial.pem
-Adding debian:AffirmTrust_Networking.pem
-Adding debian:AffirmTrust_Premium.pem
-Adding debian:AffirmTrust_Premium_ECC.pem
-Adding debian:Amazon_Root_CA_1.pem
-Adding debian:Amazon_Root_CA_2.pem
-Adding debian:Amazon_Root_CA_3.pem
-Adding debian:Amazon_Root_CA_4.pem
-Adding debian:Atos_TrustedRoot_2011.pem
-Adding debian:Atos_TrustedRoot_Root_CA_ECC_TLS_2021.pem
-Adding debian:Atos_TrustedRoot_Root_CA_RSA_TLS_2021.pem
-Adding debian:Autoridad_de_Certificacion_Firmaprofesional_CIF_A62634068.pem
-Adding debian:BJCA_Global_Root_CA1.pem
-Adding debian:BJCA_Global_Root_CA2.pem
-Adding debian:Baltimore_CyberTrust_Root.pem
-Adding debian:Buypass_Class_2_Root_CA.pem
-Adding debian:Buypass_Class_3_Root_CA.pem
-Adding debian:CA_Disig_Root_R2.pem
-Adding debian:CFCA_EV_ROOT.pem
-Adding debian:COMODO_Certification_Authority.pem
-Adding debian:COMODO_ECC_Certification_Authority.pem
-Adding debian:COMODO_RSA_Certification_Authority.pem
-Adding debian:Certainly_Root_E1.pem
-Adding debian:Certainly_Root_R1.pem
-Adding debian:Certigna.pem
-Adding debian:Certigna_Root_CA.pem
-Adding debian:Certum_EC-384_CA.pem
-Adding debian:Certum_Trusted_Network_CA.pem
-Adding debian:Certum_Trusted_Network_CA_2.pem
-Adding debian:Certum_Trusted_Root_CA.pem
-Adding debian:CommScope_Public_Trust_ECC_Root-01.pem
-Adding debian:CommScope_Public_Trust_ECC_Root-02.pem
-Adding debian:CommScope_Public_Trust_RSA_Root-01.pem
-Adding debian:CommScope_Public_Trust_RSA_Root-02.pem
-Adding debian:Comodo_AAA_Services_root.pem
-Adding debian:D-TRUST_BR_Root_CA_1_2020.pem
-Adding debian:D-TRUST_EV_Root_CA_1_2020.pem
-Adding debian:D-TRUST_Root_Class_3_CA_2_2009.pem
-Adding debian:D-TRUST_Root_Class_3_CA_2_EV_2009.pem
-Adding debian:DigiCert_Assured_ID_Root_CA.pem
-Adding debian:DigiCert_Assured_ID_Root_G2.pem
-Adding debian:DigiCert_Assured_ID_Root_G3.pem
-Adding debian:DigiCert_Global_Root_CA.pem
-Adding debian:DigiCert_Global_Root_G2.pem
-Adding debian:DigiCert_Global_Root_G3.pem
-Adding debian:DigiCert_High_Assurance_EV_Root_CA.pem
-Adding debian:DigiCert_TLS_ECC_P384_Root_G5.pem
-Adding debian:DigiCert_TLS_RSA4096_Root_G5.pem
-Adding debian:DigiCert_Trusted_Root_G4.pem
-Adding debian:Entrust.net_Premium_2048_Secure_Server_CA.pem
-Adding debian:Entrust_Root_Certification_Authority.pem
-Adding debian:Entrust_Root_Certification_Authority_-_EC1.pem
-Adding debian:Entrust_Root_Certification_Authority_-_G2.pem
-Adding debian:Entrust_Root_Certification_Authority_-_G4.pem
-Adding debian:GDCA_TrustAUTH_R5_ROOT.pem
-Adding debian:GLOBALTRUST_2020.pem
-Adding debian:GTS_Root_R1.pem
-Adding debian:GTS_Root_R2.pem
-Adding debian:GTS_Root_R3.pem
-Adding debian:GTS_Root_R4.pem
-Adding debian:GlobalSign_ECC_Root_CA_-_R4.pem
-Adding debian:GlobalSign_ECC_Root_CA_-_R5.pem
-Adding debian:GlobalSign_Root_CA.pem
-Adding debian:GlobalSign_Root_CA_-_R3.pem
-Adding debian:GlobalSign_Root_CA_-_R6.pem
-Adding debian:GlobalSign_Root_E46.pem
-Adding debian:GlobalSign_Root_R46.pem
-Adding debian:Go_Daddy_Class_2_CA.pem
-Adding debian:Go_Daddy_Root_Certificate_Authority_-_G2.pem
-Adding debian:HARICA_TLS_ECC_Root_CA_2021.pem
-Adding debian:HARICA_TLS_RSA_Root_CA_2021.pem
-Adding debian:Hellenic_Academic_and_Research_Institutions_ECC_RootCA_2015.pem
-Adding debian:Hellenic_Academic_and_Research_Institutions_RootCA_2015.pem
-Adding debian:HiPKI_Root_CA_-_G1.pem
-Adding debian:Hongkong_Post_Root_CA_3.pem
-Adding debian:ISRG_Root_X1.pem
-Adding debian:ISRG_Root_X2.pem
-Adding debian:IdenTrust_Commercial_Root_CA_1.pem
-Adding debian:IdenTrust_Public_Sector_Root_CA_1.pem
-Adding debian:Izenpe.com.pem
-Adding debian:Microsec_e-Szigno_Root_CA_2009.pem
-Adding debian:Microsoft_ECC_Root_Certificate_Authority_2017.pem
-Adding debian:Microsoft_RSA_Root_Certificate_Authority_2017.pem
-Adding debian:NAVER_Global_Root_Certification_Authority.pem
-Warning: there was a problem reading the certificate file /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem. Message:
-  /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem (No such file or directory)
-Adding debian:OISTE_WISeKey_Global_Root_GB_CA.pem
-Adding debian:OISTE_WISeKey_Global_Root_GC_CA.pem
-Adding debian:QuoVadis_Root_CA_1_G3.pem
-Adding debian:QuoVadis_Root_CA_2.pem
-Adding debian:QuoVadis_Root_CA_2_G3.pem
-Adding debian:QuoVadis_Root_CA_3.pem
-Adding debian:QuoVadis_Root_CA_3_G3.pem
-Adding debian:SSL.com_EV_Root_Certification_Authority_ECC.pem
-Adding debian:SSL.com_EV_Root_Certification_Authority_RSA_R2.pem
-Adding debian:SSL.com_Root_Certification_Authority_ECC.pem
-Adding debian:SSL.com_Root_Certification_Authority_RSA.pem
-Adding debian:SSL.com_TLS_ECC_Root_CA_2022.pem
-Adding debian:SSL.com_TLS_RSA_Root_CA_2022.pem
-Adding debian:SZAFIR_ROOT_CA2.pem
-Adding debian:Sectigo_Public_Server_Authentication_Root_E46.pem
-Adding debian:Sectigo_Public_Server_Authentication_Root_R46.pem
-Adding debian:SecureSign_RootCA11.pem
-Adding debian:SecureTrust_CA.pem
-Adding debian:Secure_Global_CA.pem
-Adding debian:Security_Communication_ECC_RootCA1.pem
-Adding debian:Security_Communication_RootCA2.pem
-Adding debian:Security_Communication_RootCA3.pem
-Adding debian:Security_Communication_Root_CA.pem
-Adding debian:Starfield_Class_2_CA.pem
-Adding debian:Starfield_Root_Certificate_Authority_-_G2.pem
-Adding debian:Starfield_Services_Root_Certificate_Authority_-_G2.pem
-Adding debian:SwissSign_Gold_CA_-_G2.pem
-Adding debian:SwissSign_Silver_CA_-_G2.pem
-Adding debian:T-TeleSec_GlobalRoot_Class_2.pem
-Adding debian:T-TeleSec_GlobalRoot_Class_3.pem
-Adding debian:TUBITAK_Kamu_SM_SSL_Kok_Sertifikasi_-_Surum_1.pem
-Adding debian:TWCA_Global_Root_CA.pem
-Adding debian:TWCA_Root_Certification_Authority.pem
-Adding debian:TeliaSonera_Root_CA_v1.pem
-Adding debian:Telia_Root_CA_v2.pem
-Adding debian:TrustAsia_Global_Root_CA_G3.pem
-Adding debian:TrustAsia_Global_Root_CA_G4.pem
-Adding debian:Trustwave_Global_Certification_Authority.pem
-Adding debian:Trustwave_Global_ECC_P256_Certification_Authority.pem
-Adding debian:Trustwave_Global_ECC_P384_Certification_Authority.pem
-Adding debian:TunTrust_Root_CA.pem
-Adding debian:UCA_Extended_Validation_Root.pem
-Adding debian:UCA_Global_G2_Root.pem
-Adding debian:USERTrust_ECC_Certification_Authority.pem
-Adding debian:USERTrust_RSA_Certification_Authority.pem
-Adding debian:XRamp_Global_CA_Root.pem
-Adding debian:certSIGN_ROOT_CA.pem
-Adding debian:certSIGN_Root_CA_G2.pem
-Adding debian:e-Szigno_Root_CA_2017.pem
-Adding debian:ePKI_Root_Certification_Authority.pem
-Adding debian:emSign_ECC_Root_CA_-_C3.pem
-Adding debian:emSign_ECC_Root_CA_-_G3.pem
-Adding debian:emSign_Root_CA_-_C1.pem
-Adding debian:emSign_Root_CA_-_G1.pem
-Adding debian:vTrus_ECC_Root_CA.pem
-Adding debian:vTrus_Root_CA.pem
-done.
-Setting up openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
-Setting up default-jre-headless (2:1.21-75+exp1) ...
-Setting up default-jre (2:1.21-75+exp1) ...
-```
+??? terminal "`# apt install default-jre libnss3-tools -y`"
+
+    ``` console
+    # apt install default-jre libnss3-tools -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    libnss3-tools is already the newest version (2:3.98-1build1).
+    The following additional packages will be installed:
+      ca-certificates-java default-jre-headless java-common libatk-wrapper-java
+      libatk-wrapper-java-jni openjdk-21-jre openjdk-21-jre-headless
+    Suggested packages:
+      fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei
+      | fonts-wqy-zenhei fonts-indic
+    The following NEW packages will be installed:
+      ca-certificates-java default-jre default-jre-headless java-common
+      libatk-wrapper-java libatk-wrapper-java-jni openjdk-21-jre
+      openjdk-21-jre-headless
+    0 upgraded, 8 newly installed, 0 to remove and 14 not upgraded.
+    Need to get 46.9 MB of archives.
+    After this operation, 203 MB of additional disk space will be used.
+    Get:1 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 ca-certificates-java all 20240118 [11.6 kB]
+    Get:2 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 java-common all 0.75+exp1 [6,798 B]
+    Get:3 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre-headless amd64 21.0.4+7-1ubuntu2~24.04 [46.6 MB]
+    Get:4 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre-headless amd64 2:1.21-75+exp1 [3,094 B]
+    Get:5 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-21-jre amd64 21.0.4+7-1ubuntu2~24.04 [227 kB]
+    Get:6 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 default-jre amd64 2:1.21-75+exp1 [922 B]
+    Get:7 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java all 0.40.0-3build2 [54.3 kB]
+    Get:8 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java-jni amd64 0.40.0-3build2 [46.4 kB]
+    Fetched 46.9 MB in 1s (38.9 MB/s)                  
+    Selecting previously unselected package ca-certificates-java.
+    (Reading database ... 430136 files and directories currently installed.)
+    Preparing to unpack .../0-ca-certificates-java_20240118_all.deb ...
+    Unpacking ca-certificates-java (20240118) ...
+    Selecting previously unselected package java-common.
+    Preparing to unpack .../1-java-common_0.75+exp1_all.deb ...
+    Unpacking java-common (0.75+exp1) ...
+    Selecting previously unselected package openjdk-21-jre-headless:amd64.
+    Preparing to unpack .../2-openjdk-21-jre-headless_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
+    Unpacking openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+    Selecting previously unselected package default-jre-headless.
+    Preparing to unpack .../3-default-jre-headless_2%3a1.21-75+exp1_amd64.deb ...
+    Unpacking default-jre-headless (2:1.21-75+exp1) ...
+    Selecting previously unselected package openjdk-21-jre:amd64.
+    Preparing to unpack .../4-openjdk-21-jre_21.0.4+7-1ubuntu2~24.04_amd64.deb ...
+    Unpacking openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+    Selecting previously unselected package default-jre.
+    Preparing to unpack .../5-default-jre_2%3a1.21-75+exp1_amd64.deb ...
+    Unpacking default-jre (2:1.21-75+exp1) ...
+    Selecting previously unselected package libatk-wrapper-java.
+    Preparing to unpack .../6-libatk-wrapper-java_0.40.0-3build2_all.deb ...
+    Unpacking libatk-wrapper-java (0.40.0-3build2) ...
+    Selecting previously unselected package libatk-wrapper-java-jni:amd64.
+    Preparing to unpack .../7-libatk-wrapper-java-jni_0.40.0-3build2_amd64.deb ...
+    Unpacking libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+    Setting up java-common (0.75+exp1) ...
+    Setting up libatk-wrapper-java (0.40.0-3build2) ...
+    Setting up ca-certificates-java (20240118) ...
+    No JRE found. Skipping Java certificates setup.
+    Setting up openjdk-21-jre-headless:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+    update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/java to provide /usr/bin/java (java) in auto mode
+    update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/jpackage to provide /usr/bin/jpackage (jpackage) in auto mode
+    update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/keytool to provide /usr/bin/keytool (keytool) in auto mode
+    update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/bin/rmiregistry to provide /usr/bin/rmiregistry (rmiregistry) in auto mode
+    update-alternatives: using /usr/lib/jvm/java-21-openjdk-amd64/lib/jexec to provide /usr/bin/jexec (jexec) in auto mode
+    Setting up libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Processing triggers for desktop-file-utils (0.27-2build1) ...
+    Processing triggers for hicolor-icon-theme (0.17-2) ...
+    Processing triggers for ca-certificates-java (20240118) ...
+    Adding debian:ACCVRAIZ1.pem
+    Adding debian:AC_RAIZ_FNMT-RCM.pem
+    Adding debian:AC_RAIZ_FNMT-RCM_SERVIDORES_SEGUROS.pem
+    Adding debian:ANF_Secure_Server_Root_CA.pem
+    Adding debian:Actalis_Authentication_Root_CA.pem
+    Adding debian:AffirmTrust_Commercial.pem
+    Adding debian:AffirmTrust_Networking.pem
+    Adding debian:AffirmTrust_Premium.pem
+    Adding debian:AffirmTrust_Premium_ECC.pem
+    Adding debian:Amazon_Root_CA_1.pem
+    Adding debian:Amazon_Root_CA_2.pem
+    Adding debian:Amazon_Root_CA_3.pem
+    Adding debian:Amazon_Root_CA_4.pem
+    Adding debian:Atos_TrustedRoot_2011.pem
+    Adding debian:Atos_TrustedRoot_Root_CA_ECC_TLS_2021.pem
+    Adding debian:Atos_TrustedRoot_Root_CA_RSA_TLS_2021.pem
+    Adding debian:Autoridad_de_Certificacion_Firmaprofesional_CIF_A62634068.pem
+    Adding debian:BJCA_Global_Root_CA1.pem
+    Adding debian:BJCA_Global_Root_CA2.pem
+    Adding debian:Baltimore_CyberTrust_Root.pem
+    Adding debian:Buypass_Class_2_Root_CA.pem
+    Adding debian:Buypass_Class_3_Root_CA.pem
+    Adding debian:CA_Disig_Root_R2.pem
+    Adding debian:CFCA_EV_ROOT.pem
+    Adding debian:COMODO_Certification_Authority.pem
+    Adding debian:COMODO_ECC_Certification_Authority.pem
+    Adding debian:COMODO_RSA_Certification_Authority.pem
+    Adding debian:Certainly_Root_E1.pem
+    Adding debian:Certainly_Root_R1.pem
+    Adding debian:Certigna.pem
+    Adding debian:Certigna_Root_CA.pem
+    Adding debian:Certum_EC-384_CA.pem
+    Adding debian:Certum_Trusted_Network_CA.pem
+    Adding debian:Certum_Trusted_Network_CA_2.pem
+    Adding debian:Certum_Trusted_Root_CA.pem
+    Adding debian:CommScope_Public_Trust_ECC_Root-01.pem
+    Adding debian:CommScope_Public_Trust_ECC_Root-02.pem
+    Adding debian:CommScope_Public_Trust_RSA_Root-01.pem
+    Adding debian:CommScope_Public_Trust_RSA_Root-02.pem
+    Adding debian:Comodo_AAA_Services_root.pem
+    Adding debian:D-TRUST_BR_Root_CA_1_2020.pem
+    Adding debian:D-TRUST_EV_Root_CA_1_2020.pem
+    Adding debian:D-TRUST_Root_Class_3_CA_2_2009.pem
+    Adding debian:D-TRUST_Root_Class_3_CA_2_EV_2009.pem
+    Adding debian:DigiCert_Assured_ID_Root_CA.pem
+    Adding debian:DigiCert_Assured_ID_Root_G2.pem
+    Adding debian:DigiCert_Assured_ID_Root_G3.pem
+    Adding debian:DigiCert_Global_Root_CA.pem
+    Adding debian:DigiCert_Global_Root_G2.pem
+    Adding debian:DigiCert_Global_Root_G3.pem
+    Adding debian:DigiCert_High_Assurance_EV_Root_CA.pem
+    Adding debian:DigiCert_TLS_ECC_P384_Root_G5.pem
+    Adding debian:DigiCert_TLS_RSA4096_Root_G5.pem
+    Adding debian:DigiCert_Trusted_Root_G4.pem
+    Adding debian:Entrust.net_Premium_2048_Secure_Server_CA.pem
+    Adding debian:Entrust_Root_Certification_Authority.pem
+    Adding debian:Entrust_Root_Certification_Authority_-_EC1.pem
+    Adding debian:Entrust_Root_Certification_Authority_-_G2.pem
+    Adding debian:Entrust_Root_Certification_Authority_-_G4.pem
+    Adding debian:GDCA_TrustAUTH_R5_ROOT.pem
+    Adding debian:GLOBALTRUST_2020.pem
+    Adding debian:GTS_Root_R1.pem
+    Adding debian:GTS_Root_R2.pem
+    Adding debian:GTS_Root_R3.pem
+    Adding debian:GTS_Root_R4.pem
+    Adding debian:GlobalSign_ECC_Root_CA_-_R4.pem
+    Adding debian:GlobalSign_ECC_Root_CA_-_R5.pem
+    Adding debian:GlobalSign_Root_CA.pem
+    Adding debian:GlobalSign_Root_CA_-_R3.pem
+    Adding debian:GlobalSign_Root_CA_-_R6.pem
+    Adding debian:GlobalSign_Root_E46.pem
+    Adding debian:GlobalSign_Root_R46.pem
+    Adding debian:Go_Daddy_Class_2_CA.pem
+    Adding debian:Go_Daddy_Root_Certificate_Authority_-_G2.pem
+    Adding debian:HARICA_TLS_ECC_Root_CA_2021.pem
+    Adding debian:HARICA_TLS_RSA_Root_CA_2021.pem
+    Adding debian:Hellenic_Academic_and_Research_Institutions_ECC_RootCA_2015.pem
+    Adding debian:Hellenic_Academic_and_Research_Institutions_RootCA_2015.pem
+    Adding debian:HiPKI_Root_CA_-_G1.pem
+    Adding debian:Hongkong_Post_Root_CA_3.pem
+    Adding debian:ISRG_Root_X1.pem
+    Adding debian:ISRG_Root_X2.pem
+    Adding debian:IdenTrust_Commercial_Root_CA_1.pem
+    Adding debian:IdenTrust_Public_Sector_Root_CA_1.pem
+    Adding debian:Izenpe.com.pem
+    Adding debian:Microsec_e-Szigno_Root_CA_2009.pem
+    Adding debian:Microsoft_ECC_Root_Certificate_Authority_2017.pem
+    Adding debian:Microsoft_RSA_Root_Certificate_Authority_2017.pem
+    Adding debian:NAVER_Global_Root_Certification_Authority.pem
+    Warning: there was a problem reading the certificate file /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem. Message:
+      /etc/ssl/certs/NetLock_Arany_=Class_Gold=_F?tan?s?tv?ny.pem (No such file or directory)
+    Adding debian:OISTE_WISeKey_Global_Root_GB_CA.pem
+    Adding debian:OISTE_WISeKey_Global_Root_GC_CA.pem
+    Adding debian:QuoVadis_Root_CA_1_G3.pem
+    Adding debian:QuoVadis_Root_CA_2.pem
+    Adding debian:QuoVadis_Root_CA_2_G3.pem
+    Adding debian:QuoVadis_Root_CA_3.pem
+    Adding debian:QuoVadis_Root_CA_3_G3.pem
+    Adding debian:SSL.com_EV_Root_Certification_Authority_ECC.pem
+    Adding debian:SSL.com_EV_Root_Certification_Authority_RSA_R2.pem
+    Adding debian:SSL.com_Root_Certification_Authority_ECC.pem
+    Adding debian:SSL.com_Root_Certification_Authority_RSA.pem
+    Adding debian:SSL.com_TLS_ECC_Root_CA_2022.pem
+    Adding debian:SSL.com_TLS_RSA_Root_CA_2022.pem
+    Adding debian:SZAFIR_ROOT_CA2.pem
+    Adding debian:Sectigo_Public_Server_Authentication_Root_E46.pem
+    Adding debian:Sectigo_Public_Server_Authentication_Root_R46.pem
+    Adding debian:SecureSign_RootCA11.pem
+    Adding debian:SecureTrust_CA.pem
+    Adding debian:Secure_Global_CA.pem
+    Adding debian:Security_Communication_ECC_RootCA1.pem
+    Adding debian:Security_Communication_RootCA2.pem
+    Adding debian:Security_Communication_RootCA3.pem
+    Adding debian:Security_Communication_Root_CA.pem
+    Adding debian:Starfield_Class_2_CA.pem
+    Adding debian:Starfield_Root_Certificate_Authority_-_G2.pem
+    Adding debian:Starfield_Services_Root_Certificate_Authority_-_G2.pem
+    Adding debian:SwissSign_Gold_CA_-_G2.pem
+    Adding debian:SwissSign_Silver_CA_-_G2.pem
+    Adding debian:T-TeleSec_GlobalRoot_Class_2.pem
+    Adding debian:T-TeleSec_GlobalRoot_Class_3.pem
+    Adding debian:TUBITAK_Kamu_SM_SSL_Kok_Sertifikasi_-_Surum_1.pem
+    Adding debian:TWCA_Global_Root_CA.pem
+    Adding debian:TWCA_Root_Certification_Authority.pem
+    Adding debian:TeliaSonera_Root_CA_v1.pem
+    Adding debian:Telia_Root_CA_v2.pem
+    Adding debian:TrustAsia_Global_Root_CA_G3.pem
+    Adding debian:TrustAsia_Global_Root_CA_G4.pem
+    Adding debian:Trustwave_Global_Certification_Authority.pem
+    Adding debian:Trustwave_Global_ECC_P256_Certification_Authority.pem
+    Adding debian:Trustwave_Global_ECC_P384_Certification_Authority.pem
+    Adding debian:TunTrust_Root_CA.pem
+    Adding debian:UCA_Extended_Validation_Root.pem
+    Adding debian:UCA_Global_G2_Root.pem
+    Adding debian:USERTrust_ECC_Certification_Authority.pem
+    Adding debian:USERTrust_RSA_Certification_Authority.pem
+    Adding debian:XRamp_Global_CA_Root.pem
+    Adding debian:certSIGN_ROOT_CA.pem
+    Adding debian:certSIGN_Root_CA_G2.pem
+    Adding debian:e-Szigno_Root_CA_2017.pem
+    Adding debian:ePKI_Root_Certification_Authority.pem
+    Adding debian:emSign_ECC_Root_CA_-_C3.pem
+    Adding debian:emSign_ECC_Root_CA_-_G3.pem
+    Adding debian:emSign_Root_CA_-_C1.pem
+    Adding debian:emSign_Root_CA_-_G1.pem
+    Adding debian:vTrus_ECC_Root_CA.pem
+    Adding debian:vTrus_Root_CA.pem
+    done.
+    Setting up openjdk-21-jre:amd64 (21.0.4+7-1ubuntu2~24.04) ...
+    Setting up default-jre-headless (2:1.21-75+exp1) ...
+    Setting up default-jre (2:1.21-75+exp1) ...
+    ```
 
 The last action (`Adding debian:AutoFirma_ROOT.pem`) is **critical**
 for the installation of `AutoFirma`:
 
-```
-# gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb 
-/usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
-  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-Reading state information... Done
+??? terminal "`# gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb`"
 
-AutoFirma - Cliente @firma
-Do you want to install the software package? [y/N]:y
-/usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
-  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
-(Reading database ... 430504 files and directories currently installed.)
-Preparing to unpack ./AutoFirma_1_8_3.deb ...
-Updating certificates in /etc/ssl/certs...
-0 added, 0 removed; done.
-Running hooks in /etc/ca-certificates/update.d...
-done.
-Se ha borrado el certificado CA en el almacenamiento del sistema
-Unpacking autofirma (1.8.3) over (1.8.3) ...
-Desinstalación completada con exito
-Setting up autofirma (1.8.3) ...
-Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.AutoFirmaConfigurator <init>
-INFO: Se configurara la aplicacion en modo nativo
-Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConsoleManager getConsole
-INFO: Se utilizara la consola de tipo I/O
-Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Identificando directorio de aplicación...
-Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Directorio de aplicación: /usr/lib/AutoFirma
-Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Generando certificado para la comunicación con el navegador web...
-Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Se guarda el almacén de claves en el directorio de instalación de la aplicación
-Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Se va a instalar el certificado en el almacen de Mozilla Firefox
-Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorFirefoxLinux createScriptsToSystemKeyStore
-INFO: Comprobamos que se encuentre certutil en el sistema
-Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
-INFO: Fin de la configuración
-Generacion de certificados
-Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
-Updating certificates in /etc/ssl/certs...
-rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
-1 added, 0 removed; done.
-Running hooks in /etc/ca-certificates/update.d...
-done.
-Instalacion del certificado CA en el almacenamiento del sistema
-Processing triggers for ca-certificates-java (20240118) ...
-Adding debian:AutoFirma_ROOT.pem
-done.
-Processing triggers for desktop-file-utils (0.27-2build1) ...
-```
+    ``` console
+    # gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb
+    /usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
+      c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    Reading state information... Done
 
-Without a JRE installed, the installation of `AutoFirma` will fails
-when `AutoFirma_ROOT.pem` cannot be found:
+    AutoFirma - Cliente @firma
+    Do you want to install the software package? [y/N]:y
+    /usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
+      c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+    (Reading database ... 430504 files and directories currently installed.)
+    Preparing to unpack ./AutoFirma_1_8_3.deb ...
+    Updating certificates in /etc/ssl/certs...
+    0 added, 0 removed; done.
+    Running hooks in /etc/ca-certificates/update.d...
+    done.
+    Se ha borrado el certificado CA en el almacenamiento del sistema
+    Unpacking autofirma (1.8.3) over (1.8.3) ...
+    Desinstalación completada con exito
+    Setting up autofirma (1.8.3) ...
+    Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.AutoFirmaConfigurator <init>
+    INFO: Se configurara la aplicacion en modo nativo
+    Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConsoleManager getConsole
+    INFO: Se utilizara la consola de tipo I/O
+    Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Identificando directorio de aplicación...
+    Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Directorio de aplicación: /usr/lib/AutoFirma
+    Nov 08, 2024 12:17:11 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Generando certificado para la comunicación con el navegador web...
+    Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Se guarda el almacén de claves en el directorio de instalación de la aplicación
+    Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Se va a instalar el certificado en el almacen de Mozilla Firefox
+    Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorFirefoxLinux createScriptsToSystemKeyStore
+    INFO: Comprobamos que se encuentre certutil en el sistema
+    Nov 08, 2024 12:17:12 AM es.gob.afirma.standalone.configurator.ConfiguratorLinux configure
+    INFO: Fin de la configuración
+    Generacion de certificados
+    Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
+    Updating certificates in /etc/ssl/certs...
+    rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
+    1 added, 0 removed; done.
+    Running hooks in /etc/ca-certificates/update.d...
+    done.
+    Instalacion del certificado CA en el almacenamiento del sistema
+    Processing triggers for ca-certificates-java (20240118) ...
+    Adding debian:AutoFirma_ROOT.pem
+    done.
+    Processing triggers for desktop-file-utils (0.27-2build1) ...
+    ```
 
-```
-# unzip AutoFirma_Linux_Debian.zip
-# gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb 
-/usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
-  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-Reading state information... Done
+??? warning "Without a JRE installed, the installation fails."
 
-AutoFirma - Cliente @firma
-Do you want to install the software package? [y/N]:y
-/usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
-  c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
-Selecting previously unselected package autofirma.
-(Reading database ... 430119 files and directories currently installed.)
-Preparing to unpack ./AutoFirma_1_8_3.deb ...
-Unpacking autofirma (1.8.3) ...
-Setting up autofirma (1.8.3) ...
-/var/lib/dpkg/info/autofirma.postinst: 3: java: not found
-Generacion de certificados
-Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
-Could not open file or uri for loading certificate from /usr/lib/AutoFirma/AutoFirma_ROOT.cer
-40474AFDD37D0000:error:16000069:STORE routines:ossl_store_get0_loader_int:unregistered scheme:../crypto/store/store_register.c:237:scheme=file
-40474AFDD37D0000:error:80000002:system library:file_open:No such file or directory:../providers/implementations/storemgmt/file_store.c:267:calling stat(/usr/lib/AutoFirma/AutoFirma_ROOT.cer)
-Unable to load certificate
-mv: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.pem': No such file or directory
-cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
-cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
-Updating certificates in /etc/ssl/certs...
-0 added, 0 removed; done.
-Running hooks in /etc/ca-certificates/update.d...
-done.
-Instalacion del certificado CA en el almacenamiento del sistema
-rm: cannot remove '/usr/lib/AutoFirma/script.sh': No such file or directory
-rm: cannot remove '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
-Processing triggers for desktop-file-utils (0.27-2build1) ...
-```
+    Without a JRE installed, the installation of `AutoFirma` will fails
+    when `AutoFirma_ROOT.pem` cannot be found:
+
+    ``` console
+    # unzip AutoFirma_Linux_Debian.zip
+    # gdebi ./AutoFirma_1_8_3.deb configuradorfnmt_4.0.6_amd64.deb 
+    /usr/bin/gdebi:113: SyntaxWarning: invalid escape sequence '\S'
+      c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    Reading state information... Done
+
+    AutoFirma - Cliente @firma
+    Do you want to install the software package? [y/N]:y
+    /usr/bin/gdebi:113: FutureWarning: Possible nested set at position 1
+      c = findall("[[(](\S+)/\S+[])]", msg)[0].lower()
+    Selecting previously unselected package autofirma.
+    (Reading database ... 430119 files and directories currently installed.)
+    Preparing to unpack ./AutoFirma_1_8_3.deb ...
+    Unpacking autofirma (1.8.3) ...
+    Setting up autofirma (1.8.3) ...
+    /var/lib/dpkg/info/autofirma.postinst: 3: java: not found
+    Generacion de certificados
+    Instalacion del certificado CA en el almacenamiento de Firefox y Chrome
+    Could not open file or uri for loading certificate from /usr/lib/AutoFirma/AutoFirma_ROOT.cer
+    40474AFDD37D0000:error:16000069:STORE routines:ossl_store_get0_loader_int:unregistered scheme:../crypto/store/store_register.c:237:scheme=file
+    40474AFDD37D0000:error:80000002:system library:file_open:No such file or directory:../providers/implementations/storemgmt/file_store.c:267:calling stat(/usr/lib/AutoFirma/AutoFirma_ROOT.cer)
+    Unable to load certificate
+    mv: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.pem': No such file or directory
+    cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+    cp: cannot stat '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+    Updating certificates in /etc/ssl/certs...
+    0 added, 0 removed; done.
+    Running hooks in /etc/ca-certificates/update.d...
+    done.
+    Instalacion del certificado CA en el almacenamiento del sistema
+    rm: cannot remove '/usr/lib/AutoFirma/script.sh': No such file or directory
+    rm: cannot remove '/usr/lib/AutoFirma/AutoFirma_ROOT.crt': No such file or directory
+    Processing triggers for desktop-file-utils (0.27-2build1) ...
+    ```
 
 ### DisplayCal
 
@@ -1685,7 +1719,7 @@ Learn more about Ubuntu Pro at https://ubuntu.com/pro
 This being a new system, indeed it's not attached to an Ubuntu Pro
 account (the old system was):
 
-```
+``` console
 # pro security-status
 3213 packages installed:
      1642 packages from Ubuntu Main/Restricted repository
@@ -1714,7 +1748,7 @@ Learn more at https://ubuntu.com/pro
 After creating an Ubuntu account a token is available to use with
 `pro attach`:
 
-```
+``` console
 # pro attach ...
 Enabling Ubuntu Pro: ESM Apps
 Ubuntu Pro: ESM Apps enabled
@@ -1776,7 +1810,7 @@ Enable services with: pro enable <service>
 Now the system can be updated *again* with `apt full-upgrade -y`
 to receive those additional security updates:
 
-```
+``` console
 # apt full-upgrade -y
 Reading package lists... Done
 Building dependency tree... Done
@@ -1818,18 +1852,42 @@ locale: Cannot set LC_ALL to default locale: No such file or directory
 
 To fix this, set `LC_ALL` globally:
 
-```
+``` console
 # echo 'LC_ALL="en_US.UTF-8"' >> /etc/environment
 ```
 
 Re/generate the desired locales, e.g. at least `en_US.UTF-8`.
 
-```
+``` console
 # dpkg-reconfigure locales
 Generating locales (this might take a while)...
   en_US.UTF-8... done
   ...
 Generation complete.
+```
+
+### Make `dmesg` non-privileged
+
+Since Ubuntu 22.04, `dmesg` has become a privileged operation
+by default:
+
+``` console
+$ dmesg
+dmesg: read kernel buffer failed: Operation not permitted
+```
+
+This is controlled by 
+
+``` console
+# sysctl kernel.dmesg_restrict
+kernel.dmesg_restrict = 1
+```
+
+To revert this default, and make it permanent
+([source](https://archived.forum.manjaro.org/t/why-did-dmesg-become-a-priveleged-operation-suddenly/86468/3)):
+
+``` console
+# echo 'kernel.dmesg_restrict=0' | tee -a /etc/sysctl.d/99-sysctl.conf
 ```
 
 ### Make SDDM Look Good
@@ -1844,20 +1902,23 @@ For most computers my favorite SDDM theme is
 [Breeze-Noir-Dark](https://store.kde.org/p/1361460),
 which I like to install system-wide.
 
-```
+``` console
 # unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
 ```
 
-**Note:** action icons won’t render if the directory name is
-changed. If needed, change the directory name in the `iconSource` fields in `Main.qml` to match final directory name
-so icons show. This is not the only thing that breaks when
-changing the directory name.
+!!! warning "Action icons won’t render if the directory name is changed."
+
+    If needed, change the directory name in the `iconSource` fields in `Main.qml`
+    to match final directory name so icons show. This is not the only thing that
+    breaks when changing the directory name.
 
 Other than installing this theme, all I really change in it
 is the background image to use 
 [The Rapture [3440x1440]](https://www.flickr.com/photos/douglastofoli/27740699244/).
 
-```
+![The Rapture [3440x1440]](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/welcome-to-rapture-opportunity-awaits-3440x1440.jpg)
+
+``` console
 # mv welcome-to-rapture-opportunity-awaits-3440x1440.jpg \
   /usr/share/sddm/themes/Breeze-Noir-Dark/
 # cd /usr/share/sddm/themes/Breeze-Noir-Dark/
@@ -1878,7 +1939,7 @@ background=welcome-to-rapture-opportunity-awaits-3440x1440.jpg
 be selected by adding a `[Theme]` section in the system config
 in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
 
-```ini
+``` ini linenums="1" title="/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf"
 [General]
 InputMethod=
 
@@ -1891,7 +1952,7 @@ EnableAvatars=True
 you have to **create** the `/etc/sddm.conf.d` directory to add
 the *Local configuration* file that allows setting the theme:
 
-```
+``` console
 # mkdir /etc/sddm.conf.d
 # vi /etc/sddm.conf.d/ubuntustudio.conf
 ```
@@ -1899,7 +1960,7 @@ the *Local configuration* file that allows setting the theme:
 Besides setting the theme, it is also good to limit the range of
 user ids so that only human users show up:
 
-```ini
+``` ini linenums="1" title="/etc/sddm.conf.d/ubuntustudio.conf"
 [Theme]
 Current=Breeze-Noir-Dark
 
@@ -1911,30 +1972,6 @@ MinimumUid=1000
 It seems no longer necessary to manually add Redshift to one's
 desktop session. Previously, it would be necessary to launch
 **Autostart** and **Add Application…** to add Redshift.
-
-### Make `dmesg` non-privileged
-
-Since Ubuntu 22.04, `dmesg` has become a privileged operation
-by default:
-
-```
-$ dmesg
-dmesg: read kernel buffer failed: Operation not permitted
-```
-
-This is controlled by 
-
-```
-# sysctl kernel.dmesg_restrict
-kernel.dmesg_restrict = 1
-```
-
-To revert this default, and make it permanent
-([source](https://archived.forum.manjaro.org/t/why-did-dmesg-become-a-priveleged-operation-suddenly/86468/3)):
-
-```
-# echo 'kernel.dmesg_restrict=0' | tee -a /etc/sysctl.d/99-sysctl.conf
-```
 
 ### Waiting for initial location to become available...
 
@@ -1950,7 +1987,7 @@ service that is not available: a pop-up error tells:
 The same is seen when running `redshift-qt` in a shell, then trying
 to adjust the color temperature:
 
-```
+``` console
 $ redshift-qt
 "Solar elevations: day above 3.0, night below -6.0"
 "Temperatures: 4500K at day, 3500K at night"
@@ -1984,7 +2021,7 @@ but there is a
 [Solution](https://cockpit-project.org/faq#error-message-about-being-offline),
 involving the creation of a *fake* network interface.
 
-```
+``` console
 # ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -2036,7 +2073,7 @@ to check everything for consistency. For this, I run
 [the script](https://marc.merlins.org/linux/scripts/btrfs-scrub)
 from crontab every Saturday night.
 
-```
+``` console
 # wget -O /usr/local/bin/btrfs-scrub-all \
   http://marc.merlins.org/linux/scripts/btrfs-scrub
 
@@ -2053,7 +2090,7 @@ so each systme may benefit from a few modifications, e.g.
 1. Remove tests for laptop battery status, when running on a PC.
 2. Set the `BTRFS_SCRUB_SKIP` to filter out partitions to skip.
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/btrfs-scrub-all"
 #! /bin/bash
 
 # By Marc MERLIN <marc_soft@merlins.org> 2014/03/20
@@ -2096,72 +2133,76 @@ do
 done
 ```
 
-**Note:** setting `BTRFS_SCRUB_SKIP="sda"` prefents Btrfs balancing from running
-every week on the larger 6TB RAID 1 array of HDD, because that takes too long.
+!!! note
 
-```
-# /usr/local/bin/btrfs-scrub-all
-<13>Nov 11 23:54:17 root: Quick Metadata and Data Balance of /home (/dev/nvme1n1p4)
-Done, had to relocate 0 out of 2695 chunks
-Done, had to relocate 0 out of 2695 chunks
-Done, had to relocate 1 out of 2695 chunks
-<13>Nov 11 23:54:48 root: Starting scrub of /home
-btrfs scrub start -Bd /home
-Starting scrub on devid 1
-
-Scrub device /dev/nvme1n1p4 (id 1) done
-Scrub started:    Mon Nov 11 23:54:48 2024
-Status:           finished
-Duration:         0:14:39
-Total to scrub:   2.63TiB
-Rate:             3.06GiB/s
-Error summary:    no errors found
-
-real    14m39.641s
-user    0m0.001s
-sys     3m40.063s
-<13>Nov 12 00:09:27 root: Quick Metadata and Data Balance of /home/new-ssd (/dev/sdb)
-Done, had to relocate 0 out of 2086 chunks
-Done, had to relocate 0 out of 2086 chunks
-Done, had to relocate 42 out of 2086 chunks
-<13>Nov 12 00:10:22 root: Starting scrub of /home/new-ssd
-btrfs scrub start -Bd /home/new-ssd
-Starting scrub on devid 1
-
-Scrub device /dev/sdb (id 1) done
-Scrub started:    Tue Nov 12 00:10:22 2024
-Status:           finished
-Duration:         1:20:26
-Total to scrub:   1.98TiB
-Rate:             431.00MiB/s
-Error summary:    no errors found
-
-real    80m25.930s
-user    0m0.004s
-sys     2m45.709s
-<13>Nov 12 01:30:48 root: Quick Metadata and Data Balance of /home/ssd (/dev/sdc)
-Done, had to relocate 0 out of 2937 chunks
-Done, had to relocate 0 out of 2937 chunks
-Done, had to relocate 0 out of 2937 chunks
-<13>Nov 12 01:31:18 root: Starting scrub of /home/ssd
-btrfs scrub start -Bd /home/ssd
-Starting scrub on devid 1
-
-Scrub device /dev/sdc (id 1) done
-Scrub started:    Tue Nov 12 01:31:18 2024
-Status:           finished
-Duration:         1:49:18
-Total to scrub:   2.82TiB
-Rate:             451.50MiB/s
-Error summary:    no errors found
-
-real    109m17.722s
-user    0m0.002s
-sys     4m34.310s
-```
+    Setting `BTRFS_SCRUB_SKIP="sda"` prefents Btrfs balancing from running
+    every week on the larger 6TB RAID 1 array of HDD, because that takes too long.
 
 The whole process takes about 15 minutes for the 4TB NVMe SSD, then something
 between 1 and 2 hours for each of the 4TB SATA SSDs:
+
+??? terminal "`# /usr/local/bin/btrfs-scrub-all`"
+
+    ``` console
+    # /usr/local/bin/btrfs-scrub-all
+    <13>Nov 11 23:54:17 root: Quick Metadata and Data Balance of /home (/dev/nvme1n1p4)
+    Done, had to relocate 0 out of 2695 chunks
+    Done, had to relocate 0 out of 2695 chunks
+    Done, had to relocate 1 out of 2695 chunks
+    <13>Nov 11 23:54:48 root: Starting scrub of /home
+    btrfs scrub start -Bd /home
+    Starting scrub on devid 1
+
+    Scrub device /dev/nvme1n1p4 (id 1) done
+    Scrub started:    Mon Nov 11 23:54:48 2024
+    Status:           finished
+    Duration:         0:14:39
+    Total to scrub:   2.63TiB
+    Rate:             3.06GiB/s
+    Error summary:    no errors found
+
+    real    14m39.641s
+    user    0m0.001s
+    sys     3m40.063s
+    <13>Nov 12 00:09:27 root: Quick Metadata and Data Balance of /home/new-ssd (/dev/sdb)
+    Done, had to relocate 0 out of 2086 chunks
+    Done, had to relocate 0 out of 2086 chunks
+    Done, had to relocate 42 out of 2086 chunks
+    <13>Nov 12 00:10:22 root: Starting scrub of /home/new-ssd
+    btrfs scrub start -Bd /home/new-ssd
+    Starting scrub on devid 1
+
+    Scrub device /dev/sdb (id 1) done
+    Scrub started:    Tue Nov 12 00:10:22 2024
+    Status:           finished
+    Duration:         1:20:26
+    Total to scrub:   1.98TiB
+    Rate:             431.00MiB/s
+    Error summary:    no errors found
+
+    real    80m25.930s
+    user    0m0.004s
+    sys     2m45.709s
+    <13>Nov 12 01:30:48 root: Quick Metadata and Data Balance of /home/ssd (/dev/sdc)
+    Done, had to relocate 0 out of 2937 chunks
+    Done, had to relocate 0 out of 2937 chunks
+    Done, had to relocate 0 out of 2937 chunks
+    <13>Nov 12 01:31:18 root: Starting scrub of /home/ssd
+    btrfs scrub start -Bd /home/ssd
+    Starting scrub on devid 1
+
+    Scrub device /dev/sdc (id 1) done
+    Scrub started:    Tue Nov 12 01:31:18 2024
+    Status:           finished
+    Duration:         1:49:18
+    Total to scrub:   2.82TiB
+    Rate:             451.50MiB/s
+    Error summary:    no errors found
+
+    real    109m17.722s
+    user    0m0.002s
+    sys     4m34.310s
+    ```
 
 ![Disk I/O and SSD temperatures chart show btrfs scrub](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/rapture-btrfs-scrub-grafana.png)
 
@@ -2193,7 +2234,7 @@ No worries, it is rather easy to
 just install `auditd` and (most of) the messages will go to
 `/var/log/kern.log` instead.
 
-```
+``` console
 # apt install auditd -y
 Reading package lists... Done
 Building dependency tree... Done
@@ -2246,7 +2287,7 @@ repository. Following the
 [Detection and manual installation](https://github.com/winterheart/broadcom-bt-firmware?tab=readme-ov-file#detection-and-manual-installation)
 method, use `BCM20702A1-0b05-17cb.hcd` (**and not others**):
 
-```
+``` console
 # cd /lib/firmware/brcm
 # ls -l | grep -i bcm
 lrwxrwxrwx 1 root root     21 Sep 13 10:49 BCM-0a5c-6410.hcd.zst -> BCM-0bb4-0306.hcd.zst
@@ -2293,7 +2334,7 @@ Bluetooth: hci0: BCM: Reading local version info failed (-110)
 In the face of these timeouts, and considering the firmware file has not
 been updated in the last 8 years, it seems most sensible to remove it:
 
-```
+``` console
 # rm /lib/firmware/brcm/BCM20702A1-0b05-17cb.hcd
 ```
 
@@ -2331,10 +2372,12 @@ Bluetooth: RFCOMM socket layer initialized
 Bluetooth: RFCOMM ver 1.11
 ```
 
-**Warning:** The above method is recommened in other forums, but there are
-[reports](https://itsfoss.community/t/bluetooth-failure-after-upgrading-the-bcm20702a0-device-in-ubuntu-22-04-1-lts/9937#the-path-of-the-location-where-the-latest-linux-driver-for-broadcom-bluetooth-firmware-for-dongledevice-bcm20702a-is-available-on-the-github-website-is-given-at-the-link-above-3)
-of this method leading to *bluetooth system stopped working*, upon
-which the (only) recommended workaround is reinstall the system.
+!!! warning
+
+    The above method is recommened in other forums, but there are
+    [reports](https://itsfoss.community/t/bluetooth-failure-after-upgrading-the-bcm20702a0-device-in-ubuntu-22-04-1-lts/9937#the-path-of-the-location-where-the-latest-linux-driver-for-broadcom-bluetooth-firmware-for-dongledevice-bcm20702a-is-available-on-the-github-website-is-given-at-the-link-above-3)
+    of this method leading to *bluetooth system stopped working*, upon
+    which the (only) recommended workaround is reinstall the system.
 
 #### PlayStation Dual Shock 4 controller 
 
@@ -2361,7 +2404,7 @@ Following the instructions to use `blueoothctl` in
 also led to multiple failed attempts to connect, failing with
 `Failed to connect: org.bluez.Error.Failed br-connection-create-socket`
 
-```
+``` console
 [bluetooth]# agent on
 Agent is already registered
 default-agentdefault-agent
@@ -2411,7 +2454,7 @@ recommend using `blueoothctl` and confirmed it worked, although
 
 For this purpose this handy `repair-bluetooth.sh` script is useful:
 
-```bash
+``` bash linenums="1" title="repair-bluetooth.sh"
 DS4DEV="DC:0C:2D:DE:61:D1" 
 CMDS=("power on" "agent on" "default-agent" "remove ${DS4DEV}" "scan on" "pair ${DS4DEV}" "trust ${DS4DEV}" "connect ${DS4DEV}" "scan off") 
 for CMD in "${CMDS[@]}"
@@ -2426,7 +2469,7 @@ done
 Once the Dual Shock 4 controller is connected, the battery charging status
 and current capacity can be checked with `upower`:
 
-```
+``` console
 $ upower -e
 /org/freedesktop/UPower/devices/battery_hidpp_battery_0
 /org/freedesktop/UPower/devices/battery_ps_controller_battery_dco0co2dodeo61od1
@@ -2459,13 +2502,13 @@ to setup up
 [S.M.A.R.T.](https://wiki.archlinux.org/index.php/S.M.A.R.T.)
 monitoring:
 
-```
+``` console
 # apt install smartmontools gsmartcontrol libnotify-bin -y
 ```
 
 Create `/usr/local/bin/smartdnotify` to notify when errors are found:
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/smartdnotify"
 #!/bin/sh
 data=/root/smart-latest-error
 echo "SMARTD_FAILTYPE=$SMARTD_FAILTYPE" >> $data
@@ -2475,19 +2518,19 @@ sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus n
 
 Configure `/etc/smartd.conf` to run this script:
 
-```bash
+``` bash
 DEVICESCAN -d removable -n standby -m root -M exec /usr/local/bin/smartdnotify
 ```
 
 Restart the `smartd` service:
 
-```
+``` console
 # systemctl restart smartd.service
 ```
 
 Then add a scrip to re-notify: `/usr/local/bin/smartd-renotify`
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/smartd-renotify"
 #!/bin/sh
 latest=/root/smart-latest-error
 if [ -f $latest ] ; then
@@ -2499,7 +2542,7 @@ if [ -f $latest ] ; then
 fi
 ```
 
-```
+``` console
 # chmod +x /usr/local/bin/smartdnotify /usr/local/bin/smartd-renotify
 # crontab -e
 */5 * * * * /usr/local/bin/smartd-renotify
@@ -2509,7 +2552,7 @@ fi
 
 Once in a while, the above monitoring reports an “ErrorCount” error.
 
-```
+``` console
 # cat smart-latest-error 
 SMARTD_FAILTYPE=
 SMARTD_MESSAGE=
@@ -2524,171 +2567,177 @@ SMARTD_FAILTYPE=ErrorCount
 SMARTD_MESSAGE='Device: /dev/nvme1, number of Error Log entries increased from 338 to 368'
 ```
 
-```
-# smartctl -a /dev/nvme0
-smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
-Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+??? terminal "`# smartctl -a /dev/nvme0`"
 
-=== START OF INFORMATION SECTION ===
-Model Number:                       Samsung SSD 970 EVO Plus 2TB
-Serial Number:                      S4J4NX0T216141L
-Firmware Version:                   2B2QEXM7
-PCI Vendor/Subsystem ID:            0x144d
-IEEE OUI Identifier:                0x002538
-Total NVM Capacity:                 2,000,398,934,016 [2.00 TB]
-Unallocated NVM Capacity:           0
-Controller ID:                      4
-NVMe Version:                       1.3
-Number of Namespaces:               1
-Namespace 1 Size/Capacity:          2,000,398,934,016 [2.00 TB]
-Namespace 1 Utilization:            1,235,084,509,184 [1.23 TB]
-Namespace 1 Formatted LBA Size:     512
-Namespace 1 IEEE EUI-64:            002538 5221b08748
-Local Time is:                      Mon Nov 18 22:35:43 2024 CET
-Firmware Updates (0x16):            3 Slots, no Reset required
-Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
-Optional NVM Commands (0x005f):     Comp Wr_Unc DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
-Log Page Attributes (0x03):         S/H_per_NS Cmd_Eff_Lg
-Maximum Data Transfer Size:         512 Pages
-Warning  Comp. Temp. Threshold:     85 Celsius
-Critical Comp. Temp. Threshold:     85 Celsius
+    ``` console
+    # smartctl -a /dev/nvme0
+    smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
+    Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
 
-Supported Power States
-St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
- 0 +     7.50W       -        -    0  0  0  0        0       0
- 1 +     5.90W       -        -    1  1  1  1        0       0
- 2 +     3.60W       -        -    2  2  2  2        0       0
- 3 -   0.0700W       -        -    3  3  3  3      210    1200
- 4 -   0.0050W       -        -    4  4  4  4     2000    8000
+    === START OF INFORMATION SECTION ===
+    Model Number:                       Samsung SSD 970 EVO Plus 2TB
+    Serial Number:                      S4J4NX0T216141L
+    Firmware Version:                   2B2QEXM7
+    PCI Vendor/Subsystem ID:            0x144d
+    IEEE OUI Identifier:                0x002538
+    Total NVM Capacity:                 2,000,398,934,016 [2.00 TB]
+    Unallocated NVM Capacity:           0
+    Controller ID:                      4
+    NVMe Version:                       1.3
+    Number of Namespaces:               1
+    Namespace 1 Size/Capacity:          2,000,398,934,016 [2.00 TB]
+    Namespace 1 Utilization:            1,235,084,509,184 [1.23 TB]
+    Namespace 1 Formatted LBA Size:     512
+    Namespace 1 IEEE EUI-64:            002538 5221b08748
+    Local Time is:                      Mon Nov 18 22:35:43 2024 CET
+    Firmware Updates (0x16):            3 Slots, no Reset required
+    Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+    Optional NVM Commands (0x005f):     Comp Wr_Unc DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
+    Log Page Attributes (0x03):         S/H_per_NS Cmd_Eff_Lg
+    Maximum Data Transfer Size:         512 Pages
+    Warning  Comp. Temp. Threshold:     85 Celsius
+    Critical Comp. Temp. Threshold:     85 Celsius
 
-Supported LBA Sizes (NSID 0x1)
-Id Fmt  Data  Metadt  Rel_Perf
- 0 +     512       0         0
+    Supported Power States
+    St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+    0 +     7.50W       -        -    0  0  0  0        0       0
+    1 +     5.90W       -        -    1  1  1  1        0       0
+    2 +     3.60W       -        -    2  2  2  2        0       0
+    3 -   0.0700W       -        -    3  3  3  3      210    1200
+    4 -   0.0050W       -        -    4  4  4  4     2000    8000
 
-=== START OF SMART DATA SECTION ===
-SMART overall-health self-assessment test result: PASSED
+    Supported LBA Sizes (NSID 0x1)
+    Id Fmt  Data  Metadt  Rel_Perf
+    0 +     512       0         0
 
-SMART/Health Information (NVMe Log 0x02)
-Critical Warning:                   0x00
-Temperature:                        41 Celsius
-Available Spare:                    100%
-Available Spare Threshold:          10%
-Percentage Used:                    1%
-Data Units Read:                    279,103,719 [142 TB]
-Data Units Written:                 118,255,818 [60.5 TB]
-Host Read Commands:                 552,324,221
-Host Write Commands:                1,104,801,710
-Controller Busy Time:               10,076
-Power Cycles:                       800
-Power On Hours:                     4,834
-Unsafe Shutdowns:                   7
-Media and Data Integrity Errors:    0
-Error Information Log Entries:      1,048
-Warning  Comp. Temperature Time:    0
-Critical Comp. Temperature Time:    0
-Temperature Sensor 1:               41 Celsius
-Temperature Sensor 2:               44 Celsius
+    === START OF SMART DATA SECTION ===
+    SMART overall-health self-assessment test result: PASSED
 
-Error Information (NVMe Log 0x01, 16 of 64 entries)
-Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
-  0       1048     0  0x0008  0x4004      -            0     0     -  Invalid Field in Command
+    SMART/Health Information (NVMe Log 0x02)
+    Critical Warning:                   0x00
+    Temperature:                        41 Celsius
+    Available Spare:                    100%
+    Available Spare Threshold:          10%
+    Percentage Used:                    1%
+    Data Units Read:                    279,103,719 [142 TB]
+    Data Units Written:                 118,255,818 [60.5 TB]
+    Host Read Commands:                 552,324,221
+    Host Write Commands:                1,104,801,710
+    Controller Busy Time:               10,076
+    Power Cycles:                       800
+    Power On Hours:                     4,834
+    Unsafe Shutdowns:                   7
+    Media and Data Integrity Errors:    0
+    Error Information Log Entries:      1,048
+    Warning  Comp. Temperature Time:    0
+    Critical Comp. Temperature Time:    0
+    Temperature Sensor 1:               41 Celsius
+    Temperature Sensor 2:               44 Celsius
 
-Self-test Log (NVMe Log 0x06)
-Self-test status: No self-test in progress
-No Self-tests Logged
+    Error Information (NVMe Log 0x01, 16 of 64 entries)
+    Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
+      0       1048     0  0x0008  0x4004      -            0     0     -  Invalid Field in Command
 
-# smartctl -a /dev/nvme1
-smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
-Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+    Self-test Log (NVMe Log 0x06)
+    Self-test status: No self-test in progress
+    No Self-tests Logged
+    ```
 
-=== START OF INFORMATION SECTION ===
-Model Number:                       KINGSTON SFYRD4000G
-Serial Number:                      50026B76866DA9CA
-Firmware Version:                   EIFK31.6
-PCI Vendor/Subsystem ID:            0x2646
-IEEE OUI Identifier:                0x0026b7
-Total NVM Capacity:                 4,000,787,030,016 [4.00 TB]
-Unallocated NVM Capacity:           0
-Controller ID:                      1
-NVMe Version:                       1.4
-Number of Namespaces:               1
-Namespace 1 Size/Capacity:          4,000,787,030,016 [4.00 TB]
-Namespace 1 Formatted LBA Size:     512
-Namespace 1 IEEE EUI-64:            0026b7 6866da9ca5
-Local Time is:                      Mon Nov 18 22:36:00 2024 CET
-Firmware Updates (0x12):            1 Slot, no Reset required
-Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
-Optional NVM Commands (0x005d):     Comp DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
-Log Page Attributes (0x08):         Telmtry_Lg
-Maximum Data Transfer Size:         512 Pages
-Warning  Comp. Temp. Threshold:     84 Celsius
-Critical Comp. Temp. Threshold:     89 Celsius
+??? terminal "`# smartctl -a /dev/nvme1`"
 
-Supported Power States
-St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
- 0 +     8.80W       -        -    0  0  0  0        0       0
- 1 +     7.10W       -        -    1  1  1  1        0       0
- 2 +     5.20W       -        -    2  2  2  2        0       0
- 3 -   0.0620W       -        -    3  3  3  3     2500    7500
- 4 -   0.0620W       -        -    4  4  4  4     2500    7500
+    ``` console
+    # smartctl -a /dev/nvme1
+    smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-47-lowlatency] (local build)
+    Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
 
-Supported LBA Sizes (NSID 0x1)
-Id Fmt  Data  Metadt  Rel_Perf
- 0 +     512       0         2
- 1 -    4096       0         1
+    === START OF INFORMATION SECTION ===
+    Model Number:                       KINGSTON SFYRD4000G
+    Serial Number:                      50026B76866DA9CA
+    Firmware Version:                   EIFK31.6
+    PCI Vendor/Subsystem ID:            0x2646
+    IEEE OUI Identifier:                0x0026b7
+    Total NVM Capacity:                 4,000,787,030,016 [4.00 TB]
+    Unallocated NVM Capacity:           0
+    Controller ID:                      1
+    NVMe Version:                       1.4
+    Number of Namespaces:               1
+    Namespace 1 Size/Capacity:          4,000,787,030,016 [4.00 TB]
+    Namespace 1 Formatted LBA Size:     512
+    Namespace 1 IEEE EUI-64:            0026b7 6866da9ca5
+    Local Time is:                      Mon Nov 18 22:36:00 2024 CET
+    Firmware Updates (0x12):            1 Slot, no Reset required
+    Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+    Optional NVM Commands (0x005d):     Comp DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
+    Log Page Attributes (0x08):         Telmtry_Lg
+    Maximum Data Transfer Size:         512 Pages
+    Warning  Comp. Temp. Threshold:     84 Celsius
+    Critical Comp. Temp. Threshold:     89 Celsius
 
-=== START OF SMART DATA SECTION ===
-SMART overall-health self-assessment test result: PASSED
+    Supported Power States
+    St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+    0 +     8.80W       -        -    0  0  0  0        0       0
+    1 +     7.10W       -        -    1  1  1  1        0       0
+    2 +     5.20W       -        -    2  2  2  2        0       0
+    3 -   0.0620W       -        -    3  3  3  3     2500    7500
+    4 -   0.0620W       -        -    4  4  4  4     2500    7500
 
-SMART/Health Information (NVMe Log 0x02)
-Critical Warning:                   0x00
-Temperature:                        41 Celsius
-Available Spare:                    100%
-Available Spare Threshold:          10%
-Percentage Used:                    0%
-Data Units Read:                    154,185,434 [78.9 TB]
-Data Units Written:                 15,777,901 [8.07 TB]
-Host Read Commands:                 219,252,510
-Host Write Commands:                109,668,538
-Controller Busy Time:               653
-Power Cycles:                       174
-Power On Hours:                     2,079
-Unsafe Shutdowns:                   1
-Media and Data Integrity Errors:    0
-Error Information Log Entries:      472
-Warning  Comp. Temperature Time:    0
-Critical Comp. Temperature Time:    0
-Temperature Sensor 2:               73 Celsius
-Thermal Temp. 1 Total Time:         6429
+    Supported LBA Sizes (NSID 0x1)
+    Id Fmt  Data  Metadt  Rel_Perf
+    0 +     512       0         2
+    1 -    4096       0         1
 
-Error Information (NVMe Log 0x01, 16 of 63 entries)
-Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
-  0        472     0  0x101b  0x4004      -            0     1     -  Invalid Field in Command
-  1        471     0  0x3001  0x4004      -            0     1     -  Invalid Field in Command
-  2        470     0  0x0003  0x4004  0x028            0     0     -  Invalid Field in Command
-  3        469     0  0x0011  0x4004      -            0     0     -  Invalid Field in Command
+    === START OF SMART DATA SECTION ===
+    SMART overall-health self-assessment test result: PASSED
 
-Self-test Log (NVMe Log 0x06)
-Self-test status: No self-test in progress
-No Self-tests Logged
-```
+    SMART/Health Information (NVMe Log 0x02)
+    Critical Warning:                   0x00
+    Temperature:                        41 Celsius
+    Available Spare:                    100%
+    Available Spare Threshold:          10%
+    Percentage Used:                    0%
+    Data Units Read:                    154,185,434 [78.9 TB]
+    Data Units Written:                 15,777,901 [8.07 TB]
+    Host Read Commands:                 219,252,510
+    Host Write Commands:                109,668,538
+    Controller Busy Time:               653
+    Power Cycles:                       174
+    Power On Hours:                     2,079
+    Unsafe Shutdowns:                   1
+    Media and Data Integrity Errors:    0
+    Error Information Log Entries:      472
+    Warning  Comp. Temperature Time:    0
+    Critical Comp. Temperature Time:    0
+    Temperature Sensor 2:               73 Celsius
+    Thermal Temp. 1 Total Time:         6429
 
-However, most of the entries are the same: not an error at all:
+    Error Information (NVMe Log 0x01, 16 of 63 entries)
+    Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
+      0        472     0  0x101b  0x4004      -            0     1     -  Invalid Field in Command
+      1        471     0  0x3001  0x4004      -            0     1     -  Invalid Field in Command
+      2        470     0  0x0003  0x4004  0x028            0     0     -  Invalid Field in Command
+      3        469     0  0x0011  0x4004      -            0     0     -  Invalid Field in Command
 
-```
-# nvme error-log /dev/nvme0 | grep status_field | sort | uniq -c
-     63 status_field    : 0(Successful Completion: The command completed without error)
-      1 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+    Self-test Log (NVMe Log 0x06)
+    Self-test status: No self-test in progress
+    No Self-tests Logged
+    ```
 
-# nvme error-log /dev/nvme1 | grep status_field | sort | uniq -c
-     59 status_field    : 0(Successful Completion: The command completed without error)
-      4 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
-```
+    However, most of the entries are the same: not an error at all:
+
+    ``` console
+    # nvme error-log /dev/nvme0 | grep status_field | sort | uniq -c
+        63 status_field    : 0(Successful Completion: The command completed without error)
+          1 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+
+    # nvme error-log /dev/nvme1 | grep status_field | sort | uniq -c
+        59 status_field    : 0(Successful Completion: The command completed without error)
+          4 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+    ```
 
 Update `/usr/local/bin/smartdnotify` and `/usr/local/bin/smartd-renotify`
 to ignore only those entries that are not errors (`status_field: 0`):
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/smartdnotify"
 #!/bin/sh
 
 # Ignore NVME "error" entries that are not errors.
@@ -2704,7 +2753,7 @@ echo "SMARTD_MESSAGE=’$SMARTD_MESSAGE’" >> $data
 sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
 ```
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/smartd-renotify"
 #!/bin/sh
 
 # Ignore NVME "error" entries that are not errors.
@@ -2735,7 +2784,7 @@ boot back into the old 2TB NVMe SSD, it was time to replace it with a new
 This *new new* SSD gets the same [Partitions](#partitions) as the *old new*
 SSD; the goal is to be able to boot from either of these.
 
-```
+``` console
 # parted /dev/nvme0n1 --script -- mklabel gpt
 # parted -a optimal /dev/nvme0n1 mkpart primary fat32 0% 260MiB
 # parted -a optimal /dev/nvme0n1 mkpart primary ext4 260MiB 75GiB
@@ -2778,7 +2827,7 @@ Device             Start        End    Sectors  Size Type
 This finally allows taking the *old* new 4TB NVMe SSD down from 81% to a more
 comfortable __% so that installing big Steam games is not a problem.
 
-```
+``` console
 $ df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p3   74G   33G   38G  47% /
@@ -2816,7 +2865,7 @@ but as an additional precaution let `rsync` check that files really are
 identical on both disks now, using the `-c` flag to 
 [skip based on checksum, not mod-time & size](https://stackoverflow.com/a/19540611):
 
-```
+``` console
 $ time rsync -cuva /home/Fotos/ /home/new-m2/Fotos/
 sending incremental file list
 
@@ -2833,7 +2882,7 @@ elsewhere too, the checking of the checksum was intended to check the file
 integrity in the *new new* disk because it will now become the canonical
 copy that is backed up everywhere else:
 
-```
+``` console
 $ rm -rf /home/Fotos/
 $ ln -sf /home/new-m2/Fotos/ $HOME/
 $ df -h
