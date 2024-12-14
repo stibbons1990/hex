@@ -14,6 +14,8 @@ This *would* be a very minimal journey of installing
 [Ubuntu Studio 24.04](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/)
 on a relatively new mid-range Intel® NUC 13 Pro mini PC, had it not gone wahoonie-shaped...
 
+![Homage to The Most Popular Tuna Ever](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/Super-Tuna.jpg)
+
 <!-- more -->
 
 ## Preparation
@@ -455,7 +457,7 @@ so each systme may benefit from a few modifications, e.g.
 1. Remove tests for laptop battery status, when running on a PC.
 2. Set the `BTRFS_SCRUB_SKIP` to filter out partitions to skip.
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/btrfs-scrub-all" 
 #! /bin/bash
 
 # By Marc MERLIN <marc_soft@merlins.org> 2014/03/20
@@ -643,7 +645,7 @@ Bluetooth: hci0: Firmware SHA1: 0x23bac558
 Bluetooth: MGMT ver 1.22
 ```
 
-**TODO: pair headphones**
+!!! todo "TODO: pair bluetooth headphones"
 
 ## Appendix: What Was Undone
 
@@ -914,8 +916,10 @@ from May 2024 and is not yet applied to the source file
 `linux-source-6.8.0` package. This one seems a more likely fix,
 and a much simpler change to implement.
 
-**TODO:** Try [BuildYourOwnKernel](https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
-with that one-line patch and see if that helps. Maybe reinstall the system.
+??? todo "TODO: BuildYourOwnKernel or reinstall."
+
+    Try [BuildYourOwnKernel](https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
+    with that one-line patch and see if that helps. Maybe reinstall the system.
 
 #### Maybe somewhere else
 
@@ -977,9 +981,9 @@ To compare again, the biggest user of kernel dynamic memory is
 - `btrfs_inode` in `rapture`, with 1,149,792K after a good 20 hours up
 - `kmalloc-rnd-12-8k` in `super-tuna`, with 2,391,360K after barely 1 hour up
 
-**5 ours later** `kmalloc-rnd-12-8k` in `super-tuna` is up **13.71 GB** again:
+**5 hours later** `kmalloc-rnd-12-8k` in `super-tuna` is up **13.71 GB** again:
 
-```
+``` console
 # smem -twk
 Area                           Used      Cache   Noncache 
 firmware/hardware                 0          0          0 
@@ -1018,7 +1022,7 @@ btrfs                2015232  1
 Google web search shows a single search result for `"kmalloc-rnd-12-8k"`
 [which does not lead to a conclusive solution](https://discussion.fedoraproject.org/t/kernel-memory-leak-fedora-40-nvidia-drivers-ollama/135038/29).
 
-```
+``` console
 # cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
 kmalloc-rnd-12-8k 1962444 1962444   8192    4    8 : tunables    0    0    0 : slabdata 490611 490611      0
 
@@ -1085,7 +1089,7 @@ was no longer happening:
 
 ![Memory usage in a 2-hour period with memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-with-memory-leak.png)
 
-Moroever, it seems the CPU cores are running visible cooler now:
+Moroever, it seems the CPU cores are running visibly cooler now:
 
 ![Memory usage in a 2-hour period withou memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-without-memory-leak.png)
 
@@ -1099,8 +1103,8 @@ everything down to the output from commands, it might just happen that
 different number format and/or translated messages may trigger bugs.
 
 Also, the weekly Btrfs scrub doesn't seem to really need `inn` or any
-of its dependencies, so this installation step was skipped:
+of its dependencies, so this installation step was **skipped**:
 
-```
+``` console
 # apt install inn -y
 ```
