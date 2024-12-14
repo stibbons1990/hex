@@ -883,7 +883,7 @@ network:
 ```
 
 ``` console
-# chmod 400 /etc/netplan/01-network-manager-all.yam
+# chmod 400 /etc/netplan/01-network-manager-all.yaml
 # netplan apply
 
 # ip a
@@ -1018,8 +1018,7 @@ Installing Steam from Snap
 steam 1.0.0.81 from Canonical✓ installed
 ```
 
-**Note:** [snapcraft.io/steam](https://snapcraft.io/steam) is
-provided by Canonical.
+This [snapcraft.io/steam](https://snapcraft.io/steam) package is provided by Canonical.
 
 When runing the Steam client for the first time, a pop-up shows up
 advising to install additional 32-bit drivers *for best experience*
