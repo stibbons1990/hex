@@ -10,9 +10,11 @@ categories:
 title: Kubernetes cluster DNS issues
 ---
 
-**TL;DR:**
-[Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
-is **not optional**; even if it [looks like it](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites).
+!!! tip "Always follow Kubernetes setup step carefully!"
+
+    [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-29.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
+    is **not optional**; even if it [looks like it](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites).
+
 Skipping that crucial step that takes a few minutes eventually led
 to wasting over 3 hours troubleshooting a issue that, apparently,
 *nobody has ever solved on the Internet before*. Naturally,
@@ -30,8 +32,8 @@ When I tried to *push* to Github from Visual Studio Code, after
 
 Showing command output only confirmed the error came from `git`:
 
-```
-> git push origin main:main
+``` console
+$ git push origin main:main
 fatal: unable to access 'https://github.com/stibbons1990/hex.git/': Could not resolve host: github.com
 ```
 
@@ -61,7 +63,7 @@ cluster:
 The Minecraft server issue was discovered while troubleshooting
 the others, and the logs offer a little more details:
 
-```
+``` console
 $ kubectl -n minecraft-server logs minecraft-server-76f44bd597-kpw58 -f
 [init] Running as uid=1003 gid=1003 with /data as 'drwxrwxr-x 1 1003 1003 886 Sep 20 04:10 /data'
 [init] Resolving type given PAPER
@@ -82,7 +84,7 @@ the case in both clusters:
 The service is running on ClusterIP 10.96.0.10 and it answers
 correctly (104.21.44.87 is a known-good address of api.audnex.us):
 
-```
+``` console
 $ kubectl get all -A | grep -i dns
 kube-system            pod/coredns-5d78c9869d-9xbh4                    1/1     Running   0               160m
 kube-system            pod/coredns-5d78c9869d-w8954                    1/1     Running   0               160m
@@ -181,7 +183,7 @@ Address: 2606:4700:20::ac43:48c6
 The service is running on ClusterIP 10.96.0.10 and it answers
 correctly (104.21.44.87 is a known-good address of `api.audnex.us`)
 
-```
+``` console
 $ kubectl get all -A | grep -i dns
 kube-system              pod/coredns-787d4945fb-67z8g                                 1/1     Running            54 (28h ago)      549d
 kube-system              pod/coredns-787d4945fb-gsx6h                                 1/1     Running            54 (28h ago)      549d
@@ -287,7 +289,7 @@ Worried about both clusters having the same ClusterIP for Kube DNS
 (10.96.0.10); I tried stopping the whole customer in Rapture to see
 if that helps Lexicon:
 
-```
+``` console
 # systemctl stop kubelet
 # systemctl stop containerd.service
 # systemctl stop docker.service
@@ -298,7 +300,7 @@ Once everything is stopped, Rapture Kube DNS is no longer available
 and Lexicon Kube DNS still works, but audiobookshelf is still not
 able to resolve `api.audnex.us`:
 
-```
+``` console
 root@rapture:~# nslookup api.audnex.us 10.96.0.10
 ;; communications error to 10.96.0.10#53: connection refused
 ;; communications error to 10.96.0.10#53: connection refused
@@ -322,7 +324,7 @@ Address: 2606:4700:3037::6815:2c57
 
 Trying to reach the DNS server from the pod always fails:
 
-```
+``` console
 $ kubectl -n audiobookshelf exec audiobookshelf-987b955fb-64gxm -- cat /etc/resolv.conf 
 search audiobookshelf.svc.cluster.local svc.cluster.local cluster.local
 nameserver 10.96.0.10
@@ -341,7 +343,7 @@ $ kubectl -n audiobookshelf exec audiobookshelf-987b955fb-64gxm -- nslookup api.
 
 However, the pods are able to reach Kube DNS on its **endpoints**:
 
-```
+``` console
 $ kubectl get ep kube-dns --namespace=kube-system
 NAME       ENDPOINTS                                                     AGE
 kube-dns   10.244.0.178:53,10.244.0.183:53,10.244.0.178:53 + 3 more...   549d
@@ -400,7 +402,7 @@ going back to
 [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 it turned out that *somehow* bridged traffic was no longer allowed:
 
-```
+``` console
 # sysctl -a | egrep 'net.ipv4.ip_forward|net.bridge.bridge-nf-call-ip'
 net.ipv4.ip_forward = 1
 net.ipv4.ip_forward_update_priority = 1
@@ -409,7 +411,7 @@ net.ipv4.ip_forward_use_pmtu = 0
 
 Comparing with what **was** there when checking [prerequisites](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#prerequisites) in May, `net.bridge.*` variables are missing:
 
-```
+``` console
 root@rapture:~# sysctl -a | egrep 'net.ipv4.ip_forward|net.bridge.bridge-nf-call-ip'
 net.ipv4.ip_forward = 1
 net.ipv4.ip_forward_update_priority = 1
@@ -424,7 +426,7 @@ overlay               151552  30
 
 These are missing now:
 
-```
+``` console
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 ```
@@ -434,7 +436,7 @@ And they are missing in Lexicon too. Finally, a likely culprit!
 So I went back and added these explicitly, with the commands from
 [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 
-```
+``` console
 root@rapture:~# cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay
 br_netfilter
@@ -544,7 +546,7 @@ net.ipv4.ip_forward_use_pmtu = 0
 This made all the difference; pods can now reach the CoreDNS
 service on its ClusterIP:
 
-```
+``` console
 $ kubectl -n ingress-nginx exec ingress-nginx-controller-7c7754d4b6-w4w5g -- nslookup api.audnex.us 10.96.0.10
 Server:         10.96.0.10
 Address:        10.96.0.10:53
@@ -566,7 +568,7 @@ books by title and author (which had stopped working days ago).
 The test with `nslookup` was also successful in this new pod.
 also when not specifying which DNS server to query:
 
-```
+``` console
 $ kubectl -n audiobookshelf exec pod/audiobookshelf-59c5f7c9f5-m5ztg -- nslookup api.audnex.us 10.96.0.10
 Server:         10.96.0.10
 Address:        10.96.0.10:53
@@ -623,7 +625,7 @@ finally solved:
 Just a couple days later I noticed in the Kubernetes dashboard that
 the `coredns` deployment was broken because both pods were crash-looping:
 
-```
+``` console
 # kubectl get all -A | grep -i dns
 kube-system            pod/coredns-5d78c9869d-9xbh4                    0/1     CrashLoopBackOff   81 (2m14s ago)   2d12h
 kube-system            pod/coredns-5d78c9869d-w8954                    0/1     CrashLoopBackOff   81 (2m30s ago)   2d12h
@@ -668,7 +670,7 @@ page explains this is because a DNs loop has been detected and
 recommend making sure that `kubelet` configuration points to the
 *real* `resolve.conf`... which it already does:
 
-```
+``` console
 # grep -iA2 resolv /var/lib/kubelet/config.yaml
 resolvConf: /run/systemd/resolve/resolv.conf
 rotateCertificates: true
@@ -682,7 +684,7 @@ search .
 
 At least the bridging of traffic seems to be fine:
 
-```
+``` console
 # sysctl -a | egrep 'net.ipv4.ip_forward|net.bridge.bridge-nf-call-ip'
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -711,7 +713,7 @@ a few clues... but not enough.
 Maybe I should just
 [disable local dns cache on ubuntu](https://www.google.com/search?q=disable+local+dns+cache+on+ubuntu&oq=disable+local+dns+cache+on+ubuntu&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIICAEQABgWGB4yCggCEAAYgAQYogTSAQg0NDYxajBqN6gCALACAA&sourceid=chrome&ie=UTF-8)?
 
-```
+``` console
 # netstat -tulpn | grep '\<53\>'
 tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      2280/systemd-resolv 
 udp        0      0 127.0.0.53:53           0.0.0.0:*                           2280/systemd-resolv
@@ -722,7 +724,7 @@ that the one in Rapture has `search .`; that doesn't seem right.
 
 This can be overriden via Netplan:
 
-```
+``` console
 # tail -3 /etc/resolv.conf 
 nameserver 127.0.0.53
 options edns0 trust-ad
@@ -733,13 +735,13 @@ search .
 
 Add `search` under `nameservers` and apply the change:
 
-```yaml
+``` yaml
       nameservers:
       # Set DNS name servers
         search: [v.cable.com]
 ```
 
-```
+``` console
 # netplan apply
 
 # tail -3 /etc/resolv.conf 
@@ -758,7 +760,7 @@ All the above still did not help; both `coredns` pods keep
 crash-looping with the same error about a lop being detected for
 zone "."; even after forcing them to restart with
 
-```
+``` console
 # kubectl scale --replicas=0 deployment.apps/coredns -n kube-system
 # sleep 10
 # kubectl scale --replicas=2 deployment.apps/coredns -n kube-system
@@ -767,7 +769,7 @@ zone "."; even after forcing them to restart with
 [Flushing the local DNS cache](https://www.howtogeek.com/how-to-flush-dns-cache-in-ubuntu/)
 also did not help:
 
-```
+``` console
 root@rapture:~# resolvectl statistics
 DNSSEC supported by current servers: no
 
@@ -808,7 +810,7 @@ DNSSEC Verdicts
 The next thing to try is entirely
 [Disabling Local DNS Caching](https://tecadmin.net/disable-local-dns-caching-ubuntu/).
 
-```
+``` console
 # systemctl list-units --type=service | grep -E 'systemd-resolved|dnsmasq' 
   systemd-resolved.service
              loaded active running Network Name Resolution
@@ -816,13 +818,13 @@ The next thing to try is entirely
 # vi /etc/systemd/resolved.conf
 ```
 
-```ini
+``` ini
 [Resolve]
 Domains=v.cablecom.net
 Cache=no
 ```
 
-```
+``` console
 # systemctl restart systemd-resolved
 root@rapture:~# dig tecadmin.net
 
@@ -856,7 +858,6 @@ coredns-5d78c9869d-zv5rt          0/1     CrashLoopBackOff   4 (8s ago)    107s
 CoreDNS-1.10.1
 linux/amd64, go1.20, 055b2c3
 [FATAL] plugin/loop: Loop (127.0.0.1:48053 -> :53) detected for zone ".", see https://coredns.io/plugins/loop#troubleshooting. Query: "HINFO 2605680300388702341.222935474922528127."
-
 ```
 
 This does change the TTL but is still making DNS queries go to the
@@ -866,7 +867,7 @@ To get the local DNS service on `127.0.0.53` *out of the way* the
 configuration in `/etc/systemd/resolved.conf` must disable the
 DNS sbut listener:
 
-```ini
+``` ini
 [Resolve]
 DNSStubListener=no
 ```
@@ -874,7 +875,7 @@ DNSStubListener=no
 This gets DNS requests answered directly by the non-local DNS
 servers, but even this still does not help removing the loop!
 
-```
+``` console
 # systemctl restart systemd-resolved
 
 # nslookup k8s.io 127.0.0.53
@@ -922,7 +923,7 @@ The next thing I can think of trying is the *quick and dirty fix*
 mentions as the last resort; there is just **no** DNS listening
 on 127.0.0.53 anyway so may as well forward it to a real one.
 
-```
+``` console
 # kubectl get -n kube-system cm/coredns -o yaml
 apiVersion: v1
 data:
@@ -1008,7 +1009,7 @@ The answer to
 where it is noted that firewall rules are blocking access to the
 DNS service ClusterIP:
 
-```
+``` console
 root@rapture:~# iptables -L | grep 10.96.0.10
 REJECT     udp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns has no endpoints */ reject-with icmp-port-unreachable
 REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns-tcp has no endpoints */ reject-with icmp-port-unreachable
@@ -1022,7 +1023,7 @@ but why are those rules there?
 that these rules are added by `kube-proxy` when it sees that
 `kube-dns` has no endpoints... but it does!
 
-```
+``` console
 $ kubectl describe ep kube-dns -n kube-system
 Name:         kube-dns
 Namespace:    kube-system
@@ -1048,208 +1049,212 @@ In fact, when I went back to check again, they were gone.
 
 Before:
 
-```
-# iptables -L
-Chain INPUT (policy ACCEPT)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-NODEPORTS  all  --  anywhere             anywhere             /* kubernetes health check service ports */
-KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
-KUBE-FIREWALL  all  --  anywhere             anywhere            
+??? terminal "`# iptables -L`"
 
-Chain FORWARD (policy DROP)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
-KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
-KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
-DOCKER-USER  all  --  anywhere             anywhere            
-DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere            
-ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
-DOCKER     all  --  anywhere             anywhere            
-ACCEPT     all  --  anywhere             anywhere            
-ACCEPT     all  --  anywhere             anywhere            
-FLANNEL-FWD  all  --  anywhere             anywhere             /* flanneld forward */
-
-Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
-KUBE-FIREWALL  all  --  anywhere             anywhere            
-
-Chain DOCKER (1 references)
-target     prot opt source               destination         
-
-Chain DOCKER-ISOLATION-STAGE-1 (1 references)
-target     prot opt source               destination         
-DOCKER-ISOLATION-STAGE-2  all  --  anywhere             anywhere            
-RETURN     all  --  anywhere             anywhere            
-
-Chain DOCKER-ISOLATION-STAGE-2 (1 references)
-target     prot opt source               destination         
-DROP       all  --  anywhere             anywhere            
-RETURN     all  --  anywhere             anywhere            
-
-Chain DOCKER-USER (1 references)
-target     prot opt source               destination         
-RETURN     all  --  anywhere             anywhere            
-
-Chain FLANNEL-FWD (1 references)
-target     prot opt source               destination         
-ACCEPT     all  --  rapture/16           anywhere             /* flanneld forward */
-ACCEPT     all  --  anywhere             rapture/16           /* flanneld forward */
-
-Chain KUBE-EXTERNAL-SERVICES (2 references)
-target     prot opt source               destination         
-REJECT     tcp  --  anywhere             nginx.rapture.uu.am  /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:discovery-udp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:discovery-udp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32412 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32412 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32413 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32413 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:pms-web has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:pms-web has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:dlna-udp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:dlna-udp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:plex-roku has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:plex-roku has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             photoprism.rapture.uu.am  /* photoprism/photoprism:http has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* photoprism/photoprism:http has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:plex-companion has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:plex-companion has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:dlna-tcp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:dlna-tcp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             nginx.rapture.uu.am  /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32410 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32410 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32414 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32414 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             k8s.rapture.uu.am    /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             anywhere             /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
-
-Chain KUBE-FIREWALL (2 references)
-target     prot opt source               destination         
-DROP       all  -- !localhost/8          localhost/8          /* block incoming localnet connections */ ! ctstate RELATED,ESTABLISHED,DNAT
-
-Chain KUBE-FORWARD (1 references)
-target     prot opt source               destination         
-DROP       all  --  anywhere             anywhere             ctstate INVALID
-ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding rules */
-ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding conntrack rule */ ctstate RELATED,ESTABLISHED
-
-Chain KUBE-KUBELET-CANARY (0 references)
-target     prot opt source               destination         
-
-Chain KUBE-NODEPORTS (1 references)
-target     prot opt source               destination         
-ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https health check node port */
-ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http health check node port */
-
-Chain KUBE-PROXY-CANARY (0 references)
-target     prot opt source               destination         
-
-Chain KUBE-PROXY-FIREWALL (3 references)
-target     prot opt source               destination         
-
-Chain KUBE-SERVICES (2 references)
-target     prot opt source               destination         
-REJECT     tcp  --  anywhere             10.97.59.176         /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.98.208.0          /* ingress-nginx/ingress-nginx-controller-admission:https-webhook has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:discovery-udp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32412 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32413 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:pms-web has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:dlna-udp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:plex-roku has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns-tcp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.109.211.96        /* metallb-system/metallb-webhook-service has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.108.135.112       /* photoprism/photoprism:http has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:plex-companion has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:dlna-tcp has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.97.59.176         /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:metrics has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.107.131.104       /* kubernetes-dashboard/dashboard-metrics-scraper has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32410 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32414 has no endpoints */ reject-with icmp-port-unreachable
-REJECT     tcp  --  anywhere             10.107.235.155       /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ reject-with icmp-port-unreachable
-```
+    ``` console
+    # iptables -L
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-NODEPORTS  all  --  anywhere             anywhere             /* kubernetes health check service ports */
+    KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+ 
+    Chain FORWARD (policy DROP)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+    KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+    KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
+    DOCKER-USER  all  --  anywhere             anywhere            
+    DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere            
+    ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+    DOCKER     all  --  anywhere             anywhere            
+    ACCEPT     all  --  anywhere             anywhere            
+    ACCEPT     all  --  anywhere             anywhere            
+    FLANNEL-FWD  all  --  anywhere             anywhere             /* flanneld forward */
+ 
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+ 
+    Chain DOCKER (1 references)
+    target     prot opt source               destination         
+ 
+    Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+    target     prot opt source               destination         
+    DOCKER-ISOLATION-STAGE-2  all  --  anywhere             anywhere            
+    RETURN     all  --  anywhere             anywhere            
+ 
+    Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+    target     prot opt source               destination         
+    DROP       all  --  anywhere             anywhere            
+    RETURN     all  --  anywhere             anywhere            
+ 
+    Chain DOCKER-USER (1 references)
+    target     prot opt source               destination         
+    RETURN     all  --  anywhere             anywhere            
+ 
+    Chain FLANNEL-FWD (1 references)
+    target     prot opt source               destination         
+    ACCEPT     all  --  rapture/16           anywhere             /* flanneld forward */
+    ACCEPT     all  --  anywhere             rapture/16           /* flanneld forward */
+ 
+    Chain KUBE-EXTERNAL-SERVICES (2 references)
+    target     prot opt source               destination         
+    REJECT     tcp  --  anywhere             nginx.rapture.uu.am  /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:discovery-udp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:discovery-udp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32412 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32412 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32413 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32413 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:pms-web has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:pms-web has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:dlna-udp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:dlna-udp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:plex-roku has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:plex-roku has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             photoprism.rapture.uu.am  /* photoprism/photoprism:http has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* photoprism/photoprism:http has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:plex-companion has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:plex-companion has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-tcp:dlna-tcp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* plexserver/plex-tcp:dlna-tcp has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             nginx.rapture.uu.am  /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32410 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32410 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             plex.rapture.uu.am   /* plexserver/plex-udp:gdm-32414 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             anywhere             /* plexserver/plex-udp:gdm-32414 has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             k8s.rapture.uu.am    /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             anywhere             /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ ADDRTYPE match dst-type LOCAL reject-with icmp-port-unreachable
+ 
+    Chain KUBE-FIREWALL (2 references)
+    target     prot opt source               destination         
+    DROP       all  -- !localhost/8          localhost/8          /* block incoming localnet connections */ ! ctstate RELATED,ESTABLISHED,DNAT
+ 
+    Chain KUBE-FORWARD (1 references)
+    target     prot opt source               destination         
+    DROP       all  --  anywhere             anywhere             ctstate INVALID
+    ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+    ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding conntrack rule */ ctstate RELATED,ESTABLISHED
+ 
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-NODEPORTS (1 references)
+    target     prot opt source               destination         
+    ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https health check node port */
+    ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http health check node port */
+ 
+    Chain KUBE-PROXY-CANARY (0 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-PROXY-FIREWALL (3 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-SERVICES (2 references)
+    target     prot opt source               destination         
+    REJECT     tcp  --  anywhere             10.97.59.176         /* ingress-nginx/ingress-nginx-controller:https has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.98.208.0          /* ingress-nginx/ingress-nginx-controller-admission:https-webhook has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:discovery-udp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32412 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32413 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:pms-web has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:dlna-udp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:plex-roku has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:dns-tcp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.109.211.96        /* metallb-system/metallb-webhook-service has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.108.135.112       /* photoprism/photoprism:http has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:plex-companion has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.97.83.71          /* plexserver/plex-tcp:dlna-tcp has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.97.59.176         /* ingress-nginx/ingress-nginx-controller:http has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.96.0.10           /* kube-system/kube-dns:metrics has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.107.131.104       /* kubernetes-dashboard/dashboard-metrics-scraper has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32410 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     udp  --  anywhere             10.100.30.101        /* plexserver/plex-udp:gdm-32414 has no endpoints */ reject-with icmp-port-unreachable
+    REJECT     tcp  --  anywhere             10.107.235.155       /* kubernetes-dashboard/kubernetes-dashboard has no endpoints */ reject-with icmp-port-unreachable
+    ```
 
 After:
 
-```
-# iptables -L
-Chain INPUT (policy ACCEPT)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-NODEPORTS  all  --  anywhere             anywhere             /* kubernetes health check service ports */
-KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
-KUBE-FIREWALL  all  --  anywhere             anywhere            
+??? terminal "`# iptables -L`"
 
-Chain FORWARD (policy DROP)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
-KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
-KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
-FLANNEL-FWD  all  --  anywhere             anywhere             /* flanneld forward */
-
-Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination         
-KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
-KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
-KUBE-FIREWALL  all  --  anywhere             anywhere            
-
-Chain DOCKER (0 references)
-target     prot opt source               destination         
-
-Chain DOCKER-ISOLATION-STAGE-1 (0 references)
-target     prot opt source               destination         
-
-Chain DOCKER-ISOLATION-STAGE-2 (0 references)
-target     prot opt source               destination         
-
-Chain DOCKER-USER (0 references)
-target     prot opt source               destination         
-
-Chain FLANNEL-FWD (1 references)
-target     prot opt source               destination         
-ACCEPT     all  --  rapture/16           anywhere             /* flanneld forward */
-ACCEPT     all  --  anywhere             rapture/16           /* flanneld forward */
-
-Chain KUBE-EXTERNAL-SERVICES (2 references)
-target     prot opt source               destination         
-
-Chain KUBE-FIREWALL (2 references)
-target     prot opt source               destination         
-DROP       all  -- !localhost/8          localhost/8          /* block incoming localnet connections */ ! ctstate RELATED,ESTABLISHED,DNAT
-
-Chain KUBE-FORWARD (1 references)
-target     prot opt source               destination         
-DROP       all  --  anywhere             anywhere             ctstate INVALID
-ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding rules */
-ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding conntrack rule */ ctstate RELATED,ESTABLISHED
-
-Chain KUBE-KUBELET-CANARY (0 references)
-target     prot opt source               destination         
-
-Chain KUBE-NODEPORTS (1 references)
-target     prot opt source               destination         
-ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http health check node port */
-ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https health check node port */
-
-Chain KUBE-PROXY-CANARY (0 references)
-target     prot opt source               destination         
-
-Chain KUBE-PROXY-FIREWALL (3 references)
-target     prot opt source               destination         
-
-Chain KUBE-SERVICES (2 references)
-target     prot opt source               destination         
-```
+    ``` console
+    # iptables -L
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-NODEPORTS  all  --  anywhere             anywhere             /* kubernetes health check service ports */
+    KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+ 
+    Chain FORWARD (policy DROP)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+    KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+    KUBE-EXTERNAL-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes externally-visible service portals */
+    FLANNEL-FWD  all  --  anywhere             anywhere             /* flanneld forward */
+ 
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    KUBE-PROXY-FIREWALL  all  --  anywhere             anywhere             ctstate NEW /* kubernetes load balancer firewall */
+    KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+ 
+    Chain DOCKER (0 references)
+    target     prot opt source               destination         
+ 
+    Chain DOCKER-ISOLATION-STAGE-1 (0 references)
+    target     prot opt source               destination         
+ 
+    Chain DOCKER-ISOLATION-STAGE-2 (0 references)
+    target     prot opt source               destination         
+ 
+    Chain DOCKER-USER (0 references)
+    target     prot opt source               destination         
+ 
+    Chain FLANNEL-FWD (1 references)
+    target     prot opt source               destination         
+    ACCEPT     all  --  rapture/16           anywhere             /* flanneld forward */
+    ACCEPT     all  --  anywhere             rapture/16           /* flanneld forward */
+ 
+    Chain KUBE-EXTERNAL-SERVICES (2 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-FIREWALL (2 references)
+    target     prot opt source               destination         
+    DROP       all  -- !localhost/8          localhost/8          /* block incoming localnet connections */ ! ctstate RELATED,ESTABLISHED,DNAT
+ 
+    Chain KUBE-FORWARD (1 references)
+    target     prot opt source               destination         
+    DROP       all  --  anywhere             anywhere             ctstate INVALID
+    ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+    ACCEPT     all  --  anywhere             anywhere             /* kubernetes forwarding conntrack rule */ ctstate RELATED,ESTABLISHED
+ 
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-NODEPORTS (1 references)
+    target     prot opt source               destination         
+    ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:http health check node port */
+    ACCEPT     tcp  --  anywhere             anywhere             /* ingress-nginx/ingress-nginx-controller:https health check node port */
+ 
+    Chain KUBE-PROXY-CANARY (0 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-PROXY-FIREWALL (3 references)
+    target     prot opt source               destination         
+ 
+    Chain KUBE-SERVICES (2 references)
+    target     prot opt source               destination         
+    ```
 
 Even then, I tried the commands in 
 [that comment](https://github.com/kubernetes/kubernetes/issues/83063#issuecomment-535687028)
@@ -1257,7 +1262,7 @@ but they didn't help.
 
 **Note:** had to make a symlink for `crictl` commands to work well:
 
-```
+``` console
 # ln -s /var/run/containerd/containerd.sock /var/run/dockershim.sock
 # ls -l /var/run/containerd/containerd.sock /var/run/dockershim.sock
 srw-rw---- 1 root root  0 Sep 22 13:34 /var/run/containerd/containerd.sock
