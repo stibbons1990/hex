@@ -12,8 +12,6 @@ title: Self-hosted accountancy with Firefly III
 
 Keep track of expenses and stuff is hard, thankless work.
 
-<!-- more -->
-
 Over the years I've done it, with varying degrees of *success*,
 using a variety of solutions including my first ever
 [LAMP](https://es.wikipedia.org/wiki/LAMP) project, right after
@@ -28,12 +26,14 @@ solutions by
 decided to first try with
 [Firefly III](https://github.com/firefly-iii/firefly-iii).
 
+<!-- more -->
+
 ## Deployment
 
 Before deploying this applications, persistant storage needs to be
 prepared for the database and the application itself:
 
-```
+``` console
 # mkdir -p /home/k8s/firefly-iii/mysql /home/k8s/firefly-iii/upload
 # chown -R 33.33 /home/k8s/firefly-iii/mysql
 # chown -R www-data.www-data /home/k8s/firefly-iii/upload
@@ -43,8 +43,10 @@ drwxr-xr-x 1 100 101 390 May 19 19:49 mysql
 drwxrwxr-x 1  33  33   0 May 19 16:18 upload
 ```
 
-**Note:** user and groupd IDs are enforced by the docker images.
-Enforcing different users seems to be too much of a headache.
+!!! note
+
+    User and groupd IDs are enforced by the docker images.
+    Enforcing different users seems to be too much of a headache.
 
 [Firefly III on Kubernetes.](https://github.com/firefly-iii/kubernetes) includes deployments for each component, of which
 I will be using the most basic ones:
@@ -56,241 +58,244 @@ I will be using the most basic ones:
 While these are meant to be used with `kustomize`, I will keep it
 simpler by putting it all together in my own `firefly-iii.yaml`:
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: firefly-iii
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: firefly-iii-pv-mysql
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/firefly-iii/mysql
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: firefly-iii-pvc-mysql
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  storageClassName: manual
-  volumeName: firefly-iii-pv-mysql
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: firefly-iii-mysql
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  selector:
-    matchLabels:
-      app: firefly-iii
-      tier: mysql
-  strategy:
-    type: Recreate
-  template:
+??? k8s "Kubernetes deployment: `firefly-iii.yaml`"
+
+    ``` yaml linenums="1" title="firefly-iii.yaml"
+    apiVersion: v1
+    kind: Namespace
     metadata:
+      name: firefly-iii
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: firefly-iii-pv-mysql
+      namespace: firefly-iii
       labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 20Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/firefly-iii/mysql
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: firefly-iii-pvc-mysql
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      volumeName: firefly-iii-pv-mysql
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 20Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: firefly-iii-mysql
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      selector:
+        matchLabels:
+          app: firefly-iii
+          tier: mysql
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: firefly-iii
+            tier: mysql
+        spec:
+          containers:
+          - image: yobasystems/alpine-mariadb:latest
+            imagePullPolicy: Always
+            name: mysql
+            env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "**************************"
+            ports:
+            - containerPort: 3306
+              name: mysql
+            volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          volumes:
+          - name: mysql-persistent-storage
+            persistentVolumeClaim:
+              claimName: firefly-iii-pvc-mysql
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: firefly-iii-mysql-svc
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      type: NodePort
+      ports:
+      - port: 3306
+        nodePort: 30306
+        targetPort: 3306
+      selector:
         app: firefly-iii
         tier: mysql
-    spec:
-      containers:
-      - image: yobasystems/alpine-mariadb:latest
-        imagePullPolicy: Always
-        name: mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "**************************"
-        ports:
-        - containerPort: 3306
-          name: mysql
-        volumeMounts:
-        - name: mysql-persistent-storage
-          mountPath: /var/lib/mysql
-      volumes:
-      - name: mysql-persistent-storage
-        persistentVolumeClaim:
-          claimName: firefly-iii-pvc-mysql
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: firefly-iii-mysql-svc
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  type: NodePort
-  ports:
-  - port: 3306
-    nodePort: 30306
-    targetPort: 3306
-  selector:
-    app: firefly-iii
-    tier: mysql
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: firefly-iii-pv-upload
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/firefly-iii/upload
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: firefly-iii-pvc-upload
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  storageClassName: manual
-  volumeName: firefly-iii-pv-upload
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: firefly-iii-svc
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  type: NodePort
-  ports:
-  - port: 8080
-    nodePort: 30080
-    targetPort: 8080
-  selector:
-    app: firefly-iii
-    tier: frontend
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: firefly-iii
-  namespace: firefly-iii
-  labels:
-    app: firefly-iii
-spec:
-  selector:
-    matchLabels:
-      app: firefly-iii
-      tier: frontend
-  strategy:
-    type: Recreate
-  template:
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
     metadata:
+      name: firefly-iii-pv-upload
+      namespace: firefly-iii
       labels:
         app: firefly-iii
-        tier: frontend
     spec:
-      containers:
-      - image: fireflyiii/core
-        imagePullPolicy: Always
-        name: firefly-iii
-        env:
-        - name: APP_ENV
-          value: "local"
-        - name: APP_KEY
-          value: "********************************"
-        - name: DB_HOST
-          value: firefly-iii-mysql-svc
-        - name: DB_CONNECTION
-          value: mysql
-        - name: DB_DATABASE
-          value: "fireflyiii"
-        - name: DB_USERNAME
-          value: "root"
-        - name: DB_PASSWORD
-          value: "**************************"
-        - name: TRUSTED_PROXIES
-          value: "**"
-        ports:
-        - containerPort: 8080
-          name: firefly-iii
-        volumeMounts:
-        - mountPath: "/var/www/html/storage/upload"
-          name: firefly-iii-upload 
-      volumes:
-        - name: firefly-iii-upload
-          persistentVolumeClaim:
-            claimName: firefly-iii-pvc-upload
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: firefly-iii-ingress
-  namespace: firefly-iii
-  annotations:
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/issue-temporary-certificate: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/websocket-services: firefly-iii-svc
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-spec:
-  ingressClassName: nginx
-  rules:
-  - host: ffi.ssl.uu.am
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: firefly-iii-svc
-            port:
-              number: 8080
-  tls:
-    - secretName: tls-secret
-      hosts:
-        - ffi.ssl.uu.am
-```
+      storageClassName: manual
+      capacity:
+        storage: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/firefly-iii/upload
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: firefly-iii-pvc-upload
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      volumeName: firefly-iii-pv-upload
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 10Gi
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: firefly-iii-svc
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      type: NodePort
+      ports:
+      - port: 8080
+        nodePort: 30080
+        targetPort: 8080
+      selector:
+        app: firefly-iii
+        tier: frontend
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: firefly-iii
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      selector:
+        matchLabels:
+          app: firefly-iii
+          tier: frontend
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: firefly-iii
+            tier: frontend
+        spec:
+          containers:
+          - image: fireflyiii/core
+            imagePullPolicy: Always
+            name: firefly-iii
+            env:
+            - name: APP_ENV
+              value: "local"
+            - name: APP_KEY
+              value: "********************************"
+            - name: DB_HOST
+              value: firefly-iii-mysql-svc
+            - name: DB_CONNECTION
+              value: mysql
+            - name: DB_DATABASE
+              value: "fireflyiii"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              value: "**************************"
+            - name: TRUSTED_PROXIES
+              value: "**"
+            ports:
+            - containerPort: 8080
+              name: firefly-iii
+            volumeMounts:
+            - mountPath: "/var/www/html/storage/upload"
+              name: firefly-iii-upload 
+          volumes:
+            - name: firefly-iii-upload
+              persistentVolumeClaim:
+                claimName: firefly-iii-pvc-upload
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: firefly-iii-ingress
+      namespace: firefly-iii
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: firefly-iii-svc
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    spec:
+      ingressClassName: nginx
+      rules:
+      - host: ffi.ssl.uu.am
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: firefly-iii-svc
+                port:
+                  number: 8080
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - ffi.ssl.uu.am
+    ```
 
-**Note**: the `APP_KEY` value **must** have exactly 32 characters,
-as noted in 
-[#2193: Can't get started - hitting an "encryption key not specified error"](https://github.com/firefly-iii/firefly-iii/issues/2193#issuecomment-529696297),
-also better explained in
-[monicahq/monica #6449](https://github.com/monicahq/monica/issues/6449#issuecomment-1334845725).
+!!! note
 
-```
+    The `APP_KEY` value **must** have exactly 32 characters, as noted in 
+    [#2193: Can't get started - hitting an "encryption key not specified error"](https://github.com/firefly-iii/firefly-iii/issues/2193#issuecomment-529696297),
+    also better explained in
+    [monicahq/monica #6449](https://github.com/monicahq/monica/issues/6449#issuecomment-1334845725).
+
+``` console
 $ kubectl apply -f firefly-iii.yaml 
 namespace/firefly-iii created
 persistentvolume/firefly-iii-pv-mysql created
@@ -303,7 +308,7 @@ service/firefly-iii-svc created
 deployment.apps/firefly-iii created
 ingress.networking.k8s.io/firefly-iii-ingress created
 
-$ $ kubectl -n firefly-iii get all
+$ kubectl -n firefly-iii get all
 NAME                                    READY   STATUS    RESTARTS   AGE
 pod/cm-acme-http-solver-vfwlp           1/1     Running   0          16s
 pod/firefly-iii-6c8dbdd45f-jqdsv        1/1     Running   0          16s
@@ -327,14 +332,18 @@ everything else, one can finally visit
 [https://ffi.ssl.uu.am/](https://ffi.ssl.uu.am/)
 to create an account and get started:
 
-**Note**: the `cm-acme-http-solver` is responsible for obtaining
-a valid certificated for this service; the HTTPS connection will
-be secure only after this pod has finished its job. 
+!!! note
+
+    The `cm-acme-http-solver` is responsible for obtaining
+    a valid certificated for this service; the HTTPS connection will
+    be secure only after this pod has finished its job. 
 
 ![Signup form](../media/2024-05-19-self-hosted-accountancy-with-firefly-iii/firefly-iii-signup.png)
 
-**Note**: the password **must** have at least 16 characters, which
-is more than Chrome will use when *suggesting a strong password*.
+!!! note
+
+    The password **must** have at least 16 characters, which is more
+    than Chrome will use when *suggesting a strong password*.
 
 From this point on, [RTFM](https://docs.firefly-iii.org/)
 will be probably the best way to go.
