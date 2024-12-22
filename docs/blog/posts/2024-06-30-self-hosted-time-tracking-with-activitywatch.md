@@ -17,8 +17,6 @@ chores, entertainment, etc. *Work* happens at other computers,
 where time flies by sometimes at ridiculous speeds. I often find
 myself wondering *where did my day/week go?*
 
-<!-- more -->
-
 For some time I've been using a badly-cobbled-together solution
 with Bash scripts doing a few basic operations, all the time:
 
@@ -37,6 +35,8 @@ At home, however, the results have been very underwhelming. This
 is due to completely different behaviour patterns, which is where
 I hope [ActivityWatch](https://activitywatch.net/) will help.
 
+<!-- more -->
+
 ### Installation
 
 To install [ActivityWatch](https://activitywatch.net/) on Ubuntu
@@ -44,7 +44,7 @@ To install [ActivityWatch](https://activitywatch.net/) on Ubuntu
 package provided as part of ActivityWatch
 [releases](https://github.com/ActivityWatch/activitywatch/releases):
 
-```
+``` console
 $ wget -S \
     https://github.com/ActivityWatch/activitywatch/releases/download/v0.13.1/activitywatch-v0.13.1-linux-x86_64.deb
 $ sudo dpkg -i activitywatch-v0.13.1-linux-x86_64.deb
@@ -119,7 +119,7 @@ by fetching play time from the
 
 Installating is easy enough:
 
-```
+``` console
 $ git clone https://github.com/Edwardsoen/aw-watcher-steam.git
 $ cd aw-watcher-steam/
 $ pip install .
@@ -164,7 +164,7 @@ This is the script that does steps 1-3 above, added here for
 reference because it has a few interesting bits.
 Aggregating this data is rather trivial so not really interesting.
 
-```bash
+``` bash numlines="1"
 #!/bin/bash
 #
 # Poll every second for the name of the active window.
