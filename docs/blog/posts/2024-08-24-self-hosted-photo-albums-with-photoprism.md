@@ -20,203 +20,204 @@ and here are impressions so far.
 The following deployment is based on the PhotoPrism®
 [Setup Using Docker Compose](https://docs.photoprism.app/getting-started/docker-compose/):
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: photoprism
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: photoprism-secrets
-  namespace: photoprism
-stringData:
-  PHOTOPRISM_ADMIN_PASSWORD: "************"
-  PHOTOPRISM_DATABASE_DRIVER: "sqlite"
-  PHOTOPRISM_DATABASE_DSN: /photoprism/storage/db.sqlite
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: photoprism-pv-originals
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/photoprism/originals
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: photoprism-pv-import
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/photoprism/import
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: photoprism-pv-storage
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/photoprism/storage
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: photoprism-pvc-originals
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  volumeName: photoprism-pv-originals
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: photoprism-pvc-import
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  volumeName: photoprism-pv-import
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: photoprism-pvc-storage
-  namespace: photoprism
-spec:
-  storageClassName: manual
-  volumeName: photoprism-pv-storage
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: photoprism
-  namespace: photoprism
-spec:
-  selector:
-    matchLabels:
-      app: photoprism
-  serviceName: photoprism
-  replicas: 1
-  template:
+??? k8s "Kubernetes deployment: `photoprism.yaml`"
+
+    ``` yaml linenums="1" title="photoprism.yaml"
+    apiVersion: v1
+    kind: Namespace
     metadata:
-      labels:
-        app: photoprism
+      name: photoprism
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: photoprism-secrets
+      namespace: photoprism
+    stringData:
+      PHOTOPRISM_ADMIN_PASSWORD: "************"
+      PHOTOPRISM_DATABASE_DRIVER: "sqlite"
+      PHOTOPRISM_DATABASE_DSN: /photoprism/storage/db.sqlite
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: photoprism-pv-originals
+      namespace: photoprism
     spec:
-      containers:
-      - name: photoprism
-        image: photoprism/photoprism:latest
-        env:
-        - name: PHOTOPRISM_DEBUG
-          value: "true"
-        - name: PHOTOPRISM_DATABASE_DRIVER
-          value: sqlite
-        - name: PHOTOPRISM_HTTP_HOST
-          value: 0.0.0.0
-        - name: PHOTOPRISM_HTTP_PORT
-          value: "2342"
-        - name: PHOTOPRISM_GID
-          value: "1000"
-        - name: PHOTOPRISM_UID
-          value: "1000"
-        - name: PHOTOPRISM_ORIGINALS_LIMIT
-          value: "20000"
-        # Load database DSN & admin password from secret
-        envFrom:
-        - secretRef:
-            name: photoprism-secrets
-            optional: false
-        ports:
-        - containerPort: 2342
-          name: http
-        volumeMounts:
-        - mountPath: /photoprism/originals
-          name: photoprism-originals
-        - mountPath: /photoprism/import
-          name: photoprism-import
-        - mountPath: /photoprism/storage
-          name: photoprism-storage
-        readinessProbe:
-          httpGet:
-            path: /api/v1/status
-            port: http
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 1000
-          runAsGroup: 1000
-      volumes:
-      - name: photoprism-originals
-        persistentVolumeClaim:
-          claimName: photoprism-pvc-originals
-      - name: photoprism-import
-        persistentVolumeClaim:
-          claimName: photoprism-pvc-import
-      - name: photoprism-storage
-        persistentVolumeClaim:
-          claimName: photoprism-pvc-storage
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: photoprism
-  namespace: photoprism
-spec:
-  ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
-  selector:
-    app: photoprism
-  type: LoadBalancer
-```
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/photoprism/originals
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: photoprism-pv-import
+      namespace: photoprism
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/photoprism/import
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: photoprism-pv-storage
+      namespace: photoprism
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/photoprism/storage
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: photoprism-pvc-originals
+      namespace: photoprism
+    spec:
+      storageClassName: manual
+      volumeName: photoprism-pv-originals
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: photoprism-pvc-import
+      namespace: photoprism
+    spec:
+      storageClassName: manual
+      volumeName: photoprism-pv-import
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: photoprism-pvc-storage
+      namespace: photoprism
+    spec:
+      storageClassName: manual
+      volumeName: photoprism-pv-storage
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: photoprism
+      namespace: photoprism
+    spec:
+      selector:
+        matchLabels:
+          app: photoprism
+      serviceName: photoprism
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: photoprism
+        spec:
+          containers:
+          - name: photoprism
+            image: photoprism/photoprism:latest
+            env:
+            - name: PHOTOPRISM_DEBUG
+              value: "true"
+            - name: PHOTOPRISM_DATABASE_DRIVER
+              value: sqlite
+            - name: PHOTOPRISM_HTTP_HOST
+              value: 0.0.0.0
+            - name: PHOTOPRISM_HTTP_PORT
+              value: "2342"
+            - name: PHOTOPRISM_GID
+              value: "1000"
+            - name: PHOTOPRISM_UID
+              value: "1000"
+            - name: PHOTOPRISM_ORIGINALS_LIMIT
+              value: "20000"
+            # Load database DSN & admin password from secret
+            envFrom:
+            - secretRef:
+                name: photoprism-secrets
+                optional: false
+            ports:
+            - containerPort: 2342
+              name: http
+            volumeMounts:
+            - mountPath: /photoprism/originals
+              name: photoprism-originals
+            - mountPath: /photoprism/import
+              name: photoprism-import
+            - mountPath: /photoprism/storage
+              name: photoprism-storage
+            readinessProbe:
+              httpGet:
+                path: /api/v1/status
+                port: http
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsUser: 1000
+              runAsGroup: 1000
+          volumes:
+          - name: photoprism-originals
+            persistentVolumeClaim:
+              claimName: photoprism-pvc-originals
+          - name: photoprism-import
+            persistentVolumeClaim:
+              claimName: photoprism-pvc-import
+          - name: photoprism-storage
+            persistentVolumeClaim:
+              claimName: photoprism-pvc-storage
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: photoprism
+      namespace: photoprism
+    spec:
+      ports:
+      - name: http
+        port: 80
+        protocol: TCP
+        targetPort: http
+      selector:
+        app: photoprism
+      type: LoadBalancer
+    ```
 
 In addition to the deployment, I create a `.ppignore` file at the top
 level directory of the photo collection, to leave out (for now) some
 of the largest parts of my photo collection, to save time on indexing,
 as well as several directories of no interest:
 
-```
-$ cat /photoprism/originals/.ppignore
+``` ini linenums="1" title="/photoprism/originals/.ppignore"
 # Temporarily ignore the biggest directories.
 People/Family
 People/Weddings
@@ -248,10 +249,9 @@ raw
 ```
 
 After starting the deployment with the usual
-`kubectl apply -f photoprism.yaml`
-the service is ready to use at:
+`kubectl apply -f photoprism.yaml` the service is ready to use at:
 
-```
+``` console
 $ kubectl -n photoprism get all
 NAME               READY   STATUS    RESTARTS        AGE
 pod/photoprism-0   1/1     Running   9 (4h14m ago)   12m
@@ -266,7 +266,7 @@ statefulset.apps/photoprism   1/1     103m
 To make my life a little easier, I add an entry to `/etc/hosts`
 so that I can directly visit http://photoprism.rapture.uu.am
 
-```
+``` console
 # Kubernetes MetalLB
 192.168.0.220   photoprism.rapture.uu.am
 ```
@@ -282,7 +282,7 @@ a few videos were indexed, but then was even more surprised how long it
 took to even start playing. PhotoPrism® spent a good 20 minutes running
 `ffmpeg`; in particular this command:
 
-```
+``` console
 /usr/bin/ffmpeg \
   -i /photoprism/originals/Videos/Fan.Films/Troll.Bridge.2018/Troll.Bridge.2018.avi \
   -c:v libx264 \
