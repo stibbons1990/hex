@@ -16,8 +16,6 @@ After weeks of using
 to listen to audiobooks daily, it dawned on me that the PDF reader
 was probably not the best I could be using.
 
-<!-- more -->
-
 Then is also dawned on me that Audible is not my only source of
 eBooks; I have a few from HumbleBundle deals and a few indipendent
 authors who sell PDF files directly, as well as a small collection
@@ -26,6 +24,8 @@ have been scattered all over the place, never having a common home
 where they could all be conveniently navigated and read.
 
 Until now. Enter... [Komga](https://komga.org/).
+
+<!-- more -->
 
 ![Contents of the Art library](../media/2024-05-26-self-hosted-ebook-library-with-komga/komga-art.png)
 
@@ -43,180 +43,182 @@ deployment.
 A single phisical volume to store the application's databases is
 needed, while the books are read from `/home/depot/books/`:
 
-```
+``` console
 # mkdir /home/k8s/komga/config
 # chown -R audiobookshelf.audiobookshelf /home/k8s/komga/
 ```
 
 Once the directories and files a ready, we run Komga as the same
 non-privileged user as Audiobookshelf, based on
-[Konga's `docker-compose`](https://komga.org/docs/installation/docker/#docker-compose):
+[Komga's `docker-compose`](https://komga.org/docs/installation/docker/#docker-compose):
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: komga
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: komga-pv-config
-  namespace: komga
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/komga/config
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: komga-pv-books
-  namespace: komga
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/depot/books
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: komga-pvc-config
-  namespace: komga
-spec:
-  storageClassName: manual
-  volumeName: komga-pv-config
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: komga-pvc-books
-  namespace: komga
-spec:
-  storageClassName: manual
-  volumeName: komga-pv-books
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: komga
-  name: komga
-  namespace: komga
-spec:
-  replicas: 1
-  revisionHistoryLimit: 0
-  selector:
-    matchLabels:
-      app: komga
-  strategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
+??? k8s "Kubernetes deployment: `komga.yaml`"
+
+    ``` yaml linenums="1" title="komga.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: komga
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: komga-pv-config
+      namespace: komga
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/komga/config
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: komga-pv-books
+      namespace: komga
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/books
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: komga-pvc-config
+      namespace: komga
+    spec:
+      storageClassName: manual
+      volumeName: komga-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: komga-pvc-books
+      namespace: komga
+    spec:
+      storageClassName: manual
+      volumeName: komga-pv-books
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: komga
+      name: komga
+      namespace: komga
     spec:
-      containers:
-        - image: gotson/komga
-          imagePullPolicy: Always
-          name: komga
-          args: ["user", "1006:1006"]
-          env:
-          - name: TZ
-            value: "Europe/Madrid"
-          ports:
-          - containerPort: 25600
-          resources: {}
-          stdin: true
-          tty: true
-          volumeMounts:
-          - mountPath: /config
-            name: komga-config
-          - mountPath: /data
-            name: komga-books
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsUser: 1006
-            runAsGroup: 1006
-      restartPolicy: Always
-      volumes:
-      - name: komga-config
-        persistentVolumeClaim:
-          claimName: komga-pvc-config
-      - name: komga-books
-        persistentVolumeClaim:
-          claimName: komga-pvc-books
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: komga-svc
-  namespace: komga
-spec:
-  type: NodePort
-  ports:
-  - port: 25600
-    nodePort: 30600
-    targetPort: 25600
-  selector:
-    app: komga
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: komga-ingress
-  namespace: komga
-  annotations:
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/issue-temporary-certificate: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/websocket-services: komga-svc
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: komga.ssl.uu.am
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: komga-svc
-                port:
-                  number: 25600
-  tls:
-    - secretName: tls-secret
-      hosts:
-        - komga.ssl.uu.am
-```
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: komga
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: komga
+        spec:
+          containers:
+            - image: gotson/komga
+              imagePullPolicy: Always
+              name: komga
+              args: ["user", "1006:1006"]
+              env:
+              - name: TZ
+                value: "Europe/Madrid"
+              ports:
+              - containerPort: 25600
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: komga-config
+              - mountPath: /data
+                name: komga-books
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 1006
+                runAsGroup: 1006
+          restartPolicy: Always
+          volumes:
+          - name: komga-config
+            persistentVolumeClaim:
+              claimName: komga-pvc-config
+          - name: komga-books
+            persistentVolumeClaim:
+              claimName: komga-pvc-books
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: komga-svc
+      namespace: komga
+    spec:
+      type: NodePort
+      ports:
+      - port: 25600
+        nodePort: 30600
+        targetPort: 25600
+      selector:
+        app: komga
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: komga-ingress
+      namespace: komga
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: komga-svc
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: komga.ssl.uu.am
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: komga-svc
+                    port:
+                      number: 25600
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - komga.ssl.uu.am
+    ```
 
-```
-$ kubectl apply -f komga.yaml 
+``` console
+$ kubectl apply -f komga.yaml
 namespace/komga created
 persistentvolume/komga-pv-config created
 persistentvolume/komga-pv-books created
@@ -268,7 +270,7 @@ series:
 
 These are organized under the `/data` volume as follows:
 
-```
+``` console
 /data/Art/books/
 /data/Audible/books/
 /data/Cosplay/books/
@@ -298,8 +300,8 @@ this one long-term was that it really is built for *series* and
 *really not* for individual books.
 
 Admitedly, that was the only one I tried among other alternatives
-[mentioned here](https://www.reddit.com/r/selfhosted/comments/1b4fg8l/book_server/).
-Others include:
+[mentioned here](https://www.reddit.com/r/selfhosted/comments/1b4fg8l/book_server/). Others include:
+
 - **Calibre Web**, available as [janeczku/calibre-web](https://github.com/janeczku/calibre-web)
   or
   [linuxserver/calibre-web](https://docs.linuxserver.io/images/docker-calibre-web/).
