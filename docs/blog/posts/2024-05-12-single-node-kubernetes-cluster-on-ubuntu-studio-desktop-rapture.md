@@ -57,7 +57,7 @@ claims *it wasn't so bad*:
 > Handling upgrade with kubeadm is quite simple as long as you
 > read the upgrade notes carefully. For the latest releases
 > I just ran:
-> ```
+> ``` console
 > $ export v=1.14.1
 > $ apt-get update
 > $ apt-get install kubeadm=$v-00 kubelet=$v-00
@@ -123,7 +123,7 @@ the idea of later upgrading the cluster to newer versions of
 Kubernetes, it may be a good idea to keep deployments in
 separate directories for each Kubernetes version:
 
-```
+``` console
 $ git clone git@github.com:xxxx/kubernetes-deployments.git
 $ cd kubernetes-deployments/
 $ mkdir 1.26
@@ -170,7 +170,7 @@ in particular
 [using native package management](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management)
 for *Debian-based distributions*:
 
-```
+``` console
 # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key \
   | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
@@ -210,7 +210,7 @@ With only `kubectl` installed, pretty much anything that one
 can try will (inevitably) fail because there is no cluster to
 interact with:
 
-```
+``` console
 # kubectl version --output=yaml
 clientVersion:
   buildDate: "2024-03-14T01:05:39Z"
@@ -251,58 +251,60 @@ Although far from being clearly explained, or even mentioned,
 [anywhere under docs.kubernetes.io](https://www.google.com/search?q=site%3Adocs.kubernetes.io+kubelet+kubeadm), these
 components can be installed as simply `kubectl`:
 
-```
-# apt install -y kubelet kubeadm kubectl
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-kubectl is already the newest version (1.26.15-1.1).
-The following additional packages will be installed:
-  conntrack cri-tools ebtables ethtool kubernetes-cni
-The following NEW packages will be installed:
-  conntrack cri-tools ebtables ethtool kubeadm kubelet kubernetes-cni
-0 upgraded, 7 newly installed, 0 to remove and 13 not upgraded.
-Need to get 77.8 MB of archives.
-After this operation, 296 MB of additional disk space will be used.
-Get:1 http://archive.ubuntu.com/ubuntu jammy/main amd64 conntrack amd64 1:1.4.6-2build2 [33.5 kB]
-Get:2 http://archive.ubuntu.com/ubuntu jammy/main amd64 ebtables amd64 2.0.11-4build2 [84.9 kB]
-Get:4 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 ethtool amd64 1:5.16-1ubuntu0.1 [207 kB]
-Get:3 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  cri-tools 1.26.0-1.1 [19.0 MB]
-Get:5 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubernetes-cni 1.2.0-2.1 [27.6 MB]
-Get:6 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubelet 1.26.15-1.1 [21.1 MB]
-Get:7 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubeadm 1.26.15-1.1 [9,842 kB]
-Fetched 77.8 MB in 1s (54.5 MB/s)  
-Selecting previously unselected package conntrack.
-(Reading database ... 636369 files and directories currently installed.)
-Preparing to unpack .../0-conntrack_1%3a1.4.6-2build2_amd64.deb ...
-Unpacking conntrack (1:1.4.6-2build2) ...
-Selecting previously unselected package cri-tools.
-Preparing to unpack .../1-cri-tools_1.26.0-1.1_amd64.deb ...
-Unpacking cri-tools (1.26.0-1.1) ...
-Selecting previously unselected package ebtables.
-Preparing to unpack .../2-ebtables_2.0.11-4build2_amd64.deb ...
-Unpacking ebtables (2.0.11-4build2) ...
-Selecting previously unselected package ethtool.
-Preparing to unpack .../3-ethtool_1%3a5.16-1ubuntu0.1_amd64.deb ...
-Unpacking ethtool (1:5.16-1ubuntu0.1) ...
-Selecting previously unselected package kubernetes-cni.
-Preparing to unpack .../4-kubernetes-cni_1.2.0-2.1_amd64.deb ...
-Unpacking kubernetes-cni (1.2.0-2.1) ...
-Selecting previously unselected package kubelet.
-Preparing to unpack .../5-kubelet_1.26.15-1.1_amd64.deb ...
-Unpacking kubelet (1.26.15-1.1) ...
-Selecting previously unselected package kubeadm.
-Preparing to unpack .../6-kubeadm_1.26.15-1.1_amd64.deb ...
-Unpacking kubeadm (1.26.15-1.1) ...
-Setting up conntrack (1:1.4.6-2build2) ...
-Setting up ebtables (2.0.11-4build2) ...
-Setting up cri-tools (1.26.0-1.1) ...
-Setting up kubernetes-cni (1.2.0-2.1) ...
-Setting up ethtool (1:5.16-1ubuntu0.1) ...
-Setting up kubelet (1.26.15-1.1) ...
-Setting up kubeadm (1.26.15-1.1) ...
-Processing triggers for man-db (2.10.2-1) ...
-```
+??? terminal "`# apt install -y kubelet kubeadm kubectl`"
+
+    ``` console
+    # apt install -y kubelet kubeadm kubectl
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    kubectl is already the newest version (1.26.15-1.1).
+    The following additional packages will be installed:
+      conntrack cri-tools ebtables ethtool kubernetes-cni
+    The following NEW packages will be installed:
+      conntrack cri-tools ebtables ethtool kubeadm kubelet kubernetes-cni
+    0 upgraded, 7 newly installed, 0 to remove and 13 not upgraded.
+    Need to get 77.8 MB of archives.
+    After this operation, 296 MB of additional disk space will be used.
+    Get:1 http://archive.ubuntu.com/ubuntu jammy/main amd64 conntrack amd64 1:1.4.6-2build2 [33.5 kB]
+    Get:2 http://archive.ubuntu.com/ubuntu jammy/main amd64 ebtables amd64 2.0.11-4build2 [84.9 kB]
+    Get:4 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 ethtool amd64 1:5.16-1ubuntu0.1 [207 kB]
+    Get:3 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  cri-tools 1.26.0-1.1 [19.0 MB]
+    Get:5 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubernetes-cni 1.2.0-2.1 [27.6 MB]
+    Get:6 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubelet 1.26.15-1.1 [21.1 MB]
+    Get:7 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubeadm 1.26.15-1.1 [9,842 kB]
+    Fetched 77.8 MB in 1s (54.5 MB/s)  
+    Selecting previously unselected package conntrack.
+    (Reading database ... 636369 files and directories currently installed.)
+    Preparing to unpack .../0-conntrack_1%3a1.4.6-2build2_amd64.deb ...
+    Unpacking conntrack (1:1.4.6-2build2) ...
+    Selecting previously unselected package cri-tools.
+    Preparing to unpack .../1-cri-tools_1.26.0-1.1_amd64.deb ...
+    Unpacking cri-tools (1.26.0-1.1) ...
+    Selecting previously unselected package ebtables.
+    Preparing to unpack .../2-ebtables_2.0.11-4build2_amd64.deb ...
+    Unpacking ebtables (2.0.11-4build2) ...
+    Selecting previously unselected package ethtool.
+    Preparing to unpack .../3-ethtool_1%3a5.16-1ubuntu0.1_amd64.deb ...
+    Unpacking ethtool (1:5.16-1ubuntu0.1) ...
+    Selecting previously unselected package kubernetes-cni.
+    Preparing to unpack .../4-kubernetes-cni_1.2.0-2.1_amd64.deb ...
+    Unpacking kubernetes-cni (1.2.0-2.1) ...
+    Selecting previously unselected package kubelet.
+    Preparing to unpack .../5-kubelet_1.26.15-1.1_amd64.deb ...
+    Unpacking kubelet (1.26.15-1.1) ...
+    Selecting previously unselected package kubeadm.
+    Preparing to unpack .../6-kubeadm_1.26.15-1.1_amd64.deb ...
+    Unpacking kubeadm (1.26.15-1.1) ...
+    Setting up conntrack (1:1.4.6-2build2) ...
+    Setting up ebtables (2.0.11-4build2) ...
+    Setting up cri-tools (1.26.0-1.1) ...
+    Setting up kubernetes-cni (1.2.0-2.1) ...
+    Setting up ethtool (1:5.16-1ubuntu0.1) ...
+    Setting up kubelet (1.26.15-1.1) ...
+    Setting up kubeadm (1.26.15-1.1) ...
+    Processing triggers for man-db (2.10.2-1) ...
+    ```
 
 Among other tools, this installs other critical components to
 run a Kubernetes cluster
@@ -323,7 +325,7 @@ a new Kubernetes cluster:
 [Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 are already enabled in Ubuntu:
 
-```
+``` console
 # lsmod | egrep 'overlay|bridge'
 bridge                311296  1 br_netfilter
 stp                    16384  1 bridge
@@ -354,7 +356,7 @@ version of Docker Engine.
 In the case of Rapture, there are a few packages installed
 from learning excercises over a year ago:
 
-```
+``` console
 # for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do 
   dpkg -l $pkg 2>/dev/null | grep ^ii
 done
@@ -379,7 +381,7 @@ nginx                   alpine    2bc7edbc3cf2   15 months ago   40.7MB
 These all begin very old leftovers, they are all to be
 thoroughly removed:
 
-```
+``` console
 # apt-get purge -y docker.io docker-compose containerd runc
 Reading package lists... Done
 Building dependency tree... Done
@@ -443,7 +445,7 @@ With all those old packages out of the we, we proceed to
 set up and install Docker Engine from 
 [Docker's apt repository](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository).
 
-```
+``` console
 # curl \
   -fsSL https://download.docker.com/linux/ubuntu/gpg \
   -o /etc/apt/keyrings/docker.asc
@@ -458,81 +460,85 @@ deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.
 ...
 Get:10 https://esm.ubuntu.com/apps/ubuntu jammy-apps-security InRelease [7,553 B]
 Get:14 https://esm.ubuntu.com/infra/ubuntu jammy-infra-updates InRelease [7,449 B]
-
-# apt-get install -y \
-  docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-The following additional packages will be installed:
-  docker-ce-rootless-extras libslirp0 pigz slirp4netns
-Suggested packages:
-  aufs-tools cgroupfs-mount | cgroup-lite
-The following NEW packages will be installed:
-  containerd.io docker-buildx-plugin docker-ce docker-ce-cli docker-ce-rootless-extras
-  docker-compose-plugin libslirp0 pigz slirp4netns
-0 upgraded, 9 newly installed, 0 to remove and 2 not upgraded.
-Need to get 121 MB of archives.
-After this operation, 434 MB of additional disk space will be used.
-Get:1 http://archive.ubuntu.com/ubuntu jammy/universe amd64 pigz amd64 2.6-1 [63.6 kB]
-Get:2 https://download.docker.com/linux/ubuntu jammy/stable amd64 containerd.io amd64 1.6.31-1 [29.8 MB]
-Get:3 http://archive.ubuntu.com/ubuntu jammy/main amd64 libslirp0 amd64 4.6.1-1build1 [61.5 kB]
-Get:4 http://archive.ubuntu.com/ubuntu jammy/universe amd64 slirp4netns amd64 1.0.1-2 [28.2 kB]
-Get:5 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-buildx-plugin amd64 0.14.0-1~ubuntu.22.04~jammy [29.7 MB]
-Get:6 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce-cli amd64 5:26.1.2-1~ubuntu.22.04~jammy [14.6 MB]
-Get:7 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce amd64 5:26.1.2-1~ubuntu.22.04~jammy [25.3 MB]
-Get:8 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce-rootless-extras amd64 5:26.1.2-1~ubuntu.22.04~jammy [9,319 kB]
-Get:9 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-compose-plugin amd64 2.27.0-1~ubuntu.22.04~jammy [12.5 MB]
-Fetched 121 MB in 1s (95.8 MB/s)                
-Selecting previously unselected package pigz.
-(Reading database ... 635829 files and directories currently installed.)
-Preparing to unpack .../0-pigz_2.6-1_amd64.deb ...
-Unpacking pigz (2.6-1) ...
-Selecting previously unselected package containerd.io.
-Preparing to unpack .../1-containerd.io_1.6.31-1_amd64.deb ...
-Unpacking containerd.io (1.6.31-1) ...
-Selecting previously unselected package docker-buildx-plugin.
-Preparing to unpack .../2-docker-buildx-plugin_0.14.0-1~ubuntu.22.04~jammy_amd64.deb ...
-Unpacking docker-buildx-plugin (0.14.0-1~ubuntu.22.04~jammy) ...
-Selecting previously unselected package docker-ce-cli.
-Preparing to unpack .../3-docker-ce-cli_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
-Unpacking docker-ce-cli (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Selecting previously unselected package docker-ce.
-Preparing to unpack .../4-docker-ce_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
-Unpacking docker-ce (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Selecting previously unselected package docker-ce-rootless-extras.
-Preparing to unpack .../5-docker-ce-rootless-extras_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
-Unpacking docker-ce-rootless-extras (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Selecting previously unselected package docker-compose-plugin.
-Preparing to unpack .../6-docker-compose-plugin_2.27.0-1~ubuntu.22.04~jammy_amd64.deb ...
-Unpacking docker-compose-plugin (2.27.0-1~ubuntu.22.04~jammy) ...
-Selecting previously unselected package libslirp0:amd64.
-Preparing to unpack .../7-libslirp0_4.6.1-1build1_amd64.deb ...
-Unpacking libslirp0:amd64 (4.6.1-1build1) ...
-Selecting previously unselected package slirp4netns.
-Preparing to unpack .../8-slirp4netns_1.0.1-2_amd64.deb ...
-Unpacking slirp4netns (1.0.1-2) ...
-Setting up docker-buildx-plugin (0.14.0-1~ubuntu.22.04~jammy) ...
-Setting up containerd.io (1.6.31-1) ...
-Created symlink /etc/systemd/system/multi-user.target.wants/containerd.service → /lib/systemd/system/containerd.service.
-Setting up docker-compose-plugin (2.27.0-1~ubuntu.22.04~jammy) ...
-Setting up docker-ce-cli (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Setting up libslirp0:amd64 (4.6.1-1build1) ...
-Setting up pigz (2.6-1) ...
-Setting up docker-ce-rootless-extras (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Setting up slirp4netns (1.0.1-2) ...
-Setting up docker-ce (5:26.1.2-1~ubuntu.22.04~jammy) ...
-Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /lib/systemd/system/docker.service.
-Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /lib/systemd/system/docker.socket.
-Could not execute systemctl:  at /usr/bin/deb-systemd-invoke line 142.
-Processing triggers for man-db (2.10.2-1) ...
-Processing triggers for libc-bin (2.35-0ubuntu3.7) ...
 ```
+
+??? terminal "`# apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`"
+
+    ``` console
+    # apt-get install -y \
+      docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      docker-ce-rootless-extras libslirp0 pigz slirp4netns
+    Suggested packages:
+      aufs-tools cgroupfs-mount | cgroup-lite
+    The following NEW packages will be installed:
+      containerd.io docker-buildx-plugin docker-ce docker-ce-cli docker-ce-rootless-extras
+      docker-compose-plugin libslirp0 pigz slirp4netns
+    0 upgraded, 9 newly installed, 0 to remove and 2 not upgraded.
+    Need to get 121 MB of archives.
+    After this operation, 434 MB of additional disk space will be used.
+    Get:1 http://archive.ubuntu.com/ubuntu jammy/universe amd64 pigz amd64 2.6-1 [63.6 kB]
+    Get:2 https://download.docker.com/linux/ubuntu jammy/stable amd64 containerd.io amd64 1.6.31-1 [29.8 MB]
+    Get:3 http://archive.ubuntu.com/ubuntu jammy/main amd64 libslirp0 amd64 4.6.1-1build1 [61.5 kB]
+    Get:4 http://archive.ubuntu.com/ubuntu jammy/universe amd64 slirp4netns amd64 1.0.1-2 [28.2 kB]
+    Get:5 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-buildx-plugin amd64 0.14.0-1~ubuntu.22.04~jammy [29.7 MB]
+    Get:6 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce-cli amd64 5:26.1.2-1~ubuntu.22.04~jammy [14.6 MB]
+    Get:7 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce amd64 5:26.1.2-1~ubuntu.22.04~jammy [25.3 MB]
+    Get:8 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-ce-rootless-extras amd64 5:26.1.2-1~ubuntu.22.04~jammy [9,319 kB]
+    Get:9 https://download.docker.com/linux/ubuntu jammy/stable amd64 docker-compose-plugin amd64 2.27.0-1~ubuntu.22.04~jammy [12.5 MB]
+    Fetched 121 MB in 1s (95.8 MB/s)                
+    Selecting previously unselected package pigz.
+    (Reading database ... 635829 files and directories currently installed.)
+    Preparing to unpack .../0-pigz_2.6-1_amd64.deb ...
+    Unpacking pigz (2.6-1) ...
+    Selecting previously unselected package containerd.io.
+    Preparing to unpack .../1-containerd.io_1.6.31-1_amd64.deb ...
+    Unpacking containerd.io (1.6.31-1) ...
+    Selecting previously unselected package docker-buildx-plugin.
+    Preparing to unpack .../2-docker-buildx-plugin_0.14.0-1~ubuntu.22.04~jammy_amd64.deb ...
+    Unpacking docker-buildx-plugin (0.14.0-1~ubuntu.22.04~jammy) ...
+    Selecting previously unselected package docker-ce-cli.
+    Preparing to unpack .../3-docker-ce-cli_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
+    Unpacking docker-ce-cli (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Selecting previously unselected package docker-ce.
+    Preparing to unpack .../4-docker-ce_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
+    Unpacking docker-ce (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Selecting previously unselected package docker-ce-rootless-extras.
+    Preparing to unpack .../5-docker-ce-rootless-extras_5%3a26.1.2-1~ubuntu.22.04~jammy_amd64.deb ...
+    Unpacking docker-ce-rootless-extras (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Selecting previously unselected package docker-compose-plugin.
+    Preparing to unpack .../6-docker-compose-plugin_2.27.0-1~ubuntu.22.04~jammy_amd64.deb ...
+    Unpacking docker-compose-plugin (2.27.0-1~ubuntu.22.04~jammy) ...
+    Selecting previously unselected package libslirp0:amd64.
+    Preparing to unpack .../7-libslirp0_4.6.1-1build1_amd64.deb ...
+    Unpacking libslirp0:amd64 (4.6.1-1build1) ...
+    Selecting previously unselected package slirp4netns.
+    Preparing to unpack .../8-slirp4netns_1.0.1-2_amd64.deb ...
+    Unpacking slirp4netns (1.0.1-2) ...
+    Setting up docker-buildx-plugin (0.14.0-1~ubuntu.22.04~jammy) ...
+    Setting up containerd.io (1.6.31-1) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/containerd.service → /lib/systemd/system/containerd.service.
+    Setting up docker-compose-plugin (2.27.0-1~ubuntu.22.04~jammy) ...
+    Setting up docker-ce-cli (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Setting up libslirp0:amd64 (4.6.1-1build1) ...
+    Setting up pigz (2.6-1) ...
+    Setting up docker-ce-rootless-extras (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Setting up slirp4netns (1.0.1-2) ...
+    Setting up docker-ce (5:26.1.2-1~ubuntu.22.04~jammy) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /lib/systemd/system/docker.service.
+    Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /lib/systemd/system/docker.socket.
+    Could not execute systemctl:  at /usr/bin/deb-systemd-invoke line 142.
+    Processing triggers for man-db (2.10.2-1) ...
+    Processing triggers for libc-bin (2.35-0ubuntu3.7) ...
+    ```
 
 Aftet this the following packages are newly installed,
 from Docker's official distribution:
 
-```
+``` console
 # for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras; do \
    dpkg -l $pkg 2>/dev/null | grep ^ii\
 done
@@ -551,7 +557,7 @@ Trying to verify that the Docker Engine installation is
 successful by running the `hello-world` image, turns out
 the Docker daemon is not yet running:
 
-```
+``` console
 # docker run hello-world
 docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?.
 See 'docker run --help'.
@@ -559,7 +565,7 @@ See 'docker run --help'.
 
 Indeed the service is not running:
 
-```
+``` console
 # systemctl status docker
 × docker.service - Docker Application Container Engine
      Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
@@ -585,7 +591,7 @@ Both sockets exist, but apparently `dockerd` has a hard
 time start the firs time and needs
 [to be kicked up](https://github.com/docker/for-linux/issues/535):
 
-```
+``` console
 # systemctl restart docker
 # systemctl status docker
 ● docker.service - Docker Application Container Engine
@@ -632,7 +638,7 @@ Server: Docker Engine - Community
 
 Now, finally, the `hello-world` example does work:
 
-```
+``` console
 # docker run hello-world
 Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
@@ -678,7 +684,7 @@ to update its configuration to
 *   Move `/var/lib/containerd` to a bigger file system,
     this PC has most disk space mounted under `/home`.
 
-```
+``` console
 # systemctl stop containerd
 # cp -a /var/lib/containerd/ /home/lib/
 # containerd config default \
@@ -690,22 +696,23 @@ to update its configuration to
 # systemctl start containerd
 ```
 
-**WARNING:** to create a **good**
-`/etc/containerd/config.toml` one **must** do so by
-modifying the **default** configuration. Using the
-running configuration (with `containerd config dump`)
-will produce an **invalid configuration** with an empty
-`runtime_type` where that is not allowed. This leads to
-[containerd issue #6964: default configuration isn't working
-](https://github.com/containerd/containerd/issues/6964),
-which makes `kubelet` failing to running any images,
-and `kubeadm` fails to initialize the control pane.
+!!! warning
 
-**Note:** despite a misleading note in the 1.26
-documentation, there is no need to manually configure the 
-[cgroup driver for kubelet](https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver).
-because, already since v1.22,
-**`kubeadm` defaults it to `systemd`**.
+    To create a **good** `/etc/containerd/config.toml` one **must** do so by
+    modifying the **default** configuration. Using the running configuration
+    (with `containerd config dump`) will produce an **invalid configuration**
+    with an empty `runtime_type` where that is not allowed. This leads to
+    [containerd issue #6964: default configuration isn't working](https://github.com/containerd/containerd/issues/6964),
+    which makes `kubelet` failing to running any images,
+    and `kubeadm` fails to initialize the control pane.
+
+!!! note
+
+    Despite a misleading note in the 1.26
+    documentation, there is no need to manually configure the 
+    [cgroup driver for kubelet](https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver).
+    because, already since v1.22,
+    **`kubeadm` defaults it to `systemd`**.
 
 This would be a good time to do the same with 
 `/var/lib/docker` and, when using BTRFS, add this
@@ -713,7 +720,7 @@ This would be a good time to do the same with
 
 Fist, create `/etc/docker/daemon.json` with this:
 
-```json
+``` json
 {
   "data-root": "/home/lib/docker",
   "storage-driver": "overlay2"
@@ -723,7 +730,7 @@ Fist, create `/etc/docker/daemon.json` with this:
 Then, stop all `docker` and `containerd` services,
 move `/var/lib/docker` and start services again:
 
-```
+``` console
 # docker info | grep -E 'Storage Driver|Docker Root Dir'
  Storage Driver: overlay2
  Docker Root Dir: /var/lib/docker
@@ -749,12 +756,14 @@ possibly because the root partition is not using BTRFS,
 Docker images were not lost as
 [it happened in Lexicon](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#ask-me-how-i-know).
 
-**Warning:** at the end of the
-[Container runtimes](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
-documentation, it is suggested that the next step is to
-install a [network plugin](https://v1-27.docs.kubernetes.io/docs/concepts/cluster-administration/networking/#how-to-implement-the-kubernetes-networking-model).
-However, this should not be done before
-**bootstrapping** the cluster (see next).
+!!! warning
+
+    At the end of the
+    [Container runtimes](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
+    documentation, it is suggested that the next step is to
+    install a [network plugin](https://v1-27.docs.kubernetes.io/docs/concepts/cluster-administration/networking/#how-to-implement-the-kubernetes-networking-model).
+    However, this should not be done before
+    **bootstrapping** the cluster (see next).
 
 ## Bootstrap the cluster with `kubeadm`
 
@@ -779,7 +788,7 @@ the components already (see above), we proceed to
 Note that before initializing the control panel,
 the `kubelet` service is not running:
 
-```
+``` console
 # systemctl status kubelet
 ● kubelet.service - kubelet: The Kubernetes Node Agent
      Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
@@ -873,7 +882,7 @@ kubeadm join 10.0.0.2:6443 --token wjnord.g9lpm4heieilydn7 \
 Now `kubelet` is running, if only reporting that
 **Container runtime network not ready**:
 
-```
+``` console
 # systemctl status kubelet
 ● kubelet.service - kubelet: The Kubernetes Node Agent
      Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
@@ -893,7 +902,7 @@ May 12 12:54:41 rapture kubelet[1176576]: E0512 12:54:41.015172 1176576 kubelet.
 
 We can see all the containers already running:
 
-```
+``` console
 # crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps -a 
 CONTAINER           IMAGE               CREATED             STATE               NAME                      ATTEMPT             POD ID              POD
 d87c94df74a28       6c84132270a33       5 minutes ago       Running             kube-proxy                0                   51688b22b87e1       kube-proxy-tszr7
@@ -907,7 +916,7 @@ Confirm the flag is sent in
 `/var/lib/kubelet/kubeadm-flags.env`
 to use the desired container runtime:
 
-```
+``` console
 # grep container-runtime /var/lib/kubelet/kubeadm-flags.env
 KUBELET_KUBEADM_ARGS="--container-runtime-endpoint=unix:/run/containerd/containerd.sock --pod-infra-container-image=registry.k8s.io/pause:3.9"
 ```
@@ -915,7 +924,7 @@ KUBELET_KUBEADM_ARGS="--container-runtime-endpoint=unix:/run/containerd/containe
 And check the cluster status. As `root` one can simply point
 `KUBECONFIG` to the cluster's `admin.conf`:
 
-```
+``` console
 # export KUBECONFIG=/etc/kubernetes/admin.conf
 # kubectl cluster-info
 Kubernetes control plane is running at https://10.0.0.6:6443
@@ -927,7 +936,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 To run `kubectl` as non-root, make a copy of that file under
 your own `~/.kube` directory:
 
-```
+``` console
 $ mkdir $HOME/.kube
 $ sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -940,8 +949,7 @@ CoreDNS is running at https://10.0.0.6:6443/api/v1/namespaces/kube-system/servic
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-And *now* we can take care of the
-*container runtime network*.
+And *now* we can take care of the *container runtime network*.
 
 ### Network plugin
 
@@ -962,7 +970,7 @@ following the recommendation from
 [Computing for Geeks](https://computingforgeeks.com/install-kubernetes-cluster-ubuntu-jammy/) and
 [LinuxConfig](https://linuxconfig.org/how-to-install-kubernetes-on-ubuntu-22-04-jammy-jellyfish-linux).
 
-```
+``` console
 $ wget https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 
 $ kubectl apply -f kube-flannel.yml
@@ -985,12 +993,11 @@ daemonset.apps/kube-flannel-ds   1         1         1       1            1     
 
 Before anything else is allowed to run in this cluster,
 [Control plane node isolation](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation)
-must be setup. By default, for security reasons,
-the cluster will not schedule Pods to run in this node
-because it is running the control plane. This is reflected
-by the **Taints**:
+must be setup. By default, for security reasons, the cluster will
+not schedule Pods to run in this node because it is running
+the control plane. This is reflected by the **Taints**:
 
-```
+``` console
 $ kubectl get nodes
 NAME      STATUS   ROLES           AGE   VERSION
 rapture   Ready    control-plane   38m   v1.26.15
@@ -1019,7 +1026,7 @@ Taints:             node-role.kubernetes.io/control-plane:NoSchedule
 
 Remove this taint to allow other pods to be scheduled:
 
-```
+``` console
 $ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 node/rapture untainted
 
@@ -1029,10 +1036,9 @@ Taints:             <none>
 
 #### Test Pod Scheduling
 
-At this point the cluster is ready to run pods, here is
-a simple test:
+At this point the cluster is ready to run pods, here is a simple test:
 
-```
+``` console
 $ kubectl apply -f https://k8s.io/examples/pods/commands.yaml
 pod/command-demo created
 
@@ -1073,7 +1079,7 @@ The master node is *already joined* and `kubeadm`
 Trying to do so, by running the `kubeadm join` command
 provided by `kubeadm init` will fail:
 
-```
+``` console
 # kubeadm join 10.0.0.2:6443 --token wjnord.g9lpm4heieilydn7 \
         --discovery-token-ca-cert-hash sha256:bfe7582cfdf2d60c74c18da6aedfa7d5943b314cedd0ee25af996aecbd5a0c0f
 
@@ -1098,7 +1104,7 @@ ports on the server (`NodePort`) or virtual IP addresses.
 [Installation By Manifest](https://metallb.universe.tf/installation/#installation-by-manifest)
 is as simple as applying the provided manifest:
 
-```
+``` console
 $ wget https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
 
 $ kubectl apply -f metallb-native.yaml
@@ -1128,9 +1134,11 @@ daemonset.apps/speaker created
 validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-configuration created
 ```
 
-**Note:** YAML files for MetalLB will be stored for
-future reference, under `1.26/metallb` in the
-[GitHub repository](#github-repository).
+!!! note
+
+    YAML files for MetalLB will be stored for
+    future reference, under `1.26/metallb` in the
+    [GitHub repository](#github-repository).
 
 MetalLB remains idle until configured, which is done by
 deploying resources into its namespace (`metallb-system`).
@@ -1138,7 +1146,7 @@ In this PC, a small range of IP addresses is advertised via
 [Layer 2 Configuration](https://metallb.universe.tf/configuration/#layer-2-configuration), which does not
 not require the IPs to be bound to the network interfaces:
 
-```yaml
+``` yaml numlines="1" title="metallb/ipaddress_pools.yaml"
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -1157,7 +1165,7 @@ metadata:
 
 Store this configuration in a separate, host-specific file (`ipaddress-pool-rapture.yaml`) and apply it:
 
-```
+``` console
 $ kubectl apply -f ipaddress-pool-rapture.yaml
 ipaddresspool.metallb.io/rapture-pool created
 l2advertisement.metallb.io/l2-advert created
@@ -1225,21 +1233,22 @@ including virtual IP addresses from the
 
 Once again, this service is deployed by manifest:
 
-```
+``` console
 $ wget -O kubernetes-dashboard.yaml \
   https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 ```
 
-**Note:** YAML files for MetalLB will be stored for
-future reference, under `1.26/dashboard` in the
-[GitHub repository](#github-repository).
+!!! note
+
+    YAML files for MetalLB will be stored for
+    future reference, under `1.26/dashboard` in the
+    [GitHub repository](#github-repository).
 
 In this case to make the dashboard easily available in the
-local network, we edit the deployment to add
-`type: LoadBalancer` to the `kubernetes-dashboard`
-**service** (line 40):
+local network, we edit the deployment to add `type: LoadBalancer`
+to the `kubernetes-dashboard` **service** (line 30):
 
-```yaml
+``` yaml numlines="30" hl_lines="38" title="kubernetes-dashboard.yaml"
 kind: Service
 apiVersion: v1
 metadata:
@@ -1259,7 +1268,7 @@ spec:
 After applying this deployment, a virtual IP address will
 be assign to it, where the dashboard can be accessed:
 
-```
+``` console
 $ kubectl apply -f kubernetes-dashboard.yaml
 namespace/kubernetes-dashboard created
 serviceaccount/kubernetes-dashboard created
@@ -1282,8 +1291,8 @@ dashboard-metrics-scraper   ClusterIP      10.107.131.104   <none>          8000
 kubernetes-dashboard        LoadBalancer   10.107.235.155   192.168.0.229   443:30480/TCP   32s
 ```
 
-The dashboard is accessible at [https://192.168.0.229](https://192.168.0.229) but not exactly accessible without
-a login token:
+The dashboard is accessible at [https://192.168.0.229](https://192.168.0.229)
+but not exactly accessible without a login token:
 
 ![Kubernetes Dashboard login page](../media/2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture/kubernetes-dashboard-login.png)
 
@@ -1302,7 +1311,7 @@ article. To create a Service Account and grant it access to
 everything (the `cluster-admin` roles), apply the following
 manifest as `admin-sa-rbac.yaml`
 
-```yaml
+``` yaml numlines="1" title="admin-sa-rbac.yaml"
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -1324,7 +1333,7 @@ subjects:
     namespace: kube-system
 ```
 
-```
+``` console
 $ kubectl apply -f admin-sa-rbac.yaml
 serviceaccount/k8sadmin created
 clusterrolebinding.rbac.authorization.k8s.io/k8sadmin created
@@ -1333,19 +1342,20 @@ clusterrolebinding.rbac.authorization.k8s.io/k8sadmin created
 Now one can create a token for the `k8sadmin` user and use it
 to access the dashboard:
 
-```
+``` console
 $ kubectl create token k8sadmin -n kube-system
 eyJhbGciOiJSUzI1NiIsImtpZCI6IkktZ05rdlNzcVNzb1F0S3VYYmo3TXlpMjdTU2ktUUhpSzQwcUNLOTBRMXMifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzE1NTMwNTQyLCJpYXQiOjE3MTU1MjY5NDIsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJrOHNhZG1pbiIsInVpZCI6IjJjMDliOTU3LTBhYzItNDQyNy05YjA2LWFiZDBhMmI5OTJhNyJ9fSwibmJmIjoxNzE1NTI2OTQyLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06azhzYWRtaW4ifQ.e6aAjUZvHvtZCN-QJAwFVt0I9pDklXC0La8RA-SjWTguEuAm0YbTgeOkRUKzb1q5_lkYIvpVyFN_E5z5IH1s6ygWdcWqS_RYtsmdQGr7iBTbpk-2cZb3bmt-mZkfDkYGgThNbzYoQ2gqXHSYnRtQKH2Spz6j_xt3G42IL1WGrfZIrdfBcLnkRBe1-l76qt1i0mq1wDwcSR2XAi3EpaOF-65f19__DYY4nt2JkhgxixpC-TZCLOXTfOAmbfbLoR07BmLZxw97Y85tvtYj1un7vQmgeDTBmWqtHIV4hYBlgH4ljUNIZg11GWECkOcd6UrHHtG8IG3REh87dAF2eD5Ysw
 ```
 
 ![Kubernetes Dashboard home page](../media/2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture/kubernetes-dashboard-home.png)
 
-**Note:** at this point the SSL certificate is not yet valid,
-this will be
-[addressed later](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#add-ingress-for-kubernetes-dashboard)
-by accessing the dashboard via an
-[Ingress Controller](#ingress-controller) with
-[HTTPS](#https-with-lets-encrypt).
+!!! note
+
+    At this point the SSL certificate is not yet valid, this will be
+    [addressed later](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#add-ingress-for-kubernetes-dashboard)
+    by accessing the dashboard via an
+    [Ingress Controller](#ingress-controller) with
+    [HTTPS](#https-with-lets-encrypt).
 
 ## Ingress Controller
 
@@ -1358,7 +1368,7 @@ Download the deployment manifest following the
 from
 [kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx)
 
-```
+``` console
 $ wget -O nginx-ingress-controller.yaml \
   https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
 ```
@@ -1368,7 +1378,7 @@ To serve HTTPS requests on a single IP address, the
 `type: LoadBalancer`. As it happens, the `v1.10.1` manifest
 already has this property set in line 366:
 
-```yaml
+``` yaml numlines="1" title="nginx-ingress-controller.yaml"
 apiVersion: v1
 kind: Service
 metadata:
@@ -1407,7 +1417,7 @@ After applying this deployment, another virtual IP address
 is assigned to the `ingress-nginx-controller` service and
 there is NGinx happily returning 404 Not found:
 
-```
+``` console
 $ kubectl apply -f  nginx-ingress-controller.yaml
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
@@ -1502,184 +1512,188 @@ audiobooks (no podcasts), stored under a different path
 (`/home/new-ssd`) for faster storage (see monitoring below),
 and served via `LoadBalancer` IP:
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: audiobookshelf
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-config
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/audiobookshelf/config
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-metadata
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/audiobookshelf/metadata
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-audiobooks
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/new-ssd/audio/Audiobooks
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-config
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-config
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-metadata
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-metadata
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-audiobooks
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-audiobooks
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: audiobookshelf
-  name: audiobookshelf
-  namespace: audiobookshelf
-spec:
-  replicas: 1
-  revisionHistoryLimit: 0
-  selector:
-    matchLabels:
-      app: audiobookshelf
-  strategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
+??? k8s "Kubernetes deployment: `audiobookshelf.yaml`"
+
+    ``` yaml numlines="1" title="audiobookshelf.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: audiobookshelf
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/config
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/metadata
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/new-ssd/audio/Audiobooks
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-metadata
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-audiobooks
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: audiobookshelf
+      name: audiobookshelf
+      namespace: audiobookshelf
     spec:
-      containers:
-        - image: ghcr.io/advplyr/audiobookshelf:latest
-          imagePullPolicy: Always
-          name: audiobookshelf
-          env:
-          - name: PORT
-            value: "8888"
-          ports:
-          - containerPort: 8888
-          resources: {}
-          stdin: true
-          tty: true
-          volumeMounts:
-          - mountPath: /config
-            name: audiobookshelf-config
-          - mountPath: /metadata
-            name: audiobookshelf-metadata
-          - mountPath: /audiobooks
-            name: audiobookshelf-audiobooks
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsUser: 1006
-            runAsGroup: 1006
-      restartPolicy: Always
-      volumes:
-      - name: audiobookshelf-config
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-config
-      - name: audiobookshelf-metadata
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-metadata
-      - name: audiobookshelf-audiobooks
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-audiobooks
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: audiobookshelf-svc
-  namespace: audiobookshelf
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 8888
-  selector:
-    app: audiobookshelf
-```
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: audiobookshelf
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: audiobookshelf
+        spec:
+          containers:
+            - image: ghcr.io/advplyr/audiobookshelf:latest
+              imagePullPolicy: Always
+              name: audiobookshelf
+              env:
+              - name: PORT
+                value: "8888"
+              ports:
+              - containerPort: 8888
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: audiobookshelf-config
+              - mountPath: /metadata
+                name: audiobookshelf-metadata
+              - mountPath: /audiobooks
+                name: audiobookshelf-audiobooks
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 1006
+                runAsGroup: 1006
+          restartPolicy: Always
+          volumes:
+          - name: audiobookshelf-config
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-config
+          - name: audiobookshelf-metadata
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-metadata
+          - name: audiobookshelf-audiobooks
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-audiobooks
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: audiobookshelf-svc
+      namespace: audiobookshelf
+    spec:
+      type: LoadBalancer
+      ports:
+        - port: 80
+          targetPort: 8888
+      selector:
+        app: audiobookshelf
+    ```
 
-**Note:** YAML files for Rapture-specific deployments will be
-stored for future reference, under `1.26/rapture` in the
-[GitHub repository](#github-repository), while the original
-deployment for Lexicon will be under `1.26/lexicon`.
+!!! note
+
+    YAML files for Rapture-specific deployments will be
+    stored for future reference, under `1.26/rapture` in the
+    [GitHub repository](#github-repository), while the original
+    deployment for Lexicon will be under `1.26/lexicon`.
 
 As in Lexicon, the service runs as a dedicated
 `audiobookshelf` user with its own persistent storage under
 `/home/k8s/audiobookshelf` which must be created manually:
 
-```
+``` console
 # useradd -u 1006 -d /home/k8s/audiobookshelf -s /usr/sbin/nologin audiobookshelf
 # mkdir -p /home/k8s/audiobookshelf/config /home/k8s/audiobookshelf/metadata
 # chown -R audiobookshelf.audiobookshelf /home/k8s/audiobookshelf
@@ -1693,7 +1707,7 @@ drwxr-xr-x 1 1006 1006  0 May 12 20:51 metadata
 
 Once the dedicate user is ready, apply the manifest:
 
-```
+``` console
 $ kubectl apply -f audiobookshelf.yaml
 namespace/audiobookshelf created
 persistentvolume/audiobookshelf-pv-config created
@@ -1749,7 +1763,7 @@ possible to replace the entire `/home/k8s/audiobookshelf` in
 Rapture with that from Lexicon, so long as the original 
 contents are entirely removed:
 
-```
+``` console
 # kubectl delete -f audiobookshelf.yaml 
 namespace "audiobookshelf" deleted
 persistentvolume "audiobookshelf-pv-config" deleted
@@ -1788,7 +1802,7 @@ reaches 150% of CPU utilization.
 The process can be used in case of need, albeit having to
 [reset the `root` password by editing the SQLite database](https://www.audiobookshelf.org/faq/server/#how-can-i-reset-a-password):
 
-```
+``` console
 # kubectl delete -f audiobookshelf.yaml 
 # cd /home/k8s/audiobookshelf/config/
 # cp absdatabase.sqlite absdatabase.sqlite.bak
@@ -1797,7 +1811,7 @@ The process can be used in case of need, albeit having to
 
 In the `sqlite` prompt:
 
-```sql
+``` sql
 update users set pash=NULL where username='root';
 .exit
 ```
@@ -1809,7 +1823,7 @@ immediately.
 The database and metadata can be re-synced again, so long as
 the service is not running:
 
-```
+``` console
 # kubectl delete -f audiobookshelf.yaml 
 # rsync -uva lexicon:/home/k8s/audiobookshelf/* /home/k8s/audiobookshelf/
 # kubectl apply -f audiobookshelf.yaml 
@@ -1836,15 +1850,17 @@ be a repetition of the same exercise already done for the
     [plex.tv/claim](https://www.plex.tv/claim/) as it expires
     in just 4 minutes.
 
-**Note:** this setup assumes the `plex` user (and group)
-already exists with ID **998**; otherwise either create them
-with that ID or update the `PGID` and `PUID` variables in the
-manifest to match the actual `plex` user (and group) IDs.
+!!! note
+
+    This setup assumes the `plex` user (and group)
+    already exists with ID **998**; otherwise either create them
+    with that ID or update the `PGID` and `PUID` variables in the
+    manifest to match the actual `plex` user (and group) IDs.
 
 Create the plex-owned directory for its database (`/config`),
 stop the old server and copy over its database:
 
-```
+``` console
 # systemctl stop plexmediaserver.service
 # systemctl disable plexmediaserver.service
 Removed /etc/systemd/system/multi-user.target.wants/plexmediaserver.service.
@@ -1859,269 +1875,270 @@ And now, *just* before deploying the new server, go to
 claim token and set the `PLEX_CLAIM` variable to it; *then*
 apply the deployment:
 
+??? k8s "Kubernetes deployment: `plex-media-server.yaml`"
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: plexserver
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-config
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/plexmediaserver
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-data-audio
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/raid/audio
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-data-video
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/raid/video
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-config
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-config
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-data-audio
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-data-audio
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 500Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-data-video
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-data-video
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 500Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: plexserver
-  name: plexserver
-  namespace: plexserver
-spec:
-  replicas: 1
-  revisionHistoryLimit: 0
-  selector:
-    matchLabels:
-      app: plexserver
-  strategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
+    ``` yaml numlines="1" title="plex-media-server.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: plexserver
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-config
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/plexmediaserver
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-data-audio
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 500Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/raid/audio
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-data-video
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 500Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/raid/video
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-config
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-data-audio
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-data-audio
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 500Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-data-video
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-data-video
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 500Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: plexserver
+      name: plexserver
+      namespace: plexserver
     spec:
-      volumes:
-      - name: plex-config
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-config
-      - name: data-audio
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-data-audio
-      - name: data-video
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-data-video
-      containers:
-      - env:
-        - name: PLEX_CLAIM
-          value: claim-vwSJ5pLyxPQVKKRPvVDk
-        - name: PGID
-          value: "998"
-        - name: PUID
-          value: "999"
-        - name: VERSION
-          value: latest
-        - name: TZ
-          value: Europe/Amsterdam
-        image: ghcr.io/linuxserver/plex
-        imagePullPolicy: Always
-        name: plexserver
-        ports:
-        - containerPort: 32400
-          name: pms-web
-          protocol: TCP
-        - containerPort: 32469
-          name: dlna-tcp
-          protocol: TCP
-        - containerPort: 1900
-          name: dlna-udp
-          protocol: UDP
-        - containerPort: 3005
-          name: plex-companion
-          protocol: TCP  
-        - containerPort: 5353
-          name: discovery-udp
-          protocol: UDP  
-        - containerPort: 8324
-          name: plex-roku
-          protocol: TCP  
-        - containerPort: 32410
-          name: gdm-32410
-          protocol: UDP
-        - containerPort: 32412
-          name: gdm-32412
-          protocol: UDP
-        - containerPort: 32413
-          name: gdm-32413
-          protocol: UDP
-        - containerPort: 32414
-          name: gdm-32414
-          protocol: UDP
-        resources: {}
-        stdin: true
-        tty: true
-        volumeMounts:
-        - mountPath: /config
-          name: plex-config
-        - mountPath: /home/depot/audio
-          name: data-audio
-        - mountPath: /home/depot/video
-          name: data-video
-        - mountPath: /home/raid/audio
-          name: data-audio
-        - mountPath: /home/raid/video
-          name: data-video
-        - mountPath: /media/video
-          name: data-video
-      restartPolicy: Always
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: plex-udp
-  namespace: plexserver
-  annotations:
-    metallb.universe.tf/allow-shared-ip: plexserver
-spec:
-  selector:
-    app: plexserver
-  ports:
-  - port: 1900
-    targetPort: 1900
-    name: dlna-udp
-    protocol: UDP
-  - port: 5353
-    targetPort: 5353
-    name: discovery-udp
-    protocol: UDP
-  - port: 32410
-    targetPort: 32410
-    name: gdm-32410
-    protocol: UDP
-  - port: 32412
-    targetPort: 32412
-    name: gdm-32412
-    protocol: UDP
-  - port: 32413
-    targetPort: 32413
-    name: gdm-32413
-    protocol: UDP
-  - port: 32414
-    targetPort: 32414
-    name: gdm-32414
-    protocol: UDP
-  type: LoadBalancer
-  loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the TCP service.
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: plex-tcp
-  namespace: plexserver
-  annotations:
-    metallb.universe.tf/allow-shared-ip: plexserver
-spec:
-  selector:
-    app: plexserver
-  ports:                      
-  - port: 32400
-    targetPort: 32400
-    name: pms-web
-    protocol: TCP
-  - port: 3005
-    targetPort: 3005
-    name: plex-companion
-  - port: 8324
-    name: plex-roku
-    targetPort: 8324  
-    protocol: TCP  
-  - port: 32469
-    targetPort: 32469
-    name: dlna-tcp
-    protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the UDP service.
-```
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: plexserver
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: plexserver
+        spec:
+          volumes:
+          - name: plex-config
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-config
+          - name: data-audio
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-data-audio
+          - name: data-video
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-data-video
+          containers:
+          - env:
+            - name: PLEX_CLAIM
+              value: claim-vwSJ5pLyxPQVKKRPvVDk
+            - name: PGID
+              value: "998"
+            - name: PUID
+              value: "999"
+            - name: VERSION
+              value: latest
+            - name: TZ
+              value: Europe/Amsterdam
+            image: ghcr.io/linuxserver/plex
+            imagePullPolicy: Always
+            name: plexserver
+            ports:
+            - containerPort: 32400
+              name: pms-web
+              protocol: TCP
+            - containerPort: 32469
+              name: dlna-tcp
+              protocol: TCP
+            - containerPort: 1900
+              name: dlna-udp
+              protocol: UDP
+            - containerPort: 3005
+              name: plex-companion
+              protocol: TCP  
+            - containerPort: 5353
+              name: discovery-udp
+              protocol: UDP  
+            - containerPort: 8324
+              name: plex-roku
+              protocol: TCP  
+            - containerPort: 32410
+              name: gdm-32410
+              protocol: UDP
+            - containerPort: 32412
+              name: gdm-32412
+              protocol: UDP
+            - containerPort: 32413
+              name: gdm-32413
+              protocol: UDP
+            - containerPort: 32414
+              name: gdm-32414
+              protocol: UDP
+            resources: {}
+            stdin: true
+            tty: true
+            volumeMounts:
+            - mountPath: /config
+              name: plex-config
+            - mountPath: /home/depot/audio
+              name: data-audio
+            - mountPath: /home/depot/video
+              name: data-video
+            - mountPath: /home/raid/audio
+              name: data-audio
+            - mountPath: /home/raid/video
+              name: data-video
+            - mountPath: /media/video
+              name: data-video
+          restartPolicy: Always
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: plex-udp
+      namespace: plexserver
+      annotations:
+        metallb.universe.tf/allow-shared-ip: plexserver
+    spec:
+      selector:
+        app: plexserver
+      ports:
+      - port: 1900
+        targetPort: 1900
+        name: dlna-udp
+        protocol: UDP
+      - port: 5353
+        targetPort: 5353
+        name: discovery-udp
+        protocol: UDP
+      - port: 32410
+        targetPort: 32410
+        name: gdm-32410
+        protocol: UDP
+      - port: 32412
+        targetPort: 32412
+        name: gdm-32412
+        protocol: UDP
+      - port: 32413
+        targetPort: 32413
+        name: gdm-32413
+        protocol: UDP
+      - port: 32414
+        targetPort: 32414
+        name: gdm-32414
+        protocol: UDP
+      type: LoadBalancer
+      loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the TCP service.
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: plex-tcp
+      namespace: plexserver
+      annotations:
+        metallb.universe.tf/allow-shared-ip: plexserver
+    spec:
+      selector:
+        app: plexserver
+      ports:                      
+      - port: 32400
+        targetPort: 32400
+        name: pms-web
+        protocol: TCP
+      - port: 3005
+        targetPort: 3005
+        name: plex-companion
+      - port: 8324
+        name: plex-roku
+        targetPort: 8324  
+        protocol: TCP  
+      - port: 32469
+        targetPort: 32469
+        name: dlna-tcp
+        protocol: TCP
+      type: LoadBalancer
+      loadBalancerIP: 192.168.0.221  # Should be one from the MetalLB range and the same as the UDP service.
+    ```
 
-```
+``` console
 $ kubectl apply -f plex-media-server.yaml 
 namespace/plexserver created
 persistentvolume/plexserver-pv-config created
@@ -2148,16 +2165,18 @@ and the next steps are to
 
 Normally Plex is able to establish the necessary port forwarding via UPnP, but in this case that doesn’t seem to work. The port forwarding rule can be added manually to the router and then Manually specify public port in the Plex settings under **Settings > Remote Access**.
 
-**Note:** this step may require connecting directly to the web
-interface from the local network, via
-[http://192.168.0.221:32400/web](http://192.168.0.221:32400/web).
+!!! note
+
+    This step may require connecting directly to the web
+    interface from the local network, via
+    [http://192.168.0.221:32400/web](http://192.168.0.221:32400/web).
 
 **However**, to do this [MetalLB](#metallb-load-balancer) must
 be updated to include at least a few IP addresses overlapping
 with the range supported by the router (e.g. 192.168.0.**221**)
 so that it can be reached via port **23240**.
 
-```
+``` console
 $ kubectl delete -f rapture/plex-media-server.yaml
 
 $ kubectl apply -f metallb/ipaddress-pool-rapture.yaml 
