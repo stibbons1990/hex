@@ -28,7 +28,7 @@ recent version, e.g. [`kubeconform`](#kubeconform) requires v1.22.
 Ubuntu Server 22.04 packages only provide v1.18, to install newer
 versions use `snap` instead:
 
-```
+``` console
 # snap install --classic --channel=latest/stable go
 go 1.23.0 from Canonical✓ installed
 ```
@@ -40,10 +40,10 @@ For convenience, add `~/go/bin/` to your `PATH`.
 [Deprecations AKA KubePug - Pre UpGrade (Checker)](https://github.com/kubepug/kubepug?tab=readme-ov-file#deprecations--aka-kubepug---pre-upgrade-checker)
 is one of the simplest tools to use.
 
-```
+``` console
 $ go install github.com/kubepug/kubepug@latest
 
- $ kubepug 2>/dev/null \
+$ kubepug 2>/dev/null \
   --k8s-version=v1.27 \
   --input-file ~/src/lexicon-deployments/
 
@@ -66,7 +66,7 @@ Same with `--k8s-version=v1.32`.
 
 [kube-no-trouble](https://github.com/doitintl/kube-no-trouble)
 
-```
+``` console
 # sh -c "$(curl -sSL https://git.io/install-kubent)"
 >>> kubent installation script <<<
 > Detecting latest version
@@ -80,7 +80,7 @@ Same with `--k8s-version=v1.32`.
 
 To check the running environment:
 
-```
+``` console
 $ kubent -t 1.27 
 12:29AM INF >>> Kube No Trouble `kubent` <<<
 12:29AM INF version 0.7.3 (git sha 57480c07b3f91238f12a35d0ec88d9368aae99aa)
@@ -101,7 +101,7 @@ $ kubent -t 1.27
 
 To check manifest files:
 
-```
+``` console
 $ kubent -t 1.27 $(find -name "*.yaml")
 12:34AM INF >>> Kube No Trouble `kubent` <<<
 12:34AM INF version 0.7.3 (git sha 57480c07b3f91238f12a35d0ec88d9368aae99aa)
@@ -129,7 +129,7 @@ with `-t 1.27` and `-t 1.32`.
 opposite picture: errors are found even for the currently running
 Kubernetes version, which is running all these deployments just fine.
 
-```
+``` console
 $ go install github.com/yannh/kubeconform/cmd/kubeconform@latest
 
 $ kubectl  version --output=yaml
@@ -180,10 +180,10 @@ $ kubeconform \
 Summary: 152 resources found in 16 files - Valid: 141, Invalid: 0, Errors: 11, Skipped: 0
 ```
 
-Even if the above errors can be safely ignore, many more are returned
+Even if the above errors can be safely ignored, many more are returned
 when running with a higher target version, e.g. 1.32:
 
-```
+``` console
 $ cd ~/src/lexicon-deployments
 
 $ kubeconform -summary -strict -kubernetes-version 1.32.2 */*.yaml
