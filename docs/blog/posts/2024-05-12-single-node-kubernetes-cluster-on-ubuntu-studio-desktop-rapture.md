@@ -1146,7 +1146,7 @@ In this PC, a small range of IP addresses is advertised via
 [Layer 2 Configuration](https://metallb.universe.tf/configuration/#layer-2-configuration), which does not
 not require the IPs to be bound to the network interfaces:
 
-``` yaml numlines="1" title="metallb/ipaddress_pools.yaml"
+``` yaml linenums="1" title="metallb/ipaddress_pools.yaml"
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -1248,7 +1248,7 @@ In this case to make the dashboard easily available in the
 local network, we edit the deployment to add `type: LoadBalancer`
 to the `kubernetes-dashboard` **service** (line 30):
 
-``` yaml numlines="30" hl_lines="38" title="kubernetes-dashboard.yaml"
+``` yaml linenums="30" hl_lines="38" title="kubernetes-dashboard.yaml"
 kind: Service
 apiVersion: v1
 metadata:
@@ -1311,7 +1311,7 @@ article. To create a Service Account and grant it access to
 everything (the `cluster-admin` roles), apply the following
 manifest as `admin-sa-rbac.yaml`
 
-``` yaml numlines="1" title="admin-sa-rbac.yaml"
+``` yaml linenums="1" title="admin-sa-rbac.yaml"
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -1378,7 +1378,7 @@ To serve HTTPS requests on a single IP address, the
 `type: LoadBalancer`. As it happens, the `v1.10.1` manifest
 already has this property set in line 366:
 
-``` yaml numlines="1" title="nginx-ingress-controller.yaml"
+``` yaml linenums="1" title="nginx-ingress-controller.yaml"
 apiVersion: v1
 kind: Service
 metadata:
@@ -1514,7 +1514,7 @@ and served via `LoadBalancer` IP:
 
 ??? k8s "Kubernetes deployment: `audiobookshelf.yaml`"
 
-    ``` yaml numlines="1" title="audiobookshelf.yaml"
+    ``` yaml linenums="1" title="audiobookshelf.yaml"
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -1877,7 +1877,7 @@ apply the deployment:
 
 ??? k8s "Kubernetes deployment: `plex-media-server.yaml`"
 
-    ``` yaml numlines="1" title="plex-media-server.yaml"
+    ``` yaml linenums="1" title="plex-media-server.yaml"
     apiVersion: v1
     kind: Namespace
     metadata:
