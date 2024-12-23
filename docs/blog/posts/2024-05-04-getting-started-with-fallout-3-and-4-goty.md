@@ -59,7 +59,7 @@ In window mode, updatding the values in `Fallout4Prefs.ini` under
 `.local/share/Steam/steamapps/common/Fallout 4/Fallout4/`
 had no effect:
 
-```
+```ini
 bBorderless=1
 bFull Screen=0
 iSize H=1440
@@ -100,7 +100,7 @@ Another user reports that *Mods need a little tweaks*:
 > 1.  Install dotnet6 and Vortex (in that order) on a Wine PREFIX outside the Proton prefix.
 > 1.  Look over the proton PREFIX location of your game, because you need the folder "My Games/Fallout4".
 > 1.  Link your `.../Documents/My Games/Fallout4` to your actual home:
->    ```
+>    ``` console
 >    $ ln -sf  \
 >      $path/SteamLibrary/steamapps/compatdata/377160/pfx/drive_c/users/steamuser/Documents/My\ Games/Fallout4 \
 >      /home/$User/Documents/My\ Games/Fallout 4
