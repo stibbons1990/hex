@@ -2160,6 +2160,7 @@ plex-udp   LoadBalancer   10.97.4.51       192.168.0.221   1900:32446/UDP,5353:3
 Plex web app is now available at
 [http://192.168.0.221:32400/web](http://192.168.0.221:32400/web)
 and the next steps are to
+
 1.  Log in with the same Plex account from the old server.
 2.  Enable remote access.
 
