@@ -36,278 +36,280 @@ run all 3 components (Telegraf, InfluxDB, Grafana) on
 Docker, on some of which the following
 `monitoring.yaml` deployment is (very loosly) based:
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: monitoring
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: influxdb-pv
-  labels:
-    type: local
-  namespace: monitoring
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 30Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/k8s/influxdb
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: influxdb-pv-claim
-  namespace: monitoring
-spec:
-  storageClassName: manual
-  volumeName: influxdb-pv
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 30Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  namespace: monitoring
-  labels:
-    app: influxdb
-  name: influxdb
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: influxdb
-  template:
+??? k8s "Kubernetes deployment: `monitoring.yaml`"
+
+    ``` yaml linenums="1" title="monitoring.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: monitoring
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: influxdb-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 30Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/influxdb
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: influxdb-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: influxdb-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 30Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: influxdb
+      name: influxdb
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: influxdb
+      template:
+        metadata:
+          labels:
+            app: influxdb
+        spec:
+          hostname: influxdb
+          containers:
+          - image: docker.io/influxdb:1.8
+            name: influxdb
+            volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: influxdb-data
+          securityContext:
+            runAsUser: 114
+            runAsGroup: 114
+          volumes:
+          - name: influxdb-data
+            persistentVolumeClaim:
+              claimName: influxdb-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
     metadata:
       labels:
         app: influxdb
+      name: influxdb-svc
+      namespace: monitoring
     spec:
-      hostname: influxdb
-      containers:
-      - image: docker.io/influxdb:1.8
-        name: influxdb
-        volumeMounts:
-        - mountPath: /var/lib/influxdb
-          name: influxdb-data
-      securityContext:
-        runAsUser: 114
-        runAsGroup: 114
-      volumes:
-      - name: influxdb-data
-        persistentVolumeClaim:
-          claimName: influxdb-pv-claim
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: influxdb
-  name: influxdb-svc
-  namespace: monitoring
-spec:
-  ports:
-  - port: 18086
-    protocol: TCP
-    targetPort: 8086
-    nodePort: 30086
-  selector:
-    app: influxdb
-  type: NodePort
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: telegraf
-  namespace: monitoring
-  labels:
-    app: telegraf
-data:
-  telegraf.conf: |+
-    [agent]
-      hostname = "influxdb"
-    [[outputs.influxdb]]
-      urls = ["http://influxdb-svc:18086/"]
-      database = "telegraf"
-      timeout = "5s"
-    [[inputs.cpu]]
-      percpu = true
-      totalcpu = true
-      collect_cpu_time = false
-      report_active = false
-    [[inputs.disk]]
-      ignore_fs = ["tmpfs", "devtmpfs", "devfs"]
-    [[inputs.diskio]]
-    [[inputs.kernel]]
-    [[inputs.mem]]
-    [[inputs.processes]]
-    [[inputs.swap]]
-    [[inputs.system]]
-    [[inputs.docker]]
-      endpoint = "unix:///var/run/docker.sock"
----
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: telegraf
-  namespace: monitoring
-  labels:
-    app: telegraf
-spec:
-  selector:
-    matchLabels:
-      name: telegraf
-  template:
+      ports:
+      - port: 18086
+        protocol: TCP
+        targetPort: 8086
+        nodePort: 30086
+      selector:
+        app: influxdb
+      type: NodePort
+    ---
+    apiVersion: v1
+    kind: ConfigMap
     metadata:
+      name: telegraf
+      namespace: monitoring
       labels:
-        name: telegraf
+        app: telegraf
+    data:
+      telegraf.conf: |+
+        [agent]
+          hostname = "influxdb"
+        [[outputs.influxdb]]
+          urls = ["http://influxdb-svc:18086/"]
+          database = "telegraf"
+          timeout = "5s"
+        [[inputs.cpu]]
+          percpu = true
+          totalcpu = true
+          collect_cpu_time = false
+          report_active = false
+        [[inputs.disk]]
+          ignore_fs = ["tmpfs", "devtmpfs", "devfs"]
+        [[inputs.diskio]]
+        [[inputs.kernel]]
+        [[inputs.mem]]
+        [[inputs.processes]]
+        [[inputs.swap]]
+        [[inputs.system]]
+        [[inputs.docker]]
+          endpoint = "unix:///var/run/docker.sock"
+    ---
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      name: telegraf
+      namespace: monitoring
+      labels:
+        app: telegraf
     spec:
-      containers:
-      - name: telegraf
-        image: docker.io/telegraf:1.30.1
-        env:
-        - name: HOSTNAME
-          value: "influxdb"
-        - name: "HOST_PROC"
-          value: "/rootfs/proc"
-        - name: "HOST_SYS"
-          value: "/rootfs/sys"
-        - name: INFLUXDB_DB
-          value: "telegraf"
-        volumeMounts:
-        - name: sys
-          mountPath: /rootfs/sys
-          readOnly: true
-        - name: proc
-          mountPath: /rootfs/proc
-          readOnly: true
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
-        - name: utmp
-          mountPath: /var/run/utmp
-          readOnly: true
-        - name: config
-          mountPath: /etc/telegraf
-      terminationGracePeriodSeconds: 30
-      volumes:
-      - name: sys
-        hostPath:
-          path: /sys
-      - name: docker-socket
-        hostPath:
-          path: /var/run/docker.sock
-      - name: proc
-        hostPath:
-          path: /proc
-      - name: utmp
-        hostPath:
-          path: /var/run/utmp
-      - name: config
-        configMap:
+      selector:
+        matchLabels:
           name: telegraf
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: grafana-pv
-  labels:
-    type: local
-  namespace: monitoring
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 3Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/k8s/grafana
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafana-pv-claim
-  namespace: monitoring
-spec:
-  storageClassName: manual
-  volumeName: grafana-pv
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 3Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  namespace: monitoring
-  labels:
-    app: grafana
-  name: grafana
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: grafana
-  template:
+      template:
+        metadata:
+          labels:
+            name: telegraf
+        spec:
+          containers:
+          - name: telegraf
+            image: docker.io/telegraf:1.30.1
+            env:
+            - name: HOSTNAME
+              value: "influxdb"
+            - name: "HOST_PROC"
+              value: "/rootfs/proc"
+            - name: "HOST_SYS"
+              value: "/rootfs/sys"
+            - name: INFLUXDB_DB
+              value: "telegraf"
+            volumeMounts:
+            - name: sys
+              mountPath: /rootfs/sys
+              readOnly: true
+            - name: proc
+              mountPath: /rootfs/proc
+              readOnly: true
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: utmp
+              mountPath: /var/run/utmp
+              readOnly: true
+            - name: config
+              mountPath: /etc/telegraf
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: sys
+            hostPath:
+              path: /sys
+          - name: docker-socket
+            hostPath:
+              path: /var/run/docker.sock
+          - name: proc
+            hostPath:
+              path: /proc
+          - name: utmp
+            hostPath:
+              path: /var/run/utmp
+          - name: config
+            configMap:
+              name: telegraf
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: grafana-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 3Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/grafana
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: grafana-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: grafana-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 3Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: grafana
+      name: grafana
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: grafana
+      template:
+        metadata:
+          labels:
+            app: grafana
+        spec:
+          containers:
+          - image: docker.io/grafana/grafana:10.4.2
+            env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: "GF_AUTH_ANONYMOUS_ENABLED"
+              value: "true"
+            - name: "GF_SECURITY_ADMIN_USER"
+              value: "admin"
+            - name: "GF_SECURITY_ADMIN_PASSWORD"
+              value: "PLEASE_CHOOSE_A_SENSIBLE_PASSWORD"
+            name: grafana
+            volumeMounts:
+              - name: grafana-data
+                mountPath: /var/lib/grafana
+          securityContext:
+            runAsUser: 115
+            runAsGroup: 115
+            fsGroup: 115
+          volumes:
+          - name: grafana-data
+            persistentVolumeClaim:
+              claimName: grafana-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
     metadata:
       labels:
         app: grafana
+      name: grafana-svc
+      namespace: monitoring
     spec:
-      containers:
-      - image: docker.io/grafana/grafana:10.4.2
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: "GF_AUTH_ANONYMOUS_ENABLED"
-          value: "true"
-        - name: "GF_SECURITY_ADMIN_USER"
-          value: "admin"
-        - name: "GF_SECURITY_ADMIN_PASSWORD"
-          value: "PLEASE_CHOOSE_A_SENSIBLE_PASSWORD"
-        name: grafana
-        volumeMounts:
-          - name: grafana-data
-            mountPath: /var/lib/grafana
-      securityContext:
-        runAsUser: 115
-        runAsGroup: 115
-        fsGroup: 115
-      volumes:
-       - name: grafana-data
-         persistentVolumeClaim:
-           claimName: grafana-pv-claim
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: grafana
-  name: grafana-svc
-  namespace: monitoring
-spec:
-  ports:
-  - port: 13000
-    protocol: TCP
-    targetPort: 3000
-    nodePort: 30300
-  selector:
-    app: grafana
-  type: NodePort
-```
+      ports:
+      - port: 13000
+        protocol: TCP
+        targetPort: 3000
+        nodePort: 30300
+      selector:
+        app: grafana
+      type: NodePort
+    ```
 
 This setup reuses the existing dedicated users
 `influxdb` (114) and `grafana` (115) and requires
 new directories owned by these users:
 
-```
+``` console
 $ ls -ld /home/k8s/influxdb/ /home/k8s/grafana/
 drwxr-xr-x 1 grafana  grafana  0 Mar 28 23:25 /home/k8s/grafana/
 drwxr-xr-x 1 influxdb influxdb 0 Mar 28 21:54 /home/k8s/influxdb/
@@ -375,7 +377,7 @@ starts by enabling authentication.
 
 Create at least one `admin` user:
 
-```
+``` console
 $ influx -host localhost -port 30086
 Connected to http://localhost:30086 version 1.8.10
 InfluxDB shell version: 1.6.7~rc0
@@ -386,17 +388,14 @@ Using database telegraf
 > CREATE USER admin WITH PASSWORD '**********' WITH ALL PRIVILEGES
 ```
 
-**Warning:** the password **must** be enclosed in
-**single** quotes (**`'`**).
+!!! warning
+
+    The password **must** be enclosed in **single** quotes (**`'`**).
 
 [Enable authentication in the deployment](https://stackoverflow.com/a/67937758)
 by setting the `INFLUXDB_HTTP_AUTH_ENABLED` variable:
 
-```yaml
----
-apiVersion: apps/v1
-kind: Deployment
-...
+``` yaml linenums="52" hl_lines="55 57" title="monitoring.yaml"
     spec:
       containers:
       - image: docker.io/influxdb:1.8
@@ -408,7 +407,7 @@ kind: Deployment
 
 Restart InfluxDB:
 
-```
+``` console
 $ kubectl apply -f monitoring.yaml
 ...
 deployment.apps/influxdb configured
@@ -418,7 +417,7 @@ deployment.apps/influxdb configured
 The result is not that connections are rejected,
 but access to the database is denied:
 
-```
+``` console
 $ kubectl  -n monitoring logs telegraf-2k8hb | tail -1
 2024-04-20T18:24:16Z E! [outputs.influxdb] E! [outputs.influxdb] Failed to write metric (will be dropped: 401 Unauthorized): unable to parse authentication credentials
 
@@ -441,11 +440,7 @@ password, is enough to get the connextion restored.
 To restore access to Telegraf, add the credentials
 to the `ConfigMap` as follows:
 
-```yaml
----
-apiVersion: v1
-kind: ConfigMap
-...
+``` yaml linenums="13" title="monitoring.yaml"
 data:
   telegraf.conf: |+
     [[outputs.influxdb]]
@@ -457,7 +452,7 @@ data:
 
 And restart `telegraf`:
 
-```
+``` console
 $ kubectl delete -n monitoring daemonset telegraf
 $ kubectl apply -f monitoring.yaml
 ```
@@ -466,8 +461,7 @@ $ kubectl apply -f monitoring.yaml
 
 To do this, add an `Ingress` pointing to each service:
 
-```yaml
----
+``` yaml numlines="178" title="monitoring.yaml"
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -523,7 +517,7 @@ spec:
         - inf.ssl.uu.am
 ```
 
-```
+``` console
 $ kubectl apply -f monitoring.yaml 
 ...
 ingress.networking.k8s.io/grafana-ingress created
@@ -535,7 +529,7 @@ which requires patching each ACME solver to listen on
 port 32080 (set up in router), leveraging the script
 for [Monthly renewal of certificates (automated)](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#monthly-renewal-of-certificates-automated):
 
-```
+``` console
 # /root/bin/cert-renewal-port-fwd.sh
 service/cm-acme-http-solver-rnrs5 patched
 ```
@@ -584,7 +578,7 @@ a few times, `telegraf` and `grafana` were no longer
 able to connect; the internal DNS would no longer
 return an IP address for the `influxdb` hostname:
 
-```
+``` console
 $ kubectl -n monitoring exec -i -t telegraf-zzs52 -- ping -c 1 kube-dns.kube-system.svc.cluster.local
 PING kube-dns.kube-system.svc.cluster.local (10.96.0.10) 56(84) bytes of data.
 
@@ -595,7 +589,7 @@ command terminated with exit code 2
 
 Telegraf cannot write to InfluxDB:
 
-```
+``` console
 $ kubectl -n monitoring logs telegraf-5rv6z | tail -2
 2024-04-20T16:05:50Z E! [outputs.influxdb] When writing to [http://influxdb:8086/]: failed doing req: Post "http://influxdb:8086/write?db=telegraf": dial tcp: lookup influxdb on 10.96.0.10:53: no such host
 2024-04-20T16:05:50Z E! [agent] Error writing to outputs.influxdb: could not write any address
@@ -603,7 +597,7 @@ $ kubectl -n monitoring logs telegraf-5rv6z | tail -2
 
 Grafana cannot query InfluxDB:
 
-```
+``` console
 Get "http://influxdb:8086/query?db=telegraf&epoch=ms&q=SELECT++FROM+%22%22+WHERE+time+%3E%3D+1713606668691ms+and+time+%3C%3D+1713628268691ms": dial tcp: lookup influxdb on 10.96.0.10:53: no such host
 ```
 
@@ -614,7 +608,7 @@ Grafana to query InfluxDB via its `NodePort` at
 
 After updating dhe deployement, restart `telegraf`:
 
-```
+``` console
 $ kubectl delete -n monitoring daemonset telegraf
 $ kubectl apply -f monitoring.yaml
 ```
@@ -623,7 +617,7 @@ Still went to to check whether
 [DNS queries are being received/processed?](https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/#are-dns-queries-being-received-processed)
 and after adding logging of queries and trying again:
 
-```
+``` console
 $ kubectl -n monitoring exec -i -t telegraf-zzs52 -- ping -c 1 kube-dns.kube-system.svc.cluster.local
 PING kube-dns.kube-system.svc.cluster.local (10.96.0.10) 56(84) bytes of data.
 
@@ -656,7 +650,7 @@ $ kubectl logs --namespace=kube-system -l k8s-app=kube-dns
 This only happens with the pod's hostname, but we can
 resolve its `Service`:
 
-```
+``` console
 $ kubectl -n monitoring exec -i -t telegraf-zzs52 -- ping -c 1 grafana-svc.monitoring
 PING grafana-svc.monitoring.svc.cluster.local (10.109.127.41) 56(84) bytes of data.
 ```
@@ -671,7 +665,7 @@ is http://influxdb-svc:18086
 The change of service name and `port` happened while
 creating the `Ingress` for HTTP access:
 
-```
+``` console
 $ kubectl -n monitoring get all 
 NAME                            READY   STATUS    RESTARTS   AGE
 pod/grafana-7647f97d64-k8h5m    1/1     Running   0          19h
@@ -710,7 +704,7 @@ Create a `monitoring` database (separate from the
 `telegraf` database) and set its retencion period to
 30 days:
 
-```
+``` console
 $ influx -host localhost -port 30086
 Connected to http://localhost:30086 version 1.8.10
 InfluxDB shell version: 1.6.7~rc0
@@ -747,12 +741,12 @@ First, store the InfluxDB credentials in
 `/etc/conmon/influxdb-auth` and make the
 file readable only to the `root` user:
 
-```
+``` console
 # echo 'admin:*************' > /etc/conmon/influxdb-auth
 # chmod 400 /etc/conmon/influxdb-auth
 ```
 
-```bash
+``` bash numlines="1" title="conmon.sh"
 DBNAME=monitoring
 TARGET='http://lexicon:8086'
 TARGET2='http://lexicon:30086'
@@ -796,7 +790,7 @@ After some time dual-reporting with no regressions observed,
 reporting to the old InfluxDB was removed and a few days later
 the service could be disabled:
 
-```
+``` console
 # systemctl stop grafana-server.service
 # systemctl stop influxdb.service 
 # systemctl disable grafana-server.service
