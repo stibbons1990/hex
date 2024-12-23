@@ -32,7 +32,7 @@ plugins:
       draft: false
       draft_on_serve: false
       pagination: true
-      pagination_per_page: 10
+      pagination_per_page: 20
   - macros:
       on_undefined: strict
 site_name: Inadvisably Applied Magic
