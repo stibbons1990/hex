@@ -32,8 +32,10 @@ in the network:
    obtained via the **Get report** method in the
    [myStrom REST API](https://api.mystrom.ch/) from one or
    more smart plug/switch devices that report energy usage.
-*  [conmon-tapo.py](#conmon-tapopy) reports temperature, humidity,
+*  [`conmon-tapo.py`](#conmon-tapopy) reports temperature, humidity,
    power consumption and other monitoring data from TAPO devices.
+   *  [`tapo.yaml`](#tapoyaml) is a minimal configuration file for
+      `conmon-tapo.py`.
 
 ## Kubernetes Setup
 
@@ -1417,4 +1419,25 @@ def main(argv):
 
 if __name__ == "__main__":
     app.run(main)
+```
+
+### `tapo.yaml`
+
+``` yaml linenums="1"
+devices:
+  - ip: "192.168.0.115"
+    model: "P115"
+  - ip: "192.168.0.100"
+    model: "H100"
+influxdb:
+  host: inf.ssl.uu.am
+  port: 443
+  database: "monitoring"
+  username: "INFLUXDB_USERNAME"
+  password: "INFLUXDB_PASSWORD"
+  ssl: True
+  verify_ssl: True
+tapo_auth:
+  tapo_username: "TAPO_USERNAME"
+  tapo_password: "TAPO_PASSWORD"
 ```
