@@ -461,7 +461,7 @@ $ kubectl apply -f monitoring.yaml
 
 To do this, add an `Ingress` pointing to each service:
 
-``` yaml numlines="178" title="monitoring.yaml"
+``` yaml linenums="178" title="monitoring.yaml"
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -746,7 +746,7 @@ file readable only to the `root` user:
 # chmod 400 /etc/conmon/influxdb-auth
 ```
 
-``` bash numlines="1" title="conmon.sh"
+``` bash linenums="1" title="conmon.sh"
 DBNAME=monitoring
 TARGET='http://lexicon:8086'
 TARGET2='http://lexicon:30086'
