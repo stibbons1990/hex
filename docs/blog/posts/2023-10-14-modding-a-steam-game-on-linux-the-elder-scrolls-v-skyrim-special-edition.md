@@ -32,7 +32,7 @@ required to fix the issue where voices are missing and
 indeed I experienced this myself. To fix this, install
 this with `winetricks`:
 
-```
+``` console
 $ WINEARCH=win64 WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/489830/pfx winetricks xact
 $ WINEARCH=win64 WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/489830/pfx winetricks xact_x64
 ```
@@ -59,7 +59,7 @@ that is under your *personal* files, *not* the one that is
 part of the game files:
 
 
-```
+``` console
 $ cd; find . -name SkyrimPrefs.ini
 ./.local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini
 ./.local/share/Steam/steamapps/common/Skyrim Special Edition/Skyrim/SkyrimPrefs.ini
@@ -69,7 +69,7 @@ Edit the file under the `.../steamuser/Documents/...` path,
 otherwise the changes will not be effective. Change these
 lines
 
-```ini
+``` ini linenums="1"
 bFull Screen=0
 iSize H=1200
 iSize W=1920
@@ -77,23 +77,25 @@ iSize W=1920
 
 To run on 3440x1440 full screen:
 
-```ini
+``` ini linenums="1"
 bFull Screen=1
 iSize H=1440
 iSize W=3440
 ```
 
-**Note:** see
-[Guide:Skyrim Configuration Settings](https://stepmodifications.org/wiki/Guide:Skyrim_Configuration_Settings)
-and the
-[Guide:SkyrimPrefs INI](https://stepmodifications.org/wiki/Guide:SkyrimPrefs_INI)
-for full details on how to configure Skyrim.
+!!! note
+
+    See
+    [Guide:Skyrim Configuration Settings](https://stepmodifications.org/wiki/Guide:Skyrim_Configuration_Settings)
+    and the
+    [Guide:SkyrimPrefs INI](https://stepmodifications.org/wiki/Guide:SkyrimPrefs_INI)
+    for full details on how to configure Skyrim.
 
 ## Mods
 
 There is only one `Data` folder to install mods in:
 
-```
+``` console
 ~/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data
 ```
 
@@ -106,7 +108,7 @@ recommended to make backups of the entire game folder
 
 To make multiple backups, each with a timestamp:
 
-```bash
+``` console
 $ cd ~/.local/share/Steam/steamapps/common/
 $ rsync -ruta \
   "Skyrim Special Edition" \
@@ -125,7 +127,7 @@ This walkthrough recommend installing an old version of Vortex
 via a YML file breated by
 [rockerbacon](https://github.com/rockerbacon)
 
-```bash
+``` console
 $ wget -O ~/Downloads/vortex.yml \
   https://github.com/rockerbacon/modorganizer2-linux-installer/releases/download/1.9.3/vortex.yml
 $ lutris -i ~/Downloads/vortex.yml
@@ -175,7 +177,7 @@ and still does nothing. No new files are installed.
 
 Extract and copy all SKSE files and folders to the Skyrim SE game folder, then rename executables:
 
-```
+``` console
 $ 7z x Skyrim\ Script\ Extender\ \(SKSE64\)-30379-2-2-3-1665515370.7z 
 
 7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
@@ -215,7 +217,7 @@ SKSE loader.
 recommends thesee launch options to launch SKSE without
 having to rename executables (seems to breaks some mods):
 
-```bash
+``` console
 $(echo %command% | sed -r "s/proton waitforexitandrun .*/proton waitforexitandrun/") "$STEAM_COMPAT_INSTALL_PATH/skse64_loader.exe"
 ```
 
@@ -228,7 +230,7 @@ instead of the standard Proton release.
 
 The simpler alterantive si to simply rename files:
 
-```
+``` console
 $ mv SkyrimSELauncher.exe SkyrimSELauncher.orig.exe
 $ mv skse64_loader.exe SkyrimSELauncher.exe
 ```
@@ -240,7 +242,7 @@ Install
 using the
 [Manual method for Native Steam](https://github.com/GloriousEggroll/proton-ge-custom#manual):
 
-```bash
+``` console
 # make temp working directory
 mkdir /tmp/proton-ge-custom
 cd /tmp/proton-ge-custom
@@ -268,7 +270,7 @@ tar -xf GE-Proton*.tar.gz \
 Download the updated UI mod
 [Sky_UI](https://www.nexusmods.com/skyrimspecialedition/mods/12604) and install it manually (simple):
 
-```
+``` console
 $ 7z x SkyUI_5_2_SE-12604-5-2SE.7z 
 
 7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
@@ -311,7 +313,7 @@ Adding `Skyrim.esm` as a master to the file will fix it, and
 to do this you have to use
 [xEdit](https://www.nexusmods.com/skyrim/mods/25859/).
 
-```
+``` console
 $ 7z x TES5Edit\ 4.0.4-25859-4-0-4-1636548544.7z 
 
 7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
@@ -363,7 +365,7 @@ file, not even
 
 [Complete Widescreen Fix for Vanilla and SkyUI 2.2 and 5.2 SE](https://www.nexusmods.com/skyrimspecialedition/mods/1778)
 
-```
+``` console
 $ unrar x Complete\ Widescreen\ Fix\ for\ SkyUI\ 5.2\ SE\ Alpha\ -\ 2560x1080-1778-2-0.rar 
 
 UNRAR 6.11 beta 1 freeware      Copyright (c) 1993-2022 Alexander Roshal
@@ -418,7 +420,7 @@ do but wait... forever?
 original game is no longer available in Steam, and it can't
 even be launched by its game id:
 
-```
+``` console
 steam steam://rungameid/72850
 ```
 
