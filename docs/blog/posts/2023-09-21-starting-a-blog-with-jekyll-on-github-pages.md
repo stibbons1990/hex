@@ -12,19 +12,19 @@ title: Starting a blog with Jekyll on GitHub pages
 Over the last couple of weekends I've been trying a couple of blogging platforms,
 namely [WordPress.com](https://wordpress.com) and [Blogger](https://blogger.com).
 
-<!-- more --> 
-
 Each have their pros and cons, but to cut a story short:
 
 *  [WordPress.com](https://wordpress.com) is quick’n’easy to setup, 
-   but the editor gets painfully slow with long (and not really all that long) articles, 
-   themes are very limited and can’t be customized.
+   but the editor gets painfully slow with long (and not really all that long)
+   articles, themes are very limited and can’t be customized.
    *  On the plus side, its *code highlight* block is quite neat.
-*  [Blogger](https://blogger.com) is also quick’n’easy to setup, the editor works well enough,
-   allows editing most of the content as HTML and then uploading images *and videos*,
-   and themes are fully customizable (can be edited raw).
-   *  On the **huge** downside, it will unpublish, block or remove posts *even entire blogs*,
-      and there seems to be no way to appeal.
+*  [Blogger](https://blogger.com) is also quick’n’easy to setup, the editor works well
+   enough, allows editing most of the content as HTML and then uploading images
+   *and videos*, and themes are fully customizable (can be edited raw).
+   *  On the **huge** downside, it will unpublish, block or remove posts
+      *even entire blogs*, and there seems to be no way to appeal.
+
+<!-- more --> 
 
 ## Setup
 
@@ -41,7 +41,7 @@ Anyway, setup was also *relatively* quick'n'easy:
    to publish the main branch to 
    [stibbons1990.github.io/hex][stibbons1990.io/hex].
 3. [Install Jekyll on Ubuntu][jekyllrb-installation-ubuntu] (including Ruby):
-   ```
+   ``` console
    $ sudo apt-get install ruby-full build-essential zlib1g-dev
    $ echo '# Install Ruby Gems to ~/gems' >> ~/.bashrc
    $ echo 'export GEM_HOME="$HOME/gems"' >> ~/.bashrc
@@ -53,7 +53,7 @@ Anyway, setup was also *relatively* quick'n'easy:
    28 gems installed
    ```
 4. Follow up to steps **7** trough 13 (1-6 involve the creation a repo, already done) of [Creating your site][creating-your-site]:
-   ```
+   ``` console
    $ jekyll new --skip-bundle . --force
    New jekyll site installed in /home/k8s/code-server/hex. 
    Bundle install skipped. 
@@ -72,7 +72,7 @@ Anyway, setup was also *relatively* quick'n'easy:
    ```
 
 5. Commit the changes and uush the files to GitHub
-   ```
+   ``` console
    $ git add .
    $ git commit -m "bundle install" -a
    $ git push
@@ -92,7 +92,7 @@ Anyway, setup was also *relatively* quick'n'easy:
 
 Testing locally on the PC was a little rockier, the first time failed with:
 
-```
+``` console
 $ bundle exec jekyll serve
 Configuration file: /home/k8s/code-server/hex/_config.yml
 To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
@@ -140,7 +140,7 @@ bundler: failed to load command: jekyll (/home/k8s/code-server/gems/bin/jekyll)
 
 Workaround from [github.com/jekyll/jekyll/issues/8523][jekyll-issues-8523] helped:
 
-```
+``` console
 $ echo 'gem "webrick"' >> Gemfile
 $ bundle exec jekyll serve
 Configuration file: /home/k8s/code-server/hex/_config.yml
@@ -167,7 +167,7 @@ but the server wouldn't respond to external hosts.
 The trick to make this work is adding `--host 0.0.0.0`
 so that the web server listens on all network interfaces:
 
-```
+``` console
 $ bundle exec jekyll serve --host 0.0.0.0
 Configuration file: /home/k8s/code-server/hex/_config.yml
 To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
@@ -197,7 +197,7 @@ home page was empty and the one blog post had *no style*.
 
 Testing the site locally shows the required layouts (`home` and `post`) *don't exist*:
 
-```
+``` console
      Build Warning: Layout 'post' requested in _posts/2023-09-21-migrated-to-jekyll-on-github-pages.markdown does not exist.
    GitHub Metadata: No GitHub API authentication could be found. Some fields may be missing or have incorrect data.
      Build Warning: Layout 'page' requested in about.markdown does not exist.
@@ -208,7 +208,7 @@ And indeed these layouts do not exist under the
 [pages-themes/midnight/_layouts](https://github.com/pages-themes/midnight/tree/master/_layouts)
 directory.
 
-Second, tried another theme found while searching fo
+Second, tried another theme found while searching for
 solutions for the problem above:
 [minimal-mistakes](https://github.com/mmistakes/minimal-mistakes)
 
@@ -217,7 +217,7 @@ so first installed that, by adding the required lines to
 [`Gemfile`](https://github.com/stibbons1990/hex/blob/main/Gemfile) and
 [`_config.yml`](https://github.com/stibbons1990/hex/blob/main/_config.yml) and then running `bundle` to install it:
 
-```
+``` console
 $ bundle
 Fetching gem metadata from https://rubygems.org/.........
 Resolving dependencies...
@@ -230,9 +230,7 @@ Use `bundle info [gemname]` to see where a bundled gem is installed.
 At this point following the instructions in the
 [remote-theme-method](https://github.com/mmistakes/minimal-mistakes#remote-theme-method) the following should do:
 
-In `_config.yml`
-
-```yml
+``` yaml linenums="1" title="_config.yml"
 remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 plugins:
   - jekyll-feed
@@ -240,8 +238,7 @@ plugins:
   - jekyll-include-cache
 ```
 
-In `Gemfile`
-```ruby
+``` ruby linenums="1" title="Gemfile"
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
   gem "jekyll-remote-theme"
@@ -256,7 +253,7 @@ while other pages should use `layout: default`.
 
 After updating those `layout` values, local testing works:
 
-```
+``` console
 $ bundle exec jekyll serve --host 0.0.0.0
 Configuration file: /home/k8s/code-server/hex/_config.yml
       Remote Theme: Using theme mmistakes/minimal-mistakes
@@ -277,10 +274,9 @@ To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
 Finally, we can tweak the theme's [configuration](https://mmistakes.github.io/minimal-mistakes/docs/configuration/), e.g. adding to `_config.yml` the following line to set a
 different *skin*:
 
-```yml
+``` yaml linenums="1" title="_config.yml"
 minimal_mistakes_skin: "neon"
 ```
-
 
 [stibbons1990/hex]: https://github.com/stibbons1990/hex
 [stibbons1990.io/hex]: https://stibbons1990.github.io/hex
