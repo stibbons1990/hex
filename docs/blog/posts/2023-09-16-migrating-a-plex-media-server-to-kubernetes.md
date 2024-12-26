@@ -17,8 +17,6 @@ That said, running anything in Kubernetes is only slightly harder
 *once*, and after that updates are *entirely automatic* and moving
 from one cluster to another would be *even easier*.
 
-<!-- more --> 
-
 ## Prologue
 
 I’ve been using [Plex Media Server](https://www.plex.tv/) for a few
@@ -32,6 +30,8 @@ of mine for the last few years, at home and abroad.
 The **Kubernetes** cluster running on **Lexicon** has proven stable
 and convenient enough that I finally felt motivated to migrate the
 Plex Media Server, from the stand-alone setup into the Kubernetes cluster.
+
+<!-- more --> 
 
 ## Kubernetes
 
@@ -78,260 +78,262 @@ this one is a bit long. The sections are in the order introduced by
    when installing **MetallLB** and should be the same on both
    services (TCP and UDP).
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: plexserver
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-config
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/plexmediaserver
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-data-depot
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/depot
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plexserver-pv-data-video
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/ssd/video
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-config
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-config
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-data-depot
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-data-depot
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 500Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plexserver-pvc-data-video
-  namespace: plexserver
-spec:
-  storageClassName: manual
-  volumeName: plexserver-pv-data-video
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 500Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: plexserver
-  name: plexserver
-  namespace: plexserver
-spec:
-  replicas: 1
-  revisionHistoryLimit: 0
-  selector:
-    matchLabels:
-      app: plexserver
-  strategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
+??? k8s "Kubernetes deployment: `plex-media-server.yaml`"
+
+    ``` yaml linenums="1" hl_lines="14 19 29 34 44 49 79 94 132 134 136 223 252" title="plex-media-server.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: plexserver
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-config
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/plexmediaserver
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-data-depot
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 500Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: plexserver-pv-data-video
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 500Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/ssd/video
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-config
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-data-depot
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-data-depot
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 500Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plexserver-pvc-data-video
+      namespace: plexserver
+    spec:
+      storageClassName: manual
+      volumeName: plexserver-pv-data-video
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 500Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: plexserver
+      name: plexserver
+      namespace: plexserver
     spec:
-      volumes:
-      - name: plex-config
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-config
-      - name: data-depot
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-data-depot
-      - name: data-video
-        persistentVolumeClaim:
-          claimName: plexserver-pvc-data-video
-      containers:
-      - env:
-        - name: PLEX_CLAIM
-          value: claim-deDSmtULWyYbvwt_2xAu
-        - name: PGID
-          value: "998"
-        - name: PUID
-          value: "998"
-        - name: VERSION
-          value: latest
-        - name: TZ
-          value: Europe/Amsterdam
-        image: ghcr.io/linuxserver/plex
-        imagePullPolicy: Always
-        name: plexserver
-        ports:
-        - containerPort: 32400
-          name: pms-web
-          protocol: TCP
-        - containerPort: 32469
-          name: dlna-tcp
-          protocol: TCP
-        - containerPort: 1900
-          name: dlna-udp
-          protocol: UDP
-        - containerPort: 3005
-          name: plex-companion
-          protocol: TCP  
-        - containerPort: 5353
-          name: discovery-udp
-          protocol: UDP  
-        - containerPort: 8324
-          name: plex-roku
-          protocol: TCP  
-        - containerPort: 32410
-          name: gdm-32410
-          protocol: UDP
-        - containerPort: 32412
-          name: gdm-32412
-          protocol: UDP
-        - containerPort: 32413
-          name: gdm-32413
-          protocol: UDP
-        - containerPort: 32414
-          name: gdm-32414
-          protocol: UDP
-        resources: {}
-        stdin: true
-        tty: true
-        volumeMounts:
-        - mountPath: /config
-          name: plex-config
-        - mountPath: /home/depot
-          name: data-depot
-        - mountPath: /home/ssd/video
-          name: data-video
-      restartPolicy: Always
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: plex-udp
-  namespace: plexserver
-  annotations:
-    metallb.universe.tf/allow-shared-ip: plexserver
-spec:
-  selector:
-    app: plexserver
-  ports:
-  - port: 1900
-    targetPort: 1900
-    name: dlna-udp
-    protocol: UDP
-  - port: 5353
-    targetPort: 5353
-    name: discovery-udp
-    protocol: UDP
-  - port: 32410
-    targetPort: 32410
-    name: gdm-32410
-    protocol: UDP
-  - port: 32412
-    targetPort: 32412
-    name: gdm-32412
-    protocol: UDP
-  - port: 32413
-    targetPort: 32413
-    name: gdm-32413
-    protocol: UDP
-  - port: 32414
-    targetPort: 32414
-    name: gdm-32414
-    protocol: UDP
-  type: LoadBalancer
-  loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the TCP service.
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: plex-tcp
-  namespace: plexserver
-  annotations:
-    metallb.universe.tf/allow-shared-ip: plexserver
-spec:
-  selector:
-    app: plexserver
-  ports:                      
-  - port: 32400
-    targetPort: 32400
-    name: pms-web
-    protocol: TCP
-  - port: 3005
-    targetPort: 3005
-    name: plex-companion
-  - port: 8324
-    name: plex-roku
-    targetPort: 8324  
-    protocol: TCP  
-  - port: 32469
-    targetPort: 32469
-    name: dlna-tcp
-    protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the UDP service.
-```
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: plexserver
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: plexserver
+        spec:
+          volumes:
+          - name: plex-config
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-config
+          - name: data-depot
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-data-depot
+          - name: data-video
+            persistentVolumeClaim:
+              claimName: plexserver-pvc-data-video
+          containers:
+          - env:
+            - name: PLEX_CLAIM
+              value: claim-deDSmtULWyYbvwt_2xAu
+            - name: PGID
+              value: "998"
+            - name: PUID
+              value: "998"
+            - name: VERSION
+              value: latest
+            - name: TZ
+              value: Europe/Amsterdam
+            image: ghcr.io/linuxserver/plex
+            imagePullPolicy: Always
+            name: plexserver
+            ports:
+            - containerPort: 32400
+              name: pms-web
+              protocol: TCP
+            - containerPort: 32469
+              name: dlna-tcp
+              protocol: TCP
+            - containerPort: 1900
+              name: dlna-udp
+              protocol: UDP
+            - containerPort: 3005
+              name: plex-companion
+              protocol: TCP  
+            - containerPort: 5353
+              name: discovery-udp
+              protocol: UDP  
+            - containerPort: 8324
+              name: plex-roku
+              protocol: TCP  
+            - containerPort: 32410
+              name: gdm-32410
+              protocol: UDP
+            - containerPort: 32412
+              name: gdm-32412
+              protocol: UDP
+            - containerPort: 32413
+              name: gdm-32413
+              protocol: UDP
+            - containerPort: 32414
+              name: gdm-32414
+              protocol: UDP
+            resources: {}
+            stdin: true
+            tty: true
+            volumeMounts:
+            - mountPath: /config
+              name: plex-config
+            - mountPath: /home/depot
+              name: data-depot
+            - mountPath: /home/ssd/video
+              name: data-video
+          restartPolicy: Always
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: plex-udp
+      namespace: plexserver
+      annotations:
+        metallb.universe.tf/allow-shared-ip: plexserver
+    spec:
+      selector:
+        app: plexserver
+      ports:
+      - port: 1900
+        targetPort: 1900
+        name: dlna-udp
+        protocol: UDP
+      - port: 5353
+        targetPort: 5353
+        name: discovery-udp
+        protocol: UDP
+      - port: 32410
+        targetPort: 32410
+        name: gdm-32410
+        protocol: UDP
+      - port: 32412
+        targetPort: 32412
+        name: gdm-32412
+        protocol: UDP
+      - port: 32413
+        targetPort: 32413
+        name: gdm-32413
+        protocol: UDP
+      - port: 32414
+        targetPort: 32414
+        name: gdm-32414
+        protocol: UDP
+      type: LoadBalancer
+      loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the TCP service.
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: plex-tcp
+      namespace: plexserver
+      annotations:
+        metallb.universe.tf/allow-shared-ip: plexserver
+    spec:
+      selector:
+        app: plexserver
+      ports:                      
+      - port: 32400
+        targetPort: 32400
+        name: pms-web
+        protocol: TCP
+      - port: 3005
+        targetPort: 3005
+        name: plex-companion
+      - port: 8324
+        name: plex-roku
+        targetPort: 8324  
+        protocol: TCP  
+      - port: 32469
+        targetPort: 32469
+        name: dlna-tcp
+        protocol: TCP
+      type: LoadBalancer
+      loadBalancerIP: 192.168.0.128  # Should be one from the MetalLB range and the same as the UDP service.
+    ```
 
 Having saved the above as `plex-media-server.yaml`
 all is left to do now is apply it:
@@ -384,7 +386,7 @@ installed with their respective helm charts:
 
 Installing all these through the Helm charts *should* be quite easy:
 
-```
+``` console
 $ helm repo add nfd https://kubernetes-sigs.github.io/node-feature-discovery/charts
 $ helm repo add intel https://intel.github.io/helm-charts/
 $ helm repo update
@@ -465,7 +467,7 @@ nodeFeatureRule: false
 I’m not sure what is missing. Attempting to assign the GPU to Plex by
 adding the following lines to `plex-media-server.yaml` did not work:
 
-```yaml
+``` yaml linenums="175" title="plex-media-server.yaml"
         resources:
             requests:
                 gpu.intel.com/i915: "1"
@@ -475,10 +477,12 @@ adding the following lines to `plex-media-server.yaml` did not work:
 
 Made the deployment fail with because the GPU was not available:
 
-*0/1 nodes are available: 1*
-*Insufficient gpu.intel.com/i915.*
-*preemption: 0/1 nodes are available: 1*
-*No preemption victims found for incoming pod.*
+```
+0/1 nodes are available: 1
+Insufficient gpu.intel.com/i915.
+preemption: 0/1 nodes are available: 1
+No preemption victims found for incoming pod.
+```
 
 ### Alternative (that didn’t work)
 
@@ -496,7 +500,7 @@ In all honestly, I didn’t really try hard, and didn’t quite see the motivati
 
 Installing the chart was *supposed* to be this easy:
 
-```
+``` console
 $ helm install plex ./charts/kube-plex \
     --create-namespace \
     --namespace plex \
@@ -515,15 +519,18 @@ NOTES:
 ```
 
 However, this is resulted in the pod being
-*stuck waiting for a volume to be created*,
-*either by external provisioner “rancher.io/local-path”*
-*or manually created by system administrator.*
+
+```
+stuck waiting for a volume to be created,
+either by external provisioner “rancher.io/local-path”
+or manually created by system administrator.
+```
 
 With no great motivation to get this to work, I decided to uninstall
 the chart and study the deployment options more closely to get one to
 work (as seen above).
 
-```
+``` console
 $ helm uninstall -n plex plex
 $ kubectl delete namespace plex
 ```
@@ -540,7 +547,7 @@ The path to each server’s database is
 
 The plan is simple: stop both servers, move the new database away, copy the old one as the new one, start the new server only.
 
-```
+``` console
 $ kubectl delete -f plex/plex-media-server.yaml
 # systemctl stop plexmediaserver.service
 # cd /home/k8s/plexmediaserver
@@ -552,10 +559,10 @@ $ kubectl delete -f plex/plex-media-server.yaml
 (`/data`). If that had been the case above, the new server would not
 recognize the files as already scanned, since the library would only
 refer to files under the old path (`/home/depot`). If this was the
-case, it would be enough to update the `mountPath` value in line `148`
+case, it would be enough to update the `mountPath` value in line `181`
 in `plex-media-server.yaml`
 
-```yaml
+``` yaml linenums="178" title="plex-media-server.yaml"
         volumeMounts:
         - mountPath: /config
           name: plex-config
@@ -567,7 +574,7 @@ In addition to that, my deployment creates 2 separate
 `PhysicalVolume`s (and claims) because video files are
 in a separate disk:
 
-```yaml
+``` yaml linenums="181" title="plex-media-server.yaml"
         - mountPath: /home/depot
           name: data-depot
         - mountPath: /home/ssd/video
@@ -584,9 +591,11 @@ Either way, the port forwarding rule can be added manually to
 the router and then **Manually specify public port** in the
 Plex settings under **Settings > Remote Access**.
 
-**Note:** this step may require connecting directly to the
-web interface from the local network:
-[192.168.0.128:32400/web](http://192.168.0.128:32400/web)
+!!! note
+
+    This step may require connecting directly to the web interface
+    from the local network:
+    [192.168.0.128:32400/web](http://192.168.0.128:32400/web)
 
 ### Scheduled Tasks
 
@@ -634,12 +643,15 @@ The migration had two *critical* requirements:
    tab for each episode an add episodes in the right (release) order.
    Again, although easy, this was quite a bit of work I would hate to lose.
 
-**Note**: I did consider creating the playlist programmatically,
-and may yet do it. One option would be to create an M3U playlist
-and import it into Plex using
-[DocDocDocDocDoc/PlexPlaylistImporter](https://github.com/DocDocDocDocDoc/PlexPlaylistImporter);
-the as-of-yet open question is how to create that playlist.
+!!! note
 
-The migration went smoothly and, I am happy to report, both goals where achieved. Here is by beloved Podcast collection:
+    I did consider creating the playlist programmatically,
+    and may yet do it. One option would be to create an M3U playlist
+    and import it into Plex using
+    [DocDocDocDocDoc/PlexPlaylistImporter](https://github.com/DocDocDocDocDoc/PlexPlaylistImporter);
+    the as-of-yet open question is how to create that playlist.
+
+The migration went smoothly and, I am happy to report, both goals
+where achieved. Here is by beloved Podcast collection:
 
 ![Extended screenshots of the album view of 36 podcasts](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/podcasts-202309.jpg)
