@@ -14,14 +14,14 @@ title: The death of Wi-Fi and Bluetooth
 
 The Wi-Fi 6E & Bluetooth 5.2 controllers in my motherboard died today.
 
-<!-- more --> 
-
 Until the motherboard can be replaced, the solution is to disable
 both in the UEFI BIOS. This is the only state in which the PC boots
 normally. Enabling the Bluetooth controller causes the boot process
 to spend about a minute trying to initialize the device, enabling
 the Wi-Fi controller causes the whole system to freeze with at the
 login screen and/or eventually reboot itself.
+
+<!-- more --> 
 
 The motherboard model is 
 [ASUS MB TUF GAMING X570-PRO WIFI II](https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-x570-pro-wifi-ii/)
@@ -33,12 +33,8 @@ under Advanced Mode(F7) → Advanced
 
 After disabling both controllers, select Exit → Save & reset
 
-*  `Wi-Fi Controller [Enabled]->[Disabled]`
-*  `Bluetooth Controller [Enabled]->[Disabled]`
-
-*How did I figure out what had happened?*
-*How did I find a way to move on?*
-Read on...
+*   `Wi-Fi Controller [Enabled]->[Disabled]`
+*   `Bluetooth Controller [Enabled]->[Disabled]`
 
 ## What Happened
 
@@ -54,7 +50,10 @@ The screen is just gray, not even back, only the mouse cursor is
 visible. I move it around a bit, nothing happens. Hit Enter,
 the PC reboots. What. The. ...
 
-Time to boot into recovery mode then, and pay close attention to what comes up. The boot process stops abruptly after printing messages about all the USB devices found and then, slowly over the next minute, the following shows up:
+Time to boot into recovery mode then, and pay close attention to
+what comes up. The boot process stops abruptly after printing
+messages about all the USB devices found and then, slowly over
+the next minute, the following shows up:
 
 ```
 [    6.504390] usb 1-4: device descriptor read/64, error -110
@@ -74,22 +73,27 @@ Time to boot into recovery mode then, and pay close attention to what comes up. 
 [   67.015483] usb usb1-port4: unable to enumerate USB device
 ```
 
-**Note:** these lines scrolled away pretty fast,
-how to capture them as text?
+??? note "These lines scrolled away pretty fast, how to capture them as text?"
 
-Have a smart phone (or other device with a fast camera) ready to take photos of messages as they show up. Be ready to take many photos so you can later find one that shows what you need.
+    Have a smart phone (or other device with a fast camera) ready to
+    take photos of messages as they show up. Be ready to take many
+    photos so you can later find one that shows what you need.
 
-![Photo of timeout errors during boot sequence](../media/2023-09-09-the-death-of-wifi-and-bluetooth/usb1-port4-error.jpg)
+    ![Photo of timeout errors during boot sequence](../media/2023-09-09-the-death-of-wifi-and-bluetooth/usb1-port4-error.jpg)
 
-Later, you may be able to recover those lines from logs (more on this below).
+    Later, you may be able to recover those lines from logs
+    (more on this below).
 
-The recover tool shows up but the only option that seems useful at this point is to `Drop to root shell` so there we go.
+The recover tool shows up but the only option that seems useful
+at this point is to `Drop to root shell` so there we go.
 
-The system freezes again after just a few seconds, barely enough time to find the
+The system freezes again after just a few seconds,
+barely enough time to find the
 [script to restart a USB controller](2023-08-27-xhci-host-controller-not-responding-assume-dead.md),
 but not time enough to run it.
 
-*This is ridiculous!* How can I possibly even try anything if the whole system freezes within seconds?
+*This is ridiculous!* How can I possibly even try anything if the
+whole system freezes within seconds?
 
 ## Regaining Control
 
@@ -131,7 +135,7 @@ I don’t know how 😅
 
 At this point `lsusb` shows *pretty much nothing*, as expected:
 
-```
+``` console
 # lsusb
 Bus 006 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 Bus 005 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
@@ -144,7 +148,9 @@ Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 ```
 
-The good news is, this barest minimum configuration does not freeze seconds after boot. The bad news is, I don’t really know how to go from here.
+The good news is, this barest minimum configuration does not freeze
+seconds after boot. The bad news is, I don’t really know how to go
+from here.
 
 ## Root Cause Analysis
 
@@ -154,13 +160,15 @@ It would be best to find out what it is, and fix it, before adding
 complexity back to return to the original (normal) state. The first
 objective is to find out what is wrong.
 
-Time to go and search around for posts about these errors, in particular:
+Time to go and search around for posts about these errors,
+in particular:
 
 ```
 [   66.806387] xhci_hcd 0000:05:00.1: Timeout while waiting for setup device command
 [   67.014360] usb 1-4: device not accepting address 5, error -62
 [   67.015483] usb usb1-port4: unable to enumerate USB device
 ```
+
 This looks like USB controller `0000:05:00.1` *is not responding*.
 
 Among the many posts that came up searching for
@@ -168,23 +176,24 @@ Among the many posts that came up searching for
 `"unable to enumerate USB device"`
 the following offered valuable clues:
 
-*  *What is USB error -62?* is explained in
-   [askubuntu.com/a/749864](https://askubuntu.com/a/749864)
-   by pointing to
-   [`/usr/include/asm-generic/errno.h`](https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno.h)
-   where these error codes are defined. Spoiler: they are time outs.
-*  *USB device descriptor read/64, error -62* is equally explained in 
-   [linuxquestions.org/questions/linux-hardware-18/usb-device-descriptor-read-64-error-62-a-830555](http://linuxquestions.org/questions/linux-hardware-18/usb-device-descriptor-read-64-error-62-a-830555)
-   with the additional suggestion that this is typically a hardware issue.
-*  Paul Philippov in
-   [How to fix “device not accepting address” error](https://paulphilippov.com/articles/how-to-fix-device-not-accepting-address-error)
-   suggests the hardware issue may be caused by the USB over-current
-   protection when something draws too much current out of a USB port
-   and offers a workaround that seems to have helped some people… not
-   me today 😞
-*  [bbs.archlinux.org/viewtopic.php?id=265272](https://bbs.archlinux.org/viewtopic.php?id=265272)
-   suggests a different root cause: a faulty PCIe card
-   (network + bluetooth).
+*   *What is USB error -62?* is explained in
+    [askubuntu.com/a/749864](https://askubuntu.com/a/749864)
+    by pointing to
+    [`/usr/include/asm-generic/errno.h`](https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno.h)
+    where these error codes are defined. Spoiler: they are time outs.
+*   *USB device descriptor read/64, error -62* is equally explained in 
+    [linuxquestions.org/questions/linux-hardware-18/usb-device-descriptor-read-64-error-62-a-830555](http://linuxquestions.org/questions/linux-hardware-18/usb-device-descriptor-read-64-error-62-a-830555)
+    with the additional suggestion that this is typically a hardware
+    issue.
+*   Paul Philippov in
+    [How to fix “device not accepting address” error](https://paulphilippov.com/articles/how-to-fix-device-not-accepting-address-error)
+    suggests the hardware issue may be caused by the USB over-current
+    protection when something draws too much current out of a USB port
+    and offers a workaround that seems to have helped some people… not
+    me today 😞
+*   [bbs.archlinux.org/viewtopic.php?id=265272](https://bbs.archlinux.org/viewtopic.php?id=265272)
+    suggests a different root cause: a faulty PCIe card
+    (network + bluetooth).
 
 The last of these aligns with the symptom of system freezing shortly
 after booting when the Wireless controller is not disabled.
@@ -193,7 +202,7 @@ None of the above actually show who to disable a malfunctioning USB
 device, so I tried unbind command from the
 [script to restart a USB controller](2023-08-27-xhci-host-controller-not-responding-assume-dead.md).
 
-```
+``` console
 root@(none):/# /root/restart-usb.sh 0000:05:00.1
 /root/restart-usb.sh: line 15: echo: write error: No such device
 /root/restart-usb.sh: line 17: echo: write error: No such device
@@ -226,7 +235,7 @@ booting the (recovery mode) entry directly from Grub and then
 
 This time the un/bind commands do work, although not to the desired effect:
 
-```
+``` console
 root@rapture:~# ./restart-usb.sh 0000:05:00.1
 [  103.273788] usb 1-4: device descriptor read/64, error -110
 [  119.145773] usb 1-4: device descriptor read/64, error -110
@@ -240,7 +249,7 @@ root@rapture:~#
 
 After this `lsusb` shows even less:
 
-```
+``` console
 # lsusb
 Bus 006 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 Bus 005 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
@@ -271,8 +280,7 @@ Searching for a method to **disable** a specific USB controller at
 boot time, the closest I found was to
 [disable it *upon detection* via udev rules](https://ubuntuforums.org/showthread.php?t=1161574&page=7&p=8512485#post8512485):
 
-```
-root@rapture:~# vi /etc/udev/rules.d/10-disable-dead-usb-controller.rules
+``` bash title="/etc/udev/rules.d/10-disable-dead-usb-controller.rules"
 # Disable dead USB controller.
 ATTRS{idVendor}=="1d6b", ATTRS{idProduct}=="0002", PROGRAM="/bin/sh -c 'echo -n 0000:05:00.1 > /sys/bus/pci/drivers/xhci_hcd/unbind'"
 ATTRS{idVendor}=="1d6b", ATTRS{idProduct}=="0003", PROGRAM="/bin/sh -c 'echo -n 0000:05:00.1 > /sys/bus/pci/drivers/xhci_hcd/unbind'"
@@ -375,16 +383,16 @@ without any problems.
 
 This process revealed a few things:
 
-1. My monitor
-   ([Dell UltraSharp U3421WE](https://www.bhphotovideo.com/c/product/802784522-USE/dell_ultrasharp_u3421we_34_1_21_9.html/overview))
-   has an RJ-45 port, which I never noticed until today.
-   *  When plugging it via USB, a `Realtek USB 10/100/1000 LAN`
-      shows up as interface `enx70b5e8f62f4d`.
-1. No output on the USB ports closets to the Wireless controller 🙁
-   *  Power is delivered, so at least the LED strips feeding off the
-      monitor’s USB port do work.
-1. There was no need to disable the entire USB controller
-   `0000:05:00.1`
+1.  My monitor
+    ([Dell UltraSharp U3421WE](https://www.bhphotovideo.com/c/product/802784522-USE/dell_ultrasharp_u3421we_34_1_21_9.html/overview))
+    has an RJ-45 port, which I never noticed until today.
+    *   When plugging it via USB, a `Realtek USB 10/100/1000 LAN`
+        shows up as interface `enx70b5e8f62f4d`.
+1.  No output on the USB ports closets to the Wireless controller 🙁
+    *   Power is delivered, so at least the LED strips feeding off the
+        monitor’s USB port do work.
+1.  There was no need to disable the entire USB controller
+    `0000:05:00.1`
 
 Having disabled the Wi-Fi and Bluetooth controllers in the UEFI BIOS,
 it was no longer necessary to disable the entire USB controller.
@@ -420,10 +428,10 @@ Even more interestingly, this line alone confirms the MediaTek
 wireless controller is involved, as reported in multiple forums
 over the last year or so:
 
-*  [Ubuntu 22.04 Mediatek mt7921e WiFi adaper not found](https://ubuntuforums.org/showthread.php?t=2488997) (July 2023)
-*  [Ubuntu 22.04 kernel update to 5.19 breaks Wi-Fi (mt7921e)](https://askubuntu.com/questions/1456030/ubuntu-22-04-kernel-update-to-5-19-breaks-wi-fi-mt7921e) (March 2023)
-*  [WiFi problem on MSI Bravo 15 B5DD](https://bbs.archlinux.org/viewtopic.php?id=278134) (July 2022)
-*  [MediaTek MT7921 Driver (mt7921e) keeps crashing/failing, proceeds to not be detected for the next 1-2 boots](https://discussion.fedoraproject.org/t/mediatek-mt7921-driver-mt7921e-keeps-crashing-failing-proceeds-to-not-be-detected-for-the-next-1-2-boots/71728) (July 2022)
+*   [Ubuntu 22.04 Mediatek mt7921e WiFi adaper not found](https://ubuntuforums.org/showthread.php?t=2488997) (July 2023)
+*   [Ubuntu 22.04 kernel update to 5.19 breaks Wi-Fi (mt7921e)](https://askubuntu.com/questions/1456030/ubuntu-22-04-kernel-update-to-5-19-breaks-wi-fi-mt7921e) (March 2023)
+*   [WiFi problem on MSI Bravo 15 B5DD](https://bbs.archlinux.org/viewtopic.php?id=278134) (July 2022)
+*   [MediaTek MT7921 Driver (mt7921e) keeps crashing/failing, proceeds to not be detected for the next 1-2 boots](https://discussion.fedoraproject.org/t/mediatek-mt7921-driver-mt7921e-keeps-crashing-failing-proceeds-to-not-be-detected-for-the-next-1-2-boots/71728) (July 2022)
 
 A quick check for matching lines from dmesg shows a few more:
 
@@ -435,11 +443,12 @@ A quick check for matching lines from dmesg shows a few more:
 
 Searching for that probe error yields even better results:
 
-*  [[Solved] No WiFi with the Mediatek MT7922 adapter and MT7921e driver](https://bbs.archlinux.org/viewtopic.php?id=286981) (July 2023)
-*  [[PATCH] wifi: mt76: mt7921e: Perform FLR to recovery the device](https://lore.kernel.org/lkml/20230614063252.1650824-1-kai.heng.feng@canonical.com/T/) (June 2023)
-*  [github.com/openwrt/mt76/issues/548](https://github.com/openwrt/mt76/issues/548) mt7921e: probe of 0000:02:00.0 failed with error -5 (June 2021)
-   *  A comment in July 2023 suggest updating the BIOS might help.
-*  Reddit post [What does “driver own failed” mean?](https://www.reddit.com/r/linuxquestions/comments/133b3md/what_does_driver_own_failed_mean/) (April 2023)
+*   [[Solved] No WiFi with the Mediatek MT7922 adapter and MT7921e driver](https://bbs.archlinux.org/viewtopic.php?id=286981) (July 2023)
+*   [[PATCH] wifi: mt76: mt7921e: Perform FLR to recovery the device](https://lore.kernel.org/lkml/20230614063252.1650824-1-kai.heng.feng@canonical.com/T/) (June 2023)
+*   [github.com/openwrt/mt76/issues/548](https://github.com/openwrt/mt76/issues/548)
+    mt7921e: probe of 0000:02:00.0 failed with error -5 (June 2021)
+    *   A comment in July 2023 suggest updating the BIOS might help.
+*   Reddit post [What does “driver own failed” mean?](https://www.reddit.com/r/linuxquestions/comments/133b3md/what_does_driver_own_failed_mean/) (April 2023)
 
 For now, enabling the Wi-Fi Controller on this motherboard inevitable
 crashes the system. In less than 2 minutes, more errors shoed up from
@@ -453,10 +462,19 @@ the kernel and I had to reset the PC:
 [  114.716474] mt7921e: 0000:06:00.1: HC died; cleaning up
 ```
 
-That looks like the Ethernet and probably most of the remaining USB controllers going offline. Nothing for it but to go back into the UEFI BIOS and disable the Wi-Fi Controller.
+That looks like the Ethernet and probably most of the remaining USB
+controllers going offline. Nothing for it but to go back into the
+UEFI BIOS and disable the Wi-Fi Controller.
 
-Fortunately neither the Wi-Fi nor the Bluetooth controllers were in use in the first place, or are likely to be necessary. Disabling them feels like a bit of a loss, but not nearly as much as the hassle to replace the motherboard. Besides, there is a small chance that the issue might yet be fixed by a BIOS firmware update, or a Linux kernel patch, or a benevolent fairy. Either way, I’m happy so long as everything else continues to work. May that last a really long time 😁
+Fortunately neither the Wi-Fi nor the Bluetooth controllers were in use
+in the first place, or are likely to be necessary. Disabling them feels
+like a bit of a loss, but not nearly as much as the hassle to replace
+the motherboard. Besides, there is a small chance that the issue might
+yet be fixed by a BIOS firmware update, or a Linux kernel patch, or a
+benevolent fairy. Either way, I’m happy so long as everything else
+continues to work. May that last a really long time 😁
 
-After spending the whole morning troubleshooting this, and the rest of the day writing all the above, all I want now is to play a bit of Skyrim!
+After spending the whole morning troubleshooting this, and the rest of
+the day writing all the above, all I want now is to play a bit of Skyrim!
 
-<iframe width="1920" height="1080" src="https://www.youtube.com/embed/JvImL-2AJaI?si=-N8pbDyvnBHonBb3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="1720" height="720" src="https://www.youtube.com/embed/JvImL-2AJaI?si=-N8pbDyvnBHonBb3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
