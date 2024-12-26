@@ -23,7 +23,7 @@ the one that keeps the disk readable on all major OSes.
 
 Brand new, this SSD has 2 partitions:
 
-```
+``` console
 # fdisk -l /dev/sdf
 Disk /dev/sdf: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
 Disk model: PSSD T7 Shield  
@@ -70,7 +70,7 @@ section of the LinuxHint article to
 
 Install `cryptsetup` (if not already installed):
 
-```
+``` console
 # apt install cryptsetup -y
 ```
 
@@ -78,7 +78,7 @@ The disk comes with 2 partitions but the first one is too
 small, so we replace those partitions with new ones so
 that the first one is a generous 32 GB:
 
-```
+``` console
 # fdisk -l /dev/sdf
 Disk /dev/sdf: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
 Disk model: PSSD T7 Shield  
@@ -95,7 +95,7 @@ Device        Start        End    Sectors  Size Type
 
 Format the 32 GB partition as NTFS (not encrypted):
 
-```
+``` console
 # mkfs -t ntfs /dev/sdf1
 Cluster size has been automatically set to 4096 bytes.
 Initializing device with zeroes: 100% - Done.
@@ -105,7 +105,7 @@ mkntfs completed successfully. Have a nice day.
 
 Encrypt the rest of the disk (will format later):
 
-```
+``` console
 # cryptsetup --verbose --verify-passphrase luksFormat /dev/sdf2
 
 WARNING!
@@ -120,14 +120,14 @@ Key slot 0 created.
 Command successful.
 ```
 
-```
-# sudo cryptsetup luksOpen /dev/sdf2 luks
+``` console
+# cryptsetup luksOpen /dev/sdf2 luks
 Enter passphrase for /dev/sdf2: 
 
 # ls -l /dev/mapper/luks 
 lrwxrwxrwx 1 root root 7 Nov 27 23:00 /dev/mapper/luks -> ../dm-0
 
-# sudo mkfs.ext4 /dev/mapper/luks
+# mkfs.ext4 /dev/mapper/luks
 mke2fs 1.46.5 (30-Dec-2021)
 Creating filesystem with 968361681 4k blocks and 242098176 inodes
 Filesystem UUID: bf17a8ca-56e7-4521-a9ba-2d75895251fd
@@ -145,11 +145,11 @@ Writing superblocks and filesystem accounting information: done
 Open the encrypted disk, mount the file system and setup
 permissions for the desired user/s:
 
-```
-# sudo mkdir /mnt/encrypted
-# sudo mount /dev/mapper/luks /mnt/encrypted
-# sudo touch /mnt/encrypted/file1.txt
-# sudo chown -R `whoami` /mnt/encrypted
+``` console
+# mkdir /mnt/encrypted
+# mount /dev/mapper/luks /mnt/encrypted
+# touch /mnt/encrypted/file1.txt
+# chown -R `whoami` /mnt/encrypted
 # ls -la /mnt/encrypted
 total 24
 drwxr-xr-x 3 coder root  4096 Nov 27 23:03 .
@@ -161,9 +161,9 @@ drwx------ 2 coder root 16384 Nov 27 23:01 lost+found
 Once done, umount the filesystem and *close* the
 encrypted disk:
 
-```
-# sudo umount /dev/mapper/luks
-# sudo cryptsetup luksClose luks
+``` console
+# umount /dev/mapper/luks
+# cryptsetup luksClose luks
 ```
 
 ### Everyday use
@@ -197,7 +197,7 @@ After the above setup has been working very well on the new 4TB SSD,
 it was time to apply the same to the old 2TB SSD. In this case,
 there will be only one partition, encrypted with LUKS:
 
-```
+``` console
 # fdisk /dev/sdf
 
 Welcome to fdisk (util-linux 2.37.2).
@@ -310,12 +310,12 @@ Syncing disks.
 making sure to apply the commands to the correct device, e.g.
 **`/dev/sdf1`** (not that `/dev/sdf2` would exist).
 
-```
+``` console
 # cryptsetup --verbose --verify-passphrase luksFormat /dev/sdf1
-# sudo mkdir /mnt/encrypted
-# sudo mount /dev/mapper/luks /mnt/encrypted
-# sudo touch /mnt/encrypted/file1.txt
-# sudo chown -R `whoami` /mnt/encrypted
+# mkdir /mnt/encrypted
+# mount /dev/mapper/luks /mnt/encrypted
+# touch /mnt/encrypted/file1.txt
+# chown -R `whoami` /mnt/encrypted
 # ls -la /mnt/encrypted
 total 24
 drwxr-xr-x 3 coder root  4096 Nov 27 23:03 .
@@ -327,9 +327,9 @@ drwx------ 2 coder root 16384 Nov 27 23:01 lost+found
 Once done, umount the filesystem and *close* the
 encrypted disk:
 
-```
-# sudo umount /dev/mapper/luks
-# sudo cryptsetup luksClose luks
+``` console
+# umount /dev/mapper/luks
+# cryptsetup luksClose luks
 Device luks is still in use.
 
 # umount /dev/mapper/luks
@@ -399,13 +399,14 @@ caused by unplugging the disk:
 ## Appendix
 
 Additional sources about the above setup and others to encrypt portable external disks:
-- https://opensource.com/article/21/3/encryption-luks
-- https://www.jwillikers.com/encrypt-an-external-disk-on-linux
-- https://www.wikihow.com/Encrypt-an-External-Hard-Drive-on-Linux
-- https://linux.fernandocejas.com/docs/how-to/encrypt-an-external-hard-drive
-- https://linuxhint.com/encrypt-data-usb-linux/
-- https://superuser.com/questions/1602752/encrypt-an-external-hard-drive-with-readwrite-access-on-both-windows-and-linux
-- https://forums.linuxmint.com/viewtopic.php?t=377430
-- https://theawesomegarage.com/blog/encrypt-external-hard-drives-with-linux
-- https://proton.me/blog/usb-encryption
-- https://linux.tips/tutorials/how-to-encrypt-a-usb-drive-on-linux-operating-system
+
+*   [Protect external storage with this Linux encryption system](https://opensource.com/article/21/3/encryption-luks)
+*   [jwillikers.com/encrypt-an-external-disk-on-linux](https://www.jwillikers.com/encrypt-an-external-disk-on-linux)
+*   [How to Encrypt an External Hard Drive on Linux](https://www.wikihow.com/Encrypt-an-External-Hard-Drive-on-Linux)
+*   [Encrypt an External SSD Hard Drive](https://linux.fernandocejas.com/docs/how-to/encrypt-an-external-hard-drive)
+*   [Encrypt Data on USB from Linux](https://linuxhint.com/encrypt-data-usb-linux/)
+*   [Encrypt an external hard drive with read+write access on both Windows and Linux](https://superuser.com/questions/1602752/encrypt-an-external-hard-drive-with-readwrite-access-on-both-windows-and-linux)
+*   [Encryption of external drive (Linux and Windows)](https://forums.linuxmint.com/viewtopic.php?t=377430)
+*   [Encrypt external hard drives with Linux](https://theawesomegarage.com/blog/encrypt-external-hard-drives-with-linux)
+*   [How to secure data on your external hard drives and USB peripherals](https://proton.me/blog/usb-encryption)
+*   [How to encrypt a USB Drive on Linux Operating System?](https://linux.tips/tutorials/how-to-encrypt-a-usb-drive-on-linux-operating-system)
