@@ -308,7 +308,7 @@ reload the config without restarting the server.
 To restrict access to a few (trusted) users, add them
 with their UUID to the `whitelist.json` file:
 
-``` json linenums="1" file="vi/home/k8s/minecraft-server/whitelist.json"
+``` json linenums="1" title="vi/home/k8s/minecraft-server/whitelist.json"
 [
   {
     "uuid": "____1e97-____-____-____-f7187fd7____",
