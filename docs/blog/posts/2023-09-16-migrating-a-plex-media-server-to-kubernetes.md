@@ -59,28 +59,29 @@ this one is a bit long. The sections are in the order introduced by
 
 **Notes** about highlighted lines:
 
-*  `14,49`: `1Gi` may seem excessive for the `/config` directory, but
-    with a large collection comes a large database under this directory.
-*  `19`: Local storage for Kubernetes pods goes under `/home/k8s`
-   (root partition is small, no separate `/var` partition).
-*  `34`: Local storage for audio files goes under `/home/depot`
-   (including symlinks for a few folder in a SSD).
-*  `49`: Local storage for video files goes under `/home/ssd`.
-*  `29,44,79,94`: `500Gi` may seem even more excessive, but this is not much
-   more than the storage space taken by my collections already.
-   *  124 GB are taken by my Audible library (about 350 books).
-   *  320 GB are taken by the Podcasts I’ve downloaded, most of which I treasure.
-*  `132`: the token obtained from [plex.tv/claim](https://www.plex.tv/claim/)
+*   `14,64`: `1Gi` may seem excessive for the `/config` directory,
+     but with a large collection comes a large database under this
+     directory.
+*   `19`: Local storage for Kubernetes pods goes under `/home/k8s`
+    (root partition is small, no separate `/var` partition).
+*   `34`: Local storage for audio files goes under `/home/depot`
+    (including symlinks for a few folder in a SSD).
+*   `49`: Local storage for video files goes under `/home/ssd`.
+*   `29,44,79,94`: `500Gi` may seem even more excessive, but this is not
+    much more than the storage space taken by my collections already:
+    *   124 GB are taken by my Audible library (about 350 books).
+    *   320 GB are taken by the Podcasts I’ve downloaded, most of which I treasure.
+*   `132`: the token obtained from [plex.tv/claim](https://www.plex.tv/claim/)
     ─ **expires in just 4 minutes**.
-*  `134,136`: the old Plex server was running as user plex and
-   `998` was the UID and GID assigned to it.
-*  `223,252`: this IP address comes from the range of reserved
-   when installing **MetallLB** and should be the same on both
-   services (TCP and UDP).
+*   `134,136`: the old Plex server was running as user plex and
+    `998` was the UID and GID assigned to it.
+*   `223,252`: this IP address comes from the range of reserved
+    when installing **MetallLB** and should be the same on both
+    services (TCP and UDP).
 
 ??? k8s "Kubernetes deployment: `plex-media-server.yaml`"
 
-    ``` yaml linenums="1" hl_lines="14 19 29 34 44 49 79 94 132 134 136 223 252" title="plex-media-server.yaml"
+    ``` yaml linenums="1" hl_lines="14 19 29 34 44 64 79 94 132 134 136 223 252" title="plex-media-server.yaml"
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -381,8 +382,8 @@ requires NFD ([Node Feature Discovery](https://kubernetes-sigs.github.io/node-fe
 for the Device Plugin operator, then the operator and GPU can be
 installed with their respective helm charts:
 
-*  [intel/helm-charts/charts/device-plugin-operator](https://github.com/intel/helm-charts/tree/main/charts/device-plugin-operator)
-*  [intel/helm-charts/charts/gpu-device-plugin](https://github.com/intel/helm-charts/tree/main/charts/gpu-device-plugin)
+*   [intel/helm-charts/charts/device-plugin-operator](https://github.com/intel/helm-charts/tree/main/charts/device-plugin-operator)
+*   [intel/helm-charts/charts/gpu-device-plugin](https://github.com/intel/helm-charts/tree/main/charts/gpu-device-plugin)
 
 Installing all these through the Helm charts *should* be quite easy:
 
@@ -488,10 +489,10 @@ No preemption victims found for incoming pod.
 
 There are also Helm charts, at least 2:
 
-*  [munnerz/kube-plex](https://github.com/munnerz/kube-plex) which
-   seems to be simpler
-*  [ressu/kube-plex](https://github.com/ressu/kube-plex) which is a
-   fork of [munnerz/kube-plex](https://github.com/munnerz/kube-plex)
+*   [munnerz/kube-plex](https://github.com/munnerz/kube-plex) which
+    seems to be simpler
+*   [ressu/kube-plex](https://github.com/ressu/kube-plex) which is a
+    fork of [munnerz/kube-plex](https://github.com/munnerz/kube-plex)
 
 I tried [munnerz/kube-plex](https://github.com/munnerz/kube-plex)
 only; it didn’t work.
@@ -542,8 +543,8 @@ in the new one, the next goal is to migrate the whole database from
 the old stand-alone Plex server to the new one running in Kubernetes.
 The path to each server’s database is
 
-*  `/home/depot/plexmediaserver/Library` for the old stand-alone server.
-*  `/home/k8s/plexmediaserver/Library` for the new server in Kubernetes.
+*   `/home/depot/plexmediaserver/Library` for the old stand-alone server.
+*   `/home/k8s/plexmediaserver/Library` for the new server in Kubernetes.
 
 The plan is simple: stop both servers, move the new database away, copy the old one as the new one, start the new server only.
 
@@ -612,14 +613,14 @@ to update
 [Plex Library Settings](https://support.plex.tv/articles/200289526-library/) and disable these which I don't really need,
 by setting their *frequency* to **never**:
 
-*  **Generate chapter thumbnails** seems relevant only for
-   TV series, which I don't use (or care about).
-*  **Analyze audio tracks for loudness** is clearly called out
-   as potentially CPU-intensive, and I don't think is useful
-   for podcasts, where each episode is a single track, and most
-   of the times one listens to a single one per "album". Even
-   if this *could* be useful for audiobooks, it shouldn't be
-   necessary given the rather high quality of their audio.
+*   **Generate chapter thumbnails** seems relevant only for
+    TV series, which I don't use (or care about).
+*   **Analyze audio tracks for loudness** is clearly called out
+    as potentially CPU-intensive, and I don't think is useful
+    for podcasts, where each episode is a single track, and most
+    of the times one listens to a single one per "album". Even
+    if this *could* be useful for audiobooks, it shouldn't be
+    necessary given the rather high quality of their audio.
 
 ![Plex Library Settings Disabling CPU-intensive tasks](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/lexicon-plex-settings-library.png)
 
