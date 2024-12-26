@@ -740,13 +740,13 @@ Edit
 `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`
 and add the following line to set `KUBELET_EXTRA_ARGS`:
 
-``` ini linesnum="5" title="/etc/systemd/system/kubelet.service.d/
+``` ini linenums="5" title="/etc/systemd/system/kubelet.service.d/
 Environment="KUBELET_EXTRA_ARGS=--rotate-certificates=true --rotate-server-certificates=true --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
 ```
 
 ??? k8s "Full content of `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`"
 
-    ``` ini linesnum="1" title="/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+    ``` ini linenums="1" title="/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
     # Note: This dropin only works with kubeadm and kubelet v1.11+
     [Service]
     Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"

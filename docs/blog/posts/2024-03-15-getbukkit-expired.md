@@ -21,9 +21,7 @@ I noticed there was something *big* missing: the
 [minecraft server](2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
 that normally takes over 4GB of RAM was not running:
 
-<!-- more --> 
-
-```
+``` console
 $ kubectl get all -n minecraft-server
 NAME                                   READY   STATUS             RESTARTS        AGE
 pod/minecraft-server-88f84b5fc-5kjr2   0/1     CrashLoopBackOff   152 (30s ago)   12h
@@ -43,7 +41,7 @@ $ kubectl -n minecraft-server logs minecraft-server-88f84b5fc-5kjr2
 2024/03/15 17:44:59 Unable to find an element with attribute matcher property=og:title
 [init] ERROR: failed to retrieve latest version from https://getbukkit.org/download/spigot -- site might be down
 
-$ curl  https://getbukkit.org/download/spigot
+$ curl https://getbukkit.org/download/spigot
 <!doctype html>
 <html data-adblockkey="MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_UL89QGTogxdwKHwZzilx913GmK75KOL2kLgPnkgb9dD1Tc/wjgiP2tuKwPeUMm3vEXLjUWOarjD7XgGHgmalBg==" lang="en" style="background: #2B2B2B;">
 <head>
@@ -60,6 +58,8 @@ $ curl  https://getbukkit.org/download/spigot
 </html>
 ```
 
+<!-- more --> 
+
 ### Short-term Workaround
 
 The server fails to start because it bails out when it
@@ -71,7 +71,7 @@ as explained in
 [Issue #2521](https://github.com/itzg/docker-minecraft-server/issues/2521):
 *Updated Bukkit download URL https://getbukkit.org/get/*
 
-```yaml
+``` yaml linenums="82" title="minecraft-server.yaml"
           env:
             - name: EULA
               value: "TRUE"
@@ -85,7 +85,7 @@ as explained in
 
 Reapplying the deployment brings the server back up.
 
-```
+``` console
 $ kubectl apply -f minecraft-server.yaml
 ```
 
@@ -107,7 +107,7 @@ This should be a simple as changing the `TYPE` value,
 since Paper also supports [GeyserMC](https://geysermc.org/)
 (to allows Bedrock clients to join Java servers).
 
-```yaml
+``` yaml linenums="82" title="minecraft-server.yaml"
           env:
             - name: EULA
               value: "TRUE"
@@ -121,7 +121,7 @@ Applying this changes the replicaset, brings RAM usage
 down from 5.14 GB to 2.69 GB, but also shows the
 Geyser plugin fails to load:
 
-```
+``` console
 $ kubectl apply -f minecraft-server.yaml
 namespace/minecraft-server unchanged
 service/minecraft-server unchanged
@@ -367,7 +367,7 @@ server is restarted it will automatically update them.
 
 This time, the Geyser plugin starts successfully:
 
-```
+``` console
 $ minecraft-stop-k8s && sleep 10 && minecraft-start-k8s
 deployment.apps "minecraft-server" deleted
 remote: Enumerating objects: 5, done.
@@ -418,8 +418,8 @@ clients, the correct (UDP) port is **32132**.
 With the Spigot server, to send commands to the server the scripts were sending
 those via a pipeline. With the Paper server, this no longer works:
 
-```
-kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console "say hi"
+``` console
+$ kubectl -n minecraft-server exec deploy/minecraft-server -- mc-send-to-console "say hi"
 ERROR: console pipe needs to be enabled by setting CREATE_CONSOLE_IN_PIPE to true
 ERROR: named pipe /tmp/minecraft-console-in is missing
 command terminated with exit code 1
@@ -431,7 +431,7 @@ There seems to be nothing about `CREATE_CONSOLE_IN_PIPE` but there is
 [the recommendation](https://github.com/itzg/docker-minecraft-server/issues/2485#issuecomment-1807339110)
 is to use `rcon-cli` instead:
 
-```
+``` console
 $ kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli "say hi"
 ```
 
@@ -453,23 +453,39 @@ This *should* be fine since the node has a total of 32 GB.
 
 *We recommend using at least 6-10GB, no matter how few players! If you can't afford 10GB of memory, give as much as you can, but ensure you leave the operating system some memory too. G1GC operates better with more memory.*
 
-```sh
-java -Xms10G -Xmx10G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 
--XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch 
--XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M 
--XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 
--XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 
--XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem 
--XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs 
--Daikars.new.flags=true -jar paper.jar --nogui
+``` bash
+java \
+    -Xms10G \
+    -Xmx10G \
+    -XX:+UseG1GC \
+    -XX:+ParallelRefProcEnabled \
+    -XX:MaxGCPauseMillis=200 \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+DisableExplicitGC \
+    -XX:+AlwaysPreTouch \
+    -XX:G1NewSizePercent=30 \
+    -XX:G1MaxNewSizePercent=40 \
+    -XX:G1HeapRegionSize=8M \
+    -XX:G1ReservePercent=20 \
+    -XX:G1HeapWastePercent=5 \
+    -XX:G1MixedGCCountTarget=4 \
+    -XX:InitiatingHeapOccupancyPercent=15 \
+    -XX:G1MixedGCLiveThresholdPercent=90 \
+    -XX:G1RSetUpdatingPauseTimePercent=5 \
+    -XX:SurvivorRatio=32 \
+    -XX:+PerfDisableSharedMem \
+    -XX:MaxTenuringThreshold=1 \
+    -Dusing.aikars.flags=https://mcflags.emc.gs \
+    -Daikars.new.flags=true \
+    -jar paper.jar \
+    --nogui
 ```
 
 The RAM allocation flags `-Xms10G -Xmx10G` are already
 set from the `MEMORY` variable in the deployment:
 
-```yaml
+``` yaml linenums="82" title="minecraft-server.yaml"
           env:
-            ...
             - name: MEMORY
               value: 10G
 ```
@@ -478,7 +494,7 @@ Other `XX` flags must be set via the `env` variable
 `JVM_XX_OPTS` in the deployment, as explained in
 [Variables > General options](https://docker-minecraft-server.readthedocs.io/en/latest/variables/#general-options):
 
-```yaml
+``` yaml linenums="82" title="minecraft-server.yaml"
           env:
             - name: MEMORY
               value: 10G
@@ -524,7 +540,7 @@ dropping it under
 `/home/k8s/minecraft-server/plugins/` (not `update`),
 and then restarting the server:
 
-```
+``` console
 $ minecraft-stop-k8s && sleep 10 && \
   minecraft-start-k8s && sleep 20 && \
   minecraft-logs
@@ -560,7 +576,7 @@ users logging via Floodgate; this is important to use with server commands:
 
 To send a command for this user, the `.` must be in front of the username:
 
-```
+``` console
 $ kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli "gamemode survival Isa________45"
 No player was found
 
@@ -577,7 +593,7 @@ Once again, download the latest version,
 drop it under `/home/k8s/minecraft-server/plugins/` 
 and restart the server:
 
-```
+``` console
 $ minecraft-stop-k8s && sleep 10 && \
   minecraft-start-k8s && sleep 20 && \
   minecraft-logs
@@ -613,7 +629,7 @@ Plugins can also be defined installed by simply adding
 their download URLs in the `PLUGINS` variable from, as in
 [/examples/geyser/docker-compose.yml](https://github.com/itzg/docker-minecraft-server/blob/master/examples/geyser/docker-compose.yml):
 
-```yaml
+``` yaml linenums="82" title="minecraft-server.yaml"
           env:
             - name: EULA
               value: "TRUE"
