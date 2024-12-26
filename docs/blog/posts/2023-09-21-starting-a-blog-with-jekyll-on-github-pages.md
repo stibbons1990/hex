@@ -14,15 +14,17 @@ namely [WordPress.com](https://wordpress.com) and [Blogger](https://blogger.com)
 
 Each have their pros and cons, but to cut a story short:
 
-*  [WordPress.com](https://wordpress.com) is quick’n’easy to setup, 
-   but the editor gets painfully slow with long (and not really all that long)
-   articles, themes are very limited and can’t be customized.
-   *  On the plus side, its *code highlight* block is quite neat.
-*  [Blogger](https://blogger.com) is also quick’n’easy to setup, the editor works well
-   enough, allows editing most of the content as HTML and then uploading images
-   *and videos*, and themes are fully customizable (can be edited raw).
-   *  On the **huge** downside, it will unpublish, block or remove posts
-      *even entire blogs*, and there seems to be no way to appeal.
+*   [WordPress.com](https://wordpress.com) is quick’n’easy to setup,
+    but the editor gets painfully slow with long (and not really all that long) articles, themes are very limited and can’t be
+    customized.
+    *   On the plus side, its *code highlight* block is quite neat.
+*   [Blogger](https://blogger.com) is also quick’n’easy to setup,
+    the editor works well enough, allows editing most of the content
+    as HTML and then uploading images *and videos*, and themes are
+    fully customizable (can be edited raw).
+    *   On the **huge** downside, it will unpublish, block or remove
+        posts *even entire blogs*, and there seems to be no way to
+        appeal.
 
 <!-- more --> 
 
@@ -42,7 +44,7 @@ Anyway, setup was also *relatively* quick'n'easy:
    [stibbons1990.github.io/hex][stibbons1990.io/hex].
 3. [Install Jekyll on Ubuntu][jekyllrb-installation-ubuntu] (including Ruby):
    ``` console
-   $ sudo apt-get install ruby-full build-essential zlib1g-dev
+   $ sudo apt install -y ruby-full build-essential zlib1g-dev
    $ echo '# Install Ruby Gems to ~/gems' >> ~/.bashrc
    $ echo 'export GEM_HOME="$HOME/gems"' >> ~/.bashrc
    $ echo 'export PATH="$HOME/gems/bin:$PATH"' >> ~/.bashrc
@@ -52,7 +54,8 @@ Anyway, setup was also *relatively* quick'n'easy:
    Done installing documentation for bundler after 0 seconds
    28 gems installed
    ```
-4. Follow up to steps **7** trough 13 (1-6 involve the creation a repo, already done) of [Creating your site][creating-your-site]:
+4. Follow up to steps **7** through 13 (1-6 involve the creation a
+   repo, already done) of [Creating your site][creating-your-site]:
    ``` console
    $ jekyll new --skip-bundle . --force
    New jekyll site installed in /home/k8s/code-server/hex. 
@@ -81,12 +84,16 @@ Anyway, setup was also *relatively* quick'n'easy:
 6. After a few minutes, the new blog is live at
    [stibbons1990.github.io/hex][stibbons1990.io/hex].
 
-**Notes**:
-   *  After `git push` it takes a few minutes for GitHub to generate the
-      content. Check out the latest [actions](https://github.com/stibbons1990/hex/actions/) to see its progress.
-   *  If the new repository has *any* files in it (e.g `LICENSE`),
-     `jekyll` will report a conflict and ask that the directory be empty
-     *or else try again with `--force` to proceed and overwrite any files.*
+!!! note **Notes**
+
+    *   After `git push` it takes a few minutes for GitHub to generate
+        the content. Check out the latest
+        [actions](https://github.com/stibbons1990/hex/actions/)
+        to see its progress.
+    *   If the new repository has *any* files in it (e.g `LICENSE`),
+        `jekyll` will report a conflict and ask that the directory be
+        empty *or else try again with `--force` to proceed and
+        overwrite any files.*
 
 ## Local Testing on PC
 
@@ -274,7 +281,10 @@ To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
 Finally, we can tweak the theme's [configuration](https://mmistakes.github.io/minimal-mistakes/docs/configuration/), e.g. adding to `_config.yml` the following line to set a
 different *skin*:
 
-``` yaml linenums="1" title="_config.yml"
+``` yaml linenums="31" hl_lines="34" title="_config.yml"
+# Build settings
+# theme: minima
+remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 minimal_mistakes_skin: "neon"
 ```
 
