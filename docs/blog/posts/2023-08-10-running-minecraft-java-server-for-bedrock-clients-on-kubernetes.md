@@ -25,7 +25,7 @@ Always run Minecraft servers under their own dedicated,
 non-privileged user. Create also a dedicated directory
 in the partition with plenty of space available:
 
-```
+``` console
 # useradd minecraft
 # mkdir /home/k8s/minecraft-server
 # chown -R minecraft.minecraft /home/k8s/minecraft-server
@@ -49,107 +49,110 @@ Create and apply the deployment in
 docker image (GitHub:
 [itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server)):
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: minecraft-server
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: minecraft-server
-  namespace: minecraft-server
-spec:
-  type: NodePort
-  ports:
-    - name: java-tcp
-      port: 25565
-      nodePort: 32565
-      targetPort: 25565
-      protocol: TCP
-    - name: bedrock-udp
-      port: 19132
-      nodePort: 32132
-      targetPort: 19132
-      protocol: UDP
-  selector:
-    app: minecraft-server
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: minecraft-server-pv
-  labels:
-    type: local
-  namespace: minecraft-server
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/k8s/minecraft-server
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: minecraft-server-pv-claim
-  namespace: minecraft-server
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 30Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: minecraft-server
-  name: minecraft-server
-  namespace: minecraft-server
-spec:
-  selector:
-    matchLabels:
-      app: minecraft-server
-  template:
+??? k8s "Kubernetes deployment: `minecraft-server.yaml`"
+
+    ``` yaml linenums="1" title="minecraft-server.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: minecraft-server
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: minecraft-server
+      namespace: minecraft-server
+    spec:
+      type: NodePort
+      ports:
+        - name: java-tcp
+          port: 25565
+          nodePort: 32565
+          targetPort: 25565
+          protocol: TCP
+        - name: bedrock-udp
+          port: 19132
+          nodePort: 32132
+          targetPort: 19132
+          protocol: UDP
+      selector:
+        app: minecraft-server
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: minecraft-server-pv
+      labels:
+        type: local
+      namespace: minecraft-server
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 100Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/minecraft-server
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: minecraft-server-pv-claim
+      namespace: minecraft-server
+    spec:
+      storageClassName: manual
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 30Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: minecraft-server
+      name: minecraft-server
+      namespace: minecraft-server
     spec:
-      volumes:
-        - name: minecraft-server-storage
-          persistentVolumeClaim:
-            claimName: minecraft-server-pv-claim
-      containers:
-        - image: itzg/minecraft-server
-          imagePullPolicy: Always
-          name: minecraft-server
-          ports:
-            - containerPort: 25565
-          env:
-            - name: EULA
-              value: "TRUE"
-            - name: TYPE
-              value: SPIGOT
-            - name: MEMORY
-              value: 4G
-          volumeMounts:
-            - mountPath: /data
-              name: minecraft-server-storage
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsUser: 1003
-            runAsGroup: 1003
-```
+      selector:
+        matchLabels:
+          app: minecraft-server
+      template:
+        metadata:
+          labels:
+            app: minecraft-server
+        spec:
+          volumes:
+            - name: minecraft-server-storage
+              persistentVolumeClaim:
+                claimName: minecraft-server-pv-claim
+          containers:
+            - image: itzg/minecraft-server
+              imagePullPolicy: Always
+              name: minecraft-server
+              ports:
+                - containerPort: 25565
+              env:
+                - name: EULA
+                  value: "TRUE"
+                - name: TYPE
+                  value: SPIGOT
+                - name: MEMORY
+                  value: 4G
+              volumeMounts:
+                - mountPath: /data
+                  name: minecraft-server-storage
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 1003
+                runAsGroup: 1003
+    ```
 
-**Note:** to make the server accessible to clients,
-the above `NodePort` is required for each the Java and
-Bedrock protols separately:
+!!! note
+
+    To make the server accessible to clients, the above `NodePort`
+    is required for each the Java and Bedrock protols separately:
 
 *  The Java server listens on **TCP** port 25565, the
    cluster exposes the server to the local network as
@@ -164,7 +167,7 @@ forwarding rules in the local router.
 Once the deployment is applied, confirm everything is
 running and check the logs:
 
-```
+``` console
 $ kubectl apply -f minecraft-server.yaml
 namespace/minecraft-server unchanged
 service/minecraft-server unchanged
@@ -228,7 +231,7 @@ be of type `SPIGOT`.
 
 Install from latest binary release:
 
-```
+``` console
 # su minecraft -c "wget -O /home/k8s/minecraft-server/plugins/Geyser-Spigot.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot"
 # ls -hal /home/k8s/minecraft-server/plugins/
 total 14M
@@ -248,7 +251,7 @@ can be run in the container.
 No need to get the full name of the current pod, which
 changes when deployment restarts:
 
-```
+``` console
 $ kubectl -n minecraft-server \
   exec deploy/minecraft-server \
    -- rcon-cli difficulty peaceful
@@ -263,10 +266,11 @@ With this, one can `reload` the configurations (e.g.
 `server.properties`) or even `restart` the whole Java
 server without restarting the pod or deployment.
 
-**Warning: do not** try attaching to the TTY of the
-container.
+!!! warning
 
-```
+    **Do not** try attaching to the TTY of the container.
+
+``` console
 $ kubectl -n minecraft-server get pods
 NAME                                READY   STATUS    RESTARTS       AGE
 minecraft-server-b89954df9-t9dxg   1/1     Running   2 (112s ago)   2m21s
@@ -287,7 +291,7 @@ and `tty` options are not a good idea.
 To adjust server-wide or default settings, edit the
 `server.properties` file and reload it, e.g.
 
-```
+``` console
 # su minecraft -c "vi /home/k8s/minecraft-server/server.properties"
 gamemode=creative
 motd=Be good
@@ -304,8 +308,7 @@ reload the config without restarting the server.
 To restrict access to a few (trusted) users, add them
 with their UUID to the `whitelist.json` file:
 
-```js
-# su minecraft -c "vi /home/k8s/minecraft-server/whitelist.json"
+``` json linenums="1" file="vi/home/k8s/minecraft-server/whitelist.json"
 [
   {
     "uuid": "____1e97-____-____-____-f7187fd7____",
@@ -320,7 +323,7 @@ with their UUID to the `whitelist.json` file:
 
 To find users’ UUID, check the server’s logs:
 
-```
+``` console
 # grep -i uuid /home/k8s/minecraft-server/logs/latest.log 
 [14:35:10] [User Authenticator #2/INFO]: UUID of player L________a is ____1e97-____-____-____-f7187fd7____
 [14:44:06] [User Authenticator #3/INFO]: UUID of player M________t is ____41f4-____-____-____-de0061cf____
@@ -331,8 +334,7 @@ effective, but first must activate the whitelist by
 setting the following values in
 `/home/k8s/minecraft-server/server.properties`
 
-```js
-# su minecraft -c "vi /home/k8s/minecraft-server/server.properties"
+``` ini linenums="1" title="/home/k8s/minecraft-server/server.properties"
 white-list=true
 enforce-whitelist=true
 ```
@@ -342,7 +344,7 @@ reload the config without restarting the server.
 
 If restarting *the whole server* becomes necessary:
 
-```
+``` console
 $ kubectl rollout restart \
   deployment/minecraft-server -n minecraft-server
 ```
@@ -362,7 +364,7 @@ the `root` user in the node. The following scripts
 creates one full backup per hour, so that even within a
 single day multiple backups are available to restore:
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 minecraft_server_cmd () {
   su coder -c "kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*"
@@ -381,7 +383,7 @@ minecraft_server_cmd "say Backup complete."
 Put this script in a dedicated directory for the backups
 and run it every hour with `crontab`:
 
-```
+``` console
 # mkdir /home/k8s/minecraft-server-backups
 # vi /home/k8s/minecraft-server-backups/backup.sh
 # crontab -e
@@ -400,10 +402,12 @@ Find the [`minecraft-start-k8s`](#minecraft-start-k8s)
 and [`minecraft-stop-k8s`](#minecraft-stop-k8s)
 script in the [Appendix](#appendix-more-server-commands) below.
 
-**Note:** these commands must be run as the user who has
-[the credentials to run `kubectl`](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#bootstrap):
+!!! note 
 
-```
+    These commands must be run as the user who has
+    [the credentials to run `kubectl`](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#bootstrap):
+
+``` console
 $ crontab -e
 10  6 * * *   /home/coder/bin/minecraft-start-k8s
 30 22 * * *   /home/coder/bin/minecraft-stop-k8s
@@ -418,7 +422,7 @@ The next time the server starts, a new
 `/home/k8s/minecraft-server/world` folder will 
 be created with *a whole new world*.
 
-```
+``` console
 # /home/coder/bin/minecraft-stop-k8s
 # mv /home/k8s/minecraft-server/world \
   /home/k8s/minecraft-server/old_world
@@ -432,7 +436,7 @@ be created with *a whole new world*.
 The `minecraft-server-fortune` script ...
 
 {% raw %}
-```bash title="minecraft-server-fortune"
+``` bash linenums="1" title="minecraft-server-fortune"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -457,7 +461,7 @@ minecraft_server_cmd "say $fortune"
 The `minecraft-server-kick` script will `kick` the user
 that is passed as argument:
 
-```bash
+``` bash linenums="1" title="minecraft-server-kick"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -471,7 +475,7 @@ minecraft_server_cmd "kick $1"
 The `minecraft-server-make-creative` script changes the
 server into creative mode.
 
-```bash
+``` bash linenums="1" title="minecraft-server-make-creative"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -487,7 +491,7 @@ minecraft_server_cmd "difficulty peaceful"
 The `minecraft-server-make-survival` script changes the
 server into survival mode.
 
-```bash
+``` bash linenums="1" title="minecraft-server-make-survival"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -503,7 +507,7 @@ minecraft_server_cmd "difficulty normal"
 The `minecraft-server-say-shutdown` script shuts the
 server down (necessary before making a backup).
 
-```bash
+``` bash linenums="1" title="minecraft-server-say-shutdown"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -517,7 +521,7 @@ minecraft_server_cmd "say WARNING: server WILL SHUT DOWN in $time"
 The `minecraft-server-tp-l--------a-m--------t` script
 *teleports* (`tp`) a certain user wher the other one is.
 
-```bash
+``` bash linenums="1" title="minecraft-server-tp-l--------a-m--------t"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -526,12 +530,12 @@ minecraft_server_cmd () {
 minecraft_server_cmd "tp L________a M________t"
 ```
 
-### `minecraft-server-tp-S-----------e-m--------t`
+### `minecraft-server-tp-l--------a-m--------t`
 
 The `minecraft-server-tp-S-----------e-m--------t` script 
 *teleports* (`tp`) a certain user wher the other one is.
 
-```bash
+``` bash linenums="1" title="minecraft-server-tp-l--------a-m--------t"
 #!/bin/bash
 minecraft_server_cmd () {
   kubectl -n minecraft-server exec deploy/minecraft-server -- rcon-cli $*
@@ -545,7 +549,7 @@ minecraft_server_cmd "tp S______________1 M________t"
 The `minecraft-start-k8s` script starts the server by
 applying the deployment.
 
-```bash
+``` bash linenums="1" title="minecraft-start-k8s"
 #!/bin/bash
 
 cd /home/coder/head/lexicon-deployments
@@ -558,7 +562,7 @@ kubectl apply -f minecraft-server.yaml
 The `minecraft-stop-k8s` script stops the server by
 removing the deployment.
 
-```bash
+``` bash linenums="1" title="minecraft-stop-k8s"
 #!/bin/bash
 
 kubectl delete -n minecraft-server deployment minecraft-server
@@ -569,10 +573,9 @@ kubectl delete -n minecraft-server deployment minecraft-server
 The `minecraft-logs` script shows server logs as they are
 produces (with `-f`).
 
-```bash
+``` bash linenums="1" title="minecraft-logs"
 #!/bin/bash
 
 pod=$(kubectl get pods -n minecraft-server | grep '1/1' | awk '{print $1}')
 kubectl -n minecraft-server logs -f "${pod}"
 ```
-
