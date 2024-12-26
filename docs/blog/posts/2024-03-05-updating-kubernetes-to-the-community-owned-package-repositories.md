@@ -109,7 +109,12 @@ Downgraded to 1.26 but that was not enough.
 # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key \
   | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 # apt update
-# apt-get install --reinstall --allow-downgrades cri-tools=1.26.0-1.1 kubelet=1.26.3-1.1 kubectl=1.26.3-1.1 kubeadm=1.26.3-1.1
+# apt-get install --reinstall \
+  --allow-downgrades \
+  cri-tools=1.26.0-1.1 \
+  kubelet=1.26.3-1.1 \
+  kubectl=1.26.3-1.1 \
+  kubeadm=1.26.3-1.1
 Reading package lists... Done
 Building dependency tree... Done
 Reading state information... Done
