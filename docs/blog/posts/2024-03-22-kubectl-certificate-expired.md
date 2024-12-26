@@ -783,10 +783,10 @@ $ kubectl certificate approve csr-dlcf6
 
 References:
 
-- https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/
-- https://devopstales.github.io/kubernetes/k8s-cert/
-- https://kubernetes.io/docs/tasks/tls/certificate-rotation/
-- https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs
+- [Certificate Management with kubeadm](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/)
+- [Kubernetes Certificate Rotation](https://devopstales.github.io/kubernetes/k8s-cert/)
+- [Configure Certificate Rotation for the Kubelet](https://kubernetes.io/docs/tasks/tls/certificate-rotation/)
+- [Enabling signed kubelet serving certificates](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs)
 
 ## Time To Upgrade Maybe
 
