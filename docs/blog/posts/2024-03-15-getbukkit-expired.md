@@ -121,7 +121,7 @@ Applying this changes the replicaset, brings RAM usage
 down from 5.14 GB to 2.69 GB, but also shows the
 Geyser plugin fails to load:
 
-``` console
+``` console hl_lines="70-87"
 $ kubectl apply -f minecraft-server.yaml
 namespace/minecraft-server unchanged
 service/minecraft-server unchanged
