@@ -32,7 +32,7 @@ from the old days before I got wireless headphones.
 The first question is whether the soundcard for that
 connector is supported and detected by the kernel:
 
-```
+``` console
 # dmesg | egrep -i 'audio|sound|snd' | grep -vi hdmi
 [    8.525267] snd_hda_intel 0000:00:1f.3: DSP detected with PCI class/subclass/prog-if info 0x040380
 [    8.525325] snd_hda_intel 0000:00:1f.3: enabling device (0000 -> 0002)
@@ -56,7 +56,7 @@ looks like the one we want, but how do we record?
 I search for a while how to do this without ALSA or
 Pulseadio, but in the end gave in to ALSA:
 
-```
+``` console
 # apt install alsa-utils -y
 # arecord -L | grep -C1 'HDA Intel'
 hw:CARD=PCH,DEV=0
@@ -120,7 +120,7 @@ surround71:CARD=PCH,DEV=0
 To **list** the available input devices capable of
 capturing (recording) audio:
 
-```
+``` console
 # arecord -l
 **** List of CAPTURE Hardware Devices ****
 card 0: PCH [HDA Intel PCH], device 0: ALC256 Analog [ALC256 Analog]
@@ -133,7 +133,7 @@ card 1: S7 [SteelSeries Arctis 7], device 0: USB Audio [USB Audio]
 
 To record from the microphone in the onboard jack:
 
-```
+``` console
 # arecord \
   -D plughw:1,0 \
   -f S16_LE /tmp/test__.wav
@@ -143,7 +143,7 @@ Recording WAVE '/tmp/test__.wav' : Signed 16 bit Little Endian, Rate 8000 Hz, Mo
 
 To record from the microphone in the USB headphones:
 
-```
+``` console
 # arecord \
   -D plughw:CARD=S7,DEV=1 \
   -f S16_LE /tmp/test_S7_1.wav
@@ -166,7 +166,7 @@ used otherwise. This begin a common
 [Logitec C920 HD Pro](https://www.logitech.com/en-ch/products/webcams/c920-pro-hd-webcam.960-001055.html),
 it is well supported:
 
-```
+``` console
 [204236.991023] usb 3-2: new high-speed USB device number 4 using xhci_hcd
 [204237.709488] usb 3-2: New USB device found, idVendor=046d, idProduct=0892, bcdDevice= 0.19
 [204237.709496] usb 3-2: New USB device strings: Mfr=0, Product=2, SerialNumber=1
@@ -185,7 +185,7 @@ it is well supported:
 
 Once again, list capture capable devices and record:
 
-```
+``` console
 # arecord -l
 **** List of CAPTURE Hardware Devices ****
 card 0: PCH [HDA Intel PCH], device 0: ALC256 Analog [ALC256 Analog]
@@ -205,7 +205,7 @@ the capture volume, but not too much (needed to try a few
 values to find a good one). More importantly, use `-f cd` to
 capture audio in a better format:
 
-```
+``` console
 # amixer -c1 set Mic 70%
 Simple mixer control 'Mic',0
   Capabilities: cvolume cvolume-joined cswitch cswitch-joined
@@ -231,10 +231,11 @@ This example from
 [the `arecord(1)` man page](https://linux.die.net/man/1/arecord)
 shows how to record indefinitely with a new file per hour:
 
-> **`arecord -f cd -t wav --max-file-time 3600 --use-strftime %Y/%m/%d/listen-%H-%M-%v.wav`**  
+> `arecord -f cd -t wav --max-file-time 3600 --use-strftime %Y/%m/%d/listen-%H-%M-%v.wav`
+>
 > Record in stereo from the default audio source. Create a new file every hour. The files are placed in directories based on their start dates and have names which include their start times and file numbers.
 
-```
+``` console
 # arecord \
   -f cd \
   -t wav \
@@ -254,7 +255,7 @@ running and making sure it starts again after each reboot.
 
 1. Create the script `/root/bin/record-hourly` to run `arecord`
 
-    ```bash
+    ``` bash linenums="1" title="record-hourly"
     #!/bin/bash
     D=/home/depot/audio/Hourly
     mkdir -p $D
@@ -268,7 +269,7 @@ running and making sure it starts again after each reboot.
 2. Create a service to run it on startup:
    `/etc/systemd/system/record-hourly.service`
 
-    ```systemd
+    ``` ini linenums="1" title="record-hourly.service"
     [Unit]
     Description=Audio Recording
     After=influxd.service
@@ -286,7 +287,7 @@ running and making sure it starts again after each reboot.
 
 3. Load and start the new service
 
-    ```
+    ``` console
     # systemctl daemon-reload
     # systemctl enable record-hourly.service
     Created symlink /etc/systemd/system/multi-user.target.wants/record-hourly.service → /etc/systemd/system/record-hourly.service.
@@ -296,7 +297,7 @@ running and making sure it starts again after each reboot.
 4. Run a daily job to generate spectrograms
    from recordings, running `wav-to-png` as:
 
-    ```bash
+    ``` bash linenums="1" title="wav-to-png"
     #!/bin/bash
     for w in $*; do
       png=${w/wav/png}
@@ -307,7 +308,7 @@ running and making sure it starts again after each reboot.
 5. Run a daily job to remove recordings older than 3 days,
    e.g. as `clean-up-recordings`
 
-    ```bash
+    ``` bash linenums="1" title="clean-up-recordings"
     #!/bin/bash
     D=/home/depot/audio/Hourly
     test -d $D || exit 1
