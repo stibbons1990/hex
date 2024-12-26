@@ -15,9 +15,7 @@ The regular user is unable to connect to the Kubernetes API
 server because the x509 certificate expired on
 2024-03-21T21:37:37Z (nearly 24 hours ago):
 
-<!-- more --> 
-
-```
+``` console
 $ kubectl get all -n minecraft-server
 E0322 20:57:59.141510 3545623 memcache.go:265] couldn't get current server API group list: Get "https://10.0.0.6:6443/api?timeout=32s": tls: failed to verify certificate: x509: certificate has expired or is not yet valid: current time 2024-03-22T20:57:59+01:00 is after 2024-03-21T21:37:37Z
 E0322 20:57:59.143467 3545623 memcache.go:265] couldn't get current server API group list: Get "https://10.0.0.6:6443/api?timeout=32s": tls: failed to verify certificate: x509: certificate has expired or is not yet valid: current time 2024-03-22T20:57:59+01:00 is after 2024-03-21T21:37:37Z
@@ -27,11 +25,13 @@ E0322 20:57:59.148895 3545623 memcache.go:265] couldn't get current server API g
 Unable to connect to the server: tls: failed to verify certificate: x509: certificate has expired or is not yet valid: current time 2024-03-22T20:57:59+01:00 is after 2024-03-21T21:37:37Z
 ```
 
+<!-- more --> 
+
 OTOH the `root` user is trying to connect to the wrong port
 (**8443** instead of **6443**) and hitting instead the
 UniFi server.
 
-```
+``` console
 # kubectl get all -n minecraft-server
 E0322 20:59:13.297860 3571458 memcache.go:265] couldn't get current server API group list: Get "https://localhost:8443/api": tls: failed to verify certificate: x509: certificate is valid for UniFi, not localhost
 E0322 20:59:13.300723 3571458 memcache.go:265] couldn't get current server API group list: Get "https://localhost:8443/api": tls: failed to verify certificate: x509: certificate is valid for UniFi, not localhost
@@ -43,7 +43,7 @@ Unable to connect to the server: tls: failed to verify certificate: x509: certif
 
 This happens to `root` because it is missing `.kube/config`:
 
-```
+``` console
 # kubectl config view
 apiVersion: v1
 clusters: null
@@ -81,7 +81,7 @@ users:
 
 The Kubelet config has not changed in about a year:
 
-```
+``` console
 # ls -l /etc/kubernetes/kubelet.conf 
 -rw------- 1 root root 1960 Mar 22  2023 /etc/kubernetes/kubelet.conf
 
@@ -120,13 +120,13 @@ lrwxrwxrwx 1 root root   59 Jan 15 16:44 kubelet-client-current.pem -> /var/lib/
 ```
 
 A search for
-[*kubectl "couldn't get current server API group list" "tls: failed to verify certificate: x509: certificate has expired or is not yet valid"*]/(https://www.google.com/search?q=kubectl+%22couldn%27t+get+current+server+API+group+list%22+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22&oq=kubectl+%22couldn%27t+get+current+server+API+group+list%22+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22)
+[*kubectl "couldn't get current server API group list" "tls: failed to verify certificate: x509: certificate has expired or is not yet valid"*](https://www.google.com/search?q=kubectl+%22couldn%27t+get+current+server+API+group+list%22+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22&oq=kubectl+%22couldn%27t+get+current+server+API+group+list%22+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22)
 returns a single result, which doesn't help.
 
 [Unable to connect to the server GKE/GCP x509: certificate has expired or is not yet valid](https://stackoverflow.com/questions/77528050/unable-to-connect-to-the-server-gke-gcp-x509-certificate-has-expired-or-is-not)
 *claims* that running `hwclock -s` helped, but it didn't
 
-```
+``` console
 # date -R
 Fri, 22 Mar 2024 21:12:39 +0100
 # hwclock -s
@@ -143,7 +143,7 @@ System clock synchronized: no
 ```
 
 A search for *just*
-[*kubectl "tls: failed to verify certificate: x509: certificate has expired or is not yet valid"*]/(https://www.google.com/search?q=kubectl+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22&oq=kubectl+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22)
+[*kubectl "tls: failed to verify certificate: x509: certificate has expired or is not yet valid"*](https://www.google.com/search?q=kubectl+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22&oq=kubectl+%22tls%3A+failed+to+verify+certificate%3A+x509%3A+certificate+has+expired+or+is+not+yet+valid%22)
 returns more results, including a few that finally offer
 hints in the right direction.
 
@@ -152,7 +152,7 @@ hints in the right direction.
 was created *exactly a little* over one year ago,
 on Mar 22, **2023**:
 
-```
+``` console
 # ls -l /etc/kubernetes/kubelet.conf 
 -rw------- 1 root root 1960 Mar 22  2023 /etc/kubernetes/kubelet.conf
 ```
@@ -168,7 +168,7 @@ and a more digestiable answer in Server Fault:
 
 Indeed that is the non-rotateable certificate that expired:
 
-```
+``` console
 # ls -l /var/lib/kubelet/pki/kubelet.crt 
 -rw-r--r-- 1 root root 2246 Mar 22  2023 /var/lib/kubelet/pki/kubelet.crt
 
@@ -189,7 +189,7 @@ seem to suggest one can *simply* run
 `kubeadm certs renew` to renew specific certificate or,
 with the subcommand `all`, renew all of them:
 
-```
+``` console
 # kubeadm certs renew all
 ```
 
@@ -198,14 +198,14 @@ certificate into `$HOME/.kube/config`. On such a system,
 to update the contents of `$HOME/.kube/config` after
 renewing the `admin.conf`, run the following commands:
 
-```
-$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+``` console
+# cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 Before running `kubeadm certs renew all`:
 
-```
+``` console
 # kubeadm certs check-expiration
 [check-expiration] Reading configuration from the cluster...
 [check-expiration] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
@@ -232,7 +232,6 @@ front-proxy-ca          Mar 19, 2033 21:37 UTC   8y              no
 YouTube video
 [unable to connect to the Server and having x509 certificate has expired issue](https://youtu.be/SJIhDu4CckI?si=rY5rUUdRbggD91WJ&t=692)
 by [Cyber Legum](https://www.youtube.com/@cyberlegum)
-(@cyberlegum ‧ 776 suscriptores ‧ 37 vídeos)
 show that that `kubeadm certs renew all` does indeed renew
 all the certificates, and that it then requires restarting
 the 4 components (), which the video doesn't quite show. 
@@ -241,7 +240,7 @@ the 4 components (), which the video doesn't quite show.
 also does not say exactly *how* one should *restart the control plane Pods*,
 there seem to be 2 ways:
 
-```
+``` console
 # kubectl -n kube-system delete pod -l 'component=kube-apiserver'
 # kubectl -n kube-system delete pod -l 'component=kube-controller-manager'
 # kubectl -n kube-system delete pod -l 'component=kube-scheduler'
@@ -252,20 +251,20 @@ which would require copying again:
 
 `.kube/config`:
 
-```
+``` console
 # cp /etc/kubernetes/admin.conf .kube/config
 ```
 
 Or possibly just reload and restart `kubelet` with:
 
-```
+``` console
 # systemctl daemon-reload
 # service kubelet restart
 ```
 
 After running `kubeadm certs renew all`:
 
-```
+``` console
 # kubeadm certs renew all
 [renew] Reading configuration from the cluster...
 [renew] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
@@ -509,7 +508,7 @@ the time to 1. upgrade and 2. enable automatic certificate renewal.
 
 Now we try to *restart the control plane Pods*:
 
-```
+``` console
 # kubectl -n kube-system delete pod -l 'component=kube-apiserver'
 # kubectl -n kube-system delete pod -l 'component=kube-controller-manager'
 # kubectl -n kube-system delete pod -l 'component=kube-scheduler'
@@ -520,7 +519,7 @@ It's not entirely clear what may have changed, but now the
 Kubernetes console and everything else seems to work, except that
 one job shows as pending:
 
-```
+``` console
 # kubectl get jobs -n kube-system
 NAME                   COMPLETIONS   DURATION   AGE
 upgrade-health-check   0/1                      9m43s
@@ -530,7 +529,7 @@ After a node reboot, the minecraft server was working again
 (and all clients were able to connect to it) but the
 `metrics-server` is now failed:
 
-```
+``` console
 $ kubectl get all -n metrics-server
 NAME                                 READY   STATUS    RESTARTS        AGE
 pod/metrics-server-74c749979-wd278   0/1     Running   31 (118m ago)   355d
@@ -557,7 +556,7 @@ The above error to see the logs is happening everywhere,
 also to the minecraft server, both when trying to show logs
 and when trying to communicate with the server to send messages:
 
-```
+``` console
 $ kubectl -n minecraft-server get pods
 NAME                               READY   STATUS    RESTARTS   AGE
 minecraft-server-7f847b6b7-tv6tw   1/1     Running   0          124m
@@ -571,7 +570,7 @@ Error from server: error dialing backend: remote error: tls: internal error
 
 Journal logs from kubelet show a *TLS handshake error* several times per minute:
 
-```
+``` console
 # journalctl -xeu kubelet | grep -Ev 'Nameserver limits exceeded' | head -3
 Mar 23 11:46:36 lexicon kubelet[6055]: I0323 11:46:36.036164    6055 log.go:245] http: TLS handshake error from 10.244.0.44:45274: no serving certificate available for the kubelet
 Mar 23 11:46:51 lexicon kubelet[6055]: I0323 11:46:51.042664    6055 log.go:245] http: TLS handshake error from 10.244.0.44:40012: no serving certificate available for the kubelet
@@ -583,7 +582,7 @@ Mar 23 11:47:06 lexicon kubelet[6055]: I0323 11:47:06.042088    6055 log.go:245]
 
 Filtering those out, there are signs that rotating the certs is stuck:
 
-```
+``` console
 # journalctl -xeu kubelet | grep -Ev 'Nameserver limits exceeded' | grep -v 'http: TLS handshake error'
 Mar 23 11:51:57 lexicon kubelet[6055]: E0323 11:51:57.493069    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
 Mar 23 12:07:05 lexicon kubelet[6055]: E0323 12:07:05.531775    6055 certificate_manager.go:488] kubernetes.io/kubelet-serving: certificate request was not signed: timed out waiting for the condition
@@ -596,7 +595,7 @@ Mar 23 13:08:49 lexicon kubelet[6055]: E0323 13:08:49.816195    6055 certificate
 
 This is because, after restart, one needs to approve **the most recent** `csr` from kubernetes:
 
-```
+``` console
 # kubectl get csr
 NAME        AGE     SIGNERNAME                      REQUESTOR             REQUESTEDDURATION   CONDITION
 csr-454fv   7m21s   kubernetes.io/kubelet-serving   system:node:lexicon   <none>              Pending
@@ -629,7 +628,7 @@ After approving the most recent CSR (and it's **Issued**),
 `kubectl` operations are back to work and the `metrics-server`
 deployment is functional again:
 
-```
+``` console
 $ kubectl get all -n metrics-server
                       READY   STATUS    RESTARTS        AGE
 pod/metrics-server-74c749979-wd278   1/1     Running   31 (132m ago)   355d
@@ -653,7 +652,7 @@ $ kubectl -n minecraft-server logs minecraft-server-7f847b6b7-tv6tw | tail -4
 
 ## Maybe Update
 
-```
+``` console
 # kubeadm upgrade plan
 [upgrade/config] Making sure the configuration is correct:
 [upgrade/config] Reading configuration from the cluster...
@@ -721,7 +720,7 @@ Note that the **client** certificates are correctly
 renewed (apparently every 2 months), but the **server**
 certificate is still the static one:
 
-```
+``` console
 # ls -l /var/lib/kubelet/pki/kubelet.crt
 -rw-r--r-- 1 root root 2246 Mar 22  2023 /var/lib/kubelet/pki/kubelet.crt
 
@@ -741,49 +740,49 @@ Edit
 `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`
 and add the following line to set `KUBELET_EXTRA_ARGS`:
 
-```
+``` ini linesnum="5" title="/etc/systemd/system/kubelet.service.d/
 Environment="KUBELET_EXTRA_ARGS=--rotate-certificates=true --rotate-server-certificates=true --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
 ```
 
-Full content of
-`/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`
+??? k8s "Full content of `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`"
 
-```
-# Note: This dropin only works with kubeadm and kubelet v1.11+
-[Service]
-Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
-Environment="KUBELET_EXTRA_ARGS=--rotate-certificates=true --rotate-server-certificates=true --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
-EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
-# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-EnvironmentFile=-/etc/default/kubelet
-ExecStart=
-ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
-```
+    ``` ini linesnum="1" title="/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+    # Note: This dropin only works with kubeadm and kubelet v1.11+
+    [Service]
+    Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+    Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
+    Environment="KUBELET_EXTRA_ARGS=--rotate-certificates=true --rotate-server-certificates=true --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+    # This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+    EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
+    # This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
+    # the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+    EnvironmentFile=-/etc/default/kubelet
+    ExecStart=
+    ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
+    ```
 
 Reload and restart `kubelet` with:
 
-```
-sudo systemctl daemon-reload
-sudo service kubelet restart
+``` console
+# systemctl daemon-reload
+# service kubelet restart
 ```
 
 After this restart, one needs to approve the `csr` from kubernetes,
 but this requires using `kubectl` which is precisely what was broken:
 
-```
-kubectl get csr
+``` console
+$ kubectl get csr
 ```
 
 There will see the certificate waiting to be approved:
 
-```
-kubectl certificate approve csr-dlcf6
+``` console
+$ kubectl certificate approve csr-dlcf6
 ```
 
 References:
+
 - https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/
 - https://devopstales.github.io/kubernetes/k8s-cert/
 - https://kubernetes.io/docs/tasks/tls/certificate-rotation/
@@ -794,7 +793,7 @@ References:
 Another reason to manually renew the server certificate
 is that the node cannot be upgraded without it:
 
-```
+``` console
 # kubeadm upgrade plan
 [upgrade/config] Making sure the configuration is correct:
 [upgrade/config] Reading configuration from the cluster...
