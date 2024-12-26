@@ -14,7 +14,7 @@ title: Updating Kubernetes to the Community-Owned Package Repositories
 Most days I update my little server when I log into my PC,
 and today it gave quite an unexpected surprise:
 
-```
+``` console
 # apt update && apt full-upgrade -y
 ...
 E: The repository 'https://apt.kubernetes.io kubernetes-xenial Release' no longer has a Release file.
@@ -22,24 +22,24 @@ N: Updating from such a repository can't be done securely, and is therefore disa
 N: See apt-secure(8) manpage for repository creation and user configuration details.
 ```
 
-<!-- more --> 
-
 This was promptly reported already yesterday as
 [Ubuntu kubernetes-xenial package repository issue #123673](https://github.com/kubernetes/kubernetes/issues/123673) and quick triaged
 pointing to the announcement from August 2023:
 [pkgs.k8s.io: Introducing Kubernetes Community-Owned Package Repositories](https://kubernetes.io/blog/2023/08/15/pkgs-k8s-io-introduction/).
 
+<!-- more --> 
+
 Note that there is now a separate repository for each minor version,
 so we need to first check which version is currently running:
 
-```
+``` console
 $ kubeadm version
 kubeadm version: &version.Info{Major:"1", Minor:"28", GitVersion:"v1.28.2", GitCommit:"89a4ea3e1e4ddd7f7572286090359983e0387b2f", GitTreeState:"clean", BuildDate:"2023-09-13T09:34:32Z", GoVersion:"go1.20.8", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
 That we migrate to the **1.28** repository:
 
-```
+``` console
 # echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /" \
   | tee /etc/apt/sources.list.d/kubernetes.list
 # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key \
@@ -60,7 +60,7 @@ deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kub
 
 Turns out updating to 1.28 *broke everything*: all services are unreachable. Can't read logs of pods either.
 
-```
+``` console
 $ kubectl -n plexserver logs -f plexserver-85f7bf866-7c8gv
 Error from server: Get "https://10.0.0.6:10250/containerLogs/plexserver/plexserver-85f7bf866-7c8gv/plexserver?follow=true": dial tcp 10.0.0.6:10250: connect: connection refused
 $ netstat -na | grep 10250
@@ -71,7 +71,7 @@ Looking back at the process followed when creating the [Single-node Kubernetes c
 it was actually **1.26** that was installed, and it seems the update
 above put the `clientVersion` up to 1.28 but not the `serverVersion`:
 
-```
+``` console
 $ kubectl version --output=yaml
 clientVersion:
   buildDate: "2024-02-14T10:40:48Z"
@@ -103,7 +103,7 @@ kubeadm version: &version.Info{Major:"1", Minor:"28", GitVersion:"v1.28.7", GitC
 
 Downgraded to 1.26 but that was not enough.
 
-```
+``` console
 # echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.26/deb/ /" \
   | tee /etc/apt/sources.list.d/kubernetes.list
 # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key \
@@ -128,7 +128,7 @@ Fetched 59.3 MB in 2s (34.9 MB/s)
 
 After this both versions are 1.26:
 
-```
+``` console
 $ kubectl version --output=yaml
 clientVersion:
   buildDate: "2023-03-15T13:40:17Z"
@@ -158,7 +158,7 @@ kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.3", GitC
 
 Yet services remain unavailable and `kubelet` doesn't seem happy:
 
-```
+``` console
 # systemctl status kubelet
 ○ kubelet.service - kubelet: The Kubernetes Node Agent
      Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
@@ -185,7 +185,7 @@ Going back again to the [Single-node Kubernetes cluster on Ubuntu Server (lexico
 and checking the current output from the first few `kubectl`, 
 turns out version 1.28 is still running:
 
-```
+``` console
 $ kubectl get nodes -o wide
 NAME      STATUS     ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
 lexicon   NotReady   control-plane   349d   v1.28.2   10.0.0.6      <none>        Ubuntu 22.04.4 LTS   5.15.0-97-generic   containerd://1.6.28
@@ -193,7 +193,7 @@ lexicon   NotReady   control-plane   349d   v1.28.2   10.0.0.6      <none>      
 
 Deployment are all **not ready**:
 
-```
+``` console
 $ kubectl get deployments -A
 NAMESPACE                NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
 atuin-server             atuin                                   0/1     1            0           184d
@@ -217,7 +217,7 @@ telegraf                 telegraf                                0/1     1      
 
 At this point it seems necessary to manually restart `kubelet`:
 
-```
+``` console
 # systemctl restart kubelet
 # systemctl status kubelet
 ● kubelet.service - kubelet: The Kubernetes Node Agent
@@ -247,7 +247,7 @@ Mar 05 23:13:21 lexicon kubelet[3869533]: E0305 23:13:21.933273 3869533 reflecto
 
 Those logs entries look bad and yet everything seems to work now (and deployment are all ready):
 
-```
+``` console
 $ kubectl get deployment -A 
 NAMESPACE                NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
 atuin-server             atuin                                   1/1     1            1           184d
