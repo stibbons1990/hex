@@ -740,7 +740,7 @@ Edit
 `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`
 and add the following line to set `KUBELET_EXTRA_ARGS`:
 
-``` ini linenums="5" title="/etc/systemd/system/kubelet.service.d/
+``` ini linenums="5" title="/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
 Environment="KUBELET_EXTRA_ARGS=--rotate-certificates=true --rotate-server-certificates=true --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
 ```
 
