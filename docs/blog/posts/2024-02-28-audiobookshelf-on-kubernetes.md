@@ -19,9 +19,9 @@ while I play games, but after all these years Plex remains a
 
 ***Enter [audiobookshelf](https://www.audiobookshelf.org/)*** (because Emby and Jellyfin are also not great)
 
-<!-- more --> 
-
 ![Audiobookshelf home page](../media/2024-02-28-audiobookshelf-on-kubernetes/audiobookshelf-home.png)
+
+<!-- more --> 
 
 ## Installation on Kubernetes
 
@@ -30,7 +30,7 @@ Audiobookshelf
 requires writeable directories mounted at
 `/config` and `/metadata` for database, cache, etc.
 
-```
+``` console
 # useradd -d /home/k8s/audiobookshelf -s /usr/sbin/nologin audiobookshelf
 # mkdir /home/k8s/audiobookshelf/config /home/k8s/audiobookshelf/metadata
 # chown -R audiobookshelf.audiobookshelf /home/k8s/audiobookshelf
@@ -50,7 +50,7 @@ a single volume.
 Create the following `audiobookshelf.yaml` and deploy
 it:
 
-```
+``` console
 $ kubectl apply -f audiobookshelf.yaml
 namespace/audiobookshelf created
 persistentvolume/audiobookshelf-pv-config created
@@ -100,237 +100,239 @@ NGinx should also make it available at https://aus.ssl.uu.am
 
 ### Deployment
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: audiobookshelf
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-config
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/audiobookshelf/config
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-metadata
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/k8s/audiobookshelf/metadata
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-audiobooks
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/depot/audio/Audiobooks
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: audiobookshelf-pv-podcasts
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /home/depot/audio/Podcasts
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-config
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-config
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-metadata
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-metadata
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-audiobooks
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-audiobooks
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: audiobookshelf-pvc-podcasts
-  namespace: audiobookshelf
-spec:
-  storageClassName: manual
-  volumeName: audiobookshelf-pv-podcasts
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: audiobookshelf
-  name: audiobookshelf
-  namespace: audiobookshelf
-spec:
-  replicas: 1
-  revisionHistoryLimit: 0
-  selector:
-    matchLabels:
-      app: audiobookshelf
-  strategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
+??? k8s "Kubernetes deployment: `audiobookshelf.yaml`"
+
+    ``` yaml linenums="1" title="audiobookshelf.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: audiobookshelf
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/config
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/metadata
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Audiobooks
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Podcasts
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-metadata
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-audiobooks
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-podcasts
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: audiobookshelf
+      name: audiobookshelf
+      namespace: audiobookshelf
     spec:
-      containers:
-        - image: ghcr.io/advplyr/audiobookshelf:latest
-          imagePullPolicy: Always
-          name: audiobookshelf
-          env:
-          - name: PORT
-            value: "13378"
-          ports:
-          - containerPort: 13378
-          resources: {}
-          stdin: true
-          tty: true
-          volumeMounts:
-          - mountPath: /config
-            name: audiobookshelf-config
-          - mountPath: /metadata
-            name: audiobookshelf-metadata
-          - mountPath: /audiobooks
-            name: audiobookshelf-audiobooks
-          - mountPath: /podcasts
-            name: audiobookshelf-podcasts
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsUser: 1006
-            runAsGroup: 1006
-      restartPolicy: Always
-      volumes:
-      - name: audiobookshelf-config
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-config
-      - name: audiobookshelf-metadata
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-metadata
-      - name: audiobookshelf-audiobooks
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-audiobooks
-      - name: audiobookshelf-podcasts
-        persistentVolumeClaim:
-          claimName: audiobookshelf-pvc-podcasts
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: audiobookshelf-svc
-  namespace: audiobookshelf
-spec:
-  type: NodePort
-  ports:
-  - port: 13388
-    nodePort: 31378
-    targetPort: 13378
-  selector:
-    app: audiobookshelf
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: audiobookshelf-ingress
-  namespace: audiobookshelf
-  annotations:
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/issue-temporary-certificate: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/websocket-services: audiobookshelf-svc
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: abs.ssl.uu.am
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: audiobookshelf-svc
-                port:
-                  number: 13378
-  tls:
-    - secretName: tls-secret
-      hosts:
-        - abs.ssl.uu.am
-```
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: audiobookshelf
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: audiobookshelf
+        spec:
+          containers:
+            - image: ghcr.io/advplyr/audiobookshelf:latest
+              imagePullPolicy: Always
+              name: audiobookshelf
+              env:
+              - name: PORT
+                value: "13378"
+              ports:
+              - containerPort: 13378
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: audiobookshelf-config
+              - mountPath: /metadata
+                name: audiobookshelf-metadata
+              - mountPath: /audiobooks
+                name: audiobookshelf-audiobooks
+              - mountPath: /podcasts
+                name: audiobookshelf-podcasts
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 1006
+                runAsGroup: 1006
+          restartPolicy: Always
+          volumes:
+          - name: audiobookshelf-config
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-config
+          - name: audiobookshelf-metadata
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-metadata
+          - name: audiobookshelf-audiobooks
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-audiobooks
+          - name: audiobookshelf-podcasts
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-podcasts
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: audiobookshelf-svc
+      namespace: audiobookshelf
+    spec:
+      type: NodePort
+      ports:
+      - port: 13388
+        nodePort: 31378
+        targetPort: 13378
+      selector:
+        app: audiobookshelf
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: audiobookshelf-ingress
+      namespace: audiobookshelf
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: audiobookshelf-svc
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: abs.ssl.uu.am
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: audiobookshelf-svc
+                    port:
+                      number: 13378
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - abs.ssl.uu.am
+    ```
 
 The above deployment is based on
 [audiobookshelf Docker documentation](https://www.audiobookshelf.org/docs/#docker-upgrade)
@@ -344,7 +346,7 @@ Contrary to what
 would suggest, the server will by default try to listen on port 80.
 To override this the `env` variable `PORT` must be set:
 
-```yaml
+``` yaml linenums="153" title="audiobookshelf.yaml"
           env:
           - name: PORT
             value: "13378"
@@ -352,7 +354,7 @@ To override this the `env` variable `PORT` must be set:
 
 Otherwise, when running as a non-privileged user, this will cause it to crash-loop:
 
-```
+``` console hl_lines="42-61"
 $ kubectl get all -n audiobookshelf
 NAME                                  READY   STATUS             RESTARTS      AGE
 pod/audiobookshelf-754d55cd68-z4br6   0/1     CrashLoopBackOff   4 (59s ago)   3m9s
@@ -445,6 +447,11 @@ To complete the self-hosted audiobook service, there is also the mobile app
 [Audiobookshelf Android app](https://play.google.com/store/apps/details?id=com.audiobookshelf.app&hl=en_US)
 can easily be installed from Google Play directly. The iOS app cannot
 simply be installed, because Apple has a hard limit of 10k beta testers.
+Alternatively,
+[plappa](https://apps.apple.com/us/app/plappa/id6475201956)
+can be used to stream audiobooks and podcasts from 
+AudioBookShelf, Emby and Jellyfin. Downloading content and listening
+offline requires an in-app purchase.
 
 ## Better Features
 
@@ -540,6 +547,7 @@ in the issue tracker:
 *  [Enhancement: Display Chapter Art while playing. #2660](https://github.com/advplyr/audiobookshelf/issues/2660)
 
 [audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app/issues)
+
 *  [Provide ability to queue audiobooks and podcast episodes #416](https://github.com/advplyr/audiobookshelf-app/issues/416)
 *  [Ability to mark several Podcast episodes by first marking and then dragging down with two fingers in IOS #685](https://github.com/advplyr/audiobookshelf-app/issues/685)
 
