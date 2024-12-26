@@ -35,7 +35,7 @@ ArchLinux forums:
 
 The solution provided there worked in this case too, without even waiting for 5 seconds between the unbind and bind commands:
 
-```
+``` console
 echo -n 0000:0b:00.3 > /sys/bus/pci/drivers/xhci_hcd/unbind
 echo -n 0000:0b:00.3 > /sys/bus/pci/drivers/xhci_hcd/bind
 ```
@@ -44,7 +44,7 @@ After restarting this controller a few times, it was never again problematic.
 
 Created script for future use and reference:
 
-```bash
+``` bash linenums="1" title="restart-usb.sh"
 #!/bin/bash
 #
 # Workaround for
