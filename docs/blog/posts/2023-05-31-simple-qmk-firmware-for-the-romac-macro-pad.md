@@ -11,8 +11,6 @@ title: Simple QMK firmware for the RoMac macro pad
 QMK firmware for the RoMac macro pad was not *simple enough*
 for me, so I had to make my own.
 
-<!-- more --> 
-
 The [RoMac Macro Pad](https://github.com/The-Royal/The_Royal_Open-Source-Projects/blob/master/01%20-%20Complete%20Kits/The_RoMac_rev2.1/README.md)
 is a wonderful, very useful 12-key macro pad that can be a
 custom numpad or, better yet, an *additional* numpad for the
@@ -27,7 +25,12 @@ that are great to custom-label each key.
 
 ![RoMac macro pad as seen from above](../media/2023-05-31-simple-qmk-firmware-for-the-romac-macro-pad/romac-macro-pad.png)
 
-**Warning: this is not a keyboard you can *just buy***.
+<!-- more --> 
+
+!!! warning
+
+    This is not a keyboard you can *just buy*.
+
 To build this keyboard you need to buy [the kit](https://mechboards.co.uk/collections/kits/products/romac-macro-pad?variant=40366789034189),
 *with* a controller (e.g. the
 [Pro Micro](https://mechboards.co.uk/collections/controllers/products/pro-micro-5v)),
@@ -57,7 +60,7 @@ First, clone the
 [QMK firmware](https://github.com/qmk/qmk_firmware)
 repository:
 
-```
+``` console
 $ python3 -m pip install -U qmk
 $ git clone --recurse-submodules \
   https://github.com/qmk/qmk_firmware.git
@@ -69,7 +72,7 @@ Then create a new file (and folder)
 `keyboards/kingly_keys/romac/keymaps/simple/keymap.c`
 with this code:
 
-```c
+``` c linenums="1" title="keymap.c"
 /* Copyright 2023 Ponder Stibbons
  *
  * This program is free software: you can redistribute it and/or modify
@@ -104,11 +107,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 Finally, compile and *flash* the keymap into the keyboard.
 
-**Note:** `qmk flash` won't work unless the keyboard is
-plugged in and you may need to press the reset button
-(the tiny black button on the PCB) at the right time:
+!!! note
 
-```
+    `qmk flash` won't work unless the keyboard is
+    plugged in and you may need to press the reset button
+    (the tiny black button on the PCB) at the right time.
+
+``` console
 $ qmk compile -kb kingly_keys/romac -km simple
 $ qmk flash -kb kingly_keys/romac -km simple
 Ψ Compiling keymap with make --jobs=1 kingly_keys/romac:simple:flash
