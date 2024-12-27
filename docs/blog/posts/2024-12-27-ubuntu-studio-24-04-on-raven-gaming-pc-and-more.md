@@ -1918,3 +1918,25 @@ and with that all sensors are available (including fan speeds):
     k10temp-pci-00c3
     Tctl:         +34.4°C
     ```
+
+#### Speedtest and Tapo devices
+
+While there is no 24x7 system on-site, this PC also has to run
+some of the [additional scripts](../../conmon.md#additional-scripts)
+to monitor internet speeds with
+[`conmon-speedtest`](../../conmon.md#conmon-speedtest)
+and TP-Link Tapo devices wit
+[`conmon-tapo.py`](../../conmon.md#conmon-tapopy).
+
+``` console
+# cp conmon-speedtest conmon-tapo.py /usr/local/bin/
+# crontab -e
+*/3 * * * * /usr/local/bin/conmon-speedtest
+*   * * * * /usr/local/bin/conmon-tapo.py
+```
+
+!!! warning
+
+    Make sure `/etc/conmon/tapo.yaml` maps to the correct IP addresses
+    and models for each device, otherwise `conmon-tapo.py`
+    [will crash](../../conmon.md#device-ip-dependencies).
