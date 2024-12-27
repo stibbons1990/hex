@@ -20,9 +20,9 @@ you may experience some issues, so you might want to wait a bit before upgrading
 
 There doesn't seem to be anything particular scarey in release notes:
 
-*  [Ubuntu Studio 24.04 LTS Release Notes](https://ubuntustudio.org/ubuntu-studio-24-04-LTS-release-notes/)
-*  [Kubuntu 24.04 Release Notes](https://wiki.ubuntu.com/NobleNumbat/ReleaseNotes/Kubuntu)
-*  [Noble Numbat Release Notes](https://discourse.ubuntu.com/t/noble-numbat-release-notes/39890/1)
+*   [Ubuntu Studio 24.04 LTS Release Notes](https://ubuntustudio.org/ubuntu-studio-24-04-LTS-release-notes/)
+*   [Kubuntu 24.04 Release Notes](https://wiki.ubuntu.com/NobleNumbat/ReleaseNotes/Kubuntu)
+*   [Noble Numbat Release Notes](https://discourse.ubuntu.com/t/noble-numbat-release-notes/39890/1)
 
 And my plan is not to upgrade in place; I like to keep the previous
 version around, just in case I need a stable system to fall back to.
@@ -118,8 +118,8 @@ the previous M.2 SSD is not going anywhere any time soon.
 
 In the future, the previous (2 TB) M.2 SSD may be replaced with another 4 TB SSD, e.g.
 
-*  [Kingston FURY Renegade with Heatsink](https://www.digitec.ch/en/s1/product/kingston-fury-renegade-with-heatsink-4000-gb-m2-2280-ssd-22903765) ($320+)
-*  [Samsung 990 Pro with Heatsink](https://www.digitec.ch/en/s1/product/samsung-990-pro-with-heatsink-4000-gb-m2-2280-ssd-37728060) ($300+).
+*   [Kingston FURY Renegade with Heatsink](https://www.digitec.ch/en/s1/product/kingston-fury-renegade-with-heatsink-4000-gb-m2-2280-ssd-22903765) ($320+)
+*   [Samsung 990 Pro with Heatsink](https://www.digitec.ch/en/s1/product/samsung-990-pro-with-heatsink-4000-gb-m2-2280-ssd-37728060) ($300+).
 
 However, that replacement will likely not happen under 2026,
 once Ubuntu Studio 26.04 is installed and there is no longer
@@ -472,8 +472,8 @@ Ubuntu 22.04.5 in `nvme1n1p2` (the *future backup* daily driver)
 is a clone of the one in `nvme0n1p6` **but** it is also on the 
 newer NVME disk, so both partitions must be updated:
 
-*  `/boot/efi` must point to `nvme1n1p1`
-*  `/` must point to `nvme1n1p2`
+*   `/boot/efi` must point to `nvme1n1p1`
+*   `/` must point to `nvme1n1p2`
 
 ``` console
 # mount /dev/nvme1n1p2 /media/cdrom/

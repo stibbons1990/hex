@@ -31,7 +31,7 @@ A new GPT partition table is created, including
    Ubuntu Studio 24.04 system and the future Ubuntu Studio 26.04.
 1. A large partition taking up most of the disk, for user storage.
 
-```
+``` console
 # parted -a optimal /dev/nvme0n1 
 (parted) mktable gpt
 (parted) mkpart EFI 0% 260M
@@ -60,32 +60,34 @@ Number  Start   End     Size    File system  Name   Flags
 Prepared the USB stick with `usb-creator-kde` and booted into
 it, then used the “Install Ubuntu” launcher on the desktop.
 
-1. Plug the USB stick and turn the PC on.
-1. Press **`F8`** to select the boot device and choose the
-   **UEFI: ...** option.
-1. In the Grub menu, choose to **Try or Install Ubuntu**.
-1. Select language (English) and then **Install Ubuntu**.
-1. Select keyboard layout (can be from a different language).
-1. Select the appropriate wired or wireless network.
-1. Select **Install Ubuntu Studio**.
-1. Select Type of install: **Interactive Installation**.
-1. Enable the options to **Install third-party software for graphics**
-   and Wifi hardware and **Download and install support for additional**
-   **media formats**.
-1. Select **Manual Installation**
-   * Use the arrow keys to navigate down to the **nvme0n1** disk.
-   * Set **nvme0n1p1** (259 MB) as **EFI System Partition** mounted on `/boot/efi`
-   * Set **nvme0n1p2** (66 GB) as **ext4** mounted on `/`
-   * Leave **nvme0n1p3** (66 GB) alone (to be used for Ubuntu 26.04)
-   * Set **nvme0n1p4** (3.87 TB) as **Leave formatted as Btrfs** mounted on `/home`
-   * Set **Device for boot loader installation** to **nvme0n1**
-1. Click on **Next** to confirm the partition selection.
-1. Confirm first non-root user name (`ponder`) and computer
-   name (`computer`).
-1. Select time zone (seems to be detected correctly).
-1. Review the choices and click on **Install** to start copying files.
-1. Once it's done, select **Restart**
-   (remove install media and hit `Enter`).
+1.  Plug the USB stick and turn the PC on.
+1.  Press **`F8`** to select the boot device and choose the
+    **UEFI: ...** option.
+1.  In the Grub menu, choose to **Try or Install Ubuntu**.
+1.  Select language (English) and then **Install Ubuntu**.
+1.  Select keyboard layout (can be from a different language).
+1.  Select the appropriate wired or wireless network.
+1.  Select **Install Ubuntu Studio**.
+1.  Select Type of install: **Interactive Installation**.
+1.  Enable the options to **Install third-party software for graphics**
+    and Wifi hardware and **Download and install support for **
+    **additional media formats**.
+1.  Select **Manual Installation**
+    *   Use the arrow keys to navigate down to the **nvme0n1** disk.
+    *   Set **nvme0n1p1** (259 MB) as **EFI System Partition** mounted
+        on `/boot/efi`
+    *   Set **nvme0n1p2** (66 GB) as **ext4** mounted on `/`
+    *   Leave **nvme0n1p3** (66 GB) alone (to be used for Ubuntu 26.04)
+    *   Set **nvme0n1p4** (3.87 TB) as **Leave formatted as Btrfs**
+        mounted on `/home`
+    *   Set **Device for boot loader installation** to **nvme0n1**
+1.  Click on **Next** to confirm the partition selection.
+1.  Confirm first non-root user name (`ponder`) and computer
+    name (`computer`).
+1.  Select time zone (seems to be detected correctly).
+1.  Review the choices and click on **Install** to start copying files.
+1.  Once it's done, select **Restart**
+    (remove install media and hit `Enter`).
 
 ### Wayland is Dead?
 
@@ -105,7 +107,7 @@ IP addresses on the same NIC.
 To this effect, edit `/etc/netplan/01-network-manager-all.yaml` with
 with the following contenct and apply the changes with `netplan apply`:
 
-```yaml
+``` yaml linenums="1" title="/etc/netplan/01-network-manager-all.yaml"
 network:
   version: 2
   renderer: networkd
@@ -124,7 +126,7 @@ network:
         addresses: [62.2.24.158, 62.2.17.61]
 ```
 
-```
+``` console
 # netplan apply 
 # ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -148,17 +150,19 @@ network:
 Ubuntu Studio doesn't enable the SSH server by default, but we want
 this to adjust the system remotely:
 
-```
+``` console
 # apt install ssh -y
 # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # systemctl enable --now ssh
 ```
 
-**Note:** remember to copy over files under `/root` from
-previous system/s, in case it contains useful scripts (and/or
-SSH keys worth keeping under `.ssh`).
+!!! note
 
-```
+    Remember to copy over files under `/root` from previous system/s,
+    in case it contains useful scripts (and/or SSH keys worth keeping
+    under `.ssh`).
+
+``` console
 # mount /dev/sdb1 /mnt/
 # rm /root/.ssh/authorized_keys 
 # rmdir /root/.ssh/ 
@@ -176,7 +180,7 @@ smoothly as in the old system (e.g. for
 
 Before proceeding further, install a few basic APT packages:
 
-```
+``` console
 # apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
   gkrellm-xkb gkrellm-cpufreq geeqie playonlinux exfat-fuse \
   clementine id3v2 htop vnstat neofetch tigervnc-viewer sox \
@@ -233,21 +237,24 @@ Need to get 314 MB of archives.
 After this operation, 1,131 MB of additional disk space will be used.
 ```
 
-**Note:** a few packages are missing here, compared to those installed
-with [Ubuntu Studio 22.04](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md#apt-packages):
-- `netcat` is a virtual package now; instead of on its providers must
-  be selected explicitly:
-  - `netcat-openbsd` contains the OpenBSD rewrite of netcat,
-     including support for IPv6, proxies, and Unix sockets.
-  - `netcat-traditional` is the "classic" netcat, written by
-    *Hobbit*. It lacks many features found in netcat-openbsd.
-- `gkrellm-hdplop` and `gkrellm-x86info` are no longer included.
-- `ttf-mscorefonts-installer:i386` is not available because the
-  `i386` architecture has not been enabled (and is not needed).
+!!! note
+    
+    A few packages are missing here, compared to those installed with
+    [Ubuntu Studio 22.04](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md#apt-packages):
+
+*   `netcat` is a virtual package now; instead of on its providers must
+    be selected explicitly:
+    *   `netcat-openbsd` contains the OpenBSD rewrite of netcat,
+        including support for IPv6, proxies, and Unix sockets.
+    *   `netcat-traditional` is the "classic" netcat, written by
+        *Hobbit*. It lacks many features found in netcat-openbsd.
+*   `gkrellm-hdplop` and `gkrellm-x86info` are no longer included.
+*   `ttf-mscorefonts-installer:i386` is not available because the
+    `i386` architecture has not been enabled (and is not needed).
 
 There is Warning regarding `/snap/bin` not found in your `$PATH`
 
-```
+``` console
 Preparing to unpack .../000-chromium-browser_2%3a1snap1-0ubuntu2_amd64.deb ...
 => Installing the chromium snap
 ==> Checking connectivity with the snap store
@@ -261,7 +268,7 @@ Warning: /snap/bin was not found in your $PATH. If you've not restarted your ses
 
 Initially there is only a limited amount of hardware sensors:
 
-```
+``` console
 # sensors -A
 nvme-pci-0100
 Composite:    +30.9°C  (low  = -20.1°C, high = +83.8°C)
@@ -277,7 +284,7 @@ Tdie:         +24.9°C
 
 HDD temperatures are available by loading the drivetemp kernel module:
 
-```
+``` console
 # echo drivetemp > /etc/modules-load.d/drivetemp.conf
 # modprobe drivetemp
 # sensors -A
@@ -312,7 +319,7 @@ of the `conmon` script as `/usr/local/bin/conmon` and
 [run it as a service](../../conmon.md/#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
-```ini
+``` ini linenums="1" title="/etc/systemd/system/conmon.service"
 [Unit]
 Description=Continuous Monitoring
 
@@ -327,7 +334,7 @@ WantedBy=multi-user.target
 
 Then enable and start the services in `systemd`:
 
-```
+``` console
 # systemctl enable conmon.service
 # systemctl daemon-reload
 # systemctl start conmon.service
@@ -343,7 +350,7 @@ To enable 2-axis scrolling with the
 create or edit `/usr/share/X11/xorg.conf.d/10-libinput.conf`
 like this:
 
-```ini
+``` ini linenums="1" title="/usr/share/X11/xorg.conf.d/10-libinput.conf"
 Section "InputClass"
     Identifier      "Marble Mouse"
     MatchProduct    "Logitech USB Trackball"
@@ -375,7 +382,7 @@ forbid joystick mouse emulation when using certain
 joystick-like gaming controllers. To do this, 
 create or edit `/usr/share/X11/xorg.conf.d/50-joystick.conf`
 
-```ini
+``` ini linenums="1" title="/usr/share/X11/xorg.conf.d/50-joystick.conf"
 Section "InputClass"
 	Identifier "joystick catchall"
 	MatchIsJoystick "on"
@@ -395,7 +402,7 @@ to check everything for consistency. For this, I run
 from crontab every Saturday morning, early enough that it will
 be done by the time anyone wakes up.
 
-```
+``` console
 # wget -O /usr/local/bin/btrfs-scrub-all \
   http://marc.merlins.org/linux/scripts/btrfs-scrub
 
@@ -439,7 +446,7 @@ personal directories are already in `/home` the users need to be
 re-created; in the correct order to match the user IDs from the
 previous system. These can be checked with `ls -ln`:
 
-```
+``` console
 # ls -ln /home
 total 0
 drwx------ 1 1002 1002 5440 Sep 21 20:03 artist
@@ -459,20 +466,22 @@ For most computers my favorite SDDM theme is
 [Breeze-Noir-Dark](https://store.kde.org/p/1361460),
 which I like to install system-wide:
 
-```
+``` console
 # unzip Breeze-Noir-Dark.zip
 # mv Breeze-Noir-Dark /usr/share/sddm/themes/
 ```
 
-**Note:** action icons won’t render if the directory name is
-changed. If needed, change the directory name in the `iconSource`
-fields in `Main.qml` to match final directory name so icons show.
+!!! warning
+
+    Action icons won’t render if the directory name is
+    changed. If needed, change the directory name in the `iconSource`
+    fields in `Main.qml` to match final directory name so icons show.
 
 Other than installing this theme, all I really change in it
 is the background image, e.g. assuming it's downloaded as
 `/tmp/background.jpg`
 
-```
+``` console
 # mv /tmp/background.jpg /usr/share/sddm/themes/breeze-noir-dark
 # mv /tmp/ponyo.jpg /usr/share/sddm/themes/breeze-noir-dark
 # cd /usr/share/sddm/themes/breeze-noir-dark
@@ -486,7 +495,7 @@ background=background.jpg
 be selected by adding a `[Theme]` section in the system config
 in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
 
-```ini
+``` ini linenums="1" title="/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf"
 [General]
 InputMethod=
 
@@ -501,7 +510,7 @@ This did not set the theme, even though it did [Make SDDM Listen to TCP](#make-s
 you have to **create** the `/etc/sddm.conf.d` directory to add
 the *Local configuration* file that allows setting the theme:
 
-```
+``` console
 # mkdir /etc/sddm.conf.d
 # vi /etc/sddm.conf.d/ubuntustudio.conf
 ```
@@ -509,7 +518,7 @@ the *Local configuration* file that allows setting the theme:
 Besides setting the theme, it is also good to limit the range of
 user ids so that only human users show up:
 
-```ini
+``` ini linenums="1" title="/etc/sddm.conf.d/ubuntustudio.conf"
 [Theme]
 Current=Breeze-Noir-Dark
 
@@ -524,7 +533,7 @@ By default, SDDM launches X.org with `-nolisten tcp` for
 security reasons. To override this, set the flag under the
 `[X11]` section in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
 
-```ini
+``` ini linenums="1" title="/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf"
 [General]
 InputMethod=
 
@@ -539,14 +548,14 @@ ServerArguments=-listen tcp
 Then add a short script to authorize connections from `localhost` to the user (`artist`) **session**, e.g. as
 `~/bin/xhost-localhost`
 
-```bash
+``` bash
 #!/bin/bash
 xhost +localhost
 ```
 
 This allows an SSH session for the user (`artist`) to send messages to the screen with `zenity`:
 
-```bash
+``` bash
 DISPLAY=localhost:0 /usr/bin/zenity --warning \
   --text='Computer Will Shut Down in 20 Minutes'
 ```
@@ -564,7 +573,7 @@ After logging in again, audio seems to work just fine.
 
 ### APT respositories clean-up
 
-```
+``` console
 # apt update
 Hit:1 http://ch.archive.ubuntu.com/ubuntu noble InRelease
 Get:2 http://ch.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]                      
@@ -651,7 +660,7 @@ W: Target CNF (multiverse/cnf/Commands-all) is configured multiple times in /etc
 This seems to be because the same repository is defined in two
 different ways:
 
-```
+``` console
 root@computer:~# cat /etc/apt/sources.list.d/dvd.list 
 deb http://archive.ubuntu.com/ubuntu/ noble universe multiverse
 deb http://archive.ubuntu.com/ubuntu/ noble-updates universe multiverse
@@ -690,7 +699,7 @@ Learn more about Ubuntu Pro at https://ubuntu.com/pro
 This being a new system, indeed it's not attached to an Ubuntu Pro
 account (the old system was):
 
-```
+``` console
 # pro security-status
 3208 packages installed:
      1638 packages from Ubuntu Main/Restricted repository
@@ -718,7 +727,7 @@ Learn more at https://ubuntu.com/pro
 After creating an Ubuntu account a token is available to use with
 `pro attach`:
 
-```
+``` console
 # pro attach ...
 Enabling Ubuntu Pro: ESM Apps
 Ubuntu Pro: ESM Apps enabled
@@ -780,7 +789,7 @@ Enable services with: pro enable <service>
 Now the system can be updated *again* with `apt full-upgrade -y`
 to receive those additional security updates:
 
-```
+``` console
 # apt full-upgrade -y
 Reading package lists... Done
 Building dependency tree... Done
@@ -803,7 +812,7 @@ good for them. This can be very detrimental when it impacts
 sleep pattners, to avoid this this computer will shut down
 on a regular schedule:
 
-```
+``` console
 # crontab -l | grep -i 'shut.*down'
 # Shut down at 20:30 (Sun-Thu)
 30 20 * * 0-4 /sbin/shutdown -h now
@@ -827,7 +836,7 @@ on a regular schedule:
 To avoid nasty surprises, the `artist` user has their own
 `crontab` to notify them how much time they have left:
 
-```
+``` console
 $ crontab -l
 # m h  dom mon dow   command
 * 12 * * 6,7 /home/artist/Desktop/.bin/restore .edu .fun
@@ -875,7 +884,7 @@ $ crontab -l
 Installing [Google Chrome](https://google.com/chrome) is as
 simple as downloading the Debian package and installing it:
 
-```
+``` console
 # dpkg -i google-chrome-stable_current_amd64.deb
 ```
 
@@ -884,20 +893,22 @@ simple as downloading the Debian package and installing it:
 Installing Steam from Snap 
 [couldn't be simplers](https://unixhint.com/install-steam-on-ubuntu-24-04/):
 
-```
+``` console
 # snap install steam
 steam 1.0.0.79 from Canonical✓ installed
 ```
 
-**Note:** [snapcraft.io/steam](https://snapcraft.io/steam) is
-provided by Canonical.
+!!! note
+
+    [snapcraft.io/steam](https://snapcraft.io/steam) is provided
+    by Canonical.
 
 When runing the Steam client for the first time, a pop-up shows up
 advising to install additional 32-bit drivers *for best experience*
 
 ![Recommended 32-bit drivers](../media/2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist/computer-ubuntu-studio-steam-recommended-32-bit-drivers.png)
 
-```
+``` console
 # dpkg --add-architecture i386
 # apt update
 # sudo apt install libnvidia-gl-550:i386 -y
@@ -926,7 +937,7 @@ Installing the Steam client direction from
 [is not as simple](https://linuxcapable.com/how-to-install-steam-on-ubuntu-linux/),
 it requires first installing several `i386` (32-bit) libraries:
 
-```
+``` console
 # apt install libgl1-mesa-glx:i386 libc6:amd64 libc6:i386 \
   libegl1:amd64 libegl1:i386 libgbm1:amd64 libgbm1:i386 \
   libgl1-mesa-dri:amd64 libgl1-mesa-dri:i386 libgl1:amd64 \
@@ -937,7 +948,7 @@ With those installed, one can download `steam_latest.deb` from
 
 and install it with `gdebi`:
 
-```
+``` console
 # gdebi steam_latest.deb
 ```
 
@@ -946,7 +957,7 @@ and install it with `gdebi`:
 To avoid taking chances, copy the Minecraft launcher from the
 previous system:
 
-```
+``` console
 # mount /dev/sdb1 /mnt/
 # cp -a /mnt/opt/minecraft-launcher/ /opt/
 ```
@@ -970,7 +981,7 @@ and an additional *Other Linux*
 Installing the `Minecraft.deb` (freshly downloaded) produces a new
 binary with a different MD5 than the old backup:
 
-```
+``` console
 root@computer:~/minecraft# md5sum /usr/bin/minecraft-launcher
 eb40c31c9c15449770ea6a61f8f794a3  /usr/bin/minecraft-launcher
 
@@ -995,7 +1006,7 @@ even for Ubuntu 22.04 via
 [snapcraft.io/blender](https://snapcraft.io/blender)
 so there is no reason to install it any other way:
 
-```
+``` console
 # snap install blender --classic
 blender 4.2.1 from Blender Foundation (blenderfoundation✓) installed
 ```
@@ -1010,7 +1021,7 @@ to comfortably edit HTML, CSS, JavaScript, etc.
 so much a single `.deb` file can be installed directly, but the apt repository
 can also be installed manually with the following script:
 
-```
+``` console
 # apt-get install apt-transport-https gpg wget -y
 # wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
   | gpg --dearmor > packages.microsoft.gpg
@@ -1050,7 +1061,7 @@ the [Essential Packages](#install-essential-packages). What is left to do
 for a full customization is to adjust the color temperature
 values and manual location in `~/.config/redshift.conf`
 
-```ini
+``` ini linenums="1" title="~/.config/redshift.conf"
 [redshift]
 temp-day=6000
 temp-night=4000
@@ -1069,9 +1080,11 @@ lon=8
 screen=0
 ```
 
-**Note:** it seems no longer necessary to manually add
-Redshift to the user's desktop session. Previously, it would
-be necessary to launch **Autostart** and **Add Application…** to add Redshift.
+!!! note
+
+    It seems no longer necessary to manually add Redshift to the
+    user's desktop session. Previously, it would be necessary to
+    launch **Autostart** and **Add Application…** to add Redshift.
 
 ## Troubleshooting
 
