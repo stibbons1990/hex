@@ -816,8 +816,11 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda        5.5T  5.1T  370G  94% /home/raid
 ```
 
-**Warning:** running `sudo update-grub` will *unfix* the root UUID for `nvme1n1p2` *again*; and this will happen each time
-a new kernel is installed.
+!!! warning
+
+    Running `sudo update-grub` will *unfix* the root UUID for
+    `nvme1n1p2` *again*; and this will happen each time a new
+    kernel is installed.
 
 Once the *new old* 22.04 system is *reliably* bootable, it can be
 left alone as a fallback system, and continue setting up the new one.
@@ -913,6 +916,7 @@ this to adjust the system remotely:
 ```
 
 !!! note
+
     Remember to copy over files under `/root` from previous system/s, in case
     it contains useful scripts (and/or SSH keys worth keeping under `.ssh`).
 

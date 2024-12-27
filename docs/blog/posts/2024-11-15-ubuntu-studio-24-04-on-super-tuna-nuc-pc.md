@@ -38,32 +38,39 @@ desktop setup, to be running 24x7 without taking much space:
 Prepared the USB stick with `usb-creator-kde` and booted into
 it, then used the “Install Ubuntu” launcher on the desktop.
 
-1. Plug the USB stick and turn the PC on.
-1. Press **`F8`** to select the boot device and choose the
-   **UEFI: ...** option.
-1. In the Grub menu, choose to **Try or Install Ubuntu**.
-1. Select language (English) and then **Install Ubuntu**.
-1. Select keyboard layout (can be from a different language).
-1. Select the appropriate wireless or **wireless network**.
-1. Select **Install Ubuntu Studio**.
-1. Select Type of install: **Interactive Installation**.
-1. Enable the options to
-    * **Install third-party software for graphics and Wifi hardware** and
-    * **Download and install support for additional media formats**.
-1. Select **Manual Installation**
-    * Use the arrow keys to navigate down to the **nvme0n1** disk.
-    * Set **nvme0n1p1** (300 MB) as **EFI System Partition** mounted on `/boot/efi`
-    * Set **nvme0n1p2** (60 GB) as **ext4** mounted on `/`
-    * Leave **nvme0n1p3** (60 GB) alone (to be used for Ubuntu 26.04)
-    * Set **nvme0n1p4** (3.88 TB) as **Leave formatted as Btrfs** mounted on `/home`
-    * Set **Device for boot loader installation** to **nvme0n1**
-1. Click on **Next** to confirm the partition selection.
-1. Confirm first non-root user name (`coder`) and computer
-   name (`super-tuna`).
-1. Select time zone (seems to be detected correctly).
-1. Review the choices and click on **Install** to start copying files.
-1. Once it's done, select **Restart**
-   (remove install media and hit `Enter`).
+1.  Plug the USB stick and turn the PC on.
+1.  Press **`F8`** to select the boot device and choose the
+    **UEFI: ...** option.
+1.  In the Grub menu, choose to **Try or Install Ubuntu**.
+1.  Select language (English) and then **Install Ubuntu**.
+1.  Select keyboard layout (can be from a different language).
+1.  Select the appropriate wireless or **wireless network**.
+1.  Select **Try Ubuntu Studio**.
+1.  **Disable screen locking** to prevent
+    [KDE Plasma live lock screen rendering the session useless](https://launchpad.net/bugs/2062402):
+    1.  Press Alt-Space to invoke Krunner and type “System Settings”.
+    1.  From there, search for “Screen Locking” and
+    1.  deactivate “Lock automatically after…”.
+1.  Select Type of install: **Interactive Installation**.
+1.  Enable the options to
+    *   **Install third-party software for graphics and Wifi hardware** and
+    *   **Download and install support for additional media formats**.
+1.  Select **Manual Installation**
+    *   Use the arrow keys to navigate down to the **nvme0n1** disk.
+    *   Set **nvme0n1p1** (300 MB) as **EFI System Partition** mounted
+        on `/boot/efi`
+    *   Set **nvme0n1p2** (60 GB) as **ext4** mounted on `/`
+    *   Leave **nvme0n1p3** (60 GB) alone (to be used for Ubuntu 26.04)
+    *   Set **nvme0n1p4** (3.88 TB) as **Leave formatted as Btrfs**
+        mounted on `/home`
+    *   Set **Device for boot loader installation** to **nvme0n1**
+1.  Click on **Next** to confirm the partition selection.
+1.  Confirm first non-root user name (`coder`) and computer
+    name (`super-tuna`).
+1.  Select time zone (seems to be detected correctly).
+1.  Review the choices and click on **Install** to start copying files.
+1.  Once it's done, select **Restart**
+    (remove install media and hit `Enter`).
 
 !!! note
     60 GB should be a enough for the root partition for the amount
