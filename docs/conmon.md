@@ -164,7 +164,7 @@ In environments with multiple Raspberry Pi computers, it may
 be useful to use this script (`deploy-to-rpis`) to deploy the
 latest version of the script to all computers at once.
 
-``` bash linenums="1"
+``` bash linenums="1" title="deploy-to-rpis"
 #!/bin/bash
 #
 # Deplay conmon-st to Raspberry Pi hosts.
@@ -203,7 +203,7 @@ done
 
 ### `conmon-st`
 
-``` bash linenums="1"
+``` bash linenums="1" title="conmon-st"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -643,7 +643,7 @@ In environments with multiple (desktop / server) computers,
 it may be useful to use this script (`deploy-to-pcs`) to
 deploy the latest version of the script to all computers.
 
-``` bash linenums="1"
+``` bash linenums="1" title="deploy-to-pcs"
 #!/bin/bash
 #
 # Deplay conmon-mt to PC hosts.
@@ -682,7 +682,7 @@ done
 
 ### `conmon-mt`
 
-``` bash linenums="1"
+``` bash linenums="1" title="conmon-mt"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -1139,7 +1139,7 @@ sleep 10000000000
 
 ### `conmon-speedtest`
 
-``` bash linenums="1"
+``` bash linenums="1" title="conmon-speedtest"
 #!/bin/bash
 
 # InfluxDB target.
@@ -1175,9 +1175,9 @@ fi
 # Post over HTTPS with Basic Auth, provided credentials are
 # found in /etc/conmon/influxdb-auth
 if [ -n "$TARGET_HTTPS" ]; then
-    influxdb_auth="${HOME}/.conmon-influxdb-auth"
+    influxdb_auth=/etc/conmon/influxdb-auth
     if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
-        return
+        exit 1
     fi
     host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
     if nc 2>&1 -zv $host_and_port | grep -q succeeded; then
@@ -1192,7 +1192,7 @@ rm -f "${DATA}"
 
 ### `conmon-mystrom`
 
-``` bash linenums="1"
+``` bash linenums="1" title="conmon-mystrom"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -1295,6 +1295,9 @@ Usage:
 Requires:
   absl-py
   https://github.com/abseil/abseil-py
+
+  influxdb
+  https://github.com/influxdata/influxdb-python
 
   tapo
   https://github.com/mihai-dinculescu/tapo/
@@ -1421,7 +1424,7 @@ if __name__ == "__main__":
     app.run(main)
 ```
 
-### `tapo.yaml`
+#### `tapo.yaml`
 
 ``` yaml linenums="1"
 devices:
@@ -1441,3 +1444,175 @@ tapo_auth:
   tapo_username: "TAPO_USERNAME"
   tapo_password: "TAPO_PASSWORD"
 ```
+
+#### Python dependencies
+
+The `absl` and `influxdb` modules can be installed with`apt`:
+
+``` console
+# apt install python3-absl python3-influxdb
+```
+
+The [`tapo`](https://github.com/mihai-dinculescu/tapo/) module
+is more complicated to install. The recommended approach is to use
+**virtualenv**:
+
+??? terminal "`# apt install python3-venv -y`"
+
+    ``` console
+    # apt install python3-venv -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      python3-pip-whl python3-setuptools-whl python3.12-venv
+    The following NEW packages will be installed:
+      python3-pip-whl python3-setuptools-whl python3-venv python3.12-venv
+    0 upgraded, 4 newly installed, 0 to remove and 3 not upgraded.
+    Need to get 2,425 kB of archives.
+    After this operation, 2,777 kB of additional disk space will be used.
+    Get:1 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-pip-whl all 24.0+dfsg-1ubuntu1.1 [1,703 kB]
+    Get:2 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-setuptools-whl all 68.1.2-2ubuntu1.1 [716 kB]
+    Get:3 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3.12-venv amd64 3.12.3-1ubuntu0.3 [5,678 B]
+    Get:4 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-venv amd64 3.12.3-0ubuntu2 [1,034 B]
+    Fetched 2,425 kB in 1s (1,736 kB/s)      
+    Selecting previously unselected package python3-pip-whl.
+    (Reading database ... 425834 files and directories currently installed.)
+    Preparing to unpack .../python3-pip-whl_24.0+dfsg-1ubuntu1.1_all.deb ...
+    Unpacking python3-pip-whl (24.0+dfsg-1ubuntu1.1) ...
+    Selecting previously unselected package python3-setuptools-whl.
+    Preparing to unpack .../python3-setuptools-whl_68.1.2-2ubuntu1.1_all.deb ...
+    Unpacking python3-setuptools-whl (68.1.2-2ubuntu1.1) ...
+    Selecting previously unselected package python3.12-venv.
+    Preparing to unpack .../python3.12-venv_3.12.3-1ubuntu0.3_amd64.deb ...
+    Unpacking python3.12-venv (3.12.3-1ubuntu0.3) ...
+    Selecting previously unselected package python3-venv.
+    Preparing to unpack .../python3-venv_3.12.3-0ubuntu2_amd64.deb ...
+    Unpacking python3-venv (3.12.3-0ubuntu2) ...
+    Setting up python3-setuptools-whl (68.1.2-2ubuntu1.1) ...
+    Setting up python3-pip-whl (24.0+dfsg-1ubuntu1.1) ...
+    Setting up python3.12-venv (3.12.3-1ubuntu0.3) ...
+    Setting up python3-venv (3.12.3-0ubuntu2) ...
+    ```
+
+``` console
+$ mkdir -p ~/.venvs
+$ python3 -m venv --system-site-packages ~/.venvs/tapo
+$ ~/.venvs/tapo/bin/python -m pip install tapo
+Collecting tapo
+  Using cached tapo-0.8.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (12 kB)
+Using cached tapo-0.8.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+Installing collected packages: tapo
+Successfully installed tapo-0.8.0
+
+$ ~/.venvs/tapo/bin/python ./conmon-tapo.py
+```
+
+The `tapo` module can also be installed the *not recommended* way: 
+
+``` console
+# pip install --break-system-packages tapo
+Collecting tapo
+  Using cached tapo-0.8.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (12 kB)
+Using cached tapo-0.8.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+Installing collected packages: tapo
+Successfully installed tapo-0.8.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+```
+
+#### Device IP dependencies
+
+The "`conmon-tapo.py` script was initially writen on the assumption
+that Tapo devices would keep their IP address constant long-term,
+so if they change IP addresses the script crashes when trying to read
+the wrong fields, or simply not being able to connect to one of them:
+
+??? failure "Trying to reach a device at nobody's IP address"
+
+    ``` console hl_lines="25"
+    $ ~/.venvs/tapo/bin/python ./conmon-tapo.py 
+    Traceback (most recent call last):
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 138, in <module>
+        app.run(main)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 308, in run
+        _run_main(main, args)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 254, in _run_main
+        sys.exit(main(argv))
+                ^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 132, in main
+        reports = asyncio.run(fetch_reports(config))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+        return runner.run(main)
+              ^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+        return self._loop.run_until_complete(task)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+        return future.result()
+              ^^^^^^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 83, in fetch_reports
+        device_conn = await client.p110(device["ip"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Exception: Http(reqwest::Error { kind: Request, url: "http://192.168.0.41/app", source: hyper_util::client::legacy::Error(Connect, ConnectError("tcp connect error", Os { code: 113, kind: HostUnreachable, message: "No route to host" })) })
+    ```
+
+??? failure "Trying to reach a device at somebody else's IP address"
+
+    ``` console hl_lines="25"
+    $ ~/.venvs/tapo/bin/python ./conmon-tapo.py 
+    Traceback (most recent call last):
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 138, in <module>
+        app.run(main)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 308, in run
+        _run_main(main, args)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 254, in _run_main
+        sys.exit(main(argv))
+                ^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 132, in main
+        reports = asyncio.run(fetch_reports(config))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+        return runner.run(main)
+              ^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+        return self._loop.run_until_complete(task)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+        return future.result()
+              ^^^^^^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 83, in fetch_reports
+        device_conn = await client.p110(device["ip"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Exception: Http(reqwest::Error { kind: Request, url: "http://192.168.0.32/app", source: hyper_util::client::legacy::Error(SendRequest, hyper::Error(Io, Os { code: 104, kind: ConnectionReset, message: "Connection reset by peer" })) })
+    ```
+
+??? failure "Trying to read a P115 like it was an H100"
+
+    ``` console hl_lines="25"
+    $ ~/.venvs/tapo/bin/python ./conmon-tapo.py
+    Traceback (most recent call last):
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 138, in <module>
+        app.run(main)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 308, in run
+        _run_main(main, args)
+      File "/usr/lib/python3/dist-packages/absl/app.py", line 254, in _run_main
+        sys.exit(main(argv))
+                ^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 132, in main
+        reports = asyncio.run(fetch_reports(config))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+        return runner.run(main)
+              ^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+        return self._loop.run_until_complete(task)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+        return future.result()
+              ^^^^^^^^^^^^^^^
+      File "/home/coder/src/conmon/./conmon-tapo.py", line 65, in fetch_reports
+        device_info = await device_conn.get_device_info()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Exception: Serde(Error("missing field `in_alarm_source`", line: 1, column: 822))
+    ```
