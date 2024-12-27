@@ -1015,7 +1015,7 @@ setup previously, so it only needs to be run manually this once.
 ### Steam
 
 Installing Steam from Snap 
-[couldn't be simplers](https://unixhint.com/install-steam-on-ubuntu-24-04/):
+[couldn't be simpler](https://unixhint.com/install-steam-on-ubuntu-24-04/):
 
 ``` console
 # snap install steam
@@ -1076,7 +1076,7 @@ playing the Java edition more.
 ### Blender
 
 [Blender 4.2 LTS](https://www.blender.org/) is already available
-even for Ubuntu 22.04 via 
+even for Ubuntu 24.04 via 
 [snapcraft.io/blender](https://snapcraft.io/blender)
 so there is no reason to install it any other way:
 
