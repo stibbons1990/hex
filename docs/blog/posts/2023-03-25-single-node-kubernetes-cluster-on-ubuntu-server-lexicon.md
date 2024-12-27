@@ -14,8 +14,6 @@ compose, I decided it was time to dive into Kubernetes.
 But I only have one server:
 [lexicon](2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md).
 
-<!-- more --> 
-
 For the most part I followed
 [Computing for Geeks](https://computingforgeeks.com/)'
 article
@@ -26,6 +24,8 @@ while taking some bits from
 and
 [How to Install Kubernetes Cluster on Ubuntu 22.04](https://www.linuxtechi.com/install-kubernetes-on-ubuntu-22-04/)
 (from [LinuxTechi](https://www.linuxtechi.com/)).
+
+<!-- more --> 
 
 ## Docker
 
@@ -38,7 +38,7 @@ and
 Installing Docker is probably *not required* to the later
 installation of Kubernetes, but it did influence my journey.
 
-```
+``` console
 # apt update
 # apt install -y ca-certificates curl gnupg lsb-release
 # curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
@@ -54,7 +54,7 @@ installation of Kubernetes, but it did influence my journey.
 
 To check the basic Docker components work:
 
-```
+``` console
 # docker run hello-world
 Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
@@ -94,7 +94,7 @@ very big. In my case, most of the disk space is given to the
 
 First stop the Docker runtime service and move the files:
 
-```
+``` console
 # systemctl stop docker.service
 # systemctl stop docker.socket
 # systemctl stop containerd.service
@@ -110,7 +110,7 @@ First stop the Docker runtime service and move the files:
 Once files are moved, edit `/etc/docker/daemon.json` to point
 the Docker runtime service to the new location:
 
-```js
+``` json
 {
   "data-root": "/home/lib/docker",
   ...
@@ -120,7 +120,7 @@ the Docker runtime service to the new location:
 Finally, start the service again and check the change has
 taken effect:
 
-```
+``` console
 # systemctl start docker.socket
 # systemctl start docker.service
 # systemctl start containerd.service
@@ -135,7 +135,7 @@ will grow with stale images. These can be cleaned
 up manually with `crictl rmi --prune` pointing it
 to the correct endpoint:
 
-```
+``` console
 # du -sh /home/lib/containerd/
 109G    /home/lib/containerd/
 # crictl \
@@ -153,7 +153,7 @@ to trigger Kubernetes' built-in garbage collection:
 Setting this threshold involves
 [updating the `KubeletConfiguration`](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-reconfigure/#updating-the-kubeletconfiguration):
 
-```
+``` console
 $ kubectl edit cm -n kube-system kubelet-config
 ```
 
@@ -162,7 +162,7 @@ threshold for garbage collection under it; very
 carefully using the exact same blank characters
 for indentation (otherwise the YAML is invalid):
 
-```yaml
+``` yaml
     imageMinimumGCAge: 0s
     imageGCLowThresholdPercent: 65
     imageGCHighThresholdPercent: 70
@@ -173,7 +173,7 @@ Run `kubeadm upgrade` as below to download the latest
 file `/var/lib/kubelet/config.yaml` and restart the
 `kubelet` service:
 
-```
+``` console
 # kubeadm upgrade node phase kubelet-config
 [upgrade] Reading configuration from the cluster...
 [upgrade] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
@@ -184,8 +184,9 @@ file `/var/lib/kubelet/config.yaml` and restart the
 # systemctl restart kubelet
 ```
 
-**Note:** This may not be effective when the images
-are not in the root partition.
+!!! note
+
+    This may not be effective when the images are not in the root partition.
 
 [It also possible](https://github.com/containerd/containerd/discussions/6295#discussioncomment-1718081)
 to set `discard_unpacked_layers: true` on the CRI
@@ -214,7 +215,7 @@ result in losing all Docker images.
 
 First stop the Docker runtime service and move the files:
 
-```
+``` console
 # systemctl stop docker.service
 # systemctl stop docker.socket
 # systemctl stop containerd.service
@@ -224,7 +225,7 @@ Once files are moved, edit `/etc/docker/daemon.json` to
 [override storage driver](https://github.com/moby/moby/issues/27653#issuecomment-1435749535)
 as recommended:
 
-```js
+``` json
 {
   ...
   "storage-driver": "overlay2"
@@ -234,7 +235,7 @@ as recommended:
 Finally, start the service again and check the change has
 taken effect:
 
-```
+``` console
 # systemctl start docker.socket
 # systemctl start docker.service
 # systemctl start containerd.service
@@ -251,7 +252,7 @@ One day I found the root filesystem was nearly 100% full.
 
 Pruning didn’t help much until I stopped all leftover clusters from previous exercises, and even then it only helped a bit:
 
-```
+``` console
 # docker image prune -a -f
 ...
 Total reclaimed space: 2.244GB
@@ -278,7 +279,7 @@ driver to use `overlay2`.
 
 The core components of Kubernetes can be installed via APT:
 
-```
+``` console
 # apt update
 # apt full-upgrade
 # curl -fsSLo \
@@ -306,7 +307,7 @@ The following command should be able to connect to the
 Kubernetes `etcd` service now; you *might* need to run this
 as root, or not:
 
-```
+``` console
 $ kubeadm version
 kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:56:50Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
 ```
@@ -315,7 +316,7 @@ kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitC
 
 The following steps were not necessary. Enabling IP forwarding and NAT is not necessary in Ubuntu 22.04 server, it is all already enabled by default apparently.
 
-```
+``` console
 # modprobe overlay
 # modprobe br_netfilter
 # tee /etc/sysctl.d/kubernetes.conf<<EOF
@@ -329,7 +330,7 @@ EOF
 The result, which can be checked upfront to confirm that the
 above steps are not necessary, can be checked with:
 
-```
+``` console
 # lsmod | egrep 'overlay|bridge'
 bridge                307200  1 br_netfilter
 stp                    16384  1 bridge
@@ -359,7 +360,7 @@ by updating the flags in
 `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf` or 
 `/var/lib/kubelet/kubeadm-flags.env` to
 
-```
+``` console
 --container-runtime=remote 
 --container-runtimeendpoint=unix:///run/containerd/containerd.sock"
 ```
@@ -367,7 +368,7 @@ by updating the flags in
 But since we’re starting from scratch, we’ll do that from
 `kubeadm` later:
 
-```
+``` console
 # systemctl enable kubelet
 # systemctl status kubelet
 ● kubelet.service - kubelet: The Kubernetes Node Agent
@@ -391,7 +392,7 @@ But since we’re starting from scratch, we’ll do that from
 
 For a single-node cluster, bootstrap it in the simplest way:
 
-```
+``` console
 # kubeadm init \
   --pod-network-cidr=10.244.0.0/16 \
   --cri-socket unix:/run/containerd/containerd.sock
@@ -473,7 +474,7 @@ Confirm the flag is sent in
 `/var/lib/kubelet/kubeadm-flags.env`
 to use the desired container runtime:
 
-```
+``` console
 # grep container-runtime /var/lib/kubelet/kubeadm-flags.env
 KUBELET_KUBEADM_ARGS="--container-runtime-endpoint=unix:/run/containerd/containerd.sock --pod-infra-container-image=registry.k8s.io/pause:3.9"
 ```
@@ -481,7 +482,7 @@ KUBELET_KUBEADM_ARGS="--container-runtime-endpoint=unix:/run/containerd/containe
 Check the customer status; as `root` one can simply point
 `KUBECONFIG` to the cluster's `admin.conf`:
 
-```
+``` console
 # export KUBECONFIG=/etc/kubernetes/admin.conf
 # kubectl cluster-info
 Kubernetes control plane is running at https://10.0.0.6:6443
@@ -493,7 +494,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 To run `kubectl` as non-root, make a copy of that file under
 your own `~/.kube` directory:
 
-```
+``` console
 $ mkdir $HOME/.kube
 $ sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -511,7 +512,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 Containerd defauls to disabling systemd cgroups, which causes
 the cluster to go into a crash-loop, making `kubectl` fail:
 
-```
+``` console
 E0322 22:45:47.847433 1825724 memcache.go:265] couldn't get current server API group list:
 Get "https://10.0.0.6:6443/api?timeout=32s": dial tcp 10.0.0.6:6443: connect: connection refused
 ```
@@ -519,7 +520,7 @@ Get "https://10.0.0.6:6443/api?timeout=32s": dial tcp 10.0.0.6:6443: connect: co
 In this scenario `etcd` will not be listening on port 6443 (check with `netstat -na`) and `journalctl` will show lots of
 errors, starting with:
 
-```
+``` console
 # journalctl -xe | egrep -i 'container|docker|kube|clust'
 Mar 22 22:46:50 lexicon kubelet[1658461]: E0322 22:46:50.716943 1658461 pod_workers.go:965]
 "Error syncing pod, skipping" err="failed to \"StartContainer\" for \"kube-apiserver\" with CrashLoopBackOff:
@@ -534,7 +535,7 @@ This `CrashLoopBackOff` error is a sign of
 is to set `SystemdCgroup = true` in
 `/etc/containerd/config.toml` and restart the cluster with
 
-```
+``` console
 # systemctl restart containerd
 # systemctl restart kubelet
 ```
@@ -544,7 +545,7 @@ is to set `SystemdCgroup = true` in
 A Kubernetes cluster needs a simple layer 3 network for nodes
 to communicate (even for a single-node cluster):
 
-```
+``` console
 $ wget https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 $ kubectl apply -f kube-flannel.yml
 namespace/kube-flannel created
@@ -562,7 +563,7 @@ kube-flannel-ds-nrrg6   1/1     Running   0          22s
 
 First, confirm the master node is ready:
 
-```
+``` console
 $ kubectl get nodes -o wide
 NAME      STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
 lexicon   Ready    control-plane   9d    v1.26.3   10.0.0.6      <none>        Ubuntu 22.04.2 LTS   5.15.0-69-generic   containerd://1.6.19
@@ -573,7 +574,7 @@ At this point, for a
 the command provided by `kubeadm init` is used to add the
 same system as a worker:
 
-```
+``` console
 # kubeadm join 10.0.0.6:6443 --token 8gotcn.nco65l9atfr0l77c \
         --discovery-token-ca-cert-hash \
   sha256:40002a46e8b15a41883d4d35fa68cef6ff2203fe79095da867b56a090abafa1a
@@ -593,7 +594,7 @@ cluster *is not supposed* to have the same system work as
 both master and worker.
 This manifests as the node being *tainted*:
 
-```
+``` console
 $ kubectl describe node lexicon
 Name:               lexicon
 Roles:              control-plane
@@ -607,7 +608,7 @@ For a single-node cluster the only option appears to be
 as recommended in 
 [github.com/calebhailey/homelab/issues/3](https://github.com/calebhailey/homelab/issues/3). After this, there is no taint:
 
-```
+``` console
 $ kubectl taint nodes --all \
   node-role.kubernetes.io/control-plane-node/lexicon untainted
 
@@ -635,7 +636,7 @@ Taints:             <none>
 At this point the Kubernetes cluster is up and running and can
 be tested deploying a test application:
 
-```
+``` console
 $ kubectl apply -f https://k8s.io/examples/pods/commands.yaml
 
 $ kubectl events pods
@@ -655,7 +656,7 @@ is going to be necessary for the [Dashboard](#dashboard)
 and future applications, to expose individual services via
 open ports on the server (`NodePort`) or virtual IP addresses.
 
-```
+``` console
 $ wget \
 https://raw.githubusercontent.com/metallb/metallb/v$MetalLB_RTAG/config/manifests/metallb-native.yaml
 $ kubectl apply -f metallb-native.yaml
@@ -687,7 +688,7 @@ validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-conf
 After a few seconds the deployment should have the controller
 and speaker running:
 
-```
+``` console
 $ kubectl get all -n metallb-system 
 NAME                              READY   STATUS    RESTARTS   AGE
 pod/controller-68bf958bf9-kzcfg   1/1     Running   0          32s
@@ -714,7 +715,7 @@ At this point the components are idle waiting for a working
 [configuration](https://metallb.universe.tf/configuration/);
 edit `ipaddress_pools.yaml` to set a range of IP addresses:
 
-```yaml
+``` yaml linenums="1" title="ipaddress_pools.yaml"
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -746,7 +747,7 @@ to the network interfaces of your worker nodes. It works by
 responding to ARP requests on your local network directly,
 to give the machine’s MAC address to clients.
 
-```
+``` console
 $ kubectl apply -f ipaddress_pools.yaml 
 ipaddresspool.metallb.io/production created
 l2advertisement.metallb.io/l2-advert created
@@ -771,7 +772,7 @@ Spec:
 To test the load balancer with a demo web, create a 
 deployment with `web-app-demo.yaml` as follows:
 
-```yaml
+``` yaml linenums="1" title="web-app-demo.yaml"
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -812,7 +813,7 @@ spec:
   type: LoadBalancer
 ```
 
-```
+``` console
 $ kubectl apply -f web-app-demo.yaml
 $ kubectl get all -n web
 NAME                              READY   STATUS    RESTARTS   AGE
@@ -847,7 +848,7 @@ In addition to the load balancer, I also wanted to
 [deploy Nginx Ingress Controller](https://computingforgeeks.com/deploy-nginx-ingress-controller-on-kubernetes-using-helm-chart/)
 to redirect HTTPS requests to different services.
 
-```
+``` console
 $ controller_tag=$(curl -s https://api.github.com/repos/kubernetes/ingress-nginx/releases/latest | grep tag_name | cut -d '"' -f 4)
 $ wget -O nginx-ingress-controller-deploy.yaml \
   https://raw.githubusercontent.com/kubernetes/ingress-nginx/${controller_tag}/deploy/static/provider/baremetal/deploy.yaml
@@ -859,7 +860,7 @@ configured with a range of IP addresses, change **line 365**
 in `nginx-ingress-controller-deploy.yaml` to
 `type: LoadBalancer` so that it gets an External IP.
 
-```
+``` console
 $ kubectl apply -f nginx-ingress-controller-deploy.yaml
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
@@ -907,7 +908,7 @@ job.batch/ingress-nginx-admission-patch    1/1           8s         107s
 
 Download the manifest and change spec.type to LoadBalancer so it gets an External IP from MetalLB:
 
-```
+``` console
 $ VER=$(curl -s https://api.github.com/repos/kubernetes/dashboard/releases/latest|grep tag_name|cut -d '"' -f 4)
 $ echo $VER
 v2.7.0
@@ -919,7 +920,7 @@ To make the dashboard easily available in the local network,
 edit `kubernetes-dashboard.yaml` (around line 40) to set the
 service to `LoadBalancer`:
  
-```yaml
+``` yaml linenums="36" title="kubernetes-dashboard.yaml"
   namespace: kubernetes-dashboard
 spec:
   type: LoadBalancer
@@ -929,7 +930,7 @@ spec:
 
 Then deploy the Dashboard:
 
-```
+``` console
 $ kubectl apply -f kubernetes-dashboard.yaml
 namespace/kubernetes-dashboard created
 serviceaccount/kubernetes-dashboard created
@@ -1012,10 +1013,7 @@ this flag in line 20 of
 `/etc/kubernetes/manifests/kube-apiserver.yaml`
 and restarting the `kubelet` service:
 
-```yaml
-apiVersion: v1
-kind: Pod
-...
+``` yaml linenums="12" hl_lines="20" title="kube-apiserver.yaml"
 spec:
   containers:
   - command:
@@ -1025,16 +1023,15 @@ spec:
     - --authorization-mode=Node,RBAC
     - --client-ca-file=/etc/kubernetes/pki/ca.crt
     - --enable-admission-plugins=NodeRestriction,DefaultStorageClass
-    ...
 ```
 
-```
+``` console
 # systemctl restart kubelet.service
 ```
 
 Create a directory in the a file system where there is plenty of space:
 
-```
+``` console
 # mkdir /home/k8s/local-path-storage
 # chmod 1777 /home/k8s/local-path-storage
 ```
@@ -1042,141 +1039,143 @@ Create a directory in the a file system where there is plenty of space:
 Create a deployment with Rancher’s PV provisioner, with the annotation to make it the default storage class and create a
 deployment, e.g. `local-path-storage-as-default-class.yaml`
 
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: local-path-storage
+??? k8s "Kubernetes deployment: `local-path-storage-as-default-class.yaml`"
 
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: local-path-provisioner-service-account
-  namespace: local-path-storage
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: local-path-provisioner-role
-rules:
-  - apiGroups: [ "" ]
-    resources: [ "nodes", "persistentvolumeclaims", "configmaps" ]
-    verbs: [ "get", "list", "watch" ]
-  - apiGroups: [ "" ]
-    resources: [ "endpoints", "persistentvolumes", "pods" ]
-    verbs: [ "*" ]
-  - apiGroups: [ "" ]
-    resources: [ "events" ]
-    verbs: [ "create", "patch" ]
-  - apiGroups: [ "storage.k8s.io" ]
-    resources: [ "storageclasses" ]
-    verbs: [ "get", "list", "watch" ]
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: local-path-provisioner-bind
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: local-path-provisioner-role
-subjects:
-  - kind: ServiceAccount
-    name: local-path-provisioner-service-account
-    namespace: local-path-storage
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: local-path-provisioner
-  namespace: local-path-storage
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: local-path-provisioner
-  template:
-    metadata:
-      labels:
-        app: local-path-provisioner
-    spec:
-      serviceAccountName: local-path-provisioner-service-account
-      containers:
-        - name: local-path-provisioner
-          image: rancher/local-path-provisioner:master-head
-          imagePullPolicy: IfNotPresent
-          command:
-            - local-path-provisioner
-            - --debug
-            - start
-            - --config
-            - /etc/config/config.json
-          volumeMounts:
-            - name: config-volume
-              mountPath: /etc/config/
-          env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-      volumes:
-        - name: config-volume
-          configMap:
-            name: local-path-config
-
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: local-path
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
-provisioner: rancher.io/local-path
-allowVolumeExpansion: true
-volumeBindingMode: WaitForFirstConsumer
-reclaimPolicy: Retain
-
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: local-path-config
-  namespace: local-path-storage
-data:
-  config.json: |-
-    {
-            "nodePathMap":[
-            {
-                    "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
-                    "paths":["/home/k8s/local-path-storage"]
-            }
-            ]
-    }
-  setup: |-
-    #!/bin/sh
-    set -eu
-    mkdir -m 0777 -p "$VOL_DIR"
-  teardown: |-
-    #!/bin/sh
-    set -eu
-    rm -rf "$VOL_DIR"
-  helperPod.yaml: |-
+    ``` yaml linenums="1" title="local-path-storage-as-default-class.yaml"
     apiVersion: v1
-    kind: Pod
+    kind: Namespace
     metadata:
-      name: helper-pod
-    spec:
-      containers:
-      - name: helper-pod
-        image: busybox
-        imagePullPolicy: IfNotPresent
-```
+      name: local-path-storage
 
-```
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: local-path-provisioner-service-account
+      namespace: local-path-storage
+
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: local-path-provisioner-role
+    rules:
+      - apiGroups: [ "" ]
+        resources: [ "nodes", "persistentvolumeclaims", "configmaps" ]
+        verbs: [ "get", "list", "watch" ]
+      - apiGroups: [ "" ]
+        resources: [ "endpoints", "persistentvolumes", "pods" ]
+        verbs: [ "*" ]
+      - apiGroups: [ "" ]
+        resources: [ "events" ]
+        verbs: [ "create", "patch" ]
+      - apiGroups: [ "storage.k8s.io" ]
+        resources: [ "storageclasses" ]
+        verbs: [ "get", "list", "watch" ]
+
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: local-path-provisioner-bind
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: local-path-provisioner-role
+    subjects:
+      - kind: ServiceAccount
+        name: local-path-provisioner-service-account
+        namespace: local-path-storage
+
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: local-path-provisioner
+      namespace: local-path-storage
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: local-path-provisioner
+      template:
+        metadata:
+          labels:
+            app: local-path-provisioner
+        spec:
+          serviceAccountName: local-path-provisioner-service-account
+          containers:
+            - name: local-path-provisioner
+              image: rancher/local-path-provisioner:master-head
+              imagePullPolicy: IfNotPresent
+              command:
+                - local-path-provisioner
+                - --debug
+                - start
+                - --config
+                - /etc/config/config.json
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/config/
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+          volumes:
+            - name: config-volume
+              configMap:
+                name: local-path-config
+
+    ---
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: local-path
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+    provisioner: rancher.io/local-path
+    allowVolumeExpansion: true
+    volumeBindingMode: WaitForFirstConsumer
+    reclaimPolicy: Retain
+
+    ---
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: local-path-config
+      namespace: local-path-storage
+    data:
+      config.json: |-
+        {
+                "nodePathMap":[
+                {
+                        "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                        "paths":["/home/k8s/local-path-storage"]
+                }
+                ]
+        }
+      setup: |-
+        #!/bin/sh
+        set -eu
+        mkdir -m 0777 -p "$VOL_DIR"
+      teardown: |-
+        #!/bin/sh
+        set -eu
+        rm -rf "$VOL_DIR"
+      helperPod.yaml: |-
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: helper-pod
+        spec:
+          containers:
+          - name: helper-pod
+            image: busybox
+            imagePullPolicy: IfNotPresent
+    ```
+
+``` console
 $ kubectl apply -f \
   local-path-storage-as-default-class.yaml
 namespace/local-path-storage created
@@ -1209,7 +1208,7 @@ then other subdomains redirect to specific ports.
 [Install certbot](https://www.server-world.info/en/note?os=Ubuntu_22.04&p=ssl&f=2)
 and request a certificate for `ssl.uu.am`
 
-```
+``` console
 # apt install -y certbot
 # certbot certonly --standalone -d ssl.uu.am
 Saving debug log to /var/log/letsencrypt/letsencrypt.log
@@ -1252,7 +1251,7 @@ names (e.g. `cert.pem`).
 The `certbot` package installs a service and a timer to
 renew certificates every 30 days, trying 2x daily:
 
-```
+``` console
 # systemctl status certbot.timer 
 ● certbot.timer - Run certbot twice daily
      Loaded: loaded (/lib/systemd/system/certbot.timer; enabled; vendor preset: enabled)
@@ -1286,7 +1285,7 @@ forwarded to the hosts’ IP.
 If this forward is removed at some point (e.g. forwarded
 to another IP), the renewal will fail:
 
-```
+``` console
 # systemctl status certbot.service 
 × certbot.service - Certbot
      Loaded: loaded (/lib/systemd/system/certbot.service; static)
@@ -1311,7 +1310,7 @@ Apr 16 04:53:14 lexicon systemd[1]: Failed to start Certbot.
 To fix this, restore the port forwarding and
 **restart the timer** (not the service):
 
-```
+``` console
 # systemctl restart certbot.timer 
 # systemctl status certbot.timer 
 ● certbot.timer - Run certbot twice daily
@@ -1369,7 +1368,7 @@ by installing directly in
 (with or without Helm).
 Install the latest version of cert-manager using Helm:
 
-```
+``` console
 $ helm repo add jetstack https://charts.jetstack.io
 $ helm repo update
 $ helm install cert-manager jetstack/cert-manager \
@@ -1431,7 +1430,7 @@ get the latest release from
 [github.com/cert-manager/cert-manager](https://github.com/cert-manager/cert-manager/releases/)
 to match the Helm chart installed.
 
-```
+``` console
 $ curl -L -o kubectl-cert-manager.tar.gz \
   https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/kubectl-cert_manager-linux-amd64.tar.gz
 $ tar xfz kubectl-cert-manager.tar.gz 
@@ -1444,7 +1443,7 @@ Create a `ClusterIssuer` which applies across all Ingress
 resources in the cluster, by deploying the following
 `cert-manager-issuer.yml`
 
-```yaml
+``` yaml linenums="1" title="cert-manager-issuer.yml"
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -1461,7 +1460,7 @@ spec:
             class: nginx
 ```
 
-```
+``` console
 $ kubectl create -f cert-manager-issuer.yml
 clusterissuer.cert-manager.io/letsencrypt-prod created
 $ kubectl describe clusterissuer.cert-manager.io/letsencrypt-prod
@@ -1514,7 +1513,7 @@ journe of adding HTTPS to a pod running Gitea.
 One way to do this would be using kubectl to apply the
 change in Gitea's own Ingress (`vi gitea-ingress.yml`):
 
-```yaml
+``` yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -1539,7 +1538,8 @@ spec:
       hosts:
         - "git.ssl.uu.am"
 ```
-```
+
+``` console
 $ kubectl -n gitea apply -f gitea-ingress.yml
 ```
 
@@ -1547,7 +1547,7 @@ Better yet, it should be possible to incorporate this
 into values passed to the Gitea Helm chart, applying
 the changes to `gitea-values.yaml` as follows:
 
-```yaml
+``` yaml
 ingress:
   enabled: true
   className: nginx
@@ -1565,7 +1565,7 @@ ingress:
         - "git.ssl.uu.am"
 ```
 
-```
+``` console
 $ helm install gitea gitea-charts/gitea \
   --create-namespace \
   --namespace=gitea \
@@ -1655,7 +1655,7 @@ While we have Gitea already running,
 we can try using kubectl to apply this change to
 `gitea-ingress.yml`:
 
-```yaml
+``` yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -1683,7 +1683,7 @@ spec:
 
 But this still doesn't work:
 
-```
+``` console
 $ kubectl -n gitea apply -f gitea-ingress.yml
 Error from server (BadRequest): error when creating "gitea-ingress.yml": admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: host "git.ssl.uu.am" and path "/" is already defined in ingress gitea/gitea
 ```
@@ -1693,7 +1693,7 @@ chart, to avoid this conflict. Once that’s removed,
 and Gitea reinstall (w/ Helm), we’re back at having an
 Ingress entity jus like the one above:
 
-```
+``` console
 $ kubectl get ingress -A
 NAMESPACE   NAME            CLASS   HOSTS                ADDRESS    PORTS   AGE
 gitea       gitea-ingress   nginx   git.ssl.uu.am   10.0.0.6   80      56m
@@ -1717,7 +1717,7 @@ MetalLB IP, and get the Gitea home page at
 That partially works: we get to the Gitea service,
 but still use the fake cert.
 
-```
+``` console
 $ kubectl -n ingress-nginx get pods | grep ingress-nginx-controller
 ingress-nginx-controller-6b58ffdc97-rt5lm   1/1     Running     1 (4d12h ago)   14d
 
@@ -1729,7 +1729,7 @@ $ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | tail
 Not sure whether the SSL error there is caused by,
 or causing, the use of the fake cert.
 
-```
+``` console
 $ kubectl -n gitea describe ingress gitea-ingress
 Name:             gitea-ingress
 Labels:           <none>
@@ -1754,14 +1754,14 @@ ingress.class instead of each ingress resource
 At this point, we the annotation to `nginx-ingress-controller-deploy.yaml` under line 601,
 and check the diff and apply:
 
-```yaml
+``` yaml
   kind: IngressClass
   metadata:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
 ```
 
-```
+``` console
 $ kubectl diff -f nginx-ingress-controller-deploy.yaml 
 ...
  kind: IngressClass
@@ -1785,14 +1785,14 @@ Events:       <none>
 
 That doesn’t seem to make any difference, so we keep looking and find out we’re missing the tls section in `gitea-ingress.yml` which turned to be important:
 
-```yaml
+``` yaml
   tls:
     - secretName: tls-secret
       hosts:
         - "git.ssl.uu.am"
 ```
 
-```
+``` console
 $ kubectl -n gitea apply -f gitea/gitea-ingress.yml 
 ingress.networking.k8s.io/gitea-ingress configured
 
@@ -1825,7 +1825,7 @@ We still get the fake cert on
 The ingress controller is complaining that it can’t
 find those tls-secret
 
-```
+``` console
 $ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | egrep -i 'ssl.*cert|ssl.*hand' | grep -v gitlab
 I0412 04:07:33.044575       7 main.go:104] "SSL fake certificate created" file="/etc/ingress-controller/ssl/default-fake-certificate.pem"
 I0412 04:07:33.075730       7 ssl.go:533] "loading tls certificate" path="/usr/local/certificates/cert" key="/usr/local/certificates/key"
@@ -1842,7 +1842,7 @@ W0416 19:20:05.573367       7 backend_ssl.go:47] Error obtaining X.509 certifica
 The secrets do exist, do they not contain valid
 certificates?
 
-```
+``` console
 $ kubectl -n gitea describe cert
 Name:         tls-secret
 Namespace:    gitea
@@ -1953,7 +1953,7 @@ Looking at
 it seems we have in-flight orders for certificates,
 but are still waiting to receive them:
 
-```
+``` console
 $ kubectl -n gitea describe CertificateRequest tls-secret-hm94m
 Name:         tls-secret-hm94m
 Namespace:    gitea
@@ -2124,7 +2124,7 @@ Events:                    <none>
 
 The orders are pending, possibly because the self-check / challenge is failing due to incomplete network setup, i.e. not enough port forwardings:
 
-```
+``` console
 $ kubectl -n gitea get order tls-secret-hm94m-3966586170
 NAME                          STATE     AGE
 tls-secret-hm94m-3966586170   pending   31m
@@ -2137,7 +2137,7 @@ tls-secret-8w9rt-548771682   pending   24m
 shows how to find the orders, their challenges and
 why they are failing:
 
-```
+``` console
 $ kubectl -n gitea describe order tls-secret-hm94m-3966586170 | tail -4
 Events:
   Type    Reason   Age   From                 Message
@@ -2163,14 +2163,14 @@ looks like we want to add 2 more annotations to the
 Ingress resources in `gitea-ingress.yml` and
 `kubernetes-dashboard-ingress.yaml`:
 
-```yaml
+``` yaml
 cert-manager.io/issue-temporary-certificate: "true"
 acme.cert-manager.io/http01-edit-in-place: "true"
 ```
 
 Add these and re-apply:
 
-```
+``` console
 $ kubectl -n kubernetes-dashboard apply -f  dashboard/kubernetes-dashboard-ingress.yaml
 ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
 
@@ -2183,14 +2183,14 @@ so **let’s sort out that port forwarding**:
 the trick is to find each acme resolver and forward
 external port 80 to its `NodePort`:
 
-```
+``` console
 $ kubectl -n gitea get svc | grep acme
 cm-acme-http-solver-wmmvk   NodePort    10.103.37.86     <none>        8089:31544/TCP   51m
 ```
 
 More generally, for other cert managers:
 
-```
+``` console
 $ kubectl get svc -A | grep acme
 code-server              cm-acme-http-solver-8n9ks                               NodePort       10.101.32.112    <none>          8089:32220/TCP                                                                                  3d19h
 kubernetes-dashboard     cm-acme-http-solver-b8l2x                               NodePort       10.100.2.141     <none>          8089:32328/TCP
@@ -2198,7 +2198,7 @@ kubernetes-dashboard     cm-acme-http-solver-b8l2x                              
 
 After that port was made accessible, the challenge disappears and the order is **completed successfully**:
 
-```
+``` console
 $ kubectl -n gitea describe order tls-secret-hm94m-3966586170 | tail -4
   Type    Reason    Age   From                 Message
   ----    ------    ----  ----                 -------
@@ -2245,7 +2245,7 @@ Events:
 
 Now we have certificates, and a new problem!
 
-```
+``` console
 $ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | grep -C1 error:0A00006C:SSL
 10.244.0.1 - - [16/Apr/2023:20:08:27 +0000] "GET / HTTP/1.1" 200 13779 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" 742 0.003 [gitea-gitea-http-3000] [] 10.244.0.252:3000 13757 0.003 200 2ec12a59924906d8edd0900ff547afeb
 2023/04/16 20:08:32 [crit] 5747#5747: *6530552 SSL_do_handshake() failed (SSL: error:0A00006C:SSL routines::bad key share) while SSL handshaking, client: 10.244.0.1, server: 0.0.0.0:443
@@ -2259,7 +2259,7 @@ Maybe the only problem was impatience; left alone for a while and it works perfe
 Once the above works, we can do the same for the
 [Kubernetes Dashboard](#dashboard):
 
-```
+``` console
 $ kubectl -n kubernetes-dashboard get svc
 NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
 dashboard-metrics-scraper   ClusterIP   10.96.35.216    <none>        8000/TCP        13d
@@ -2268,7 +2268,7 @@ kubernetes-dashboard        NodePort    10.99.147.241   <none>        443:32000/
 
 Update `kubernetes-dashboard-ingress.yaml` like this:
 
-```yaml
+``` yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -2293,7 +2293,7 @@ spec:
                   number: 8443
 ```
 
-```
+``` console
 $ kubectl -n kubernetes-dashboard \
   apply -f kubernetes-dashboard-ingress.yaml 
 ingress.networking.k8s.io/kubernetes-dashboard-ingress created
@@ -2345,7 +2345,7 @@ This does not yet work 100%:
 Looking at the logs of the Nginx controller, it looks
 like a problem with/in the Cluster internal network:
 
-```
+``` console
 $ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | tail -2
 2023/04/16 17:26:40 [error] 4790#4790: *6371572 recv() failed (104: Connection reset by peer) while reading upstream, client: 10.244.0.1, server: k8s.ssl.uu.am, request: "GET / HTTP/2.0", upstream: "http://10.244.0.82:8443/", host: "k8s.ssl.uu.am", referrer: "https://www.google.com/"
 10.244.0.1 - - [16/Apr/2023:17:26:40 +0000] "GET / HTTP/2.0" 400 48 "https://www.google.com/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36" 465 0.002 [kubernetes-dashboard-kubernetes-dashboard-443] [] 10.244.0.82:8443 48 0.002 400 c2e45b0dee94255bb284054654b987a4
@@ -2354,7 +2354,7 @@ $ kubectl -n ingress-nginx logs ingress-nginx-controller-6b58ffdc97-rt5lm | tail
 Tried mapping to port 8443 but still got the same error. The problem was that Nginx was trying to send HTTP requests to an HTTPS endpoint and the solution was to add more annotations in
 `kubernetes-dashboard-ingress.yaml` and re-apply:
 
-```yaml
+``` yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -2370,7 +2370,7 @@ metadata:
 might be necessary later,
 but it’s not clear when or why:
 
-```yaml
+``` yaml
     nginx.ingress.kubernetes.io/configuration-snippet: |-
       proxy_ssl_server_name on;
       proxy_ssl_name $host;
@@ -2399,7 +2399,7 @@ node port for each `acme` resolver, one at a time.
 
 To find **all** `acme` resolvers:
 
-```
+``` console
 $ kubectl get svc -A | grep acme
 code-server              cm-acme-http-solver-8n9ks                               NodePort       10.101.32.112    <none>          8089:32220/TCP                                                                                  3d19h
 kubernetes-dashboard     cm-acme-http-solver-b8l2x                               NodePort       10.100.2.141     <none>          8089:32328/TCP
@@ -2426,7 +2426,7 @@ very shortly, which then deletes the pod and service.
 
 Running this in a crontab daily should do the job:
 
-```bash
+``` bash
 #!/bin/bash
 #
 # Patch the nodePort of running cert-manager renewal challenge, to listen
@@ -2444,7 +2444,7 @@ if [ -n "${namespace}" ] && [ -n "${service}" ]; then
 fi
 ```
 
-```
+``` console
 # crontab -e
 # Hourly patch montly cert renewal solvers.
 30 * * * * /root/bin/cert-renewal-port-fwd.sh
