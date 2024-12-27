@@ -1062,7 +1062,7 @@ previous system:
 It works perfectly right after installing; no need to login again.
 
 In contrast, trying to re-download Minecraft Java Edition
-[seems to lead nowhere good](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md).
+[seems to lead nowhere good](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#minecraft).
 
 ### Minecraft Bedrock Edition
 

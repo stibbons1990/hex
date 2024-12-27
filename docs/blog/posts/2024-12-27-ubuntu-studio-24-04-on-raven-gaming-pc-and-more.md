@@ -2074,4 +2074,98 @@ advising to install additional 32-bit drivers *for best experience*
     ```
 
 It should also be possible to install the official Steam client, with
-[the non-snap alternative](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative). This doesn't seems necessary anymore.
+[the non-snap alternative](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative).
+This doesn't seems necessary anymore.
+
+
+### Itch.io
+
+There is a binary in `.itch/itch` but it doesn’t work, it seem to have launched the app but the app itself is nowhere to be seen:
+
+??? terminal "`$ .itch/itch`"
+
+    ``` console
+    $ .itch/itch
+2024/12/27 20:26:33 itch-setup will log to /tmp/itch-setup-log.txt
+2024/12/27 20:26:33 =========================================
+2024/12/27 20:26:33 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-12-27 20:26:33.155012082 +0100 CET m=+0.004615449" with arguments:
+2024/12/27 20:26:33 "/home/coder/.itch/itch-setup"
+2024/12/27 20:26:33 "--prefer-launch"
+2024/12/27 20:26:33 "--appname"
+2024/12/27 20:26:33 "itch"
+2024/12/27 20:26:33 "--"
+2024/12/27 20:26:33 =========================================
+2024/12/27 20:26:33 App name specified on command-line: itch
+2024/12/27 20:26:33 Locale:  en-US
+2024/12/27 20:26:33 Initializing installer GUI...
+2024/12/27 20:26:33 Using GTK UI
+
+(process:748360): Gtk-WARNING **: 20:26:33.157: Locale not supported by C library.
+        Using the fallback 'C' locale.
+2024/12/27 20:26:33 Initializing (itch) multiverse @ (/home/coder/.itch)
+2024/12/27 20:26:33 (/home/coder/.itch)(current = "26.1.9", ready = "")
+2024/12/27 20:26:33 Launch preferred, attempting...
+2024/12/27 20:26:33 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
+2024/12/27 20:26:33 Kernel should support SUID sandboxing, leaving it enabled
+2024/12/27 20:26:33 App launched, getting out of the way
+    ```
+
+The solution, albeit possibly only a temporary one, is to
+[disable sandboxing](https://www.reddit.com/r/pop_os/comments/uocj8p/itchio_launcher_crashing_on_startup_ever_sense/)
+([source](https://itch.io/t/1760026/itch-app-official-is-closing-at-launch-fedora-linux)) by adding the
+`--no-sandbox` in `.itch/itch`:
+
+``` bash linenums="1" title=".itch/itch"
+#!/bin/sh
+/home/coder/.itch/itch-setup \
+  --prefer-launch --appname itch \
+  -- --no-sandbox "$@"
+```
+
+### Minecraft Java Edition
+
+To avoid taking chances, copy the Minecraft launcher from the
+previous system:
+
+``` console
+# cp -a /jammy/opt/minecraft-launcher/ /opt/
+```
+
+It works perfectly right after installing and logging in again.
+
+In contrast, trying to re-download Minecraft Java Edition
+[seems to lead nowhere good](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#minecraft).
+
+### Minecraft Bedrock Edition
+
+There is an **unofficial**
+[Minecraft Bedrock Launcher](https://flathub.org/apps/io.mrarm.mcpelauncher),
+including smiple steps to install it on
+[Debian / Ubuntu](https://mcpelauncher.readthedocs.io/en/latest/getting_started/index.html#debian-ubuntu).
+This has not seemed necessary so far, since the family enjoys
+playing the Java edition more.
+
+### Arduino IDE
+
+There no Arduino IDE in Ubuntu 22.04 (in `/jammy/opt/arduino`) and 
+[even if there was it would be out of date](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#arduino-ide),
+so it pays to install the latest/nightly version:
+
+``` console
+# wget https://downloads.arduino.cc/arduino-ide/nightly/arduino-ide_nightly-latest_Linux_64bit.zip
+# unzip arduino-ide_nightly-latest_Linux_64bit.zip
+# mv arduino-ide_nightly-20241212_Linux_64bit/ /opt/arduino/
+# chmod 4755 /opt/arduino/chrome-sandbox
+```
+
+Upon launching the Arduino IDE, a notification card offers updating
+installed libraries, which comes in vary handy to update them all.
+
+??? warning "Without the `chmod 4755` command, the IDE refuses to run."
+
+    ``` console
+    $ /opt/arduino/arduino-ide
+    [1917080:1107/234610.122185:FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /opt/arduino/chrome-sandbox is owned by root and has mode 4755.
+    Trace/breakpoint trap (core dumped)
+    ```
+
