@@ -76,9 +76,9 @@ on the desktop after disabling screen locking.
 1.  Select **Try Ubuntu Studio**.
 1.  **Disable screen locking** to prevent
     [KDE Plasma live lock screen rendering the session useless](https://launchpad.net/bugs/2062402):
-    1.  Press `Alt+Space` to invoke Krunner and type `System Settings`.
-    1.  From there, search for **Screen Locking** and
-    1.  deactivate **Lock automatically after…**.
+    *   Press `Alt+Space` to invoke Krunner and type `System Settings`.
+    *   From there, search for **Screen Locking** and
+    *   deactivate **Lock automatically after…**.
 1.  Launch **Install Ubuntu Studio** from the desktop.
 1.  Select Type of install: **Interactive Installation**.
 1.  Enable the options to
@@ -136,7 +136,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 Make sure Grub will show the menu and wait a bit, by tweaking
 `/etc/default/grub` as follows (and updating Grub):
 
-``` ini linenums="6" hl_lines=" 7 8 10" title="/etc/default/grub"
+``` ini linenums="6" hl_lines="7 8 10" title="/etc/default/grub"
 GRUB_DEFAULT=0
 GRUB_TIMEOUT_STYLE=menu
 GRUB_TIMEOUT=10
@@ -160,7 +160,7 @@ Adding boot menu entry for UEFI Firmware Settings ...
 done
 ```
 
-??? note
+??? note "The latest NVidia driver is already installed."
 
     Ubuntu Studio 24.04 already installed the latest NVidia driver so
     there is no need to reboot just yet.
@@ -600,7 +600,7 @@ After this the system will require a reboot, but before that a few more
 Start by installing a few
 [essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages):
 
-??? terminal "`# apt install gdebi-core wget gkrellm vim curl gkrellm-leds gkrellm-xkb gkrellm-cpufreq geeqie playonlinux exfat-fuse clementine id3v2 htop vnstat neofetch tigervnc-viewer sox scummvm wine gamemode python-is-python3 exiv2 rename scrot speedtest-cli xcalib python3-pip netcat-openbsd jstest-gtk etherwake python3-selenium lm-sensors sysstat tor unrar ttf-mscorefonts-installer winetricks icc-profiles ffmpeg iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv xsane tigervnc-tools screen lutris libxxf86vm-dev displaycal python3-absl python3-unidecode -y`"
+??? terminal "`# apt install ...`"
 
     ``` console
     # apt install gdebi-core wget gkrellm vim curl gkrellm-leds \
@@ -1423,7 +1423,7 @@ the RAID superblocks on each device:
 
 ??? terminal "`# mdadm --examine /dev/sd[a-c] | tee raid.status`"
 
-    ``` console
+    ``` console hl_lines="18 25 30 48 55 60 78 85 90"
     # mdadm --examine /dev/sd[a-c] | tee raid.status
     /dev/sda:
             Magic : a92b4efc
@@ -1625,7 +1625,7 @@ of the `conmon` script as `/usr/local/bin/conmon` and
 [run it as a service](../../conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
-```ini
+``` ini linenums="1" title="/etc/systemd/system/conmon.service"
 [Unit]
 Description=Continuous Monitoring
 
@@ -1642,8 +1642,7 @@ WantedBy=multi-user.target
 under `/jammy/etc/conmon` and update the `TARGET_HTTP` and
 `TARGET_HTTPS` in `/usr/local/bin/conmon` so that metrics are sent
 to the remote server via **HTTPS**.
-
-Then enable and start the services in `systemd`:
+Then enable and start the service:
 
 ``` console
 # vi /usr/local/bin/conmon

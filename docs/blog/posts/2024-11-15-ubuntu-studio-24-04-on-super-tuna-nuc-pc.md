@@ -48,9 +48,9 @@ it, then used the “Install Ubuntu” launcher on the desktop.
 1.  Select **Try Ubuntu Studio**.
 1.  **Disable screen locking** to prevent
     [KDE Plasma live lock screen rendering the session useless](https://launchpad.net/bugs/2062402):
-    1.  Press Alt-Space to invoke Krunner and type “System Settings”.
-    1.  From there, search for “Screen Locking” and
-    1.  deactivate “Lock automatically after…”.
+    *   Press Alt-Space to invoke Krunner and type “System Settings”.
+    *   From there, search for “Screen Locking” and
+    *   deactivate “Lock automatically after…”.
 1.  Select Type of install: **Interactive Installation**.
 1.  Enable the options to
     *   **Install third-party software for graphics and Wifi hardware** and
@@ -139,6 +139,7 @@ that have been found necessary later (e.g. `auditd` to
 [stop apparmor spew in the logs](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
 
 ??? terminal "`# apt install ...`"
+
     ``` console
     # apt install gdebi-core wget vim curl geeqie playonlinux \
       exfat-fuse clementine id3v2 htop vnstat sox wine smem \
