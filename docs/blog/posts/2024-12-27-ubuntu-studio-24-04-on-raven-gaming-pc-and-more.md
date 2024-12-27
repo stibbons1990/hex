@@ -215,33 +215,33 @@ Updates will be available after installing from the USB installer.
     Reading state information... Done
     Calculating upgrade... Done
     Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
-    libdcmtk17t64 python3-waitress libcjson1 libavdevice60 ffmpeg libpostproc57
-    libavcodec60 libavutil58 libswscale7 libswresample4 libavformat60
-    libavfilter9
+      libdcmtk17t64 python3-waitress libcjson1 libavdevice60 ffmpeg libpostproc57
+      libavcodec60 libavutil58 libswscale7 libswresample4 libavformat60
+      libavfilter9
     Learn more about Ubuntu Pro at https://ubuntu.com/pro
     The following upgrades have been deferred due to phasing:
-    python3-distupgrade ubuntu-release-upgrader-core ubuntu-release-upgrader-qt
+      python3-distupgrade ubuntu-release-upgrader-core ubuntu-release-upgrader-qt
     The following packages will be upgraded:
-    acl alsa-ucm-conf apparmor apport apport-core-dump-handler apport-kde cloud-init
-    cryptsetup cryptsetup-bin cryptsetup-initramfs digikam digikam-data digikam-private-libs
-    distro-info-data dmidecode dmsetup fwupd gir1.2-gtk-3.0 gir1.2-packagekitglib-1.0
-    gir1.2-udisks-2.0 gtk-update-icon-cache initramfs-tools initramfs-tools-bin
-    initramfs-tools-core krb5-locales libacl1 libapparmor1 libastro1 libaudit-common
-    libaudit1 libboost-chrono1.83.0t64 libboost-filesystem1.83.0 libboost-iostreams1.83.0
-    libboost-locale1.83.0 libboost-program-options1.83.0 libboost-thread1.83.0
-    libcryptsetup12 libdevmapper1.02.1 libegl-mesa0 libegl1-mesa-dev libfwupd2 libgbm1
-    libgl1-mesa-dri libglapi-mesa libglx-mesa0 libgssapi-krb5-2 libgtk-3-0t64 libgtk-3-bin
-    libgtk-3-common libgtk-3-dev libk5crypto3 libkrb5-3 libkrb5support0 libldap-common
-    libldap2 libmarblewidget-qt5-28 libnm0 libpackagekit-glib2-18 libpipewire-0.3-0t64
-    libpipewire-0.3-common libpipewire-0.3-modules libproc2-0 libspa-0.2-bluetooth
-    libspa-0.2-modules libspeex1 libudisks2-0 libxatracker2 login lp-solve marble-plugins
-    marble-qt-data mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers mtr-tiny
-    network-manager packagekit packagekit-tools passwd pipewire pipewire-alsa pipewire-audio
-    pipewire-bin pipewire-jack pipewire-pulse plasma-distro-release-notifier procps
-    python3-apport python3-problem-report python3-software-properties python3-update-manager
-    snapd software-properties-common software-properties-qt systemd-hwe-hwdb
-    ubuntu-drivers-common ubuntu-pro-client ubuntu-pro-client-l10n udisks2
-    update-manager-core xdg-desktop-portal zip
+      acl alsa-ucm-conf apparmor apport apport-core-dump-handler apport-kde cloud-init
+      cryptsetup cryptsetup-bin cryptsetup-initramfs digikam digikam-data digikam-private-libs
+      distro-info-data dmidecode dmsetup fwupd gir1.2-gtk-3.0 gir1.2-packagekitglib-1.0
+      gir1.2-udisks-2.0 gtk-update-icon-cache initramfs-tools initramfs-tools-bin
+      initramfs-tools-core krb5-locales libacl1 libapparmor1 libastro1 libaudit-common
+      libaudit1 libboost-chrono1.83.0t64 libboost-filesystem1.83.0 libboost-iostreams1.83.0
+      libboost-locale1.83.0 libboost-program-options1.83.0 libboost-thread1.83.0
+      libcryptsetup12 libdevmapper1.02.1 libegl-mesa0 libegl1-mesa-dev libfwupd2 libgbm1
+      libgl1-mesa-dri libglapi-mesa libglx-mesa0 libgssapi-krb5-2 libgtk-3-0t64 libgtk-3-bin
+      libgtk-3-common libgtk-3-dev libk5crypto3 libkrb5-3 libkrb5support0 libldap-common
+      libldap2 libmarblewidget-qt5-28 libnm0 libpackagekit-glib2-18 libpipewire-0.3-0t64
+      libpipewire-0.3-common libpipewire-0.3-modules libproc2-0 libspa-0.2-bluetooth
+      libspa-0.2-modules libspeex1 libudisks2-0 libxatracker2 login lp-solve marble-plugins
+      marble-qt-data mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers mtr-tiny
+      network-manager packagekit packagekit-tools passwd pipewire pipewire-alsa pipewire-audio
+      pipewire-bin pipewire-jack pipewire-pulse plasma-distro-release-notifier procps
+      python3-apport python3-problem-report python3-software-properties python3-update-manager
+      snapd software-properties-common software-properties-qt systemd-hwe-hwdb
+      ubuntu-drivers-common ubuntu-pro-client ubuntu-pro-client-l10n udisks2
+      update-manager-core xdg-desktop-portal zip
     102 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
     Need to get 0 B/133 MB of archives.
     After this operation, 5,865 kB of additional disk space will be used.
@@ -598,7 +598,9 @@ After this the system will require a reboot, but before that a few more
 #### Install Essential Packages
 
 Start by installing a few
-[essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages):
+[essential packages](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#install-essential-packages), plus a few more 
+that have been found necessary later (e.g. `auditd` to
+[stop apparmor spew in the logs](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#stop-apparmor-spew-in-the-logs)):
 
 ??? terminal "`# apt install ...`"
 
@@ -612,14 +614,13 @@ Start by installing a few
     ttf-mscorefonts-installer winetricks icc-profiles ffmpeg \
     iotop-c xdotool redshift-qt inxi vainfo vdpauinfo mpv xsane \
     tigervnc-tools screen lutris libxxf86vm-dev displaycal \
-    python3-absl python3-unidecode -y
+    python3-absl python3-unidecode auditd -y
 
     Reading package lists... Done
     Building dependency tree... Done
     Reading state information... Done
     wget is already the newest version (1.21.4-1ubuntu4.1).
     wget set to manually installed.
-    curl is already the newest version (8.5.0-2ubuntu10.6).
     netcat-openbsd is already the newest version (1.226-1ubuntu2).
     netcat-openbsd set to manually installed.
     sysstat is already the newest version (12.6.1-2).
@@ -629,23 +630,54 @@ Start by installing a few
     displaycal is already the newest version (3.9.11-2ubuntu0.24.04.1).
     displaycal set to manually installed.
     The following additional packages will be installed:
-    cabextract caca-utils chafa chromium-browser chromium-chromedriver evemu-tools evtest exiftran fluid-soundfont-gs fonts-wine fuseiso gamemode-daemon geeqie-common gir1.2-javascriptcoregtk-4.1 gir1.2-soup-3.0 gir1.2-webkit2-4.1 icoutils joystick jp2a libasound2-plugins libcapi20-3t64 libchafa0t64 libcpufreq0
-    libevemu3t64 libgamemode0 libgamemodeauto0 libgnutls-openssl27t64 libgpod-common libgpod4t64 libinih1 libjavascriptcoregtk-4.1-0 liblastfm5-1 liblua5.3-0 libmanette-0.2-0 libmikmod3 libmspack0t64 libmygpo-qt5-1 libntlm0 libosmesa6 libpython3-dev libpython3.12-dev libsdl2-net-2.0-0 libsgutils2-1.46-2
-    libsixel-bin libsonivox3 libutempter0 libwebkit2gtk-4.1-0 libwine libxdo3 libxkbregistry0 libz-mingw-w64 python3-dev python3-evdev python3-exceptiongroup python3-h11 python3-magic python3-natsort python3-outcome python3-setproctitle python3-sniffio python3-trio python3-trio-websocket python3-wsproto
-    python3.12-dev redshift scummvm-data toilet toilet-fonts tor-geoipdb torsocks tree vim-runtime w3m w3m-img wakeonlan webp-pixbuf-loader wine64 xdg-dbus-proxy xsane-common
+      auditd cabextract caca-utils chafa chromium-browser chromium-chromedriver evemu-tools
+      evtest exiftran fluid-soundfont-gs fonts-wine fuseiso gamemode-daemon geeqie-common
+      gir1.2-javascriptcoregtk-4.1 gir1.2-soup-3.0 gir1.2-webkit2-4.1 icoutils joystick jp2a 
+      libasound2-plugins libcapi20-3t64 libchafa0t64 libcpufreq0
+      libevemu3t64 libgamemode0 libgamemodeauto0 libgnutls-openssl27t64 libgpod-common
+      libgpod4t64 libinih1 libjavascriptcoregtk-4.1-0 liblastfm5-1 liblua5.3-0
+      libmanette-0.2-0 libmikmod3 libmspack0t64 libmygpo-qt5-1 libntlm0 libosmesa6
+      libpython3-dev libpython3.12-dev libsdl2-net-2.0-0 libsgutils2-1.46-2
+      libsixel-bin libsonivox3 libutempter0 libwebkit2gtk-4.1-0 libwine libxdo3
+      libxkbregistry0 libz-mingw-w64 python3-dev python3-evdev python3-exceptiongroup
+      python3-h11 python3-magic python3-natsort python3-outcome python3-setproctitle
+      python3-sniffio python3-trio python3-trio-websocket python3-wsproto python3.12-dev
+      redshift scummvm-data toilet toilet-fonts tor-geoipdb torsocks tree vim-runtime w3m
+      w3m-img wakeonlan webp-pixbuf-loader wine64 xdg-dbus-proxy xsane-common
     Suggested packages:
-    gnome-shell-extension-gamemode xpaint libjpeg-progs libterm-readline-gnu-perl | libterm-readline-perl-perl libxml-dumper-perl sg3-utils fancontrol read-edid i2c-tools gamescope libcuda1 winbind python-evdev-doc python-natsort-doc byobu | screenie | iselect ncurses-term beneath-a-steel-sky drascula
-    flight-of-the-amazon-queen lure-of-the-temptress libsox-fmt-all figlet mixmaster torbrowser-launcher apparmor-utils nyx obfs4proxy ctags vim-doc vim-scripts vnstati brotli cmigemo compface dict dict-wn dictd mailcap w3m-el xsel q4wine wine-binfmt dosbox wine64-preloader gocr | cuneiform | tesseract-ocr | ocrad
-    gv hylafax-client | mgetty-fax
+      audispd-plugins gnome-shell-extension-gamemode xpaint libjpeg-progs
+      libterm-readline-gnu-perl | libterm-readline-perl-perl
+      libxml-dumper-perl sg3-utils fancontrol read-edid i2c-tools gamescope libcuda1 winbind
+      python-evdev-doc python-natsort-doc byobu | screenie | iselect ncurses-term
+      beneath-a-steel-sky drascula flight-of-the-amazon-queen lure-of-the-temptress
+      libsox-fmt-all figlet mixmaster torbrowser-launcher apparmor-utils nyx obfs4proxy
+      ctags vim-doc vim-scripts vnstati brotli cmigemo compface dict dict-wn dictd mailcap
+      w3m-el xsel q4wine wine-binfmt dosbox wine64-preloader
+      gocr | cuneiform | tesseract-ocr | ocrad gv hylafax-client | mgetty-fax
     Recommended packages:
-    libgamemode0:i386 libgamemodeauto0:i386 wine32
+      libgamemode0:i386 libgamemodeauto0:i386 wine32
     The following NEW packages will be installed:
-    cabextract caca-utils chafa chromium-browser chromium-chromedriver clementine etherwake evemu-tools evtest exfat-fuse exiftran exiv2 fluid-soundfont-gs fonts-wine fuseiso gamemode gamemode-daemon gdebi-core geeqie geeqie-common gir1.2-javascriptcoregtk-4.1 gir1.2-soup-3.0 gir1.2-webkit2-4.1 gkrellm
-    gkrellm-cpufreq gkrellm-leds gkrellm-xkb htop icc-profiles icoutils id3v2 inxi iotop-c joystick jp2a jstest-gtk libasound2-plugins libcapi20-3t64 libchafa0t64 libcpufreq0 libevemu3t64 libgamemode0 libgamemodeauto0 libgnutls-openssl27t64 libgpod-common libgpod4t64 libinih1 libjavascriptcoregtk-4.1-0 liblastfm5-1
-    liblua5.3-0 libmanette-0.2-0 libmikmod3 libmspack0t64 libmygpo-qt5-1 libntlm0 libosmesa6 libpython3-dev libpython3.12-dev libsdl2-net-2.0-0 libsgutils2-1.46-2 libsixel-bin libsonivox3 libutempter0 libwebkit2gtk-4.1-0 libwine libxdo3 libxkbregistry0 libxxf86vm-dev libz-mingw-w64 lm-sensors lutris mpv neofetch
-    playonlinux python-is-python3 python3-absl python3-dev python3-evdev python3-exceptiongroup python3-h11 python3-magic python3-natsort python3-outcome python3-pip python3-selenium python3-setproctitle python3-sniffio python3-trio python3-trio-websocket python3-unidecode python3-wsproto python3.12-dev redshift
-    redshift-qt rename screen scrot scummvm scummvm-data sox speedtest-cli tigervnc-tools tigervnc-viewer toilet toilet-fonts tor tor-geoipdb torsocks tree ttf-mscorefonts-installer unrar vainfo vdpauinfo vim vim-runtime vnstat w3m w3m-img wakeonlan webp-pixbuf-loader wine wine64 winetricks xcalib xdg-dbus-proxy
-    xdotool xsane xsane-common
+      auditd cabextract caca-utils chafa chromium-browser chromium-chromedriver clementine
+      etherwake evemu-tools evtest exfat-fuse exiftran exiv2 fluid-soundfont-gs fonts-wine
+      fuseiso gamemode gamemode-daemon gdebi-core geeqie geeqie-common
+      gir1.2-javascriptcoregtk-4.1 gir1.2-soup-3.0 gir1.2-webkit2-4.1 gkrellm
+      gkrellm-cpufreq gkrellm-leds gkrellm-xkb htop icc-profiles icoutils id3v2 inxi iotop-c
+      joystick jp2a jstest-gtk libasound2-plugins libauparse0t64 libcapi20-3t64 libchafa0t64
+      libcpufreq0 libevemu3t64 libgamemode0 libgamemodeauto0 libgnutls-openssl27t64
+      libgpod-common libgpod4t64 libinih1 libjavascriptcoregtk-4.1-0 liblastfm5-1 liblua5.3-0
+      libmanette-0.2-0 libmikmod3 libmspack0t64 libmygpo-qt5-1 libntlm0 libosmesa6
+      libpython3-dev libpython3.12-dev libsdl2-net-2.0-0 libsgutils2-1.46-2 libsixel-bin
+      libsonivox3 libutempter0 libwebkit2gtk-4.1-0 libwine libxdo3 libxkbregistry0
+      libxxf86vm-dev libz-mingw-w64 lm-sensors lutris mpv neofetch playonlinux
+      python-is-python3 python3-absl python3-dev python3-evdev python3-exceptiongroup
+      python3-h11 python3-magic python3-natsort python3-outcome python3-pip python3-selenium
+      python3-setproctitle python3-sniffio python3-trio python3-trio-websocket
+      python3-unidecode auditd python3-wsproto python3.12-dev redshift
+      redshift-qt rename screen scrot scummvm scummvm-data sox speedtest-cli tigervnc-tools
+      tigervnc-viewer toilet toilet-fonts tor tor-geoipdb torsocks tree
+      ttf-mscorefonts-installer unrar vainfo vdpauinfo vim vim-runtime vnstat w3m w3m-img
+      wakeonlan webp-pixbuf-loader wine wine64 winetricks xcalib xdg-dbus-proxy xdotool
+      xsane xsane-common
     0 upgraded, 128 newly installed, 0 to remove and 3 not upgraded.
     Need to get 0 B/353 MB of archives.
     After this operation, 1,259 MB of additional disk space will be used.
@@ -1048,6 +1080,18 @@ Start by installing a few
     Selecting previously unselected package xdotool.
     Preparing to unpack .../127-xdotool_1%3a3.20160805.1-5build1_amd64.deb ...
     Unpacking xdotool (1:3.20160805.1-5build1) ...
+    Selecting previously unselected package libauparse0t64:amd64.
+    (Reading database ... 426177 files and directories currently installed.)
+    Preparing to unpack .../libauparse0t64_1%3a3.1.2-2.1build1.1_amd64.deb ...
+    Adding 'diversion of /lib/x86_64-linux-gnu/libauparse.so.0 to /lib/x86_64-linux-gnu/libauparse.so.0.usr-is-merged by libauparse0t64'
+    Adding 'diversion of /lib/x86_64-linux-gnu/libauparse.so.0.0.0 to /lib/x86_64-linux-gnu/libauparse.so.0.0.0.usr-is-merged by libauparse0t64'
+    Unpacking libauparse0t64:amd64 (1:3.1.2-2.1build1.1) ...
+    Selecting previously unselected package auditd.
+    Preparing to unpack .../auditd_1%3a3.1.2-2.1build1.1_amd64.deb ...
+    Unpacking auditd (1:3.1.2-2.1build1.1) ...
+    Setting up libauparse0t64:amd64 (1:3.1.2-2.1build1.1) ...
+    Setting up auditd (1:3.1.2-2.1build1.1) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/auditd.service → /usr/lib/systemd/system/auditd.service.
     Setting up libsonivox3:amd64 (3.6.12-1) ...
     Setting up libgnutls-openssl27t64:amd64 (3.8.3-1.1ubuntu3.2) ...
     Setting up python3-sniffio (1.3.0-2) ...
@@ -2221,7 +2265,7 @@ specific library being problematic in the output of
 
 ??? terminal "`$ vulkaninfo --summary`"
 
-    ``` console hl_lines="1"
+    ``` console hl_lines="2"
     $ vulkaninfo --summary
     WARNING: [Loader Message] Code 0 : terminator_CreateInstance: Received return code -3 from call to vkCreateInstance in ICD /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so. Skipping this driver.
     ==========
@@ -2297,6 +2341,53 @@ specific library being problematic in the output of
             deviceUUID         = 6d657361-3234-2e30-2e39-2d3075627500
             driverUUID         = 6c6c766d-7069-7065-5555-494400000000
     ```
+
+### Visual Studio Code
+
+Since the young artist wanted to use
+[Visual Studio Code](https://code.visualstudio.com/)
+to comfortably edit websites, I got around to try it out and
+rather like how it uses more of the screen than the self-hosted
+[Visual Studio Code Server](2023-05-29-running-vs-code-server-on-kubernetes.md),
+and the screen on this PC is significantly smaller so
+this should come in handy.
+
+[Installation](https://code.visualstudio.com/docs/setup/linux) is fairly
+simple, so much a single `.deb` file can be installed directly, but the
+apt repository can also be installed manually with the following script:
+
+``` console
+# apt install apt-transport-https gpg wget -y
+# wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+  | gpg --dearmor > packages.microsoft.gpg
+# install -D -o root -g root -m 644 packages.microsoft.gpg \
+  /etc/apt/keyrings/packages.microsoft.gpg
+# echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+  > /etc/apt/sources.list.d/vscode.list
+# rm -f packages.microsoft.gpg
+# apt update
+# apt install code -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following NEW packages will be installed:
+  code
+0 upgraded, 1 newly installed, 0 to remove and 3 not upgraded.
+Need to get 105 MB of archives.
+After this operation, 424 MB of additional disk space will be used.
+Get:1 https://packages.microsoft.com/repos/code stable/main amd64 code amd64 1.96.2-1734607745 [105 MB]
+Fetched 105 MB in 4s (29.7 MB/s)
+Preconfiguring packages ...
+Selecting previously unselected package code.
+(Reading database ... 426277 files and directories currently installed.)
+Preparing to unpack .../code_1.96.2-1734607745_amd64.deb ...
+Unpacking code (1.96.2-1734607745) ...
+Setting up code (1.96.2-1734607745) ...
+Warning in file "/usr/share/applications/displaycal-vrml-to-x3d-converter.desktop": usage of MIME type "x-world/x-vrml" is discouraged (the use of "x-world" as media type is strongly discouraged in favor of a subtype of the "application" media type)
+Warning in file "/usr/share/applications/displaycal-vrml-to-x3d-converter.desktop": usage of MIME type "x-world/x-vrml" is discouraged (the use of "x-world" as media type is strongly discouraged in favor of a subtype of the "application" media type)
+Processing triggers for shared-mime-info (2.4-4) ...
+Processing triggers for desktop-file-utils (0.27-2build1) ...
+```
 
 ### DisplayCal
 
@@ -2581,3 +2672,97 @@ MinimumUid=1000
 It seems no longer necessary to manually add Redshift to one's
 desktop session. Previously, it would be necessary to launch
 **Autostart** and **Add Application…** to add Redshift.
+
+### Weekly btrfs scrub
+
+To keep BTRFS file systems healthy, it is recommended to
+[run a weekly scrub](http://marc.merlins.org/perso/btrfs/post_2014-03-19_Btrfs-Tips_-Btrfs-Scrub-and-Btrfs-Filesystem-Repair.html)
+to check everything for consistency. For this, I run
+[the script](https://marc.merlins.org/linux/scripts/btrfs-scrub)
+from crontab every Saturday night.
+
+``` console
+# wget -O /usr/local/bin/btrfs-scrub-all \
+  http://marc.merlins.org/linux/scripts/btrfs-scrub
+
+# crontab -e
+...
+# m h  dom mon dow   command
+0 23 * * 6 /usr/local/bin/btrfs-scrub-all
+```
+
+[Marc MERLIN](https://marc.merlins.org/) keeps the script updated,
+so each systme may benefit from a few modifications, e.g.
+1. Remove tests for laptop battery status, when running on a PC.
+2. Set the `BTRFS_SCRUB_SKIP` to filter out partitions to skip.
+
+``` bash linenums="1" title="/usr/local/bin/btrfs-scrub-all"
+#! /bin/bash
+
+# By Marc MERLIN <marc_soft@merlins.org> 2014/03/20
+# License: Apache-2.0
+# http://marc.merlins.org/perso/btrfs/post_2014-03-19_Btrfs-Tips_-Btrfs-Scrub-and-Btrfs-Filesystem-Repair.html
+
+which btrfs >/dev/null || exit 0
+export PATH=/usr/local/bin:/sbin:$PATH
+
+FILTER='(^Dumping|balancing, usage)'
+BTRFS_SCRUB_SKIP="noskip"
+source /etc/btrfs_config 2>/dev/null
+test -n "$DEVS" || DEVS=$(grep '\<btrfs\>' /proc/mounts | awk '{ print $1 }' | sort -u | grep -v $BTRFS_SCRUB_SKIP)
+for btrfs in $DEVS
+do
+    tail -n 0 -f /var/log/syslog | grep "BTRFS" | grep -Ev '(disk space caching is enabled|unlinked .* orphans|turning on discard|device label .* devid .* transid|enabling SSD mode|BTRFS: has skinny extents|BTRFS: device label|BTRFS info )' &
+    mountpoint="$(grep "$btrfs" /proc/mounts | awk '{ print $2 }' | sort | head -1)"
+    logger -s "Quick Metadata and Data Balance of $mountpoint ($btrfs)" >&2
+    # Even in 4.3 kernels, you can still get in places where balance
+    # won't work (no place left, until you run a -m0 one first)
+    # I'm told that proactively rebalancing metadata may not be a good idea.
+    #btrfs balance start -musage=20 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # but a null rebalance should help corner cases:
+    sleep 10
+    btrfs balance start -musage=0 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # After metadata, let's do data:
+    sleep 10
+    btrfs balance start -dusage=0 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    sleep 10
+    btrfs balance start -dusage=20 -v $mountpoint 2>&1 | grep -Ev "$FILTER"
+    # And now we do scrub. Note that scrub can fail with "no space left
+    # on device" if you're very out of balance.
+    logger -s "Starting scrub of $mountpoint" >&2
+    echo btrfs scrub start -Bd $mountpoint
+    # -r is read only, but won't fix a redundant array.
+    #ionice -c 3 nice -10 btrfs scrub start -Bdr $mountpoint
+    time ionice -c 3 nice -10 btrfs scrub start -Bd $mountpoint
+    pkill -f 'tail -n 0 -f /var/log/syslog'
+    logger "Ended scrub of $mountpoint" >&2
+done
+```
+
+The whole process takes about __ minutes for the 2TB NVMe SSD, then
+something like _ hours for each of the 2TB RAID 5 of HDDs:
+
+??? terminal "`# /usr/local/bin/btrfs-scrub-all`"
+
+    ``` console
+    # /usr/local/bin/btrfs-scrub-all
+    <13>Dec 27 23:01:10 root: Quick Metadata and Data Balance of /home/raid (/dev/md0)
+    Done, had to relocate 0 out of 1560 chunks
+    Done, had to relocate 0 out of 1560 chunks
+    Done, had to relocate 0 out of 1560 chunks
+    <13>Dec 27 23:01:48 root: Starting scrub of /home/raid
+    btrfs scrub start -Bd /home/raid
+    Starting scrub on devid 1
+    
+    ```
+
+![Disk I/O and SSD temperatures chart show btrfs scrub](../media/2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more/raven-btrfs-scrub-grafana.png)
+
+Also, the weekly Btrfs scrub doesn't seem to really need `inn` or any
+of its dependencies, so this installation step was **skipped**:
+
+``` console
+# apt install inn -y
+```
+
+
