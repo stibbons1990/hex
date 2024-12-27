@@ -2753,7 +2753,7 @@ something like _ hours for each of the 2TB RAID 5 of HDDs:
     <13>Dec 27 23:01:48 root: Starting scrub of /home/raid
     btrfs scrub start -Bd /home/raid
     Starting scrub on devid 1
-    
+
     ```
 
 ![Disk I/O and SSD temperatures chart show btrfs scrub](../media/2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more/raven-btrfs-scrub-grafana.png)
@@ -2765,4 +2765,221 @@ of its dependencies, so this installation step was **skipped**:
 # apt install inn -y
 ```
 
+### S.M.A.R.T. Monitoring
 
+Install
+[Smartmontools](https://help.ubuntu.com/community/Smartmontools)
+to setup up
+[S.M.A.R.T.](https://wiki.archlinux.org/index.php/S.M.A.R.T.)
+monitoring:
+
+``` console
+# apt install smartmontools gsmartcontrol libnotify-bin nvme-cli -y
+```
+
+Create `/usr/local/bin/smartdnotify` to notify when errors are found:
+
+``` bash linenums="1" title="/usr/local/bin/smartdnotify"
+#!/bin/sh
+
+# Ignore NVME "error" entries that are not errors.
+elog=/root/smart-latest-error-log-entry
+nvme error-log /dev/nvme0 | tail -16 > $elog
+grep -iq 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
+
+# Otherwise, log and notify the error.
+data=/root/smart-latest-error
+echo "SMARTD_FAILTYPE=$SMARTD_FAILTYPE" >> $data
+echo "SMARTD_MESSAGE=’$SMARTD_MESSAGE’" >> $data
+sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+```
+
+Configure `/etc/smartd.conf` to run this script:
+
+``` bash
+DEVICESCAN -d removable -n standby -m root -M exec /usr/local/bin/smartdnotify
+```
+
+Restart the `smartd` service:
+
+``` console
+# systemctl restart smartd.service
+
+# systemctl status smartd.service
+● smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon
+     Loaded: loaded (/usr/lib/systemd/system/smartmontools.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2024-12-27 23:47:21 CET; 3s ago
+       Docs: man:smartd(8)
+             man:smartd.conf(5)
+   Main PID: 1363551 (smartd)
+     Status: "Next check of 4 devices will start at 00:17:21"
+      Tasks: 1 (limit: 38353)
+     Memory: 1.9M (peak: 2.4M)
+        CPU: 40ms
+     CGroup: /system.slice/smartmontools.service
+             └─1363551 /usr/sbin/smartd -n
+
+Dec 27 23:47:20 raven smartd[1363551]: Device: /dev/nvme0, Samsung SSD 970 EVO Plus 2TB, S/N:S4J4NX0W427520B, FW:2B2QEXM7, 2.00 TB
+Dec 27 23:47:20 raven smartd[1363551]: Device: /dev/nvme0, is SMART capable. Adding to "monitor" list.
+Dec 27 23:47:20 raven smartd[1363551]: Device: /dev/nvme0, state read from /var/lib/smartmontools/smartd.Samsung_SSD_970_EVO_Plus_2TB-S4J4NX0W427520B.nvme.state
+Dec 27 23:47:20 raven smartd[1363551]: Monitoring 3 ATA/SATA, 0 SCSI/SAS and 1 NVMe devices
+Dec 27 23:47:20 raven smartd[1363551]: Device: /dev/sda [SAT], 3 Currently unreadable (pending) sectors
+Dec 27 23:47:21 raven smartd[1363551]: Device: /dev/sda [SAT], state written to /var/lib/smartmontools/smartd.ST1000LM024_HN_M101MBB-S2R8J9DD902619.ata.state
+Dec 27 23:47:21 raven smartd[1363551]: Device: /dev/sdb [SAT], state written to /var/lib/smartmontools/smartd.ST1000LM024_HN_M101MBB-S2R8J9DD902602.ata.state
+Dec 27 23:47:21 raven smartd[1363551]: Device: /dev/sdc [SAT], state written to /var/lib/smartmontools/smartd.ST1000LM024_HN_M101MBB-S2R8J9DD902613.ata.state
+Dec 27 23:47:21 raven smartd[1363551]: Device: /dev/nvme0, state written to /var/lib/smartmontools/smartd.Samsung_SSD_970_EVO_Plus_2TB-S4J4NX0W427520B.nvme.state
+Dec 27 23:47:21 raven systemd[1]: Started smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon.
+```
+
+Then add a scrip to re-notify: `/usr/local/bin/smartd-renotify`
+
+``` bash linenums="1" title="/usr/local/bin/smartd-renotify"
+#!/bin/sh
+
+# Ignore NVME "error" entries that are not errors.
+elog=/root/smart-latest-error-log-entry
+nvme error-log /dev/nvme0 | tail -16 > $elog
+grep -iq 'status_field[[:blank:]]*: 0.SUCCESS' $elog && exit 0
+
+# Otherwise, re-notify.
+latest=/root/smart-latest-error
+if [ -f $latest ] ; then
+  . $latest
+  if [ -n "$SMARTD_FAILTYPE" ]
+  then
+    sudo -u coder DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "S.M.A.R.T Error ($SMARTD_FAILTYPE)" "$SMARTD_MESSAGE"  -i /usr/share/pixmaps/yoshimi.png
+  fi
+fi
+```
+
+``` console
+# chmod +x /usr/local/bin/smartdnotify /usr/local/bin/smartd-renotify
+# crontab -e
+*/5 * * * * /usr/local/bin/smartd-renotify
+```
+
+The above scripts have been updated to avoid spurious `ErrorCount`
+errors, as discussed in 
+[ErrorCount in NVME](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#errorcount-in-nvme).
+
+It is still always good to check that the disk **is** healthy:
+
+??? terminal "`# smartctl -a /dev/nvme0`"
+
+    ``` console
+    # smartctl -a /dev/nvme0
+    smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.8.0-50-lowlatency] (local build)
+    Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+    === START OF INFORMATION SECTION ===
+    Model Number:                       Samsung SSD 970 EVO Plus 2TB
+    Serial Number:                      S4J4NX0W427520B
+    Firmware Version:                   2B2QEXM7
+    PCI Vendor/Subsystem ID:            0x144d
+    IEEE OUI Identifier:                0x002538
+    Total NVM Capacity:                 2,000,398,934,016 [2.00 TB]
+    Unallocated NVM Capacity:           0
+    Controller ID:                      4
+    NVMe Version:                       1.3
+    Number of Namespaces:               1
+    Namespace 1 Size/Capacity:          2,000,398,934,016 [2.00 TB]
+    Namespace 1 Utilization:            1,304,029,368,320 [1.30 TB]
+    Namespace 1 Formatted LBA Size:     512
+    Namespace 1 IEEE EUI-64:            002538 5431b769e1
+    Local Time is:                      Fri Dec 27 23:50:16 2024 CET
+    Firmware Updates (0x16):            3 Slots, no Reset required
+    Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+    Optional NVM Commands (0x005f):     Comp Wr_Unc DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp
+    Log Page Attributes (0x03):         S/H_per_NS Cmd_Eff_Lg
+    Maximum Data Transfer Size:         512 Pages
+    Warning  Comp. Temp. Threshold:     85 Celsius
+    Critical Comp. Temp. Threshold:     85 Celsius
+
+    Supported Power States
+    St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+     0 +     7.50W       -        -    0  0  0  0        0       0
+     1 +     5.90W       -        -    1  1  1  1        0       0
+     2 +     3.60W       -        -    2  2  2  2        0       0
+     3 -   0.0700W       -        -    3  3  3  3      210    1200
+     4 -   0.0050W       -        -    4  4  4  4     2000    8000
+
+    Supported LBA Sizes (NSID 0x1)
+    Id Fmt  Data  Metadt  Rel_Perf
+     0 +     512       0         0
+
+    === START OF SMART DATA SECTION ===
+    SMART overall-health self-assessment test result: PASSED
+
+    SMART/Health Information (NVMe Log 0x02)
+    Critical Warning:                   0x00
+    Temperature:                        54 Celsius
+    Available Spare:                    100%
+    Available Spare Threshold:          10%
+    Percentage Used:                    0%
+    Data Units Read:                    18,227,693 [9.33 TB]
+    Data Units Written:                 16,663,786 [8.53 TB]
+    Host Read Commands:                 420,175,269
+    Host Write Commands:                178,467,400
+    Controller Busy Time:               1,543
+    Power Cycles:                       36
+    Power On Hours:                     599
+    Unsafe Shutdowns:                   3
+    Media and Data Integrity Errors:    0
+    Error Information Log Entries:      169
+    Warning  Comp. Temperature Time:    0
+    Critical Comp. Temperature Time:    0
+    Temperature Sensor 1:               54 Celsius
+    Temperature Sensor 2:               58 Celsius
+
+    Error Information (NVMe Log 0x01, 16 of 64 entries)
+    Num   ErrCount  SQId   CmdId  Status  PELoc          LBA  NSID    VS  Message
+      0        169     0  0x0006  0x4004      -            0     0     -  Invalid Field in Command
+
+    Self-test Log (NVMe Log 0x06)
+    Self-test status: No self-test in progress
+    No Self-tests Logged
+    ```
+
+Most of the entries are the same: not an error at all:
+
+``` console
+# nvme error-log /dev/nvme0 | grep status_field | sort | uniq -c
+     63 status_field    : 0(Successful Completion: The command completed without error)
+      1 status_field    : 0x2002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+```
+
+### Bluetooth controller and devices
+
+The system board
+[MSI B450I Gaming Plus AC](https://es.msi.com/Motherboard/B450I-GAMING-PLUS-AC/Specification)
+supports Bluetooth® 4.2, 4.1, BLE, 4.0, 3.0, 2.1, 2.1+EDR
+but getting devices to pair, connect and work reliably is another story.
+
+The bluetooth controller is detected and shows up in `dmesg`:
+
+``` hl_lines="10 12"
+[   12.847474] Bluetooth: Core ver 2.22
+[   12.847825] NET: Registered PF_BLUETOOTH protocol family
+[   12.847828] Bluetooth: HCI device and connection manager initialized
+[   12.847835] Bluetooth: HCI socket layer initialized
+[   12.847840] Bluetooth: L2CAP socket layer initialized
+[   12.847848] Bluetooth: SCO socket layer initialized
+...
+[   12.924043] usbcore: registered new interface driver btusb
+[   12.934914] Bluetooth: hci0: Legacy ROM 2.x revision 5.0 build 25 week 20 2015
+[   12.936183] Bluetooth: hci0: Intel Bluetooth firmware file: intel/ibt-hw-37.8.10-fw-22.50.19.14.f.bseq
+...
+[   14.440042] Bluetooth: hci0: Intel BT fw patch 0x43 completed & activated
+...
+[   16.872207] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[   16.872215] Bluetooth: BNEP filters: protocol multicast
+[   16.872223] Bluetooth: BNEP socket layer initialized
+[   16.876155] Bluetooth: MGMT ver 1.22
+...
+[   22.338512] Bluetooth: RFCOMM TTY layer initialized
+[   22.338525] Bluetooth: RFCOMM socket layer initialized
+[   22.338532] Bluetooth: RFCOMM ver 1.11
+```
+
+Given the above, it may be possible to use the
+[PlayStation Dual Shock 4 controller](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#playstation-dual-shock-4-controller).
