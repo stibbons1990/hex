@@ -2077,7 +2077,6 @@ It should also be possible to install the official Steam client, with
 [the non-snap alternative](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative).
 This doesn't seems necessary anymore.
 
-
 ### Itch.io
 
 There is a binary in `.itch/itch` but it doesn’t work, it seem to have launched the app but the app itself is nowhere to be seen:
@@ -2086,28 +2085,28 @@ There is a binary in `.itch/itch` but it doesn’t work, it seem to have launche
 
     ``` console
     $ .itch/itch
-2024/12/27 20:26:33 itch-setup will log to /tmp/itch-setup-log.txt
-2024/12/27 20:26:33 =========================================
-2024/12/27 20:26:33 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-12-27 20:26:33.155012082 +0100 CET m=+0.004615449" with arguments:
-2024/12/27 20:26:33 "/home/coder/.itch/itch-setup"
-2024/12/27 20:26:33 "--prefer-launch"
-2024/12/27 20:26:33 "--appname"
-2024/12/27 20:26:33 "itch"
-2024/12/27 20:26:33 "--"
-2024/12/27 20:26:33 =========================================
-2024/12/27 20:26:33 App name specified on command-line: itch
-2024/12/27 20:26:33 Locale:  en-US
-2024/12/27 20:26:33 Initializing installer GUI...
-2024/12/27 20:26:33 Using GTK UI
+    2024/12/27 20:26:33 itch-setup will log to /tmp/itch-setup-log.txt
+    2024/12/27 20:26:33 =========================================
+    2024/12/27 20:26:33 itch-setup "v1.26.0, built on Apr 22 2021 @ 03:48:12, ref 48f97b3e7b0b065a2478811b8d0ebcae414845fd" starting up at "2024-12-27 20:26:33.155012082 +0100 CET m=+0.004615449" with arguments:
+    2024/12/27 20:26:33 "/home/coder/.itch/itch-setup"
+    2024/12/27 20:26:33 "--prefer-launch"
+    2024/12/27 20:26:33 "--appname"
+    2024/12/27 20:26:33 "itch"
+    2024/12/27 20:26:33 "--"
+    2024/12/27 20:26:33 =========================================
+    2024/12/27 20:26:33 App name specified on command-line: itch
+    2024/12/27 20:26:33 Locale:  en-US
+    2024/12/27 20:26:33 Initializing installer GUI...
+    2024/12/27 20:26:33 Using GTK UI
 
-(process:748360): Gtk-WARNING **: 20:26:33.157: Locale not supported by C library.
-        Using the fallback 'C' locale.
-2024/12/27 20:26:33 Initializing (itch) multiverse @ (/home/coder/.itch)
-2024/12/27 20:26:33 (/home/coder/.itch)(current = "26.1.9", ready = "")
-2024/12/27 20:26:33 Launch preferred, attempting...
-2024/12/27 20:26:33 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
-2024/12/27 20:26:33 Kernel should support SUID sandboxing, leaving it enabled
-2024/12/27 20:26:33 App launched, getting out of the way
+    (process:748360): Gtk-WARNING **: 20:26:33.157: Locale not supported by C library.
+            Using the fallback 'C' locale.
+    2024/12/27 20:26:33 Initializing (itch) multiverse @ (/home/coder/.itch)
+    2024/12/27 20:26:33 (/home/coder/.itch)(current = "26.1.9", ready = "")
+    2024/12/27 20:26:33 Launch preferred, attempting...
+    2024/12/27 20:26:33 Launching (26.1.9) from (/home/coder/.itch/app-26.1.9)
+    2024/12/27 20:26:33 Kernel should support SUID sandboxing, leaving it enabled
+    2024/12/27 20:26:33 App launched, getting out of the way
     ```
 
 The solution, albeit possibly only a temporary one, is to
@@ -2169,3 +2168,416 @@ installed libraries, which comes in vary handy to update them all.
     Trace/breakpoint trap (core dumped)
     ```
 
+#### Arduino failed updates
+
+Unfortunately at least one of the libraries in the Arduino IDE hit a
+snag and got stuck with an exception, seemingly because NVidia cards
+and/or drivers are not supported.
+
+??? terminal "Arduino IDE stuck updating libraries."
+
+    ``` console hl_lines="18"
+    $ /opt/arduino/arduino-ide
+    Arduino IDE 2.3.5-nightly-20241212
+    ...
+
+    2024-12-27T19:33:51.252Z daemon INFO time="2024-12-27T20:33:51+01:00" level=info msg="Loaded tool" tool="esp8266:mklittlefs@3.1.0-gcc10.3-e5f9fec"
+    time="2024-12-27T20:33:51+01:00" level=info msg="Loaded tool" tool="esp8266:mkspiffs@3.1.0-gcc10.3-e5f9fec"
+    time="2024-12-27T20:33:51+01:00" level=info msg="Loaded tool" tool="esp8266:python3@3.7.2-post1"
+    2024-12-27T19:33:51.252Z daemon INFO time="2024-12-27T20:33:51+01:00" level=info msg="Loaded tool" tool="esp8266:xtensa-lx106-elf-gcc@3.1.0-gcc10.3-e5f9fec"
+    Warning: loader_get_json: Failed to open JSON file virtio_icd.x86_64.json
+    Warning: loader_scanned_icd_add: Could not get 'vkCreateInstance' via 'vk_icdGetInstanceProcAddr' for ICD libGLX_nvidia.so.0
+    Warning: loader_get_json: Failed to open JSON file lvp_icd.x86_64.json
+    Warning: /usr/lib/x86_64-linux-gnu/libvulkan_intel.so: cannot open shared object file: Permission denied
+    Warning: loader_icd_scan: Failed loading library associated with ICD JSON /usr/lib/x86_64-linux-gnu/libvulkan_intel.so. Ignoring this JSON
+    Warning: /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so: cannot open shared object file: Permission denied
+    Warning: loader_icd_scan: Failed loading library associated with ICD JSON /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so. Ignoring this JSON
+    Warning: loader_get_json: Failed to open JSON file intel_hasvk_icd.x86_64.json
+    Warning: vkCreateInstance: Found no drivers!
+    Warning: vkCreateInstance failed with VK_ERROR_INCOMPATIBLE_DRIVER
+        at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:88)
+        at CreateVkInstance (../../third_party/dawn/src/dawn/native/vulkan/BackendVk.cpp:458)
+        at Initialize (../../third_party/dawn/src/dawn/native/vulkan/BackendVk.cpp:344)
+        at Create (../../third_party/dawn/src/dawn/native/vulkan/BackendVk.cpp:266)
+        at operator() (../../third_party/dawn/src/dawn/native/vulkan/BackendVk.cpp:521)
+
+
+
+    ^CisTempSketch: true. Input was /tmp/.arduinoIDE-unsaved20241127-911572-vfe16y.lc64g/sketch_dec27a
+    Ignored marking workspace as a closed sketch. The sketch was detected as temporary. Workspace URI: file:///tmp/.arduinoIDE-unsaved20241127-911572-vfe16y.lc64g/sketch_dec27a.
+    isTempSketch: true. Input was /tmp/.arduinoIDE-unsaved20241127-911572-vfe16y.lc64g/sketch_dec27a
+    Ignored marking workspace as a closed sketch. The sketch was detected as temporary. Workspace URI: file:///tmp/.arduinoIDE-unsaved20241127-911572-vfe16y.lc64g/sketch_dec27a.
+    Closing channel on service path '/services/electron-window'.
+    Closing channel on service path '/services/ide-updater'.
+    Stored workspaces roots: 
+    No sketches were scheduled for deletion.
+    ```
+
+Searching around for that specific error, all results are about issues
+for non-NVidia GPUs and thus not applicable. There is a hint of a
+specific library being problematic in the output of 
+`vulkaninfo --summary` but that
+[seems to be a red herring](https://gitlab.freedesktop.org/mesa/mesa/-/issues/10753#note_2312512).
+
+??? terminal "`$ vulkaninfo --summary`"
+
+    ``` console hl_lines="1"
+    $ vulkaninfo --summary
+    WARNING: [Loader Message] Code 0 : terminator_CreateInstance: Received return code -3 from call to vkCreateInstance in ICD /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so. Skipping this driver.
+    ==========
+    VULKANINFO
+    ==========
+
+    Vulkan Instance Version: 1.3.275
+
+
+    Instance Extensions: count = 23
+    -------------------------------
+    VK_EXT_acquire_drm_display             : extension revision 1
+    VK_EXT_acquire_xlib_display            : extension revision 1
+    VK_EXT_debug_report                    : extension revision 10
+    VK_EXT_debug_utils                     : extension revision 2
+    VK_EXT_direct_mode_display             : extension revision 1
+    VK_EXT_display_surface_counter         : extension revision 1
+    VK_EXT_surface_maintenance1            : extension revision 1
+    VK_EXT_swapchain_colorspace            : extension revision 4
+    VK_KHR_device_group_creation           : extension revision 1
+    VK_KHR_display                         : extension revision 23
+    VK_KHR_external_fence_capabilities     : extension revision 1
+    VK_KHR_external_memory_capabilities    : extension revision 1
+    VK_KHR_external_semaphore_capabilities : extension revision 1
+    VK_KHR_get_display_properties2         : extension revision 1
+    VK_KHR_get_physical_device_properties2 : extension revision 2
+    VK_KHR_get_surface_capabilities2       : extension revision 1
+    VK_KHR_portability_enumeration         : extension revision 1
+    VK_KHR_surface                         : extension revision 25
+    VK_KHR_surface_protected_capabilities  : extension revision 1
+    VK_KHR_wayland_surface                 : extension revision 6
+    VK_KHR_xcb_surface                     : extension revision 6
+    VK_KHR_xlib_surface                    : extension revision 6
+    VK_LUNARG_direct_driver_loading        : extension revision 1
+
+    Instance Layers: count = 8
+    --------------------------
+    VK_LAYER_INTEL_nullhw             INTEL NULL HW                1.1.73   version 1
+    VK_LAYER_MESA_device_select       Linux device selection layer 1.3.211  version 1
+    VK_LAYER_MESA_overlay             Mesa Overlay layer           1.3.211  version 1
+    VK_LAYER_NV_optimus               NVIDIA Optimus layer         1.3.277  version 1
+    VK_LAYER_VALVE_steam_fossilize_32 Steam Pipeline Caching Layer 1.3.207  version 1
+    VK_LAYER_VALVE_steam_fossilize_64 Steam Pipeline Caching Layer 1.3.207  version 1
+    VK_LAYER_VALVE_steam_overlay_32   Steam Overlay Layer          1.3.207  version 1
+    VK_LAYER_VALVE_steam_overlay_64   Steam Overlay Layer          1.3.207  version 1
+
+    Devices:
+    ========
+    GPU0:
+            apiVersion         = 1.3.277
+            driverVersion      = 550.120.0.0
+            vendorID           = 0x10de
+            deviceID           = 0x2182
+            deviceType         = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+            deviceName         = NVIDIA GeForce GTX 1660 Ti
+            driverID           = DRIVER_ID_NVIDIA_PROPRIETARY
+            driverName         = NVIDIA
+            driverInfo         = 550.120
+            conformanceVersion = 1.3.7.2
+            deviceUUID         = f77cc413-629c-e437-1b69-3c3edb0915b8
+            driverUUID         = b0238158-7345-5c56-8ef8-c3afdfd4908a
+    GPU1:
+            apiVersion         = 1.3.274
+            driverVersion      = 0.0.1
+            vendorID           = 0x10005
+            deviceID           = 0x0000
+            deviceType         = PHYSICAL_DEVICE_TYPE_CPU
+            deviceName         = llvmpipe (LLVM 17.0.6, 256 bits)
+            driverID           = DRIVER_ID_MESA_LLVMPIPE
+            driverName         = llvmpipe
+            driverInfo         = Mesa 24.0.9-0ubuntu0.3 (LLVM 17.0.6)
+            conformanceVersion = 1.3.1.1
+            deviceUUID         = 6d657361-3234-2e30-2e39-2d3075627500
+            driverUUID         = 6c6c766d-7069-7065-5555-494400000000
+    ```
+
+### DisplayCal
+
+[DisplayCAL](https://displaycal.net/) is no longer maintained, it was dropped from
+Ubuntu 20.04 because it would not work with Python 3, but was still possible to build
+with python2.7 packages. Later, that was no longer possible in Ubuntu 22.04, so a new
+port to Python 3 was started: the
+[DisplayCAL Python 3 Project](https://github.com/eoyilmaz/displaycal-py3/tree/develop?tab=readme-ov-file#displaycal-python-3-project).
+
+Back in late 2022, the best method around was in (French)
+[DisplayCAL en Python 3](https://ignace72.eu/displaycal-en-python-3.html)
+and required only a few basic packages.
+
+As or late 2024, the new project has its own
+[Installation Instructions (Linux)](https://github.com/eoyilmaz/displaycal-py3/blob/develop/docs/install_instructions_linux.md)
+but in Ubuntu Studio 24.04 none of this is necessary; `apt install displaycal` will do.
+
+## System Configuration
+
+The above having covered **installing** software, there are still
+system configurations that need to be tweaked.
+
+### Ubuntu Pro
+
+When updating the system with `apt full-upgrade -y` a notice comes
+up about additional security updates:
+
+``` console
+# apt full-upgrade -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
+  libdcmtk17t64 python3-waitress libcjson1 libavdevice60 ffmpeg libpostproc57
+  libavcodec60 libavutil58 libswscale7 libswresample4 libavformat60
+  libavfilter9
+Learn more about Ubuntu Pro at https://ubuntu.com/pro
+The following upgrades have been deferred due to phasing:
+  python3-distupgrade ubuntu-release-upgrader-core ubuntu-release-upgrader-qt
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+```
+
+This being a new system, indeed it's not attached to an Ubuntu Pro
+account (the old system was):
+
+``` console
+# pro security-status
+installed:
+     1645 packages from Ubuntu Main/Restricted repository
+     1581 packages from Ubuntu Universe/Multiverse repository
+     3 packages from third parties
+
+To get more information about the packages, run
+    pro security-status --help
+for a list of available options.
+
+This machine is receiving security patching for Ubuntu Main/Restricted
+repository until 2029.
+This machine is NOT attached to an Ubuntu Pro subscription.
+
+Ubuntu Pro with 'esm-infra' enabled provides security updates for
+Main/Restricted packages until 2034.
+
+Ubuntu Pro with 'esm-apps' enabled provides security updates for
+Universe/Multiverse packages until 2034. There are 12 pending security updates.
+
+Try Ubuntu Pro with a free personal subscription on up to 5 machines.
+Learn more at https://ubuntu.com/pro
+```
+
+After creating an Ubuntu account a token is available to use with
+`pro attach`:
+
+``` console
+# pro attach ...
+Enabling Ubuntu Pro: ESM Apps
+Ubuntu Pro: ESM Apps enabled
+Enabling Ubuntu Pro: ESM Infra
+Ubuntu Pro: ESM Infra enabled
+Enabling Livepatch
+Livepatch enabled
+This machine is now attached to 'Ubuntu Pro - free personal subscription'
+
+SERVICE          ENTITLED  STATUS       DESCRIPTION
+anbox-cloud      yes       disabled     Scalable Android in the cloud
+esm-apps         yes       enabled      Expanded Security Maintenance for Applications
+esm-infra        yes       enabled      Expanded Security Maintenance for Infrastructure
+landscape        yes       disabled     Management and administration tool for Ubuntu
+livepatch        yes       warning      Current kernel is not covered by livepatch
+realtime-kernel* yes       disabled     Ubuntu kernel with PREEMPT_RT patches integrated
+
+* Service has variants
+
+NOTICES
+Operation in progress: pro attach
+The current kernel (6.8.0-50-lowlatency, x86_64) is not covered by livepatch.
+Covered kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning.
+
+For a list of all Ubuntu Pro services and variants, run 'pro status --all'
+Enable services with: pro enable <service>
+
+    Account: ponder.stibbons@uu.am
+Subscription: Ubuntu Pro - free personal subscription
+
+```
+
+Now the system can be updated *again* with `apt full-upgrade -y`
+to receive those additional security updates:
+
+??? terminal "`# apt full-upgrade -y`"
+
+    ``` console
+    # apt full-upgrade -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    Calculating upgrade... Done
+    The following upgrades have been deferred due to phasing:
+    python3-distupgrade ubuntu-release-upgrader-core ubuntu-release-upgrader-qt
+    The following packages will be upgraded:
+    ffmpeg libavcodec60 libavdevice60 libavfilter9 libavformat60 libavutil58 libcjson1
+    libdcmtk17t64 libpostproc57 libswresample4 libswscale7 python3-waitress
+    12 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+    12 esm-apps security updates
+    Need to get 19.3 MB of archives.
+    After this operation, 6,144 B of additional disk space will be used.
+    Preparing to unpack .../00-libswscale7_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libswscale7:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../01-libavdevice60_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libavdevice60:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../02-libavformat60_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libavformat60:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../03-libavfilter9_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libavfilter9:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../04-libavcodec60_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libavcodec60:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../05-libavutil58_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libavutil58:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../06-libpostproc57_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libpostproc57:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../07-libswresample4_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking libswresample4:amd64 (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../08-ffmpeg_7%3a6.1.1-3ubuntu5+esm2_amd64.deb ...
+    Unpacking ffmpeg (7:6.1.1-3ubuntu5+esm2) over (7:6.1.1-3ubuntu5) ...
+    Preparing to unpack .../09-libcjson1_1.7.17-1ubuntu0.1~esm2_amd64.deb ...
+    Unpacking libcjson1:amd64 (1.7.17-1ubuntu0.1~esm2) over (1.7.17-1) ...
+    Preparing to unpack .../10-libdcmtk17t64_3.6.7-9.1ubuntu0.1~esm1_amd64.deb ...
+    Unpacking libdcmtk17t64:amd64 (3.6.7-9.1ubuntu0.1~esm1) over (3.6.7-9.1build4) ...
+    Preparing to unpack .../11-python3-waitress_2.1.2-2ubuntu0.1~esm1_all.deb ...
+    Unpacking python3-waitress (2.1.2-2ubuntu0.1~esm1) over (2.1.2-2) ...
+    Setting up python3-waitress (2.1.2-2ubuntu0.1~esm1) ...
+    Setting up libdcmtk17t64:amd64 (3.6.7-9.1ubuntu0.1~esm1) ...
+    Setting up libavutil58:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libcjson1:amd64 (1.7.17-1ubuntu0.1~esm2) ...
+    Setting up libswresample4:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libavcodec60:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libpostproc57:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libswscale7:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libavformat60:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libavfilter9:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up libavdevice60:amd64 (7:6.1.1-3ubuntu5+esm2) ...
+    Setting up ffmpeg (7:6.1.1-3ubuntu5+esm2) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Processing triggers for libc-bin (2.39-0ubuntu8.3) ...
+    ```
+
+### Make `dmesg` non-privileged
+
+Since Ubuntu 22.04, `dmesg` has become a privileged operation
+by default:
+
+``` console
+$ dmesg
+dmesg: read kernel buffer failed: Operation not permitted
+```
+
+This is controlled by 
+
+``` console
+# sysctl kernel.dmesg_restrict
+kernel.dmesg_restrict = 1
+```
+
+To revert this default, and make it permanent
+([source](https://archived.forum.manjaro.org/t/why-did-dmesg-become-a-priveleged-operation-suddenly/86468/3)):
+
+``` console
+# echo 'kernel.dmesg_restrict=0' | tee -a /etc/sysctl.d/99-sysctl.conf
+```
+
+This is effective only after a reboot, but the next section requires
+one too and is much more interesting.
+
+### Make SDDM Look Good
+
+Ubuntu Studio 24.04 uses 
+[Simple Desktop Display Manager (SDDM)](https://wiki.archlinux.org/title/SDDM)
+([sddm/sddm](https://github.com/sddm/sddm) in GitHub)
+which is quite good looking out of the box, but I like to
+customize this for each computer.
+
+For most computers my favorite SDDM theme is
+[Breeze-Noir-Dark](https://store.kde.org/p/1361460),
+which I like to install system-wide.
+
+``` console
+# unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
+```
+
+!!! warning "Action icons won’t render if the directory name is changed."
+
+    If needed, change the directory name in the `iconSource` fields
+    in `Main.qml` to match final directory name so icons show. This is
+    not the only thing that breaks when changing the directory name.
+
+Other than installing this theme, all I really change in it
+is the background image to use one that goes with the computer's name.
+In this case,
+[search for images of "raven wallpaper 4k"](https://www.google.com/search?sca_esv=70242eee9aad885d&sxsrf=ADLYWIIxnkJvJ7e4rr2bG4kHtRlDnQlMeQ:1735330282627&q=raven+wallpaper+4k&udm=2&fbs=AEQNm0CbCVgAZ5mWEJDg6aoPVcBgWizR0-0aFOH11Sb5tlNhd9L2WHVzAvhMQbvbuARNpGBcXTg9bjHozcoC1STf4cAK6TQt1QucotGleHY2pb6qE6LlBnOXI660eB8sIf84z99pS1_bZO1u4czxkXLQU14W-nkdOk4ao62bSo5vJ7qHvVbWvizUWq6xBgBQUFMcGKeI-huN&sa=X&ved=2ahUKEwi6gcGI4ciKAxVhUaQEHYgzKmwQtKgLegQIExAB&biw=2193&bih=845&dpr=1.1#vhid=1c7D-f48KGLBaM&vssid=mosaic)
+led me to find this good-looking
+[Raven Computer Wallpaper [2560x1600]](https://wallpapercave.com/w/wp6400810),
+which needs to be cropped to fit the 2560x1080 screen resolution:
+
+![Raven Computer Wallpaper [2560x1080]](../media/2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more/raven-2560-1080.jpg)
+
+Once copied to `/usr/share/sddm/themes/Breeze-Noir-Dark/` the image
+needs to be set up in *both* `theme.conf` and `theme.conf.user`:
+
+``` console
+# cp /jammy/usr/share/sddm/themes/Breeze-Noir-Dark/raven-2560-1080.jpg \
+  /usr/share/sddm/themes/Breeze-Noir-Dark/
+# cd /usr/share/sddm/themes/Breeze-Noir-Dark/
+
+# vi theme.conf
+[General]
+type=image
+color=#132e43
+background=/usr/share/sddm/themes/Breeze-Noir-Dark/raven-2560-1080.jpg
+
+# vi theme.conf.user
+[General]
+type=image
+background=raven-2560-1080.jpg
+```
+
+**Additionally**, as this is new in Ubuntu 24.04, the theme has to
+be selected by adding a `[Theme]` section in the system config
+in `/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf`
+
+``` ini linenums="1" title="/usr/lib/sddm/sddm.conf.d/ubuntustudio.conf"
+[General]
+InputMethod=
+
+[Theme]
+Current="Breeze-Noir-Dark"
+EnableAvatars=True
+```
+
+[Reportedly](https://superuser.com/questions/1720931/how-to-configure-sddm-in-kubuntu-22-04-where-is-config-file),
+you have to **create** the `/etc/sddm.conf.d` directory to add
+the *Local configuration* file that allows setting the theme:
+
+``` console
+# mkdir /etc/sddm.conf.d
+# vi /etc/sddm.conf.d/ubuntustudio.conf
+```
+
+Besides setting the theme, it is also good to limit the range of
+user ids so that only human users show up:
+
+``` ini linenums="1" title="/etc/sddm.conf.d/ubuntustudio.conf"
+[Theme]
+Current=Breeze-Noir-Dark
+
+[Users]
+MaximumUid=1003
+MinimumUid=1000
+```
+
+It seems no longer necessary to manually add Redshift to one's
+desktop session. Previously, it would be necessary to launch
+**Autostart** and **Add Application…** to add Redshift.
