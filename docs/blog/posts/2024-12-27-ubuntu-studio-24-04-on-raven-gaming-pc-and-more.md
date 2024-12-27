@@ -2121,6 +2121,49 @@ It should also be possible to install the official Steam client, with
 [the non-snap alternative](2024-09-14-ubuntu-studio-24-04-on-computer-for-a-young-artist.md#non-snap-alternative).
 This doesn't seems necessary anymore.
 
+Installing Steam from Snap does have a couple of drawbacks:
+
+#### Steam in Plasma Task Manager
+
+Pinning Steam to the Plasma Task Manager doesn't really work; as soon
+as Steam is closed, clicking on the panel icon will only produce an
+error messages about Steam not being found. The new fast(est) way to
+launch the Steam client now is to press `Alt+Space` to invoke Krunner
+and type `steam`, then select the entry that is **not** at the top.
+
+#### Steam Games
+
+Perhaps the more annoying drawback of installing Steam from Snap is
+that the location where games are installed is completely different:
+
+*   Previously, Steam games taking up **345 GB** were installed in
+    `~/.local/share/Steam/steamapps/common/`
+*   Now, Steam snap installs games under (initially mostly empty)
+    `~/snap/steam/common/.local/share/Steam/steamapps/common/`
+
+***Worse yet:** all games previously installed are not found!*
+
+To restore previously downloaded games, each game can be copied from
+`~/.local/share/Steam/steamapps/common/` to
+`~/snap/steam/common/.local/share/Steam/steamapps/common/`
+**while Steam is not running**:
+
+``` console
+$ cp -a .local/share/Steam/steamapps/common/Undertale \
+  snap/steam/common/.local/share/Steam/steamapps/common/
+
+$ du -sh snap/steam/common/.local/share/Steam/steamapps/common/*
+4.0K    snap/steam/common/.local/share/Steam/steamapps/common/Steam.dll
+32K     snap/steam/common/.local/share/Steam/steamapps/common/SteamLinuxRuntime
+638M    snap/steam/common/.local/share/Steam/steamapps/common/SteamLinuxRuntime_soldier
+156M    snap/steam/common/.local/share/Steam/steamapps/common/Undertale
+```
+
+After copying games, Steam will still not detect them until they are
+manually installed. Upon hitting the INSTALL button for each game,
+Steam will first verify the local files and, unless they are rendered
+obsolete by an update, the game should be very shortly ready to play.
+
 ### Itch.io
 
 There is a binary in `.itch/itch` but it doesn’t work, it seem to have launched the app but the app itself is nowhere to be seen:
