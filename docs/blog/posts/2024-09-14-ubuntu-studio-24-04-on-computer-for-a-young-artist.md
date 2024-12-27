@@ -162,12 +162,12 @@ this to adjust the system remotely:
     in case it contains useful scripts (and/or SSH keys worth keeping
     under `.ssh`).
 
-``` console
-# mount /dev/sdb1 /mnt/
-# rm /root/.ssh/authorized_keys 
-# rmdir /root/.ssh/ 
-# cp -a /mnt/root/.ssh/ /root/
-```
+    ``` console
+    # mount /dev/sdb1 /mnt/
+    # rm /root/.ssh/authorized_keys 
+    # rmdir /root/.ssh/ 
+    # cp -a /mnt/root/.ssh/ /root/
+    ```
 
 ### `/etc/hosts`
 
@@ -237,20 +237,20 @@ Need to get 314 MB of archives.
 After this operation, 1,131 MB of additional disk space will be used.
 ```
 
-!!! note
+??? note "A few packages are missing here ..."
     
     A few packages are missing here, compared to those installed with
     [Ubuntu Studio 22.04](2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist.md#apt-packages):
 
-*   `netcat` is a virtual package now; instead of on its providers must
-    be selected explicitly:
-    *   `netcat-openbsd` contains the OpenBSD rewrite of netcat,
-        including support for IPv6, proxies, and Unix sockets.
-    *   `netcat-traditional` is the "classic" netcat, written by
-        *Hobbit*. It lacks many features found in netcat-openbsd.
-*   `gkrellm-hdplop` and `gkrellm-x86info` are no longer included.
-*   `ttf-mscorefonts-installer:i386` is not available because the
-    `i386` architecture has not been enabled (and is not needed).
+    *   `netcat` is a virtual package now; instead of on its providers
+        must be selected explicitly:
+        *   `netcat-openbsd` contains the OpenBSD rewrite of netcat,
+            including support for IPv6, proxies, and Unix sockets.
+        *   `netcat-traditional` is the "classic" netcat, written by
+            *Hobbit*. It lacks many features found in netcat-openbsd.
+    *   `gkrellm-hdplop` and `gkrellm-x86info` are no longer included.
+    *   `ttf-mscorefonts-installer:i386` is not available because the
+        `i386` architecture has not been enabled (and is not needed).
 
 There is Warning regarding `/snap/bin` not found in your `$PATH`
 
@@ -350,7 +350,7 @@ To enable 2-axis scrolling with the
 create or edit `/usr/share/X11/xorg.conf.d/10-libinput.conf`
 like this:
 
-``` ini linenums="1" title="/usr/share/X11/xorg.conf.d/10-libinput.conf"
+``` conf linenums="1" title="/usr/share/X11/xorg.conf.d/10-libinput.conf"
 Section "InputClass"
     Identifier      "Marble Mouse"
     MatchProduct    "Logitech USB Trackball"
@@ -382,7 +382,7 @@ forbid joystick mouse emulation when using certain
 joystick-like gaming controllers. To do this, 
 create or edit `/usr/share/X11/xorg.conf.d/50-joystick.conf`
 
-``` ini linenums="1" title="/usr/share/X11/xorg.conf.d/50-joystick.conf"
+``` conf linenums="1" title="/usr/share/X11/xorg.conf.d/50-joystick.conf"
 Section "InputClass"
 	Identifier "joystick catchall"
 	MatchIsJoystick "on"
