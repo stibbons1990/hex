@@ -2141,7 +2141,7 @@ that the location where games are installed is completely different:
 *   Now, Steam snap installs games under (initially mostly empty)
     `~/snap/steam/common/.local/share/Steam/steamapps/common/`
 
-***Worse yet:** all games previously installed are not found!*
+***Worse Yet:** all games previously installed are not found!*
 
 To restore previously downloaded games, each game can be copied from
 `~/.local/share/Steam/steamapps/common/` to
@@ -2163,6 +2163,21 @@ After copying games, Steam will still not detect them until they are
 manually installed. Upon hitting the INSTALL button for each game,
 Steam will first verify the local files and, unless they are rendered
 obsolete by an update, the game should be very shortly ready to play.
+
+***Even Worse Yet:** all games have lost their Properties!*
+
+Worse than having to re-download double- or triple-digit GB worth of
+games is having to tinker with each of them again to find the optimal
+Proton version and command flags to run each game, especially since
+these have been recorded elsewhere only for very few (recent) games:
+
+*   [Dragon Age: Origins - Ultimate Edition](2023-09-23-getting-started-with-dragon-age-origins-ultimate-edition.md)
+*   [Fallout 3 and 4 GOTY](2024-05-04-getting-started-with-fallout-3-and-4-goty.md)
+
+This loss of setting may be the tipping point to ditck the snap package
+and install the Steam client directly from its source. Moreover, some
+games appear to be impossible to run with the Steam snap package
+(e.g. [BioShock Infinite](https://www.protondb.com/app/8870)).
 
 ### Itch.io
 
