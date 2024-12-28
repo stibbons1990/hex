@@ -1296,9 +1296,6 @@ Requires:
   absl-py
   https://github.com/abseil/abseil-py
 
-  influxdb
-  https://github.com/influxdata/influxdb-python
-
   tapo
   https://github.com/mihai-dinculescu/tapo/
 """
@@ -1348,35 +1345,53 @@ async def fetch_reports(config):
     for device in config["devices"]:
         model = device["model"]
         report=dict(model=model)
-        if model == "H100":
-            device_conn = await client.h100(device["ip"])
-            device_info = await device_conn.get_device_info()
-            report=dict(
-                model=device_info.to_dict().get("model"),
-                nickname=device_info.to_dict().get("nickname")
-            )
-            children=[]
-            child_device_list = await device_conn.get_child_device_list()
-            for child in child_device_list:
-                if isinstance(child, T31XResult):
-                    t315 = await device_conn.t315(device_id=child.device_id)
-                    children.append(dict(
-                        model="T315",
-                        nickname=child.nickname,
-                        humidity=child.current_humidity,
-                        temperature=child.current_temperature
-                    ))
-            report.update(dict(children=children))
-        elif model in ("P110", "P115"):
-            device_conn = await client.p110(device["ip"])
-            device_info = await device_conn.get_device_info()
-            energy_usage = await device_conn.get_energy_usage()
-            report=dict(
-                model=device_info.to_dict().get("model"),
-                nickname=device_info.to_dict().get("nickname"),
-                current_power=float(energy_usage.to_dict().get("current_power")/1000)
-            )
-        reports.append(report)
+        try:
+            if model == "H100":
+                device_conn = await client.h100(device["ip"])
+                device_info = await device_conn.get_device_info()
+                report=dict(
+                    model=device_info.to_dict().get("model"),
+                    nickname=device_info.to_dict().get("nickname")
+                )
+                children=[]
+                child_device_list = await device_conn.get_child_device_list()
+                for child in child_device_list:
+                    if isinstance(child, T31XResult):
+                        t315 = await device_conn.t315(device_id=child.device_id)
+                        children.append(dict(
+                            model="T315",
+                            nickname=child.nickname,
+                            humidity=child.current_humidity,
+                            temperature=child.current_temperature
+                        ))
+                report.update(dict(children=children))
+            elif model in ("P110", "P115"):
+                device_conn = await client.p110(device["ip"])
+                device_info = await device_conn.get_device_info()
+                energy_usage = await device_conn.get_energy_usage()
+                report=dict(
+                    model=device_info.to_dict().get("model"),
+                    nickname=device_info.to_dict().get("nickname"),
+                    current_power=float(energy_usage.to_dict().get("current_power")/1000)
+                )
+        except:
+            print("Could not get data from %s on %s " % (
+                device["model"], device["ip"]))
+        else:
+            reports.append(report)
+    return reports
+
+
+def always_on_reports(config):
+    reports = []
+    if "always_on" not in config:
+      return reports
+    for device in config["always_on"]:
+        reports.append(dict(
+            model="P115",
+            nickname=device["name"],
+            current_power=float(device["power"])
+        ))
     return reports
 
 
@@ -1417,6 +1432,7 @@ def post_reports(config, reports):
 def main(argv):
     config = load_config(FLAGS.config)
     reports = asyncio.run(fetch_reports(config))
+    reports.extend(always_on_reports(config))
     post_reports(config, reports)
 
 
@@ -1427,6 +1443,9 @@ if __name__ == "__main__":
 #### `tapo.yaml`
 
 ``` yaml linenums="1"
+always_on:
+  - name: "PC"
+    power: "150"
 devices:
   - ip: "192.168.0.115"
     model: "P115"
