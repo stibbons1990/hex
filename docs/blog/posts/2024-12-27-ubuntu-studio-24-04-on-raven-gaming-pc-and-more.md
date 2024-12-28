@@ -3618,8 +3618,8 @@ do
 done
 ```
 
-The whole process takes about __ minutes for the 2TB NVMe SSD, then
-something like _ hours for each of the 2TB RAID 5 of HDDs:
+The whole process takes about 8 minutes for the 2TB NVMe SSD, then
+something like 4.4 hours for each of the 2TB RAID 5 of HDDs:
 
 ??? terminal "`# /usr/local/bin/btrfs-scrub-all`"
 
@@ -3633,6 +3633,36 @@ something like _ hours for each of the 2TB RAID 5 of HDDs:
     btrfs scrub start -Bd /home/raid
     Starting scrub on devid 1
 
+    Scrub device /dev/md0 (id 1) done
+    Scrub started:    Fri Dec 27 23:01:48 2024
+    Status:           finished
+    Duration:         4:24:16
+    Total to scrub:   1.51TiB
+    Rate:             100.22MiB/s
+    Error summary:    no errors found
+
+    real    264m15.768s
+    user    0m0.007s
+    sys     4m55.957s
+    <13>Dec 28 03:26:04 root: Quick Metadata and Data Balance of /home (/dev/nvme0n1p4)
+    Done, had to relocate 0 out of 1214 chunks
+    Done, had to relocate 0 out of 1214 chunks
+    Done, had to relocate 132 out of 1214 chunks
+    <13>Dec 28 03:27:31 root: Starting scrub of /home
+    btrfs scrub start -Bd /home
+    Starting scrub on devid 1
+
+    Scrub device /dev/nvme0n1p4 (id 1) done
+    Scrub started:    Sat Dec 28 03:27:31 2024
+    Status:           finished
+    Duration:         0:07:45
+    Total to scrub:   1.02TiB
+    Rate:             2.25GiB/s
+    Error summary:    no errors found
+
+    real    7m45.015s
+    user    0m0.000s
+    sys     3m11.951s
     ```
 
 ![Disk I/O and SSD temperatures chart show btrfs scrub](../media/2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more/raven-btrfs-scrub-grafana.png)
