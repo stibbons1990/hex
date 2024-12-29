@@ -215,6 +215,31 @@ internal temperature. When the refrigerator is not opened; the compressor will r
 for a longer time and/or draw more power (about 400 W) when the refrigerator is
 refilled with groceries that are not cold.
 
+### Rarely-on appliances
+
+Smaller appliances that are used sporadically are not monitored at all, but they also
+tend to be significantly power-hungry (especially in the kitchen). This is where the
+*available power* metric comes in handy: substract the total current power consumption
+from the contracted power rate, then compare this difference with what the appliance
+will need.
+
+*What what will appliance X need?* This can be measured with one of the P110 or P115
+plugs once or twice to get a reading of each of these appliance's *typical power needs*,
+then a simple paper note stuck on the appliance with the number should serve as a reminder
+to check whether there is currently enough power available.
+
+#### Adjustable appliances
+
+Electric heaters, hair dryers and other power-hungry, adjustable appliances would need
+a slightly bigger paper note stuck on them to indicate what their power consumption is
+depending on each adjustable setting. Some appliances don't really need this though,
+for instance a small toaster will draw the same power (e.g. 750 W) while it's on, its
+adjustment changing only the *duration*.
+
+This *should be practical enough* thanks to how well the dashboard shows on mobile screens: 
+
+![Monitoring dashboard for Tapo devices showing current and historic power use and temperatures](../media/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices/tapo-monitoring-grafana-dashboard-on-phone.png)
+
 ## A more long-term database
 
 InfluxDB database for [Continuous Monitoring](../../conmon.md) was set up with a
