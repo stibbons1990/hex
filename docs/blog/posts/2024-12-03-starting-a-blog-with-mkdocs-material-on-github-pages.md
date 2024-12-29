@@ -477,6 +477,10 @@ This blog contains many long sections capturing the output from running shell
 commands in a terminal emulator. These are often long, even *very long*, and
 most of the times need not be read, or even visible by default.
 
+There are also long samples of source code and configuration files, such as
+Xorg, Systemd, Kubernetes and [many more languages](https://pygments.org/languages/)
+supported by [Pygments](https://pygments.org/).
+
 To show these blocks differently, a custom `terminal` admonitions is used,
 based on the `pied-piper` example in
 [Custom admonitions](https://squidfunk.github.io/mkdocs-material/reference/admonitions/#custom-admonitions),
@@ -528,7 +532,7 @@ so that the text, output or code is more easily readable.
     More custom admonitions are added as the need turms up,
     what follows is the full `extra.css` file with all of these.
 
-??? code "Here goes the entire `extra.css` file:"
+??? code "Here goes the entire [`extra.css`](../../stylesheets/extra.css) file:"
 
     ``` css linenums="1" title="stylesheets/extra.css"
     .md-typeset .admonition,

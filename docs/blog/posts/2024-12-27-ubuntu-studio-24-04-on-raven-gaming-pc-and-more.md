@@ -1576,7 +1576,7 @@ mdadm: /dev/md0 has been started with 3 drives.
 
 *Success!* The RAID is now started, as seen in `dmesg`:
 
-```
+``` dmesg
 [ 9649.589111] md: md0 stopped.
 [ 9649.593929]  sda:
 [ 9649.596065]  sdb:
@@ -3673,7 +3673,7 @@ something like 4.4 hours for each of the 2TB RAID 5 of HDDs:
 During the first scrub on Ubuntu Studio 24.04 there were ATA
 errors in the `dmesg` log concerning one of the disks (`sda`):
 
-```
+``` dmesg
 [33774.356941] BTRFS info (device md0): balance: start -musage=0 -susage=0
 [33774.359384] BTRFS info (device md0): balance: ended with status: 0
 [33786.804683] BTRFS info (device md0): balance: start -dusage=0
