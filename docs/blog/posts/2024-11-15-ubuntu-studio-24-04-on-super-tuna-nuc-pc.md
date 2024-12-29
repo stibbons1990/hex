@@ -14,8 +14,6 @@ This *would* be a very minimal journey of installing
 [Ubuntu Studio 24.04](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/)
 on a relatively new mid-range Intel® NUC 13 Pro mini PC, had it not gone wahoonie-shaped...
 
-![Homage to The Most Popular Tuna Ever](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/Super-Tuna.jpg)
-
 <!-- more -->
 
 ## Preparation
@@ -564,6 +562,8 @@ changing the directory name.
 Other than installing this theme, all I really change in it
 is the background image to use 
 [Super Tuna (1920x1080)](https://www.nme.com/news/music/bts-jin-surprises-fans-super-tuna-birthday-celebration-3111626).
+
+![Homage to The Most Popular Tuna Ever](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/Super-Tuna.jpg)
 
 ``` console
 # mv Super-Tuna.jpg \
