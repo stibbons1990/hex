@@ -12,7 +12,10 @@ The time has came to update *my other PC*, which I use also for gaming,
 coding, media production and just about everything, to 
 [Ubuntu Studio 24.04](https://ubuntustudio.org/2024/04/ubuntu-studio-24-04-lts-released/).
 
-This is a smaller PC build based on (maybe describe hardware here)
+This is a smaller PC build based on a lower TDP CPU (AMD Ryzen 5 2600X) to fit in a
+[Silverstone RVZ03](https://www.silverstonetek.com/en/product/info/computer-chassis/RVZ03-ARGB/)
+**Mini ITX** case with the very compact
+[Noctua NH-L9x65](https://noctua.at/en/nh-l9x65-se-am4) cooler.
 
 <!-- more -->
 
