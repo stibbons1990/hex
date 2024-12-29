@@ -10,7 +10,7 @@ categories:
 # Continuous Monitoring for TP-Link Tapo devices
 
 In an old house with aging electrical wiring and a limited power contract, keeping power
-consumption in check is quite necessary and can be a bit of a challenge. Some devices are
+consumption in check is quite necessary and can be a bit of a challenge. Some appliances are
 very power-hungry for short periods of time, at unpredictable times throughout the day,
 while others are running constantly and add up to a baseline that quietly takes a chunk
 of the power budget.
@@ -22,7 +22,7 @@ easy to setup, reliable, discrete and not too expensive... although they do add 
 
 For all the smart features in these devices and the companion app, there is no way to
 have a panoramic view of *aggregated* power consumption broken down by device, or to
-configure thresholds based on the *aggregated* power consumption from all devices.
+configure thresholds based on the *aggregated* power consumption from all appliances.
 Such panoramic view was not hard to implement by building on the
 [Continuous Monitoring](../../conmon.md) solution previously built for monigoring
 computing resources (already monitoring temperatures and power consumption).
@@ -51,7 +51,7 @@ this house and those that may be used in the future:
     temperature and humidity *do* vary greatly across rooms.
 *   [P100](https://www.tapo.com/en/product/smart-plug/tapo-p100/v1/)
     *Mini Smart Wi-Fi Socket* **without** *Energy Monitoring*, ordered by mistake
-    and not yet of great use; there are no low-power devices wanting remote control.
+    and not yet of great use; there are no low-power appliances wanting remote control.
 *   [P110](https://www.tapo.com/en/product/smart-plug/tapo-p110/v1/)
     *Mini Smart Wi-Fi Socket, Energy Monitoring*, slightly cheaper and bulkier than...
 *   [P115](https://www.tapo.com/en/product/smart-plug/tapo-p115/v1/)
@@ -60,7 +60,7 @@ this house and those that may be used in the future:
 *   [P304M](https://www.tp-link.com/uk/home-networking/smart-plug/tapo-p304m/)
     *Smart Wi-Fi Power Strip, Energy Monitoring*, apparently only available in the UK
     as of the end of 2024 but hopefully available in more regions soon. This would make
-    a great replacement for P110/P115 devices in a few places where multiple devices
+    a great replacement for P110/P115 devices in a few places where multiple appliances
     require separate remote control.
 *   [L900-5](https://www.tapo.com/en/product/smart-light-bulb/tapo-l900-5/)
     *Smart Wi-Fi Light Strip (5 m.)*, or maybe even
@@ -197,18 +197,18 @@ so that devices can be detected when their IP addresses change; in the mean time
 [this comment](https://github.com/mihai-dinculescu/tapo/issues/208#issuecomment-2173995264)
 provides a few ideas to implement device discovery.
 
-### Always-on devices
+### Always-on appliances
 
 There are several appliances in the house that operate essentially 24x7 with a fairly
 constant power consumption. A common example in humid climates are dehumidifiers running
 constantly, with a power consumption typically between 150 and 300 W. Computers also have
 relativly constant power consumption, except during periods of high CPU or GPU load.
 
-Instead of having all these devices *actually* monitored with a dedicated smart plug
+Instead of having all these appliances *actually* monitored with a dedicated smart plug
 with energy monitoring (P110 or P115), they can be *hard-coded* in the configuration
 file under `always_on`.
 
-This can be used for devices that go on and off at regular intervals, such as a
+This can be used for appliances that go on and off at regular intervals, such as a
 refrigerator that runs the compressor for about 10 minutes every 20-30 minutes,
 consuming about 80 W each time. This is only the low-power cycle to maintain the
 internal temperature. When the refrigerator is not opened; the compressor will run
