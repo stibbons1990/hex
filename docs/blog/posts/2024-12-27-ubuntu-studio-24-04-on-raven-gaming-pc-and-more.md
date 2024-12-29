@@ -2997,11 +2997,73 @@ replacing `libgl1-mesa-glx:i386` with `libglx-mesa0:i386`:
 Pressing return launches the Steam client and it is immediately
 clear that all games still have their properties as the should.
 
-#### Install Proton GE
+#### Glorious Eggroll
 
 Many games depend on
 [gloriouseggroll/proton-ge-custom](https://github.com/gloriouseggroll/proton-ge-custom?tab=readme-ov-file#overview)
 to run and this needs to be installed separately.
+
+This was previously installed in Rapture when
+[modding Skyrim Special Edition](2023-10-14-modding-a-steam-game-on-linux-the-elder-scrolls-v-skyrim-special-edition#glorious-eggroll),
+and the old versions may still be available under `~/.steam/root/compatibilitytools.d/`
+
+The latest version can be installed using the Bash script provided as the
+[Manual method for Native Steam](https://github.com/GloriousEggroll/proton-ge-custom#manual):
+
+??? code "`~/bin/install-latest-protonge.sh`"
+
+    ``` bash linenums="1"
+    #!/bin/bash
+    set -euo pipefail
+
+    # make temp working directory
+    echo "Creating temporary working directory..."
+    rm -rf /tmp/proton-ge-custom
+    mkdir /tmp/proton-ge-custom
+    cd /tmp/proton-ge-custom
+
+    # download tarball
+    echo "Fetching tarball URL..."
+    tarball_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep .tar.gz)
+    tarball_name=$(basename $tarball_url)
+    echo "Downloading tarball: $tarball_name..."
+    curl -# -L $tarball_url -o $tarball_name --no-progress-meter
+
+    # download checksum
+    echo "Fetching checksum URL..."
+    checksum_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep .sha512sum)
+    checksum_name=$(basename $checksum_url)
+    echo "Downloading checksum: $checksum_name..."
+    curl -# -L $checksum_url -o $checksum_name --no-progress-meter
+
+    # check tarball with checksum
+    echo "Verifying tarball $tarball_name with checksum $checksum_name..."
+    sha512sum -c $checksum_name
+    # if result is ok, continue
+
+    # make steam directory if it does not exist
+    echo "Creating Steam directory if it does not exist..."
+    mkdir -p ~/.steam/root/compatibilitytools.d
+
+    # extract proton tarball to steam directory
+    echo "Extracting $tarball_name to Steam directory..."
+    tar -xf $tarball_name -C ~/.steam/root/compatibilitytools.d/
+    echo "All done :)"
+    ```
+
+``` console
+$ ~/bin/install-latest-protonge.sh
+Creating temporary working directory...
+Fetching tarball URL...
+Downloading tarball: GE-Proton9-22.tar.gz...
+Fetching checksum URL...
+Downloading checksum: GE-Proton9-22.sha512sum...
+Verifying tarball GE-Proton9-22.tar.gz with checksum GE-Proton9-22.sha512sum...
+GE-Proton9-22.tar.gz: OK
+Creating Steam directory if it does not exist...
+Extracting GE-Proton9-22.tar.gz to Steam directory...
+All done :)
+```
 
 ### Itch.io
 
