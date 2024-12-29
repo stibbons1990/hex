@@ -12,7 +12,7 @@ categories:
 In an old house with aging electrical wiring and a limited power contract, keeping power
 consumption in check is quite necessary and can be a bit of a challenge. Some devices are
 very power-hungry for short periods of time, at unpredictable times throughout the day,
-while others are running constantely and add up to a baseline that silently takes a chunk
+while others are running constantly and add up to a baseline that quietly takes a chunk
 of the power budget.
 
 A decent way to keep an eye on power consumption is offered by the
@@ -23,7 +23,7 @@ easy to setup, reliable, discrete and not too expensive... although they do add 
 For all the smart features in these devices and the companion app, there is no way to
 have a panoramic view of *aggregated* power consumption broken down by device, or to
 configure thresholds based on the *aggregated* power consumption from all devices.
-Such panoramic view was not too hard to implement by building on the
+Such panoramic view was not hard to implement by building on the
 [Continuous Monitoring](../../conmon.md) solution previously built for monigoring
 computing resources (already monitoring temperatures and power consumption).
 
@@ -41,12 +41,12 @@ this house and those that may be used in the future:
 
 *   [H100](https://www.tapo.com/en/product/smart-hub/tapo-h100/)
     *Smart Hub with Chime* located in the office, where its powered by an UPS
-    for 24x7 availability and *very convenient* close to me, so I can here it chime. 
+    for 24x7 availability and *very conveniently* close to me, so I can hear it chime. 
 *   [T100](https://www.tapo.com/en/product/smart-sensor/tapo-t100/v1/)
     *Smart Motion Sensor* hanging around the front door, to alert me when someone is
-    coming up the stairs.
+    coming up the house, in case I don't hear the bell.
 *   [T310](https://www.tapo.com/en/product/smart-sensor/tapo-t310/v1/)
-    *Smart Temperature & Humidity Sensor*, possibly the most *omnipresent* device,
+    *Smart Temperature & Humidity Sensor*, needed in most rooms around the house,
     because in a house with multiple floors and different exposure to sun and wind,
     temperature and humidity *do* vary greatly across rooms.
 *   [P100](https://www.tapo.com/en/product/smart-plug/tapo-p100/v1/)
@@ -55,7 +55,7 @@ this house and those that may be used in the future:
 *   [P110](https://www.tapo.com/en/product/smart-plug/tapo-p110/v1/)
     *Mini Smart Wi-Fi Socket, Energy Monitoring*, slightly cheaper and bulkier than...
 *   [P115](https://www.tapo.com/en/product/smart-plug/tapo-p115/v1/)
-    *Mini Smart Wi-Fi Socket, Energy Monitoring*, by far the favorite monitoring and
+    *Mini Smart Wi-Fi Socket, Energy Monitoring*, by far my favorite monitoring and
     remote control device, slightly more expensive than the P110 but fits *anywhere*.
 *   [P304M](https://www.tp-link.com/uk/home-networking/smart-plug/tapo-p304m/)
     *Smart Wi-Fi Power Strip, Energy Monitoring*, apparently only available in the UK
@@ -81,18 +81,26 @@ The Python library can be installed via `pip`, along with a couple of other
 ### Smart Actions
 
 The companion app supports creating *Smart Actions* to make these devices work together,
-such as making the Hub sound an alarm when the Motion Sensor is triggered, or turning a
-plug on/off depending on temperature and/or humidity thresholds in a room.
+such as making the hub sound an alarm when the motion sensor is triggered, or turning a
+plug on/off when the temperature and/or humidity in a room crosses a threshold.
 
 Although this is not connected directly with the monitoring of power consumption,
-it inspires me to think of *Smart**er** Actions* such as *turn off the boilder if
-total power use exceeds a threshold* or *sound a chime when power consumption from
-an appliance matches a specific pattern*. These may lead to go down the rabbit hole of
+it inspires me to think of *smart**er** actions*:
+
+*   Turn off the boilder if total power use exceeds a threshold, so the total power
+    consumption won't exceed the limited power contract.
+*   Sound a chime when power consumption from an appliance matches a specific pattern,
+    this can be used to detect when the washing machine has finished.
+*   Sound an alarm when total power consumption crosses a threshold, because this can
+    *and does* happen surprisingly often (a few times per day).
+
+These may lead me to go down the rabbit hole of
 [Home Assistant](https://www.home-assistant.io/), although support for Tapo devices in
 the [TP-Link Smart Home](https://www.home-assistant.io/integrations/tplink) integration
-seems to be missing all sensors.
+seems to be missing all sensors, those are supported only by a separate integration at
+[github.com/petretiandrea/home-assistant-tapo-p100](https://github.com/petretiandrea/home-assistant-tapo-p100).
 
-### Implementation details
+## Implementation
 
 Tapo devices sample values every 2 seconds, although this is only clearly advertised
 for the temperature and humidity sensors. However, for a simple start, sampling once
@@ -126,12 +134,47 @@ The [`conmon-tapo.py`](../../conmon.md#conmon-tapopy) runs through 4 steps each 
 2.  Poll the devices for their latest values. Skip those that are unreadable.
 3.  Synthesize measurements for *fake* devices; as encoded in the configuration file.
 4.  Post measurements to an InfluxDB server,
-    [tagged with the hostname](../../conmon.md#__codelineno-11-114).
+    [tagged with the hostname](../../conmon.md#__codelineno-11-114) to differentiate
+    devices across sites.
 
-!!! note 
+The tapo app allows creating multiple "homes" and "rooms" to track the location of
+each device, but these attributes are not included in the device information returned
+by `get_device_info()`.
 
-    [tagged with the hostname](../../conmon.md#__codelineno-11-114).
+??? k8s "Expand to see an example `device_info` result."
 
+    ```json
+    Device info: {
+        "at_low_battery": false,
+        "avatar": "balcony",
+        "bind_count": 1,
+        "category": "subg.trigger.temp-hmdt-sensor",
+        "current_humidity": 81,
+        "current_humidity_exception": 21,
+        "current_temp": 13.199999809265137,
+        "current_temp_exception": -6.800000190734863,
+        "device_id": "802EB916B90AEB800E30246DF68C303322310766",
+        "fw_ver": "1.5.0 Build 230105 Rel.150707",
+        "hw_id": "2AE1228C7CE042A310FC70EA70D7A788",
+        "hw_ver": "1.0",
+        "jamming_rssi": -116,
+        "jamming_signal_level": 1,
+        "lastOnboardingTimestamp": 1723047115,
+        "mac": "98254A51E05C",
+        "nickname": "Exterior",
+        "oem_id": "02F7CFFC203A7E622F6EA84BBB74C68F",
+        "parent_device_id": "802D84BECDA15417AA1BD7CF881AEE6622451CF8",
+        "region": "Europe/Madrid",
+        "report_interval": 16,
+        "rssi": -86,
+        "signal_level": 1,
+        "specs": "EU",
+        "status": "online",
+        "status_follow_edge": false,
+        "temp_unit": "celsius",
+        "type": "SMART.TAPOSENSOR"
+    }
+    ```
 
 ### Failing gracefully
 
@@ -164,6 +207,13 @@ relativly constant power consumption, except during periods of high CPU or GPU l
 Instead of having all these devices *actually* monitored with a dedicated smart plug
 with energy monitoring (P110 or P115), they can be *hard-coded* in the configuration
 file under `always_on`.
+
+This can be used for devices that go on and off at regular intervals, such as a
+refrigerator that runs the compressor for about 10 minutes every 20-30 minutes,
+consuming about 80 W each time. This is only the low-power cycle to maintain the
+internal temperature. When the refrigerator is not opened; the compressor will run
+for a longer time and/or draw more power (about 400 W) when the refrigerator is
+refilled with groceries that are not cold.
 
 ## A more long-term database
 
@@ -300,10 +350,30 @@ once the above setup is stable, this can be left for later as part of...
 
 ## Future improvements
 
-1.  Implement discovery of new devices to cope with IP address changes.
-1.  Make the script adapt its **reporting**; keep polling every 2 seconds, 
-    but report only very 1 minute when there are no changes.
+These are ideas to implement in the future, *very roughly* sorted by priority:
+
+1.  Create script to *react* to the total power consumption going above a threshold by
+    turning off the less critical appliances (e.g. a boiler) to keep the more critical
+    appliances running.
+1.  Add monitoring for devices with `at_low_battery: true` (poll daily).
 1.  Ingest historical data from exported CSV and XLS files from the Tapo app.
 1.  Add support daily periods on `always_on` (e.g. always on during the night).
+    *   [P100](https://www.tapo.com/en/product/smart-plug/tapo-p100/v1/)
+        *Mini Smart Wi-Fi Socket* **without** *Energy Monitoring* devices may be useful
+        to make a couple of appliances go off/on at a fixed schedule.
+1.  Make the script adapt its *reporting rate*; but report only very 1 minute when
+    there are no changes, to skip repeated values within each sensible tolerances.
+    *   [T310](https://www.tapo.com/en/product/smart-sensor/tapo-t310/v1/#tapo-product-spec)
+        *Smart Temperature & Humidity Sensor* specifies *Accuracy: ±0.3 °C, ±3% RH*
+        but monitoring so far shows the sensors are *precise* enough to keep
+        measurements steady over time, so we can use the *reporting accuracy* of
+        **±0.1 °C, ±1% RH**.
+    *   [P115](https://www.tapo.com/en/product/smart-plug/tapo-p115/v1/#tapo-product-spec)
+        *Mini Smart Wi-Fi Socket, Energy Monitoring* does not specify the accuracy of
+        measurements, so again we can use the *reporting accuracy* of 1 W for values
+        under 1000 W and 10 W for values above 1000 W, of simply **10 W** for all values.
+1.  Make the script adapt its *polling rate*; start polling every 2 seconds,
+    then adjust to each device's `report_interval`.
+1.  Add discovery of new devices to cope with IP address changes.
 1.  Create script to export minimal data over to Pi Pico or ESP32.
 1.  Find a way to update the list of `always_on` devices on demand.
