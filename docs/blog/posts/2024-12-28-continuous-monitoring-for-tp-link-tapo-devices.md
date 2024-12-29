@@ -141,7 +141,7 @@ The tapo app allows creating multiple "homes" and "rooms" to track the location 
 each device, but these attributes are not included in the device information returned
 by `get_device_info()`.
 
-??? k8s "Expand to see an example `device_info` result."
+??? json "Expand to see an example `device_info` result."
 
     ```json
     Device info: {
