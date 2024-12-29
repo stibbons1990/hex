@@ -1282,6 +1282,9 @@ done
 
 ### `conmon-tapo.py`
 
+[Continuous Monitoring for TP-Link Tapo devices](blog/posts/2025-05-05-migrating-unifi-controller-to-kubernetes.md)
+explains this script and its dependencies in more details.
+
 ``` py linenums="1"
 #!/usr/bin/env python3
 
@@ -1444,6 +1447,8 @@ if __name__ == "__main__":
 
 ``` yaml linenums="1"
 always_on:
+  - name: "Dehumidifier"
+    power: "250"
   - name: "PC"
     power: "150"
 devices:
@@ -1454,7 +1459,7 @@ devices:
 influxdb:
   host: inf.ssl.uu.am
   port: 443
-  database: "monitoring"
+  database: "home"
   username: "INFLUXDB_USERNAME"
   password: "INFLUXDB_PASSWORD"
   ssl: True
