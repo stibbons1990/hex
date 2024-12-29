@@ -1282,7 +1282,7 @@ done
 
 ### `conmon-tapo.py`
 
-[Continuous Monitoring for TP-Link Tapo devices](blog/posts/2025-05-05-migrating-unifi-controller-to-kubernetes.md)
+[Continuous Monitoring for TP-Link Tapo devices](2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md)
 explains this script and its dependencies in more details.
 
 ``` py linenums="1"
