@@ -13,14 +13,14 @@ PC for the new year, will be then running
 [**Ubuntu Studio**](https://ubuntustudio.org/) **22.04**,
 made for creative people.
 
-<!-- more --> 
-
 The current system is running Ubuntu Studio 20.04 on a *very*
 old system, based on an AMD Phenom II X4 and an Asus M4A89GTD
 Pro/USB3 from 2010. In preparation for the upcoming upgrade,
 the process starts by installing Ubuntu Studio 22.04 on a old
 SSD on my own PC (**Rapture**), which can later be
 *transplanted* to the new PC.
+
+<!-- more --> 
 
 ## Prepare 120 GB SSD in Rapture
 
@@ -33,7 +33,7 @@ which has been working flawlessly since August 2013.
 The current partition table has 3 partitions, all too small
 for today’s Ubuntu (for me):
 
-```
+``` console
 # fdisk -l /dev/sde
 Disk /dev/sde: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: Samsung SSD 840 
@@ -54,7 +54,7 @@ Previous systems in this disk are Ubuntu Studio 20.04 on
 wouldn’t fit in `/dev/sde1` alone;
 and Ubuntu 18.04 in `/dev/sde2`.
 
-```
+``` console
 # df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/sde3        32G   18G   13G  59% /media/ponder/… (Ubuntu 20.04 /)
@@ -66,7 +66,7 @@ First, back these up to the old RAID1 in Rapture, using a
 small script `backup-root-fs` to keep track of all the
 `--exclude` flags:
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 src=$1
 dst=$2
@@ -86,7 +86,7 @@ $src $dst
 Used this script to backup all the old Ubuntu Studio's
 partitions:
 
-```
+``` console
 # /root/backup-root-fs \
   /media/ponder/518be5a3-5c8c-4674-a4b1-bebf455dc61f/@/ \
   /home/raid/backups/ubuntu-18.04/
@@ -105,7 +105,7 @@ partitions:
 
 Both Ubuntu 20.04 and 22.04 take about 45 GB in their roots:
 
-```
+``` console
 # du -sh /home/raid/backups/ubuntu-*
 27G     /home/raid/backups/ubuntu-18.04
 46G     /home/raid/backups/ubuntu-20.04
@@ -129,7 +129,7 @@ In the old 120 GB SSD for Computer, we could get away with 2 60 GB partitions, w
 
 Create a 250 MB EFI partition, just in case this disk is moved to an EFI-capable system.
 
-```
+``` console
 # umount /media/ponder/518be5a3-5c8c-4674-a4b1-bebf455dc61f
 # umount /media/ponder/f8f7aee8-e172-4eda-bf9e-962dbfb51331
 # umount /media/ponder/498381d9-71e8-4941-a682-e37302da5392
@@ -170,15 +170,17 @@ it, then used the “Install Ubuntu” launcher on the desktop.
 1. Once it's done, select **Restart**
    (remove install media and hit `Enter`).
 
-**Note:** while this SSD is in Rapture, booting into this new
-system requires selecting the 120 GB disk in the BIOS boot menu (F8 / F10).
+!!! note
+    
+    While this SSD is in Rapture, booting into this new system requires
+    selecting the 120 GB disk in the BIOS boot menu (F8 / F10).
 
 ### NVidia drivers
 
 With the new kernel running, bring the system up to date
 with all the updates and install NVidia drivers:
 
-```
+``` console
 # apt update
 # apt dist-upgrade
 # apt install gkrellm nvidia-settings nvidia-driver-520 xserver-xorg-video-nvidia-520 -y
@@ -191,12 +193,14 @@ with all the updates and install NVidia drivers:
 The first thing I like to do is installing everything that is
 easily to install with APT:
 
-```
-# apt install gdebi-core wget gkrellm vim curl gkrellm-hdplop gkrellm-x86info gkrellm-xkb gkrellm-cpufreq geeqie \
-  playonlinux exfat-fuse clementine id3v2 htop vnstat neofetch tigervnc-viewer xcalib scummvm wine gamemode \
-  python-is-python3 exiv2 python3-selenium sox speedtest-cli python3-pip netcat rename scrot jstest-gtk etherwake \
-  lm-sensors sysstat ttf-mscorefonts-installer ttf-mscorefonts-installer:i386 tigervnc-tools winetricks \
-  icc-profiles tor unrar iotop-c xdotool redshift-gtk inxi vainfo vdpauinfo ffmpeg mpv screen -y   
+``` console
+# apt install gdebi-core wget gkrellm vim curl gkrellm-hdplop gkrellm-x86info \
+  gkrellm-xkb gkrellm-cpufreq geeqie playonlinux exfat-fuse clementine id3v2 htop \
+  vnstat neofetch tigervnc-viewer xcalib scummvm wine gamemode python-is-python3 \
+  exiv2 python3-selenium sox speedtest-cli python3-pip netcat rename scrot \
+  jstest-gtk etherwake lm-sensors sysstat ttf-mscorefonts-installer \
+  ttf-mscorefonts-installer:i386 tigervnc-tools winetricks icc-profiles tor \
+  unrar iotop-c xdotool redshift-gtk inxi vainfo vdpauinfo ffmpeg mpv screen -y   
 # apt -y autoremove
 ```
 
@@ -205,7 +209,7 @@ easily to install with APT:
 Installing [Google Chrome](https://google.com/chrome) is as
 simple as downloading the Debian package and installing it:
 
-```
+``` console
 # dpkg -i google-chrome-stable_current_amd64.deb 
 ```
 
@@ -214,16 +218,17 @@ simple as downloading the Debian package and installing it:
 Installing the Steam client requires first installing several
 `i386` (32-bit) libraries:
 
-```
-# apt install libgl1-mesa-glx:i386 libc6:amd64 libc6:i386 libegl1:amd64 libegl1:i386 libgbm1:amd64 libgbm1:i386 \
-  libgl1-mesa-dri:amd64 libgl1-mesa-dri:i386 libgl1:amd64 libgl1:i386 steam-libs-amd64:amd64 steam-libs-i386:i386 -y
+``` console
+# apt install libgl1-mesa-glx:i386 libc6:amd64 libc6:i386 libegl1:amd64 libegl1:i386 \
+  libgbm1:amd64 libgbm1:i386 libgl1-mesa-dri:amd64 libgl1-mesa-dri:i386 libgl1:amd64 \
+  libgl1:i386 steam-libs-amd64:amd64 steam-libs-i386:i386 -y
 ```
 
 With those installed, one can download `steam_latest.deb` from
 [store.steampowered.com/about](https://store.steampowered.com/about/)
 and install it with `gdebi`:
 
-```
+``` console
 # gdebi steam_latest.deb
 ```
 
@@ -245,7 +250,7 @@ The only method that proved successful to install Minecraft:
 Java Edition was to copy `/usr/bin/minecraft-launcher` from
 the previous system, from a backup in **lexicon**:
 
-```
+``` console
 lexicon:~/computer-backup$ md5sum \
   usr/bin/minecraft-launcher \
   usr/share/applications/minecraft-launcher.desktop \
@@ -258,7 +263,7 @@ af82416995d92945ad5e6a24ac23f503  usr/share/applications/minecraft-launcher.desk
 With this, plus personal files, Minecraft should be playable.
 To test this (and everything else) before moving the 120 GB SSD to Computer, copy most of `/home/artist` (except Steam games) to **Rapture** and mount its `/home` partition:
 
-```
+``` console
 # Rapture /home is on /dev/nvme0n1p5
 UUID=18238846-d411-4dcb-af87-a2d19a17fef3 /home btrfs   defaults 0 2
 
@@ -287,7 +292,7 @@ To enable 2-axis scrolling with the
 create or edit `/usr/share/X11/xorg.conf.d/10-libinput.conf`
 like this:
 
-```ini
+``` xorg.conf linenums="1" title="/usr/share/X11/xorg.conf.d/10-libinput.conf"
 Section "InputClass"
     Identifier      "Marble Mouse"
     MatchProduct    "Logitech USB Trackball"
@@ -319,14 +324,14 @@ forbid joystick mouse emulation when using certain
 joystick-like gaming controllers. To do this, 
 create or edit `/usr/share/X11/xorg.conf.d/50-joystick.conf`
 
-```ini
+``` xorg.conf linenums="1" title="/usr/share/X11/xorg.conf.d/50-joystick.conf"
 Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event*"
-	Driver "joystick"
-  Option "StartKeysEnabled" "False"       #Disable mouse
-  Option "StartMouseEnabled" "False"      #support
+    Identifier "joystick catchall"
+    MatchIsJoystick "on"
+    MatchDevicePath "/dev/input/event*"
+    Driver "joystick"
+    Option "StartKeysEnabled" "False"       #Disable mouse
+    Option "StartMouseEnabled" "False"      #support
 EndSection
 ```
 
@@ -336,21 +341,23 @@ Ubuntu Studio being a *desktop* distro, doesn't enable the
 SSH server by default, but this is very useful to adjust the
 system remotely at any time:
 
-```
+``` console
 # apt install ssh -y
 # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # systemctl enable --now ssh
 ```
 
-**Note:** remember to copy over files under `/root` from
-previous system/s, in case it contains useful scripts (and/or
-SSH keys worth keeping under `.ssh`).
+!!! note
+
+    Remember to copy over files under `/root` from previous system/s, in case
+    it contains useful scripts (and/or SSH keys worth keeping under `.ssh`).
 
 ### Multiple IPs on LAN
 
-Connecting via Ethernet we get a DHCP lease in the same network used by the WiFi (192.168.0.0/24). To add a static IP address isolated from WiFi, set it up like this:
+Connecting via Ethernet we get a DHCP lease in the same network used by the WiFi 
+(`192.168.0.0/24`). To add a static IP address isolated from WiFi, set it up like this:
 
-```
+``` console
 # ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -372,7 +379,7 @@ Connecting via Ethernet we get a DHCP lease in the same network used by the WiFi
 
 We only need to get the DNS add them with the 2nd IP:
 
-```
+``` console
 # resolvectl status
 Global
        Protocols: -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -394,13 +401,19 @@ Current Scopes: none
      Protocols: -DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 ```
 
-**Note:** additional DNS Servers found by the previous system:
-62.2.24.162 62.2.17.61 62.2.24.158 62.2.17.60.
+!!! note
+
+    Additional DNS Servers found by the previous system:
+    ```
+    62.2.17.60
+    62.2.17.61
+    62.2.24.158
+    62.2.24.162
+    ```
 
 With these, we can go back to static IPs and simply add both addresses together:
 
-```yaml
-# vi /etc/netplan/01-network-manager-all.yaml 
+``` yaml linenums="1" title="/etc/netplan/01-network-manager-all.yaml"
 # Dual static IP on LAN, nothing else.
 network:
   version: 2
@@ -422,7 +435,7 @@ network:
 
 Apply the changes with netplan apply ─ there may be a warning, but it works:
 
-```
+``` console
 # netplan apply
 # ip a
 …
@@ -442,7 +455,7 @@ Apply the changes with netplan apply ─ there may be a warning, but it works:
 First, confirm Wake up on PCI event is enabled in the BIOS,
 [then enable it in the NIC](https://help.ubuntu.com/community/WakeOnLan#Enabling_WoL_in_the_BIOS):
 
-```
+``` console
 # apt install ethtool -y
 # ethtool -s enp8s0 wol g
 # ethtool enp8s0 | grep -i wake
@@ -450,13 +463,15 @@ First, confirm Wake up on PCI event is enabled in the BIOS,
         Wake-on: g
 ```
 
-**Note:** issuing this command is required after each boot.
-The system's networking is configured via netplan, so we need
-to add the `ethtool -s <NIC> wol g` command to a script
-under `/etc/networkd-dispatcher/configure.d/`, e.g.
-`50-enable-wol`
+!!! note
 
-```bash
+    Issuing this command is required after each boot.
+    The system's networking is configured via netplan, so we need
+    to add the `ethtool -s <NIC> wol g` command to a script
+    under `/etc/networkd-dispatcher/configure.d/`, e.g.
+    `50-enable-wol`
+
+``` bash linenums="1" title="/etc/networkd-dispatcher/configure.d/50-enable-wol"
 #!/bin/sh
 if [ "$IFACE" = "enp8s0" ]
 then
@@ -482,21 +497,23 @@ For most computers my favorite SDDM theme is
 [Breeze-Noir-Dark](https://store.kde.org/p/1361460),
 which I like to install system-wide:
 
-```
+``` console
 # unzip Breeze-Noir-Dark.zip
 # mv Breeze-Noir-Dark /usr/share/sddm/themes/breeze-noir-dark
 ```
 
-**Note:** action icons won’t render due to the different
-directory name, need to change the directory name in the
-`iconSource` fields in `Main.qml` to make them all lowercase
-so icons show up.
+!!! warning
+
+    Action icons won’t render due to the different
+    directory name, need to change the directory name in the
+    `iconSource` fields in `Main.qml` to make them all lowercase
+    so icons show up.
 
 Other than installing this theme, all I really change in it
 is the background image, e.g. assuming it's downloaded as
 `/tmp/background.jpg`
 
-```
+``` console
 # mv /tmp/background.jpg /usr/share/sddm/themes/breeze-noir-dark
 # mv /tmp/ponyo.jpg /usr/share/sddm/themes/breeze-noir-dark
 # cd /usr/share/sddm/themes/breeze-noir-dark
@@ -506,7 +523,10 @@ background=/usr/share/sddm/themes/breeze-noir-dark/background.jpg
 background=background.jpg
 ```
 
-**Note:** it appears that this only works when the background image is specified in `theme.conf.user` and is stored in the theme’s directory.
+!!! note
+
+    It appears that this only works when the background image is specified
+    in `theme.conf.user` and is stored in the theme’s directory.
 
 #### Make SDDM Listen to TCP
 
@@ -514,7 +534,7 @@ By default, SDDM launches X.org with `-nolisten tcp` for
 security reasons. To override this, set the flag under the
 `[X11]` section in `/etc/sddm.conf.d/kde_settings.conf`
 
-```ini
+``` ini title="/etc/sddm.conf.d/kde_settings.conf"
 [X11]
 ServerArguments=-listen tcp
 ```
@@ -522,14 +542,14 @@ ServerArguments=-listen tcp
 Then add a short script to authorize connections from `localhost` to the user (`artist`) **session**, e.g. as
 `~/bin/xhost-localhost`
 
-```bash
+``` bash
 #!/bin/bash
 xhost +localhost
 ```
 
 This allows an SSH session for the user (`artist`) to send messages to the screen with `zenity`:
 
-```bash
+``` bash
 DISPLAY=localhost:0 /usr/bin/zenity --warning \
   --text='Computer Will Shut Down in 20 Minutes'
 ```
@@ -557,7 +577,7 @@ the first [APT packages](#apt-packages). What is left to do
 for a full customization is to adjust the color temperature
 values and manual location in `~/.config/redshift.conf`
 
-```ini
+``` ini linenums="1" title="~/.config/redshift.conf"
 [redshift]
 temp-day=5500
 temp-night=4500
@@ -576,11 +596,13 @@ Redshift Control Widget. Usually this is done by clicking on
 it, but it can be done through a keyboard shortcut as well
 which is very useful while playing video games.
 
-**Warning:** adding the Redshift Control Widget to a KDE
-Plasma panel runs a risk of scrolling the mouse wheel on it
-and making the screen so dark it becomes unusuable. In case
-this happens, it is highly recommended to add a keyboard
-shortcut as follows.
+!!! warning
+
+    Adding the Redshift Control Widget to a KDE
+    Plasma panel runs a risk of scrolling the mouse wheel on it
+    and making the screen so dark it becomes unusuable. In case
+    this happens, it is highly recommended to add a keyboard
+    shortcut as follows.
 
 My personal choice of shortcut to
 **Activate Redshift Control Widget** is
@@ -588,9 +610,11 @@ My personal choice of shortcut to
 
 ![Shorcuts setting for Activate Redshift Control Widget](../media/2022-11-12-ubuntu-studio-22-04-on-computer-for-a-young-artist/redshift-shortcut.png)
 
-**Note:** it seems no longer necessary to manually add
-Redshift to the user's desktop session. Previously, it would
-be necessary to launch **Autostart** and **Add Application…** to add Redshift.
+!!! note
+
+    It seems no longer necessary to manually add
+    Redshift to the user's desktop session. Previously, it would
+    be necessary to launch **Autostart** and **Add Application…** to add Redshift.
 
 ### Wacom tablet
 
@@ -598,8 +622,10 @@ This young artist enjoys digital painting on Krita and even
 3D sculpting on Blender, using a Wacom graphic tablet with a
 few buttons mapped to the Undo/Redo and Zoom In/out functions.
 
-**Note:** this setup is specific to the
-[Wacom Intuos Art Pen & Touch M South](https://www.wacom.com/en-gb/products/pen-tablets/wacom-intuos).
+!!! note
+
+    This setup is specific to the
+    [Wacom Intuos Art Pen & Touch M South](https://www.wacom.com/en-gb/products/pen-tablets/wacom-intuos).
 
 To make Krita work best with this, we use a Python script
 to listen for the Wacom tablet, so that when it is plugged in
@@ -611,102 +637,104 @@ and
 [idle](https://docs.python.org/3/library/idle.html)
 for Python 3:
 
-```
-apt install python3-pyudev idle-python3.10 -y
+``` console
+# apt install python3-pyudev idle-python3.10 -y
 ```
 
 The script `wait-for-wacom-and-launch-krita.py` launches
 Krita right after setting the tablet up, and supports
 both 16:9 and non-16:9 screens (e.g. 3440x1440):
 
-```py
-#!/usr/bin/python3
-#
-# Wait for a (specific) Wacom Intous table and map its 4 buttons to: undo, redo, zoom in/out.
-# Exit (successfully or not) after mapping the buttons.
+??? code "`wait-for-wacom-and-launch-krita.py`"
 
-import gi
-import pyudev
-import socket
-import subprocess
-import sys
+    ``` py linenums="1"
+    #!/usr/bin/python3
+    #
+    # Wait for a (specific) Wacom Intous table and map its 4 buttons to: undo, redo, zoom in/out.
+    # Exit (successfully or not) after mapping the buttons.
 
-EXPECTED_ID_SERIAL = 'Wacom_Co._Ltd._Intuos_PTM'
-XSETWACOM_CMD = '/usr/bin/xsetwacom'
-XSETWACOM_PAD_DEV = 'Wacom Intuos PT M 2 Pad pad'
-XSETWACOM_STL_DEV = 'Wacom Intuos PT M 2 Pen stylus'
-XSETWACOM_MAP = list(range(10))
-XSETWACOM_MAP[3] = 'key ctrl z'
-XSETWACOM_MAP[1] = 'key ctrl shift z'
-XSETWACOM_MAP[8] = 'key +'
-XSETWACOM_MAP[9] = 'key -'
+    import gi
+    import pyudev
+    import socket
+    import subprocess
+    import sys
 
-HOST_CONFIG = {
-  'computer': {
-    'krita-cmd': '/home/artist/Desktop/.bin/krita',
-  },
-  'rapture': {
-    'krita-cmd': '/home/ponder/bin/krita-es',
-    # Adjust drawing area in 3440x1440 screen with
-    # xsetwacom --set "Wacom Intuos PT M 2 Pen stylus" Area 
-    'stylus-area': '0 0 21600 9042',
-  },
-}
+    EXPECTED_ID_SERIAL = 'Wacom_Co._Ltd._Intuos_PTM'
+    XSETWACOM_CMD = '/usr/bin/xsetwacom'
+    XSETWACOM_PAD_DEV = 'Wacom Intuos PT M 2 Pad pad'
+    XSETWACOM_STL_DEV = 'Wacom Intuos PT M 2 Pen stylus'
+    XSETWACOM_MAP = list(range(10))
+    XSETWACOM_MAP[3] = 'key ctrl z'
+    XSETWACOM_MAP[1] = 'key ctrl shift z'
+    XSETWACOM_MAP[8] = 'key +'
+    XSETWACOM_MAP[9] = 'key -'
 
-def device_event(device):
-    id_serial = device.get('ID_SERIAL')
-    if device.action == 'bind' and id_serial == EXPECTED_ID_SERIAL:
-      total_status = 0
-      hostname = socket.gethostname()
-      config = HOST_CONFIG[hostname]
-      # Map PAD buttons.
-      for i in (1, 3, 8, 9):
-        xsetwacom_command = [
-            XSETWACOM_CMD, 'set', XSETWACOM_PAD_DEV, 
-            'Button', str(i), XSETWACOM_MAP[i]]
-        print(xsetwacom_command)
-        status = subprocess.call(xsetwacom_command)
-        total_status += status
-      # If necessary, assign stylus area in non-16:9 screen.
-      if 'stylus-area' in config:
-        xsetwacom_command = [
-            XSETWACOM_CMD, 'set', XSETWACOM_STL_DEV,
-            'Area', config['stylus-area']]
-        print(xsetwacom_command)
-        status = subprocess.call(xsetwacom_command)
-        total_status += status
-      if total_status > 0:
-        status = subprocess.call([
-            '/usr/bin/zenity',
-            '--error',
-            '--text="Could not configure %s"' % id_serial])
-        sys.exit(1)
-      else:
-        status = subprocess.call([
-            '/usr/bin/zenity', 
-            '--info',
-            '--text="Configured %s"' % id_serial])
-        krita_cmd = config['krita-cmd']
-        status = subprocess.call([krita_cmd])
-        sys.exit(0)
+    HOST_CONFIG = {
+      'computer': {
+        'krita-cmd': '/home/artist/Desktop/.bin/krita',
+      },
+      'rapture': {
+        'krita-cmd': '/home/ponder/bin/krita-es',
+        # Adjust drawing area in 3440x1440 screen with
+        # xsetwacom --set "Wacom Intuos PT M 2 Pen stylus" Area 
+        'stylus-area': '0 0 21600 9042',
+      },
+    }
+
+    def device_event(device):
+        id_serial = device.get('ID_SERIAL')
+        if device.action == 'bind' and id_serial == EXPECTED_ID_SERIAL:
+          total_status = 0
+          hostname = socket.gethostname()
+          config = HOST_CONFIG[hostname]
+          # Map PAD buttons.
+          for i in (1, 3, 8, 9):
+            xsetwacom_command = [
+                XSETWACOM_CMD, 'set', XSETWACOM_PAD_DEV, 
+                'Button', str(i), XSETWACOM_MAP[i]]
+            print(xsetwacom_command)
+            status = subprocess.call(xsetwacom_command)
+            total_status += status
+          # If necessary, assign stylus area in non-16:9 screen.
+          if 'stylus-area' in config:
+            xsetwacom_command = [
+                XSETWACOM_CMD, 'set', XSETWACOM_STL_DEV,
+                'Area', config['stylus-area']]
+            print(xsetwacom_command)
+            status = subprocess.call(xsetwacom_command)
+            total_status += status
+          if total_status > 0:
+            status = subprocess.call([
+                '/usr/bin/zenity',
+                '--error',
+                '--text="Could not configure %s"' % id_serial])
+            sys.exit(1)
+          else:
+            status = subprocess.call([
+                '/usr/bin/zenity', 
+                '--info',
+                '--text="Configured %s"' % id_serial])
+            krita_cmd = config['krita-cmd']
+            status = subprocess.call([krita_cmd])
+            sys.exit(0)
 
 
-if __name__ == '__main__':
-  from gi.repository import GLib
-  
-  context = pyudev.Context()
-  monitor = pyudev.Monitor.from_netlink(context)
-  monitor.filter_by(subsystem='usb')
-  observer = pyudev.MonitorObserver(monitor, callback=device_event)
-  observer.start()
-  
-  status = subprocess.call([
-      '/usr/bin/zenity', 
-      '--warning',
-      '--text="Plug the tablet in to continue..."'])
-  loop = GLib.MainLoop()
-  loop.run()
-```
+    if __name__ == '__main__':
+      from gi.repository import GLib
+      
+      context = pyudev.Context()
+      monitor = pyudev.Monitor.from_netlink(context)
+      monitor.filter_by(subsystem='usb')
+      observer = pyudev.MonitorObserver(monitor, callback=device_event)
+      observer.start()
+      
+      status = subprocess.call([
+          '/usr/bin/zenity', 
+          '--warning',
+          '--text="Plug the tablet in to continue..."'])
+      loop = GLib.MainLoop()
+      loop.run()
+    ```
 
 ### Scratch 3.0 in Chrome
 
@@ -723,7 +751,7 @@ This can be worked around by
 To make this easily accessible, this can be added in a
 custom launcher (e.g. `~/Desktop/Scratch.desktop`):
 
-```ini
+``` ini linenums="1" title="~/Desktop/Scratch.desktop"
 [Desktop Entry]
 Name=Scratch 3.0
 Comment=Scratch 3.0
@@ -742,7 +770,7 @@ Roccat [Ryos MK Pro](https://support.roccat.com/s/article/ryos-mk-pro-faqs?langu
 
 This keyboard has 5 keys for macros, let’s see how to make use of them…
 
-```
+``` console
 $ sudo apt-get install gcc cmake libdbus-glib-1-dev libgtk2.0-dev libgudev-1.0-dev libx11-dev libgaminggear-dev \
   lua5.3-dev liblua5.3-dev luajit libluajit-5.1-dev libtexluajit-dev -y
 $ git clone https://github.com/roccat-linux/roccat-tools.git
@@ -773,12 +801,11 @@ if not entirely unreachable, at least time-gated.
 
 Install Squid proxy and set it up for localhost only:
 
-```
+``` console
 # apt install squid -y
-# vi /etc/squid/squid.conf
 ```
 
-```apache
+``` squid title="/etc/squid/squid.conf"
 acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
 acl SSL_ports port 443
 acl Safe_ports port 80		# http
@@ -807,7 +834,7 @@ refresh_pattern (Release|Packages(.gz)*)$      0       20%     2880
 refresh_pattern .		0	20%	4320
 ```
 
-```
+``` console
 # systemctl restart squid.service
 # systemctl status squid.service
 ```
@@ -820,20 +847,20 @@ used to block simpler sites, and it is useful to have this
 setup replicated for each site as needed.
 
 To *block* the site, create a file with the rules in
-[wiki.squid-cache.org/ConfigExamples/Streams/YouTube](https://wiki.squid-cache.org/ConfigExamples/Streams/YouTube),
+[How to block YouTube Videos](https://wiki.squid-cache.org/ConfigExamples/Streams/YouTube),
 updated here to reflect the latest YouTube embed URL pattern.
 To *allow* the site, create a file with just a comment.
 
 For each site to block/allow, create a dedicated directory:
 
-```
+``` console
 # mkdir -p /etc/squid/conf.d/youtube/
 ```
 
 In this directory, create a file (e.g. `no-youtube.conf`) with
 the necessary rules:
 
-```apache
+``` apache linenums="1"
 # Blocking YouTube Videos
 # https://wiki.squid-cache.org/ConfigExamples/Streams/YouTube
 ## The videos come from several domains
@@ -849,21 +876,21 @@ http_access deny yt_clips
 Create also a file (e.g. `yes-youtube.conf`) with just a
 comment, this will simply not block anything:
 
-```apache
+``` apache
 # No Blocking YouTube Videos
 ```
 
 In the main Squid config file, include what will be a symlink
 to either of the above:
 
-```
+``` console
 # cd /etc/squid/conf.d/youtube/
 # ln -s no-youtube.conf youtube.conf
 ```
 
 Add an `include` rules at the end of `/etc/squid/squid.conf`
 
-```apache
+``` squid title="/etc/squid/squid.conf"
 # INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
 include /etc/squid/conf.d/*.conf
 # Blocking (or not) YouTube Videos
@@ -872,15 +899,13 @@ include /etc/squid/conf.d/youtube/youtube.conf
 
 To quickly alternate between the two states, create two scripts:
 
-`/root/bin/youtube-disable`
-```bash
+``` bash linenums="1" title="/root/bin/youtube-disable"
 #!/bin/bash
 ln -sf /etc/squid/no-youtube.conf /etc/squid/youtube.conf
 /usr/sbin/squid -k reconfigure
 ```
 
-`/root/bin/youtube-enable`
-```bash
+``` bash linenums="1" title="/root/bin/youtube-enable"
 #!/bin/bash
 ln -sf /etc/squid/yes-youtube.conf /etc/squid/youtube.conf
 /usr/sbin/squid -k reconfigure
@@ -896,7 +921,7 @@ begin requested, whether allowed or blocked.
 
 2. Unpack and apply changes in [commit 616d742](https://github.com/darold/squidanalyzer/commit/616d742eb700cfd2324845c57a4c7f6978aac2a8)
 
-    ```
+    ``` console
     # tar xvfz squidanalyzer-6.6.tar.gz
     # cd squidanalyzer-6.6/
     # echo 9 > debian/compat
@@ -909,7 +934,7 @@ begin requested, whether allowed or blocked.
 
 3. Build Debian and install package
 
-    ```
+    ``` console
     # apt install -y build-essential apache2-dev
     # dpkg-buildpackage -us -uc
     # dpkg -i ../squidanalyzer_6.6-1_all.deb
@@ -918,15 +943,14 @@ begin requested, whether allowed or blocked.
 4.  Setup `crontab` as per 
     [squidanalyzer.darold.net](http://squidanalyzer.darold.net/install.html)
 
-    ```
+    ``` console
     # crontab -e
     00 20 * * * /usr/bin/squid-analyzer /var/log/squid/access.log
     ```
 
-5. Authorize other PCs to visit, by adding this to
-   `/etc/apache2/conf-available/squidanalyzer.conf`
+5. Authorize other PCs to visit, by adding this to `squidanalyzer.conf`
 
-    ```apache
+    ``` apache linenums="1" title="/etc/apache2/conf-available/squidanalyzer.conf"
     Alias /squidreport /var/lib/squidanalyzer
     <Directory /var/lib/squidanalyzer>
         Options -Indexes +FollowSymLinks +MultiViews
@@ -943,23 +967,24 @@ To keep the youngest using the above Proxy and also not going
 astray by opening new tabs on arbitrary URLs, replace all web
 browser binaries with scripts that launch them with specific
 flags to
-- enable Kiosk mode
-- always start at a chosen URL
-- force traffic through the local Proxy
+
+*   enable Kiosk mode,
+*   always start at a chosen URL, and
+*   force traffic through the local Proxy.
 
 #### Google Chrome
 
 This method to *kioskify* a browser consists of
 
-1. renaming the original browser binary
-2. replace it with a launcher script
-3. ensure the process applies only to the original binary
+1.  renaming the original browser binary,
+2.  replace it with a launcher script, and
+3.  ensure the process applies only to the original binary.
 
 To this effect, run
 `/opt/google/chrome/kioskify-google-chrome`
 every minute:
 
-```bash
+``` bash linenums="1" title="/opt/google/chrome/kioskify-google-chrome"
 #!/bin/bash
 
 # Works only on a specific installation path.
@@ -1002,7 +1027,7 @@ chmod +x chrome
 This can be run every minute, to immediately kioskify
 each new browser version as soon as it's installed:
 
-```
+``` console
 # chmod +x kioskify-google-chrome
 # crontab -e
 * * * * * /opt/google/chrome/kioskify-google-chrome
@@ -1010,7 +1035,7 @@ each new browser version as soon as it's installed:
 
 ### Crontab Playtime
 
-```
+``` console
 $ crontab -l
 # m h  dom mon dow   command
 * 12 * * 6,7 /home/artist/Desktop/.bin/restore .edu .fun
@@ -1027,7 +1052,7 @@ sleep pattners, to avoid this this computer will shut down
 on a regular schedule:
 
 
-```
+``` console
 # crontab -l | grep -i 'shut.*down'
 
 # Shut down at 20:30 (Sun-Thu)
@@ -1055,9 +1080,10 @@ on a regular schedule:
 00 21 * * 5-6 /sbin/shutdown -h now
 ```
 
-**Note:** the audible warnings are played on the
-**Raspberry Pi 4** so that they will play even if no user
-is logged in.
+!!! note
+
+    The audible warnings are played on the **Raspberry Pi 4** so
+    that they will play even if no user is logged in.
 
 ### Time Tracking
 
@@ -1067,9 +1093,10 @@ work, it can be quite useful to know which tasks tend to be
 the bigger time sinks. For such purposes it is useful to run
 `xdotool` in a loop polling for the title of the active
 window, which tends to correlate pretty well with the task at hand, e.g.
-- name of the video game being played
-- title of the video being watched (YouTube, Netflix, etc.)
-- name of the file being edited (Blender, GIMP, Krita, etc.)
+
+*   name of the video game being played
+*   title of the video being watched (YouTube, Netflix, etc.)
+*   name of the file being edited (Blender, GIMP, Krita, etc.)
 
 For this purpose, add `poll-focused-window-every-second` and `report-daily-time-per-focused-window` as login scripts to
 capture a screenshot of the full screen and then make a
@@ -1078,7 +1105,7 @@ small CPU spike when logging in, but is not too noticeable
 
 #### `poll-focused-window-every-second`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Poll every second for the name of the active window, store it in a log file.
@@ -1106,7 +1133,7 @@ done
 
 #### `report-daily-time-per-focused-window`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 #
 # Analyze time spent per window for all days up to (and including) yesterday.
@@ -1205,13 +1232,14 @@ timelapse video of each desktop session. This will cause a
 small CPU spike when logging in, but is not too noticeable
 since it only takes 2 or 3 CPU cores for a few minutes.
 
-**Important:** `make-all-timelapses-from-screenshots` depends
-on `make-one-timelapse-from-screenshots` and runs 4 instances
-of it in parallel.
+!!! note
+
+    `make-all-timelapses-from-screenshots` depends on
+    `make-one-timelapse-from-screenshots` and runs 4 instances of it in parallel.
 
 #### `take-a-screenshot-every-second`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 
 # Do not run again if already running.
@@ -1246,7 +1274,7 @@ done
 
 #### `make-all-timelapses-from-screenshots`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 BASEDIR=${HOME}/Videos/Desktop_Timelapse
 CWD=$(dirname "$0")
@@ -1274,7 +1302,7 @@ done
 
 #### `make-one-timelapse-from-screenshots`
 
-```bash
+``` bash linenums="1"
 #!/bin/bash
 
 # Create a timelapse from the screenshot in one directory.
