@@ -13,8 +13,6 @@ title: Detailed system and process monitoring
 
 Never got the hang of `telegraf`, it was all too easy to cook my own monitoring...
 
-<!-- more --> 
-
 ## Humble Beginnings
 
 In fact, when I started building detailed process monitoring
@@ -38,7 +36,7 @@ At the time my PC had a
 with 4 cores at 3.4GHz, and I had no idea how often those CPU
 cores were all used to their full extent. To learn more about
 the possibilities (and limitations) of *fully*
-multi-threading CPU-bound applicatios, I started running
+multi-threading CPU-bound applications, I started running
 `top` commands in a loop and dumping lines in `.csv` files to
 then plot charts in Google Sheets. This was very crude, but
 it did show the difference between rendering a video in
@@ -54,11 +52,13 @@ This early ad-hoc effort resulted in a few scripts to
 measure per-proccess CPU usage, overall CPU with thermals,
 and even GPU usage.
 
+<!-- more --> 
+
 ### `mt-top`
 
 This script measures only CPU usage for a single process:
 
-```bash
+``` bash linenums="1" title="mt-top"
 #!/bin/bash
 #
 # CPU usage stats across all threads / instances for a process.
@@ -108,7 +108,7 @@ done
 
 This measures the overall CPU usage along with thermals:
 
-```bash
+``` bash linenums="1" title="mt-top-temp"
 #!/bin/bash
 #
 # CPU usage % and temperature, sampled every second.
@@ -130,7 +130,7 @@ done
 
 This script measures (overall)  GPU usage:
 
-```bash
+``` bash linenums="1" title="mt-top-gpu"
 #!/bin/bash
 #
 # GPU usage % and temperature, sampled every second.
@@ -168,7 +168,7 @@ much cheaper than even the cheapest WiFi-enabled printers.
 Installing InfluxDB couldn't be easier, if you don't mind
 running a fairly old version:
 
-```
+``` console
 # apt install influxdb influxdb-client -y
 # dpkg -l influxdb | grep influxdb
 ii  influxdb       1.6.4-1+deb10u1 armhf        Scalable datastore for metrics, events, and real-time analytics
@@ -184,7 +184,7 @@ start collecting data.
 to create a database (e.g. `monitoring`) and set a
 retention policy:
 
-```
+``` console
 # influx
 Connected to http://localhost:8086 version 1.6.7~rc0
 InfluxDB shell version: 1.6.7~rc0
@@ -198,7 +198,7 @@ There is no need to define columns, instead just
 [Write data with the InfluxDB API](https://docs.influxdata.com/influxdb/v1/guides/write_data/)
 to feed simple data such as CPU load and temperature:
 
-```sh
+``` bash
 curl -i -XPOST \
   --data-binary "cpu,host=$host value=$cpu" \
   'http://localhost:8086/write?db=monitoring'
@@ -234,7 +234,7 @@ The scripts above can now feed data to it *in addition* to
 producing TSV files, e.g. [`mt-top-temp`](#mt-top-temp)
 can be updated as follows:
 
-```bash
+``` bash linenums="1" title="mt-top-temp"
 #!/bin/bash
 #
 # CPU usage % and temperature, sampled every second.
@@ -271,7 +271,7 @@ comes in.
 [start the server with `systemd`](https://grafana.com/docs/grafana/latest/setup-grafana/start-restart-grafana/#start-the-grafana-server-with-systemd)
 and reset the **Admin** password:
 
-```
+``` console
 # echo "deb https://packages.grafana.com/oss/deb stable main" \
   | tee /etc/apt/sources.list.d/grafana.list
 # curl https://packages.grafana.com/gpg.key | sudo apt-key add -
@@ -297,7 +297,7 @@ Tweak `/etc/grafana/grafana.ini` as follows to enable
 [anonymous authentication](https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/#anonymous-authentication)
 and allow anonymous users to view dashboards in the default org:
 
-```ini
+``` ini linenums="1" title="/etc/grafana/grafana.ini"
 #################################### Anonymous Auth ######################
 [auth.anonymous]
 # enable anonymous access
@@ -321,7 +321,7 @@ scripts each time.
 For a minimal start, create a script that reports total CPU
 usage every second, e.g as `/usr/local/bin/conmon`
 
-```bash
+``` bash linenums="1" title="/usr/local/bin/conmon"
 #!/bin/bash
 #
 # Export system monitoring metrics to influxdb.
@@ -380,7 +380,7 @@ done
 Create a new service to run this upon reboot, e.g. as
 `/etc/systemd/system/conmon.service`
 
-```ini
+``` ini linenums="1" title="/etc/systemd/system/conmon.service"
 [Unit]
 Description=Continuous Monitoring
 After=influxd.service
@@ -398,7 +398,7 @@ WantedBy=multi-user.target
 
 Then load and start the new service
 
-```
+``` console
 # systemctl daemon-reload
 # systemctl enable conmon.service
 Created symlink /etc/systemd/system/multi-user.target.wants/conmon.service → /etc/systemd/system/conmon.service.

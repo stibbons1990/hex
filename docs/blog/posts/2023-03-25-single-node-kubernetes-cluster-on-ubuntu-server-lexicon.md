@@ -500,6 +500,7 @@ $ sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 $ ls -l $HOME/.kube/config
 -rw------- 1 coder coder 5659 Feb 19   2023 /home/coder/.kube/config
+
 $ kubectl cluster-info
 Kubernetes control plane is running at https://10.0.0.6:6443
 CoreDNS is running at https://10.0.0.6:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -547,6 +548,7 @@ to communicate (even for a single-node cluster):
 
 ``` console
 $ wget https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
 $ kubectl apply -f kube-flannel.yml
 namespace/kube-flannel created
 clusterrole.rbac.authorization.k8s.io/flannel created
@@ -554,6 +556,7 @@ clusterrolebinding.rbac.authorization.k8s.io/flannel created
 serviceaccount/flannel created
 configmap/kube-flannel-cfg created
 daemonset.apps/kube-flannel-ds created
+
 $ kubectl get pods -n kube-flannel
 NAME                    READY   STATUS    RESTARTS   AGE
 kube-flannel-ds-nrrg6   1/1     Running   0          22s
@@ -587,7 +590,9 @@ error execution phase preflight: [preflight] Some fatal errors occurred:
 To see the stack trace of this error execute with --v=5 or higher
 ```
 
-**Note:** `kubeadm join` **must** be run as `root`.
+!!! note
+
+    `kubeadm join` **must** be run as `root`.
 
 At first the `kubeadm join` above fails because a Kubernetes
 cluster *is not supposed* to have the same system work as
@@ -659,6 +664,7 @@ open ports on the server (`NodePort`) or virtual IP addresses.
 ``` console
 $ wget \
 https://raw.githubusercontent.com/metallb/metallb/v$MetalLB_RTAG/config/manifests/metallb-native.yaml
+
 $ kubectl apply -f metallb-native.yaml
 namespace/metallb-system created
 customresourcedefinition.apiextensions.k8s.io/addresspools.metallb.io created
@@ -705,6 +711,7 @@ deployment.apps/controller   1/1     1            1           32s
 
 NAME                                    DESIRED   CURRENT   READY   AGE
 replicaset.apps/controller-68bf958bf9   1         1         1       32s
+
 $ kubectl get pods -n metallb-system 
 NAME                          READY   STATUS    RESTARTS   AGE
 controller-68bf958bf9-kzcfg   1/1     Running   0          92s
@@ -742,21 +749,26 @@ rules for those. This range is intentionally on the same
 network range and subnet as the DHCP server so that no
 routing is required to reach MetalLB IP addresses.
 
-**Note:** Layer 2 mode does not require the IPs to be bound
-to the network interfaces of your worker nodes. It works by
-responding to ARP requests on your local network directly,
-to give the machine’s MAC address to clients.
+!!! note
+
+    Layer 2 mode does not require the IPs to be bound
+    to the network interfaces of your worker nodes. It works by
+    responding to ARP requests on your local network directly,
+    to give the machine’s MAC address to clients.
 
 ``` console
 $ kubectl apply -f ipaddress_pools.yaml 
 ipaddresspool.metallb.io/production created
 l2advertisement.metallb.io/l2-advert created
+
 $ kubectl get ipaddresspool.metallb.io -n metallb-system
 NAME         AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
 production   true          false             ["192.168.0.122-192.168.0.140"]
+
 $ kubectl get l2advertisement.metallb.io -n metallb-system
 NAME        IPADDRESSPOOLS   IPADDRESSPOOL SELECTORS   INTERFACES
 l2-advert                                              
+
 $ kubectl describe ipaddresspool.metallb.io production -n metallb-system
 Name:         production
 Namespace:    metallb-system
@@ -855,10 +867,12 @@ $ wget -O nginx-ingress-controller-deploy.yaml \
 $ sed -i 's/type: NodePort/type: LoadBalancer/g' nginx-ingress-controller-deploy.yaml
 ```
 
-**Note:** since we already have [MetalLB](#metallb-load-balancer)
-configured with a range of IP addresses, change **line 365**
-in `nginx-ingress-controller-deploy.yaml` to
-`type: LoadBalancer` so that it gets an External IP.
+!!! note
+
+    Since we already have [MetalLB](#metallb-load-balancer)
+    configured with a range of IP addresses, change **line 365**
+    in `nginx-ingress-controller-deploy.yaml` to
+    `type: LoadBalancer` so that it gets an External IP.
 
 ``` console
 $ kubectl apply -f nginx-ingress-controller-deploy.yaml
@@ -881,6 +895,7 @@ job.batch/ingress-nginx-admission-create created
 job.batch/ingress-nginx-admission-patch created
 ingressclass.networking.k8s.io/nginx created
 validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+
 $ kubectl get all -n ingress-nginx
 NAME                                            READY   STATUS      RESTARTS   AGE
 pod/ingress-nginx-admission-create-wjzv4        0/1     Completed   0          107s
@@ -920,7 +935,7 @@ To make the dashboard easily available in the local network,
 edit `kubernetes-dashboard.yaml` (around line 40) to set the
 service to `LoadBalancer`:
  
-``` yaml linenums="36" title="kubernetes-dashboard.yaml"
+``` yaml linenums="36" hl_lines="3" title="kubernetes-dashboard.yaml"
   namespace: kubernetes-dashboard
 spec:
   type: LoadBalancer
@@ -946,6 +961,7 @@ clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
 deployment.apps/kubernetes-dashboard created
 service/dashboard-metrics-scraper created
 deployment.apps/dashboard-metrics-scraper created
+
 $ kubectl get all -n kubernetes-dashboard
 NAME                                            READY   STATUS    RESTARTS   AGE
 pod/dashboard-metrics-scraper-7bc864c59-6k5tm   1/1     Running   0          33s
@@ -1699,11 +1715,12 @@ NAMESPACE   NAME            CLASS   HOSTS                ADDRESS    PORTS   AGE
 gitea       gitea-ingress   nginx   git.ssl.uu.am   10.0.0.6   80      56m
 ```
 
-**Note:** creating `gitea-ingress` in the
-`ingress-nginx` namespace won’t work because then
-Nginx can’t find the gitea-http service, resulting in
-HTTP 503 error at
-[https://git.ssl.uu.am](https://git.ssl.uu.am/)
+!!! note
+
+    Creating `gitea-ingress` in the
+    `ingress-nginx` namespace won’t work because then
+    Nginx can’t find the gitea-http service, resulting in
+    HTTP 503 error at [https://git.ssl.uu.am](https://git.ssl.uu.am/)
 
 ```
 W0416 15:55:11.088261       7 controller.go:1044] Error obtaining Endpoints for Service "ingress-nginx/gitea-http": no object matching key "ingress-nginx/gitea-http" in local store
@@ -2143,6 +2160,7 @@ Events:
   Type    Reason   Age   From                 Message
   ----    ------   ----  ----                 -------
   Normal  Created  34m   cert-manager-orders  Created Challenge resource "tls-secret-hm94m-3966586170-1941395475" for domain "git.ssl.uu.am"
+
 $ kubectl -n gitea describe challenge tls-secret-hm94m-3966586170-1941395475 | grep Reason:
   Reason:      Waiting for HTTP-01 challenge propagation: failed to perform self check GET request 'http://git.ssl.uu.am/.well-known/acme-challenge/cw9i3YCPZQmQXrofkEt4inKYr5x3fEc9wJ6R2ydpeAg': Get "http://git.ssl.uu.am/.well-known/acme-challenge/cw9i3YCPZQmQXrofkEt4inKYr5x3fEc9wJ6R2ydpeAg": dial tcp 217.162.57.64:80: connect: connection refused
 
@@ -2151,6 +2169,7 @@ Events:
   Type    Reason   Age   From                 Message
   ----    ------   ----  ----                 -------
   Normal  Created  28m   cert-manager-orders  Created Challenge resource "tls-secret-8w9rt-548771682-3606431526" for domain "k8s.ssl.uu.am"
+
 $ kubectl -n kubernetes-dashboard describe challenge tls-secret-8w9rt-548771682-3606431526 |grep Reason:
   Reason:      Waiting for HTTP-01 challenge propagation: failed to perform self check GET request 'http://k8s.ssl.uu.am/.well-known/acme-challenge/Eu-aIJIbu4gRAqgRW2ZcPpGyVk9ZmIBFy23zDQNr14s': Get "http://k8s.ssl.uu.am/.well-known/acme-challenge/Eu-aIJIbu4gRAqgRW2ZcPpGyVk9ZmIBFy23zDQNr14s": dial tcp 217.162.57.64:80: connect: connection refused
 ```

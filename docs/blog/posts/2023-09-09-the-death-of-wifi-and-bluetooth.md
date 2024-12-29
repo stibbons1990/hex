@@ -55,7 +55,7 @@ what comes up. The boot process stops abruptly after printing
 messages about all the USB devices found and then, slowly over
 the next minute, the following shows up:
 
-```
+``` dmesg
 [    6.504390] usb 1-4: device descriptor read/64, error -110
 [   22.376392] usb 1-4: device descriptor read/64, error -110
 [   22.600375] usb 1-4: new high-speed USB device number 3 using xhci_hcd
@@ -97,9 +97,8 @@ whole system freezes within seconds?
 
 ## Regaining Control
 
-Specialist to troubleshoot hardware, and the first thing you do
-when hardware is acting up is strip it down to the barest minimum
-configuration you can work with.
+When hardware is acting up like this, the first thing to do is to
+strip it down to the barest minimum configuration you can work with.
 
 So I unplugged *all* the USB devices.
 
@@ -198,7 +197,7 @@ the following offered valuable clues:
 The last of these aligns with the symptom of system freezing shortly
 after booting when the Wireless controller is not disabled.
 
-None of the above actually show who to disable a malfunctioning USB
+None of the above actually show how to disable a malfunctioning USB
 device, so I tried unbind command from the
 [script to restart a USB controller](2023-08-27-xhci-host-controller-not-responding-assume-dead.md).
 
@@ -295,7 +294,7 @@ Back to the question of what is broken, I made a copy of all the
 them. The oldest of dmesg logs offered the first clue about what’s
 behind the `usb 1-4 port`:
 
-```
+``` dmesg
 [    1.955188] kernel: usb 1-4: New USB device strings: Mfr=5, Product=6, SerialNumber=7
 [    1.955615] kernel: usb 1-4: Product: Wireless_Device
 [    1.956021] kernel: usb 1-4: Manufacturer: MediaTek Inc.
@@ -316,7 +315,7 @@ I went and search the logs for messages about bluetooth.
 
 `/var/log/kern.log` still contained timeouts from *yesterday*:
 
-```
+``` dmesg
 Sep  7 20:12:23 [    5.913266] Bluetooth: Core ver 2.22
 Sep  7 20:12:23 [    5.913281] NET: Registered PF_BLUETOOTH protocol family
 Sep  7 20:12:23 [    5.913282] Bluetooth: HCI device and connection manager initialized
@@ -419,7 +418,7 @@ for matching entries. It was a close call, but it worked.
 The anticipated warning from the kernel showed up right after
 entering the root password to enter single-user mode:
 
-```
+``` dmesg
 [   16.593831] mt7921e 0000:04:00.0: driver own failed
 ```
 
@@ -435,7 +434,7 @@ over the last year or so:
 
 A quick check for matching lines from dmesg shows a few more:
 
-```
+``` dmesg
 [    4.789341] mt7921e 0000:04:00.0: enabling device (0000 -> 0002)
 [   16.593831] mt7921e 0000:04:00.0: driver own failed
 [   16.593831] mt7921e: probe of 0000:04:00.0 failed with error -5
@@ -454,7 +453,7 @@ For now, enabling the Wi-Fi Controller on this motherboard inevitable
 crashes the system. In less than 2 minutes, more errors shoed up from
 the kernel and I had to reset the PC:
 
-```
+``` dmesg
 [  110.252478] igc 0000:05:00.0 enp5s0: PCIe link lost, device now detached
 [  110.860785] ahci 0000:07:00.0: AHCI controller unavailable!
 [  110.860786] ahci 0000:08:00.0: AHCI controller unavailable!
@@ -477,4 +476,4 @@ continues to work. May that last a really long time 😁
 After spending the whole morning troubleshooting this, and the rest of
 the day writing all the above, all I want now is to play a bit of Skyrim!
 
-<iframe width="1720" height="720" src="https://www.youtube.com/embed/JvImL-2AJaI?si=-N8pbDyvnBHonBb3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="800" height="335" src="https://www.youtube.com/embed/JvImL-2AJaI?si=-N8pbDyvnBHonBb3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

@@ -28,7 +28,7 @@ Running each browser from Konsole, or watching `~/.xsession-errors`,
 Chrome and Firefox produced different warning messages each time
 I tried to type an accented character:
 
-```
+``` console
 $ tail -f ~/.xsession-errors
 (google-chrome-stable:14941): Gdk-WARNING **: 15:19:37.785: gdk_window_set_user_time called on non-toplevel
 ** (firefox:2091768): WARNING **: 15:19:57.550: Error converting text from IM to UTF-8: Invalid byte sequence in conversion input
@@ -38,7 +38,7 @@ Searching for the warning from Chrome message, there are very few matching posts
 suggested to unsetting the `GTK_IM_MODULE` variable,
 which I had set to `xim`:
 
-```
+``` console
 $ echo $GTK_IM_MODULE
 xim
 $ unset GTK_IM_MODULE
@@ -58,7 +58,7 @@ I had manually selected `xim` via `~/.xinputrc` and indeed that
 as the case, although this looks like the config was generated
 rather than manually created by me:
 
-```
+``` console
 $ cat .xinputrc 
 # im-config(8) generated on Sun, 24 Apr 2016 07:53:00 +0200
 run_im xim
@@ -85,7 +85,7 @@ are required*](https://unix.stackexchange.com/questions/421066/popup-language-su
 Since I was feeling generous and this only takes about 120 MB of
 disk space, I just installed the missing packages:
 
-```
+``` console
 # apt install $(check-language-support)
 The following NEW packages will be installed:
   hunspell-en-au hunspell-en-ca hunspell-en-gb hunspell-en-us

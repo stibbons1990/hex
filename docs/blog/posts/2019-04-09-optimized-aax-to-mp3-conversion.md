@@ -12,17 +12,17 @@ Audible is great, and the app is not bad, but I find Plex and
 other apps more attractive to use for audiobooks. Now, if
 only I could *take my books home*...
 
-<!-- more --> 
-
 ![Audiobooks collection in PLEX](../media/2019-04-09-optimized-aax-to-mp3-conversion/Audiobooks-in-PLEX.png)
 
 ***Added Bonus: pick your own choice of book covers!***
+
+<!-- more --> 
 
 ## Audible AAX/C formats
 
 I didn't know much about this, until I found the
 [KrumpetPirate/AAXtoMP3](https://github.com/KrumpetPirate/AAXtoMP3)
-tool that taught me the basics, so I quite that source here:
+tool that taught me the basics, so I quote that source here:
 
 > Audible uses the AAX file format to maintain DRM
 > restrictions on their audio books and if you download your
@@ -52,8 +52,8 @@ to use in Linux:
 
 To decode the AAX files you need your own authentication
 code, that comes from Audible. To obtain this string, I used
-[inAudible-NG/audible-activator](https://github.com/inAudible-NG/audible-activator) and saved the bytes in
-`~/.authcode` to use later.
+[inAudible-NG/audible-activator](https://github.com/inAudible-NG/audible-activator)
+and saved the bytes in `~/.authcode` to use later.
 
 ## Performance comparison for short and long books
 
@@ -79,7 +79,7 @@ short books, e.g.
 
 #### Short book: 3h 18m converted in 3m 50s
 
-```
+``` console
 $ time AAXtoMP3 \
   HowtoTalkSoTeensWillListenandListenSoTeensWillTalk_ep7.aax
 ...
@@ -107,7 +107,7 @@ Audiobook/Adele Faber, Elaine Mazlish/How to Talk So Teens Will Listen and Liste
 
 #### Long book: 28h 42m converted in m s
 
-```
+``` console
 $ time AAXtoMP3 \
   ElantrisTenthAnniversarySpecialEdition_ep6.aax 
 ...
@@ -138,7 +138,7 @@ Audiobook/Brandon Sanderson/Elantris-Tenth Anniversary Special Edition/Elantris-
 
 #### Short book: 3h 18m converted in 3m 50s
 
-```
+``` console
 $ wget -O cover.jpg https://m.media-amazon.com/images/...jpg
 $ time aax2mp3.sh \
   HowtoTalkSoTeensWillListenandListenSoTeensWillTalk_ep7.aax
@@ -166,7 +166,7 @@ APIC (Attached picture): ()[, 0]: image/jpeg, 51854 bytes
 
 #### Long book: 28h 42m converted in m s
 
-```
+``` console
 $ wget -O cover.jpg https://m.media-amazon.com/images/...jpg
 $ time aax2mp3.sh \
   ElantrisTenthAnniversarySpecialEdition_ep6.aax 
@@ -219,7 +219,7 @@ The main script `aax2mp3.sh` does most of the work.
     This script takes the activation codes from a
     different file: `~/audible_activation_bytes`
 
-```bash linenums="1" title="aax2mp3.sh"
+``` bash linenums="1" title="aax2mp3.sh"
 #!/bin/bash
 #
 # Convert DRM'ed AAX audibooks (e.g. Audible) to DRMless MP3 audio.
@@ -317,7 +317,7 @@ reduce the time it takes to encode chapters.
 And to process each chapter, here is 
 `aax2mp3-chapter.sh`
 
-```bash linenums="1" title="aax2mp3-chapter.sh"
+``` bash linenums="1" title="aax2mp3-chapter.sh"
 #!/bin/bash
 #
 # Split and encode a single audiobook chapter, to use with xargs.

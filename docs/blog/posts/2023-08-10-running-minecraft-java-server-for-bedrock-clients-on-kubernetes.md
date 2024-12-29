@@ -433,7 +433,7 @@ be created with *a whole new world*.
 
 ### `minecraft-server-fortune`
 
-The `minecraft-server-fortune` script ...
+The `minecraft-server-fortune` script quotes funny lines on everybody's console.
 
 {% raw %}
 ``` bash linenums="1" title="minecraft-server-fortune"

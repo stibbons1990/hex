@@ -10,8 +10,8 @@ categories:
 title: Crucial MX500 SSD found problematic
 ---
 
-Crucial MX500 SSD are problematic, in strange ways they
-should not be.
+**Crucial MX500 SSD disks are problematic**, 
+in strange ways they should not be.
 
 <!-- more --> 
 
@@ -63,7 +63,7 @@ Then the problem: when trying to do this, possibly because
 the files were originally in the NVMe SSD that is much faster,
 the Crucial SSD failed after copying less than 8 GB:
 
-```
+``` dmesg
 [  614.810936] BTRFS info (device sda): flagging fs with big metadata feature
 [  614.810947] BTRFS info (device sda): using free space tree
 [  614.810951] BTRFS info (device sda): has skinny extents
@@ -162,7 +162,7 @@ The disk did not *actually* write any data; although `df`
 reported 1.4G used at this point, it reported only a few MB
 after reboot:
 
-```
+``` console
 # /home/depot # df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda        3.7T  1.4G  3.7T   1% /home/ssd
@@ -171,14 +171,14 @@ Filesystem      Size  Used Avail Use% Mounted on
 After this failure, the disk was not *just* read only,
 it was entirely disabled and unavailable:
 
-```
+``` console
 # du -sh /home/ssd/*
 du: cannot access '/home/ssd/*': Input/output error
 ```
 
 After reboot:
 
-```
+``` console
 # /home/depot # df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda        3.7T  3.6M  3.7T   1% /home/ssd
@@ -194,7 +194,7 @@ definitive signs of hardware failure, I run S.M.A.R.T. long test:
 
 After some time the results were as follows:
 
-```
+``` console
 # smartctl -a /dev/sda
 smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-48-generic] (local build)
 Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -339,7 +339,7 @@ First, the disk seems to think it can go as fast as 6.0 TB/s which is *definitel
 than the 560/530 (read/write) MB/s it is rated as, and confirmed
 by `hdparm`:
 
-```
+``` console
 # hdparm -t -T /dev/sda
 
 /dev/sda:
@@ -350,13 +350,13 @@ by `hdparm`:
 Note this line from `smartctl`, in the `INFORMATION SECTION`
 at the top:
 
-```
+``` dmesg
 SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
 ```
 
 It seems the kernel is expecting *up to* **6.0 Gbps**
 
-```
+``` console
 [    1.625648] ahci 0000:00:17.0: AHCI 0001.0301 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
 [    1.646123] ata1: SATA max UDMA/133 abar m2048@0x6a602000 port 0x6a602100 irq 131
 [    1.646129] ata2: SATA max UDMA/133 abar m2048@0x6a602000 port 0x6a602180 irq 131
@@ -370,7 +370,7 @@ problem. It *certainly* is not a problem with the
 **Samsung 870 EVO 4000GB SATA** disk, which does show the same
 *up to 6.0 Gbps* line in `dmesg`:
 
-```
+``` console
 [    1.178462] ata6: SATA max UDMA/133 abar m2048@0xfc600000 port 0xfc600180 irq 66
 [    1.651823] ata6: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
 [    1.654633] ata6.00: supports DRM functions and may not be fully accessible
@@ -431,7 +431,7 @@ Manually limiting the transfer rate when writing files seems to
 be the only way to get large write operations to succeed.
 Luckly, this is rather easy when using `rsync`:
 
-```bash
+``` console hl_lines="2"
 $ rsync -turva \
   --bwlimit=500000 \
   /home/depot/audio/Audiobooks \
@@ -441,7 +441,7 @@ $ rsync -turva \
 Attempting the same with a higher `--bwlimit` value (700 MB/s)
 reproduces the error almost immediately:
 
-```
+``` dmesg
 [10745.786389] BTRFS error (device sda): bdev /dev/sda errs: wr 4, rd 0, flush 0, corrupt 0, gen 0
 [10745.786405] BTRFS error (device sda): bdev /dev/sda errs: wr 5, rd 0, flush 0, corrupt 0, gen 0
 [10745.786418] BTRFS error (device sda): bdev /dev/sda errs: wr 6, rd 0, flush 0, corrupt 0, gen 0
@@ -465,5 +465,5 @@ on a different system (**Rapture**) with a
 the one where the **Samsung 870 EVO 4000GB SATA** disk
 exhibits no such problem.
 
-Crucial MX500 SSD are no longer welcome or recommended,
+**Crucial MX500 SSD are no longer welcome or recommended**,
 cheap as they may be.

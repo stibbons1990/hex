@@ -66,7 +66,7 @@ The first suspect is usually the proprietary NVidia drivers, so the
 first workaround, to be able to use the PC, was to switch to the
 `nouveau` driver:
 
-```
+``` console
 # dpkg -P nvidia-driver-515
 # apt autoremove
 # apt update
@@ -82,9 +82,16 @@ Ubuntu 22.04 had
 so that was the next workaround. The trick to switch back to an older
 version is to hold / freeze them to that version:
 
-```
+``` console
 # apt install nvidia-driver-470
-# apt-mark hold nvidia-driver-470 libnvidia-cfg1-470 libnvidia-common-470 libnvidia-compute-470 libnvidia-compute-470:i386 libnvidia-decode-470 libnvidia-decode-470:i386 libnvidia-egl-wayland1 libnvidia-encode-470 libnvidia-encode-470:i386 libnvidia-extra-470 libnvidia-fbc1-470 libnvidia-fbc1-470:i386 libnvidia-gl-470 libnvidia-gl-470:i386 libnvidia-ifr1-470 libnvidia-ifr1-470:i386 libxnvctrl0 nvidia-compute-utils-470 nvidia-dkms-470 nvidia-kernel-common-470 nvidia-kernel-source-470 nvidia-prime nvidia-settings nvidia-utils-470 screen-resolution-extra xserver-xorg-video-nvidia-470
+# apt-mark hold nvidia-driver-470 libnvidia-cfg1-470 libnvidia-common-470 \
+  libnvidia-compute-470 libnvidia-compute-470:i386 libnvidia-decode-470 \
+  libnvidia-decode-470:i386 libnvidia-egl-wayland1 libnvidia-encode-470 \
+  libnvidia-encode-470:i386 libnvidia-extra-470 libnvidia-fbc1-470 \
+  libnvidia-fbc1-470:i386 libnvidia-gl-470 libnvidia-gl-470:i386 libnvidia-ifr1-470 \
+  libnvidia-ifr1-470:i386 libxnvctrl0 nvidia-compute-utils-470 nvidia-dkms-470 \
+  nvidia-kernel-common-470 nvidia-kernel-source-470 nvidia-prime nvidia-settings \
+  nvidia-utils-470 screen-resolution-extra xserver-xorg-video-nvidia-470
 ```
 
 After this, rebooting led to straight back into the problem;
@@ -94,15 +101,16 @@ going to TTY.
 Uninstall the NVidia drivers and rebooting solved the problem again.
 This time needed to uninstall all packages explicitly:
 
-```
+``` console
 # apt remove $(dpkg -l |grep 'nvidia.*470' | awk '{print $2}')
 ```
 
 That was enough to go back to the nouveau driver.
 A few more packages had to be removed later:
 
-```
-# apt remove screen-resolution-extra nvidia-settings nvidia-prime libnvidia-egl-wayland1:amd64 libxnvctrl0:amd64
+``` console
+# apt remove screen-resolution-extra nvidia-settings nvidia-prime \
+  libnvidia-egl-wayland1:amd64 libxnvctrl0:amd64
 ```
 
 It became clear that switching back and forth between the Nvidia and
@@ -110,7 +118,7 @@ nouveau drivers was going to be necessary more than a few times, so I
 create a couple of helper scripts I could run despite not being able
 to read the screen:
 
-```bash
+``` bash linenums="1"
 #!/bin/sh
 echo "blacklist nouveau" \
   >  /etc/modprobe.d/blocklist-nvidia-nouveau.conf
@@ -120,7 +128,7 @@ update-initramfs -u
 apt install nvidia-driver-515
 ```
 
-```bash
+``` bash linenums="1"
 #!/bin/sh
 dpkg -P nvidia-driver-515
 apt remove -y $(dpkg -l | grep 'nvidia.*515' | awk '{print $2}')
@@ -169,7 +177,7 @@ including the OS, this last test also reproduced the problem:
 
 Notice the glitch lines around the top-right corner and through the Select button, plus the fixed-size square area down-and-right from the mouse cursor. This area followed the cursor, as you can see in this video.
 
-<iframe width="1920" height="1080" src="https://www.youtube.com/embed/Sk11E_4gmYw?si=R-VynLLZmOs_RKtj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="800" height="450" src="https://www.youtube.com/embed/Sk11E_4gmYw?si=R-VynLLZmOs_RKtj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 In the NVidia forum, a top contributor suggested to
 *check for a general hardware fault using gpu-burn or cuda-gpumemtest*.
@@ -181,7 +189,7 @@ I had to install them.
 
 First I needed to reinstall the NVidia driver and CUDA libraries. To avoid corrupting the graphics or interfering with the test, I chose to disable SDDM before rebooting:
 
-```
+``` console
 # systemctl disable sddm
 # /root/nvidia-on.sh
 # reboot
@@ -211,7 +219,7 @@ was not an option because both wanted to remove the latest NVidia
 driver (`nvidia-driver-515`) and replace it with older drivers.
 Instead, found the missing headers and added `-I` flags to `gcc`:
 
-```
+``` console
 # g++ -O3 -Wno-unused-result \
   -I/usr/local/cuda/include \
   -I/usr/src/linux-headers-5.15.0-47-lowlatency/include/linux \
@@ -237,7 +245,7 @@ The only clue I found was in
 [github.com/NVIDIA/apex/issues/957](https://github.com/NVIDIA/apex/issues/957)
 to install a package directly, but it is not installable in Ubuntu 22.04 so I had to follow the instructions for Ubuntu 22.04 at developer.[nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads):
 
-```
+``` console
 # wget -O /etc/apt/preferences.d/cuda-repository-pin-600 \
   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
 # wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda-repo-ubuntu2204-11-7-local_11.7.1-515.65.01-1_amd64.deb
@@ -247,13 +255,15 @@ to install a package directly, but it is not installable in Ubuntu 22.04 so I ha
 # apt-get -y install cuda
 ```
 
-**Note:** to undo this change later, remove
-`/etc/apt/preferences.d/cuda-repository-pin-600`
-and run `apt update`.
+!!! note
+
+	To undo this change later, remove
+	`/etc/apt/preferences.d/cuda-repository-pin-600`
+	and run `apt update`.
 
 Finally, one can simply `make` and run `gpu_burn`:
 
-```
+``` console
 # make COMPUTE=8.6
 # ./gpu_burn 120
 Burning for 120 seconds.
@@ -299,7 +309,7 @@ Tested 1 GPUs:
 Then run it again using doubles (see
 [usage](https://github.com/wilicc/gpu-burn#usage)):
 
-```
+``` console
 # ./gpu_burn -d 120
 Burning for 120 seconds.
 GPU 0: NVIDIA GeForce RTX 3070 Ti (UUID: GPU-0c349bdd-3426-f2d3-4b26-c0b4bf0aad2e)
@@ -347,7 +357,7 @@ Later I re-run `gpu-burn` for a longer time. The example in GitHub is
 to run for 1 hour, the recommendation I got in the NVidia forum was
 just 10 minutes, so to meet them in the middle I tried with 20 minutes:
 
-```
+``` console
 # ./gpu_burn -d 1200
 Burning for 1200 seconds.
 GPU 0: NVIDIA GeForce RTX 3070 Ti (UUID: GPU-0c349bdd-3426-f2d3-4b26-c0b4bf0aad2e)
@@ -399,7 +409,7 @@ because the `cuda-gpumemtest` in
 [sourceforge.net/cudagpumemtest](https://sourceforge.net/projects/cudagpumemtest/files/)
 was last updated in 2012.
 
-```
+``` console
 # apt-get -y install cmake
 # git clone \
   https://github.com/ComputationalRadiationPhysics/cuda_memtest.git
@@ -414,7 +424,7 @@ was last updated in 2012.
 
 This actually worked on the first try 😁
 
-```
+``` console
 # ./cuda_memtest --stress
 [09/19/2022 17:58:29][rapture][0]:Running cuda memtest, version 1.2.3
 [09/19/2022 17:58:29][rapture][0]:NVRM version: NVIDIA UNIX x86_64 Kernel Module  515.65.01  Wed Jul 20 14:00:58 UTC 2022
@@ -446,11 +456,11 @@ Not only the corrupted graphics happened again, it was much worse. While previou
 
 ![Extremely corrupted video on the SDDM login manager (2 of 2)](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg)
 
-<iframe width="1920" height="1080" src="https://www.youtube.com/embed/QaTqfMccrlc?si=heZtZuyQdUOeN9P7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="800" height="450" src="https://www.youtube.com/embed/QaTqfMccrlc?si=heZtZuyQdUOeN9P7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Root Cause Confirmation
 
-With new card now entirely unusable, there was nothing left to do
+With the new card now entirely unusable, there was nothing left to do
 with it than to remove it and repackage it for RMA.
 
 Installing the old card back and re-enabling the NVidia drivers was

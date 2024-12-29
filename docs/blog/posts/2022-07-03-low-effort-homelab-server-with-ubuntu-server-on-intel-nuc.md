@@ -16,8 +16,6 @@ But only a little bit, maybe *just enough* to run a Minecraft
 server, which refuses to start on my **Raspberry Pi 4**
 because it has only a meagre 2 GB of RAM.
 
-<!-- more --> 
-
 I had known about Intel NUC tiny PCs for a while, and
 how handy they can be to have a dedicated physical PC for
 experimentation. There was a very real possibility
@@ -25,6 +23,8 @@ that I would have to set one up as a *light gaming* PC in the
 near future, so I thought cutting my teeth on a *simpler*
 server setup would be a good way to get acquainted with this
 hardware platform and its Linux support.
+
+<!-- more --> 
 
 ## Hardware
 
@@ -51,7 +51,7 @@ I added a
 [Crucial MX500 4TB 3D NAND SATA SSD](https://www.crucial.com/ssd/mx500/ct4000mx500ssd1) to serve as an backup to some of my
 precious files in that cursed RAID.
 
-Turns out, [Crucial MX500 SSD are problematic](2022-10-12-crucial-mx500-ssd-found-problematic.md).
+Turns out, [**Crucial MX500 SSD are problematic**](2022-10-12-crucial-mx500-ssd-found-problematic.md).
 
 ### Update #2 (2023-09-23)
 
@@ -117,7 +117,7 @@ seconds of inactivity, the menu time out and the system boots.
 
 Once the system has started, 
 
-```
+``` dmesg
 # dmesg | egrep -i 'secure|mok|boot'
 [    0.000000] Command line: BOOT_IMAGE=/@/boot/vmlinuz-5.15.0-40-generic root=UUID=a61cf166-64e3-48ce-be02-07981ef82e33 ro rootflags=subvol=@ quiet splash vt.handoff=7
 [    0.000000] efi: ACPI=0x40cbe000 ACPI 2.0=0x40cbe014 TPMFinalLog=0x40cc8000 SMBIOS=0x41568000 SMBIOS 3.0=0x41567000 MEMATTR=0x34ac0298 ESRT=0x351e3d18 MOKvar=0x3111c000 RNG=0x4151df18 TPMEventLog=0x310f5018 
@@ -150,7 +150,7 @@ Once the system has started,
 
 Secure Boot is enabled and there is only one key enrolled:
 
-```
+``` console
 # mokutil --sb-state
 SecureBoot enabled
 
@@ -282,7 +282,7 @@ and path
 <span style="color: green">green</span>;
 with this in `.bashrc`:
 
-```bash
+``` bash title=".bashrc"
 if [ "$color_prompt" = yes ]; then
     PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\[\033[01;34m\]\h\[\033[00m\] \[\033[01;32m\]\w \$\[\033[00m\] '
 else
@@ -299,7 +299,7 @@ to remind me that *with great power comes great responsibility*.
 This being the latest system added to the network, its
 `/etc/hosts` will contain all the other systems' LAN IPs:
 
-```
+``` console
 # cat /etc/hosts
 127.0.0.1 localhost
 127.0.1.1 lexicon
@@ -350,7 +350,7 @@ unify-ap-lite   192.168.0.69
 I like to have all machines on the same clock,
 and for this there's nothing like good old NTP:
 
-```
+``` console
 # apt install ntp ntpdate -y
 ```
 
@@ -370,7 +370,7 @@ a few [more / other] to `/home/ponder/.ssh/authorized_keys`
 
 #### Disable SSH password authentication
 
-```
+``` console
 # vi /etc/ssh/sshd_config
 PasswordAuthentication no
 PermitEmptyPasswords no
@@ -379,6 +379,7 @@ PermitEmptyPasswords no
 ```
 
 !!! note
+
     The reason for doing this is obvious after looking at
     `/var/log/auth.log` once the SSH port has been exposed externally
     for a while. Before doing this, there were **100,240** failed attempts
@@ -394,14 +395,14 @@ reaching it's port. To do this, install
 [How to install fail2ban on Ubuntu Server 22.04: Jammy Jellyfish](https://www.techrepublic.com/article/install-fail2ban-ubuntu-server/)
 explains this in more details; install with `apt` and setup:
 
-```
+``` console
 # apt-get install fail2ban -y
 # systemctl enable --now fail2ban
 ```
 
 Within *seconds* a few IPs are banned already:
 
-```
+``` console
 # iptables -L
 ...
 Chain f2b-sshd (1 references)
@@ -416,8 +417,7 @@ RETURN     all  --  anywhere             anywhere
 
 I like to spice it up to make a little more *trigger-happy*:
 
-```
-# vi /etc/fail2ban/jail.conf
+``` ini linenums="1" title="/etc/fail2ban/jail.conf"
 # "bantime" is the number of seconds that a host is banned.
 bantime  = 3d
 # A host is banned if it has generated "maxretry" during the last "findtime"
@@ -428,6 +428,11 @@ maxretry = 3
 # "bantime.increment" allows to use database for searching of previously banned ip's to increase a 
 # default ban time using special formula, default it is banTime * 1, 2, 4, 8, 16, 32...
 bantime.increment = true
+```
+
+Apply the changes by restarting the service:
+
+``` console
 # systemctl restart fail2ban
 ```
 
@@ -460,28 +465,27 @@ the traffic between them *can't jump* over the wireless network.
 During installation, network setup defaulted to DHCP on Ethernet
 and *no* wifi setup:
 
-*  `/etc/netplan/00-installer-config.yaml`
-    ```yaml
-    # This is the network config written by 'subiquity'
-    network:
-    ethernets:
-        enp89s0:
-        dhcp4: true
-    version: 2
-    ```
-*  `/etc/netplan/00-installer-config-wifi.yaml`
-    ```yaml
-    # This is the network config written by 'subiquity'
-    network:
-    version: 2
-    wifis: {}
-    ```
+``` yaml linenums="1" title="/etc/netplan/00-installer-config.yaml"
+# This is the network config written by 'subiquity'
+network:
+ethernets:
+    enp89s0:
+    dhcp4: true
+version: 2
+```
+
+``` yaml linenums="1" title="/etc/netplan/00-installer-config-wifi.yaml"
+# This is the network config written by 'subiquity'
+network:
+version: 2
+wifis: {}
+```
 
 This lead to the system getting a leased IP in the
 192.168.0.0/24 range and, most importantly,
 the relevant DNS servers:
 
-```
+``` console
 # ip a | grep enp89s0
 2: enp89s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
     inet 192.168.0.121/24 metric 100 brd 192.168.0.255 scope global dynamic enp89s0
@@ -507,7 +511,7 @@ To setup both addresses as static, need to grab the DNS servers
 and create a new netplan configuration in
 `/etc/netplan/00-installer-config.yaml`
 
-```yaml
+``` yaml linenums="1" title="/etc/netplan/00-installer-config.yaml"
 # Dual static IP on LAN, nothing else.
 network:
   version: 2
@@ -527,7 +531,7 @@ network:
         addresses: [62.2.24.158, 62.2.17.61]
 ```
 
-```
+``` console
 # netplan apply
 # ip a | grep enp89s0
 2: enp89s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
@@ -544,7 +548,7 @@ to check everything for consistency. For this, I run
 from crontab every Saturday morning, early enough that it will
 be done by the time anyone wakes up.
 
-```
+``` console
 # crontab -l | grep btrfs
 # m h  dom mon dow   command
 50 5 * * 6 /usr/local/bin/btrfs-scrub-all
@@ -561,15 +565,15 @@ I quite like this hardware!
 Secure Boot was a little confusing and intimidating at first,
 now it's just a little confusing but at least not so scary.
 
-With an Intel NUC Mini PC you get *literally* and Intel architecture (`x84_64`) and familiar hardware without much
-in the way of platform-specific quirks.
+With an Intel NUC Mini PC you get *literally* and Intel architecture (`x84_64`)
+and familiar hardware without much in the way of platform-specific quirks.
 
 It does come at a cost though, this system costed nearly $600
 which is more than triple the cost of a modest Raspberry Pi 4
 setup. On the other hand, Raspberry Pi computers are good
-*up to a point* and past that an Intel NUC offers a really good
-*power to size* ratio, packing quite some compute power in a
-still quite small package.
+*up to a point* but, past *that point*, an Intel NUC offers a
+really good *power to size* ratio, packing quite some compute
+power in a still quite small package.
 
 ## Future Updates
 

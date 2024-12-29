@@ -16,7 +16,7 @@ Today, a number of USB devices were unavailable for no apparent reason.
  
 Having a terminal always visible running `dmesg -w` the following showed up:
 
-```
+``` dmesg
 xhci_hcd 0000:0b:00.3: Abort failed to stop command ring: -110
 xhci_hcd 0000:0b:00.3: xHCI host controller not responding, assume dead
 xhci_hcd 0000:0b:00.3: HC died; cleaning up
@@ -72,7 +72,7 @@ off. What is most strange is that the problem seems to
 have started when (be triggered by?) powering most USB
 devices *off*:
 
-```
+``` dmesg
 usb 5-2: USB disconnect, device number 3
 usb 5-2.7: USB disconnect, device number 7
 retire_capture_urb: 2 callbacks suppressed

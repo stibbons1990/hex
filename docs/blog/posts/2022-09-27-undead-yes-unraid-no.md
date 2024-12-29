@@ -32,9 +32,9 @@ it. And the end of this adventure, disks emerged victorious.
 
 Keeping reading to find out how the disks came back from the dead.
 
-<!-- more --> 
-
 ![Illustration by Paul Kidby: Zombie leads a small parade of undead citizens with a wooden sign that reads UNDEAD YES - UNPERSON NO](../media/2022-09-27-undead-yes-unraid-no/fresh_start_club.jpg)
+
+<!-- more --> 
 
 ## Meet My Disks
 
@@ -50,7 +50,7 @@ The disks configured in this RAID1 array are:
 
 They are both *rated* as 227 MB/s but have significantly different performance:
 
-```
+``` console
 # btrfs filesystem show
 Label: 'HomeDepot6TB'  uuid: a4ee872d-b985-445f-94a2-15232e93dcd5
         Total devices 2 FS bytes used 4.59TiB
@@ -88,7 +88,7 @@ At that time, which is about 3900 seconds after scrub starts on that
 disk, btrfs errors start showing up in dmesg warning of tasks being
 blocked waiting for I/O:
 
-```
+``` dmesg
 [21158.812097] BTRFS info (device sdb): balance: start -musage=0 -susage=0
 [21158.819155] BTRFS info (device sdb): balance: ended with status: 0
 [21159.105609] BTRFS info (device sdb): balance: start -musage=20 -susage=20
@@ -205,7 +205,7 @@ At this point attempting to read `sdb` just doesn’t work at all;
 it times out without even a message on `dmesg` (it was from `btrfs`),
 and can’t be interrupted:
 
-```
+``` console
 root@rapture:~# hdparm -tT /dev/sdb
 
 /dev/sdb:
@@ -236,7 +236,7 @@ After about 12 hours, the read rate on sdc drops even lower, to 45 MB/s:
 Thousands of operations are flagged by `handle_bad_sector` as
 *attempting to read beyond the end of the device*:
 
-```
+``` dmesg
 [63670.333955] attempt to access beyond end of device
                sdc: rw=0, want=11721045248, limit=11721045168
 [63670.334052] attempt to access beyond end of device
@@ -286,7 +286,7 @@ First, disable automounting the partition in `/etc/fstab` and **reboot**.
 
 Then, spin the drive down with and check with `dmesg` that it does stop:
 
-```
+``` console
 # echo 1 | sudo tee /sys/block/sdb/device/delete
 
 # dmesg | egrep 'sdb|ata'
@@ -297,7 +297,7 @@ Then, spin the drive down with and check with `dmesg` that it does stop:
 
 Now, with the bad disk truly out of play, mount the RAID with in degraded state:
 
-```
+``` console
 # mount /home/raid -o degraded
 # df -h | head -1; df -h | grep home
 Filesystem      Size  Used Avail Use% Mounted on
@@ -308,7 +308,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 
 Note the messages in `dmesg` when doing this:
 
-```
+``` dmesg
 [   70.409785] BTRFS info (device sdc): flagging fs with big metadata feature
 [   70.409792] BTRFS info (device sdc): allowing degraded mounts
 [   70.409795] BTRFS info (device sdc): disk space caching is enabled
@@ -321,13 +321,13 @@ Note the messages in `dmesg` when doing this:
 Next, begin the rebalancing operation to convert `/home/raid`
 from RAID 1 to single disk. This would take about **14 hours**:
 
-```
+``` console
 # btrfs balance start -f -mconvert=single -dconvert=single /home/raid
 ```
 
 Note the messages in `dmesg` when doing this:
 
-```
+``` dmesg
 [  206.773574] BTRFS info (device sdc): balance: force reducing metadata redundancy
 [  207.233822] BTRFS info (device sdc): balance: start -f -dconvert=single -mconvert=single -sconvert=single
 [  207.237653] BTRFS info (device sdc): relocating block group 17087791628288 flags data
@@ -343,7 +343,7 @@ Note the messages in `dmesg` when doing this:
 
 Progress can be checked with
 
-```
+``` console
 # btrfs balance status -v /home/raid
 Balance on '/home/raid' is running
 14 out of about 4840 chunks balanced (15 considered), 100% left
@@ -355,14 +355,14 @@ Dumping filters: flags 0xf, state 0x1, force is on
 
 Sadly, this **failed with I/O errors** after 9h 20min.:
 
-```
+``` console
 ERROR: error during balancing '/home/raid': Read-only file system
 There may be more info in syslog - try dmesg | tail
 ```
 
 Indeed there was plenty of details in `dmesg`:
 
-```
+``` dmesg
 [34044.600737] BTRFS info (device sdc): found 227 extents, stage: move data extents
 [34045.507151] BTRFS info (device sdc): found 227 extents, stage: update data pointers
 [34046.546190] BTRFS info (device sdc): relocating block group 10686444863488 flags data|raid1
@@ -438,7 +438,7 @@ Indeed there was plenty of details in `dmesg`:
 
 The file system seems to be at least somewhat readable, for now...
 
-```
+``` console
 # btrfs filesystem show /home/raid
 Label: 'HomeDepot6TB'  uuid: 300760fb-f533-4513-9710-50f283f3dbf4
 	Total devices 2 FS bytes used 4.59TiB
@@ -503,7 +503,7 @@ Following Arch Linux
 [Securely wipe disk](https://wiki.archlinux.org/title/Securely_wipe_disk),
 I settled for a single pass of shred with urandom followed by zeroes:
 
-```
+``` console
 # time shred --verbose --random-source=/dev/urandom -n1 --zero /dev/sdc
 …
 shred: /dev/sdc: pass 1/2 (random)...32GiB/5.5TiB 0%
@@ -536,7 +536,7 @@ transfer rate jumped up to 310-330 MB/s:
 The next step *would have been* wiping ~1% of the disk in each pass,
 starting from the end, in batches of 118394372 bytes:
 
-```
+``` console
 # fdisk -l /dev/sdc
 Disk /dev/sdc: 5.46 TiB, 6001175126016 bytes, 11721045168 sectors
 Disk model: WDC WD6003FZBX-0
@@ -545,7 +545,7 @@ Sector size (logical/physical): 512 bytes / 4096 bytes
 I/O size (minimum/optimal): 4096 bytes / 4096 bytes
 ```
 
-```bash
+``` bash linenums="1"
 for i in $(seq 99); do
   start=$((11721045168-118394372*i));
   echo "Starting on sector $start..."; 
@@ -567,7 +567,7 @@ had caused before.
 **Reading** from both disks was also successful,
 reading the entire disk in one go:
 
-```
+``` console
 # time dd if=/dev/sdb of=/dev/null bs=512 status=progress
 134832546304 bytes (135 GB, 126 GiB) copied, 603 s, 224 MB/s
 6001174704640 bytes (6.0 TB, 5.5 TiB) copied, 34417 s, 174 MB/s
@@ -610,7 +610,7 @@ To further check the hard drives’ hardware, I decided to run
 [S.M.A.R.T.](https://wiki.archlinux.org/title/S.M.A.R.T.)
 long test on both drives:
 
-```
+``` console
 # smartctl -t long /dev/sdb
 smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-48-lowlatency] (local build)
 Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -638,7 +638,8 @@ Use smartctl -X to abort test.
 
 This also took several hours to complete, eventually to show No `Errors Logged` and `Completed without error` on both disks.
 
-```
+``` console
+# smartctl -a /dev/sdb
 smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-48-lowlatency] (local build)
 Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org
 
@@ -736,7 +737,7 @@ Selective self-test flags (0x0):
 If Selective self-test is pending on power-up, resume after 0 minute delay.
 ```
 
-```
+``` console
 # smartctl -a /dev/sdc
 smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-48-lowlatency] (local build)
 Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -841,7 +842,7 @@ blocks that escaped detection, so the next step is to
 on both disks. Need to use `-b 4096`
 [to avoid 32-bit limitation](https://askubuntu.com/questions/548945/how-to-check-badsector-on-ext4-6tb):
 
-```
+``` console
 # time badblocks -b 4096 -o sdb_bb.txt /dev/sdb
 real    573m30.844s
 user    0m32.405s
@@ -863,10 +864,11 @@ However, both lists came out empty, i.e. no bad blocks were detected.
 
 ## Back To Normal
 
-Both disks being now empty and seemingly undead, it’s time to[recreate the RAID1 array](https://btrfs.readthedocs.io/en/latest/mkfs.btrfs.html#profiles)
+Both disks being now empty and seemingly undead, it’s time to
+[recreate the RAID1 array](https://btrfs.readthedocs.io/en/latest/mkfs.btrfs.html#profiles)
 and copy data back into it:
 
-```
+``` console
 # mkfs.btrfs -d raid1 /dev/sdb /dev/sdc
 btrfs-progs v5.16.2
 See http://btrfs.wiki.kernel.org for more information.

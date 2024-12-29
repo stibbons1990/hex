@@ -339,7 +339,7 @@ this one is a bit long. The sections are in the order introduced by
 Having saved the above as `plex-media-server.yaml`
 all is left to do now is apply it:
 
-```
+``` console
 $ kubectl apply -f plex-media-server.yaml 
 namespace/plexserver created
 persistentvolume/plexserver-pv-config created
@@ -353,7 +353,7 @@ service/plex-udp created
 service/plex-tcp created
 ```
 
-After about a minute the pod finds the `PersistentVolumeClaim`s and Plex is ready at
+After about a minute the pod finds the `PersistentVolumeClaim` and Plex is ready at
 [192.168.0.128:32400/web](http://192.168.0.128:32400/web)
 (LAN only, no SSL).
 
@@ -556,14 +556,14 @@ $ kubectl delete -f plex/plex-media-server.yaml
 # cp -a /home/depot/plexmediaserver/Library .
 ```
 
-**Note**: most Plex deployments mount the media a generic path
+Most Plex deployments mount the media a generic path
 (`/data`). If that had been the case above, the new server would not
 recognize the files as already scanned, since the library would only
 refer to files under the old path (`/home/depot`). If this was the
 case, it would be enough to update the `mountPath` value in line `181`
 in `plex-media-server.yaml`
 
-``` yaml linenums="178" title="plex-media-server.yaml"
+``` yaml linenums="178" hl_lines="4" title="plex-media-server.yaml"
         volumeMounts:
         - mountPath: /config
           name: plex-config
@@ -653,6 +653,6 @@ The migration had two *critical* requirements:
     the as-of-yet open question is how to create that playlist.
 
 The migration went smoothly and, I am happy to report, both goals
-where achieved. Here is by beloved Podcast collection:
+where achieved. Here is my beloved Podcast collection:
 
 ![Extended screenshots of the album view of 36 podcasts](../media/2023-09-16-migrating-a-plex-media-server-to-kubernetes/podcasts-202309.jpg)
