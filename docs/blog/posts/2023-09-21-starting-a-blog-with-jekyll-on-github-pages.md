@@ -84,7 +84,7 @@ Anyway, setup was also *relatively* quick'n'easy:
 6. After a few minutes, the new blog is live at
    [stibbons1990.github.io/hex][stibbons1990.io/hex].
 
-!!! note **Notes**
+!!! note
 
     *   After `git push` it takes a few minutes for GitHub to generate
         the content. Check out the latest
@@ -99,51 +99,53 @@ Anyway, setup was also *relatively* quick'n'easy:
 
 Testing locally on the PC was a little rockier, the first time failed with:
 
-``` console
-$ bundle exec jekyll serve
-Configuration file: /home/k8s/code-server/hex/_config.yml
-To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
-            Source: /home/k8s/code-server/hex
-       Destination: /home/k8s/code-server/hex/_site
- Incremental build: disabled. Enable with --incremental
-      Generating... 
-       Jekyll Feed: Generating feed for posts
-                    done in 0.172 seconds.
- Auto-regeneration: enabled for '/home/k8s/code-server/hex'
-bundler: failed to load command: jekyll (/home/k8s/code-server/gems/bin/jekyll)
-/home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve/servlet.rb:3:in `require': cannot load such file -- webrick (LoadError)
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve/servlet.rb:3:in `<top (required)>'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:184:in `require_relative'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:184:in `setup'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:102:in `process'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `block in start'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `each'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `start'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:75:in `block (2 levels) in init_with_program'
-        from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `block in execute'
-        from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `each'
-        from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `execute'
-        from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/program.rb:42:in `go'
-        from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary.rb:19:in `program'
-        from /home/k8s/code-server/gems/gems/jekyll-3.9.3/exe/jekyll:15:in `<top (required)>'
-        from /home/k8s/code-server/gems/bin/jekyll:25:in `load'
-        from /home/k8s/code-server/gems/bin/jekyll:25:in `<top (required)>'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:58:in `load'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:58:in `kernel_load'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:23:in `run'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:492:in `exec'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/command.rb:27:in `run'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor.rb:392:in `dispatch'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:34:in `dispatch'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/base.rb:485:in `start'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:28:in `start'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/exe/bundle:37:in `block in <top (required)>'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors'
-        from /home/k8s/code-server/gems/gems/bundler-2.4.19/exe/bundle:29:in `<top (required)>'
-        from /home/k8s/code-server/gems/bin/bundle:25:in `load'
-        from /home/k8s/code-server/gems/bin/bundle:25:in `<main>'
-```
+??? terminal "`bundle exec jekyll serve`"
+
+    ``` console
+    $ bundle exec jekyll serve
+    Configuration file: /home/k8s/code-server/hex/_config.yml
+    To use retry middleware with Faraday v2.0+, install `faraday-retry` gem
+                Source: /home/k8s/code-server/hex
+          Destination: /home/k8s/code-server/hex/_site
+    Incremental build: disabled. Enable with --incremental
+          Generating... 
+          Jekyll Feed: Generating feed for posts
+                      done in 0.172 seconds.
+    Auto-regeneration: enabled for '/home/k8s/code-server/hex'
+    bundler: failed to load command: jekyll (/home/k8s/code-server/gems/bin/jekyll)
+    /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve/servlet.rb:3:in `require': cannot load such file -- webrick (LoadError)
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve/servlet.rb:3:in `<top (required)>'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:184:in `require_relative'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:184:in `setup'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:102:in `process'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `block in start'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `each'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:93:in `start'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/lib/jekyll/commands/serve.rb:75:in `block (2 levels) in init_with_program'
+         from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `block in execute'
+         from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `each'
+         from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/command.rb:220:in `execute'
+         from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary/program.rb:42:in `go'
+         from /home/k8s/code-server/gems/gems/mercenary-0.3.6/lib/mercenary.rb:19:in `program'
+         from /home/k8s/code-server/gems/gems/jekyll-3.9.3/exe/jekyll:15:in `<top (required)>'
+         from /home/k8s/code-server/gems/bin/jekyll:25:in `load'
+         from /home/k8s/code-server/gems/bin/jekyll:25:in `<top (required)>'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:58:in `load'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:58:in `kernel_load'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli/exec.rb:23:in `run'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:492:in `exec'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/command.rb:27:in `run'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor.rb:392:in `dispatch'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:34:in `dispatch'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/vendor/thor/lib/thor/base.rb:485:in `start'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/cli.rb:28:in `start'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/exe/bundle:37:in `block in <top (required)>'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors'
+         from /home/k8s/code-server/gems/gems/bundler-2.4.19/exe/bundle:29:in `<top (required)>'
+         from /home/k8s/code-server/gems/bin/bundle:25:in `load'
+         from /home/k8s/code-server/gems/bin/bundle:25:in `<main>'
+    ```
 
 Workaround from [github.com/jekyll/jekyll/issues/8523][jekyll-issues-8523] helped:
 
