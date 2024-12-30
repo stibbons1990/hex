@@ -33,6 +33,7 @@ plugins:
       draft_on_serve: false
       pagination: true
       pagination_per_page: 20
+  - glightbox
   - macros:
       on_undefined: strict
 site_name: Inadvisably Applied Magic

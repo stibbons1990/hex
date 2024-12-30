@@ -295,6 +295,26 @@ in Ubuntu this requires installing `mkdocs-macros-plugin`:
     After this operation, 124 kB of additional disk space will be used.
     ```
 
+### GLightbox
+
+[MkDocs GLightbox](https://github.com/blueswen/mkdocs-glightbox?tab=readme-ov-file#mkdocs-glightbox)
+is a nice plugin that supports image lightbox with GLightbox,
+a pure javascript lightbox library with mobile support.
+
+Again, there is no system package in Ubuntu 24.04 so it must be installed via `pip`.
+
+??? terminal "`$ sudo pip3 install --break-system-packages mkdocs-glightbox`"
+
+    ``` console
+    $ sudo pip install --break-system-packages mkdocs-glightbox
+    Collecting mkdocs-glightbox
+      Downloading mkdocs_glightbox-0.4.0-py3-none-any.whl.metadata (6.1 kB)
+    Downloading mkdocs_glightbox-0.4.0-py3-none-any.whl (31 kB)
+    Installing collected packages: mkdocs-glightbox
+    Successfully installed mkdocs-glightbox-0.4.0
+    WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+    ``` 
+
 ## Publish to GitHub Pages
 
 To publish the new site to GitHub Pages, replacing the previous
@@ -349,6 +369,7 @@ To fix this, add a step to install the plugin in the
 ``` yaml title=".github/workflows/ci.yml"
       - run: pip install mkdocs-material 
       - run: pip install mkdocs-macros-plugin
+      - run: pip install mkdocs-glightbox
       - run: mkdocs gh-deploy --force
 ``` 
 
