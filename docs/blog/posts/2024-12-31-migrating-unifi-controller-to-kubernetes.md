@@ -50,8 +50,7 @@ drwxr-xr-x 1 1009 1009    16 Oct 27 13:47 config
 drwxr-xr-x 1 1009 1009 23022 Dec 31 23:23 mongodb
 ```
 
-Note the UID/GID (**1009**) to be used in the Kubernetes
-deployment `securityContext` later.
+Note the UID/GID (**1009**) to be used later.
 
 Create the script `/home/k8s/unifi/init-mongo.sh` using the exact
 content from the 
