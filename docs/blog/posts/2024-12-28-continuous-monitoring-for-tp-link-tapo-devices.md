@@ -5,9 +5,8 @@ categories:
  - monitoring
  - python
  - tapo
+title: Continuous Monitoring for TP-Link Tapo devices
 ---
-
-# Continuous Monitoring for TP-Link Tapo devices
 
 In an old house with aging electrical wiring and a limited power contract, keeping power
 consumption in check is quite necessary and can be a bit of a challenge. Some appliances are

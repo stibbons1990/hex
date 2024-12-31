@@ -7,9 +7,8 @@ categories:
  - docker
  - server
  - unifi
+title: Migrating UniFi Controller to Kubernetes
 ---
-
-# Migrating UniFi Controller to Kubernetes
 
 <!-- more -->
 

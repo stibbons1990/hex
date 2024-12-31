@@ -7,9 +7,8 @@ categories:
  - migration
  - mkdocs
  - material
+title: Starting a blog with mkdocs-material on GitHub pages
 ---
-
-# Starting a blog with mkdocs-material on GitHub pages
 
 After about a year since
 [starting a blog with Jekyll on GitHub pages](2023-09-21-starting-a-blog-with-jekyll-on-github-pages.md),
