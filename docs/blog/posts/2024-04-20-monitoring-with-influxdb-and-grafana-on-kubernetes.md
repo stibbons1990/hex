@@ -26,8 +26,8 @@ the cluster's infrastructure to expose these services
 
 ## Current Setup
 
-[Continuous Monitoring](../../conmon.md) describes the current, complete setup with the OSS
-versions of InfluxDB and Grafana.
+[Continuous Monitoring](../../projects/conmon.md) describes the current,
+complete setup with the OSS versions of InfluxDB and Grafana.
 
 ## Kubernetes Deployment
 
@@ -695,7 +695,7 @@ replicaset.apps/influxdb-87c66ff6     0         0         0       17h
 
 ## Conmon Migration
 
-[Continuous Monitoring](../../conmon.md)
+[Continuous Monitoring](../../projects/conmon.md)
 can now be migrated to report metrics to a (new)
 database in the new InfluxDB and serve dashboards
 securely over HTTPS from the new Grafana.

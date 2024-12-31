@@ -24,7 +24,7 @@ For all the smart features in these devices and the companion app, there is no w
 have a panoramic view of *aggregated* power consumption broken down by device, or to
 configure thresholds based on the *aggregated* power consumption from all appliances.
 Such panoramic view was not hard to implement by building on the
-[Continuous Monitoring](../../conmon.md) solution previously built for monigoring
+[Continuous Monitoring](../../projects/conmon.md) solution previously built for monigoring
 computing resources (already monitoring temperatures and power consumption).
 
 ![Monitoring dashboard for Tapo devices showing current and historic power use and temperatures](../media/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices/tapo-monitoring-grafana-dashboard.png)
@@ -76,7 +76,7 @@ this house and those that may be used in the future:
     *Smart Hub with Chime*, namely those that would allow sounding (and stopping) alarms.
 
 The Python library can be installed via `pip`, along with a couple of other
-[Python dependencies](../../conmon.md#python-dependencies).
+[Python dependencies](../../projects/conmon.md#python-dependencies).
 
 ### Smart Actions
 
@@ -113,9 +113,9 @@ root@raven:~# crontab -l
   * * * * * /usr/local/bin/conmon-tapo.py
 ```
 
-Thus the [`conmon-tapo.py`](../../conmon.md#conmon-tapopy) script reports temperature,
-humidity and power use every minute, for those devices listed in the a configuration file
-like [`tapo.yaml`](../../conmon.md#tapoyaml).
+Thus the [`conmon-tapo.py`](../../projects/conmon.md#conmon-tapopy) script reports
+temperature, humidity and power use every minute, for those devices listed in the a
+configuration file like [`tapo.yaml`](../../projects/conmon.md#tapoyaml).
 
 The code is based on several Python examples under
 [`tapo-py/examples`](https://github.com/mihai-dinculescu/tapo/tree/main/tapo-py/examples),
@@ -128,14 +128,14 @@ in particular:
 *   [`get_current_power()`](https://github.com/mihai-dinculescu/tapo/blob/main/tapo-py/examples/tapo_p110.py#L34)
     to get values from smart plugs with energy monitoring.
 
-The [`conmon-tapo.py`](../../conmon.md#conmon-tapopy) runs through 4 steps each time:
+[`conmon-tapo.py`](../../projects/conmon.md#conmon-tapopy) runs through 4 steps each time:
 
 1.  Load a list of devices (with IP addresses) and other settings from a configuration file.
 2.  Poll the devices for their latest values. Skip those that are unreadable.
 3.  Synthesize measurements for *fake* devices; as encoded in the configuration file.
 4.  Post measurements to an InfluxDB server,
-    [tagged with the hostname](../../conmon.md#__codelineno-11-114) to differentiate
-    devices across sites.
+    [tagged with the hostname](../../projects/conmon.md#__codelineno-11-114) to
+    differentiate devices across sites.
 
 The tapo app allows creating multiple "homes" and "rooms" to track the location of
 each device, but these attributes are not included in the device information returned
@@ -180,7 +180,7 @@ by `get_device_info()`.
 
 The Python library relies on client applications to handle any and all exceptions,
 which can sometimes lead to very crypt stack traces. See
-[Device IP dependencies](../../conmon.md#device-ip-dependencies)
+[Device IP dependencies](../../projects/conmon.md#device-ip-dependencies)
 for those encountered so far, *Trying to read a P115 like it was an H100* produced a
 particularly unique stack trace.
 
@@ -242,7 +242,7 @@ This *should be practical enough* thanks to how well the dashboard shows on mobi
 
 ## A more long-term database
 
-InfluxDB database for [Continuous Monitoring](../../conmon.md) was set up with a
+InfluxDB database for [Continuous Monitoring](../../projects/conmon.md) was set up with a
 [`30 days retention policy](2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#conmon-migration)
 which would not be enough to capture long-term trends from sensors data.
 At times it was found also slightly too, a more generous 90 days should do nicely,

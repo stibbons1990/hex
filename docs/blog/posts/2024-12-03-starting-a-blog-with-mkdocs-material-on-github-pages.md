@@ -251,7 +251,7 @@ it would be desirable to use
 [the `same-dir` plugin](https://github.com/oprypin/mkdocs-same-dir#mkdocs-same-dir).
 This is not used in this site, because there is more than a blog
 here; there are also *static pages* such as
-[Continuous Monitoring](../../conmon.md).
+[Continuous Monitoring](../../projects/conmon.md).
 
 It can also be good to have a clear separation between the blog,
 as an otherwise unorganized timeline of events, and the more

@@ -1667,9 +1667,9 @@ to write this blog.
     [Essential Packages](#install-essential-packages) above.
 
 Install the
-[multi-thread version](../../conmon.md#deploy-to-pcs)
+[multi-thread version](../../projects/conmon.md#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service](../../conmon.md#install-conmon);
+[run it as a service](../../projects/conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ``` ini linenums="1" title="/etc/systemd/system/conmon.service"
@@ -1971,11 +1971,11 @@ and with that all sensors are available (including fan speeds):
 #### Speedtest and Tapo devices
 
 While there is no 24x7 system on-site, this PC also has to run
-some of the [additional scripts](../../conmon.md#additional-scripts)
+some of the [additional scripts](../../projects/conmon.md#additional-scripts)
 to monitor internet speeds with
-[`conmon-speedtest`](../../conmon.md#conmon-speedtest)
+[`conmon-speedtest`](../../projects/conmon.md#conmon-speedtest)
 and TP-Link Tapo devices wit
-[`conmon-tapo.py`](../../conmon.md#conmon-tapopy).
+[`conmon-tapo.py`](../../projects/conmon.md#conmon-tapopy).
 
 ``` console
 # cp conmon-speedtest conmon-tapo.py /usr/local/bin/
@@ -1988,7 +1988,7 @@ and TP-Link Tapo devices wit
 
     Make sure `/etc/conmon/tapo.yaml` maps to the correct IP addresses
     and models for each device, otherwise `conmon-tapo.py`
-    [will crash](../../conmon.md#device-ip-dependencies).
+    [will crash](../../projects/conmon.md#device-ip-dependencies).
 
 ### Blender
 
@@ -3004,7 +3004,7 @@ Many games depend on
 to run and this needs to be installed separately.
 
 This was previously installed in Rapture when
-[modding Skyrim Special Edition](2023-10-14-modding-a-steam-game-on-linux-the-elder-scrolls-v-skyrim-special-edition#glorious-eggroll),
+[modding Skyrim Special Edition](2023-10-14-modding-a-steam-game-on-linux-the-elder-scrolls-v-skyrim-special-edition.md#glorious-eggroll),
 and the old versions may still be available under `~/.steam/root/compatibilitytools.d/`
 
 The latest version can be installed using the Bash script provided as the

@@ -223,9 +223,9 @@ simple as downloading the Debian package and installing it:
 ### Continuous Monitoring
 
 Install the
-[multi-thread version](../../conmon.md#deploy-to-pcs)
+[multi-thread version](../../projects/conmon.md#deploy-to-pcs)
 of the `conmon` script as `/usr/local/bin/conmon` and
-[run it as a service](../../conmon.md#install-conmon);
+[run it as a service](../../projects/conmon.md#install-conmon);
 create `/etc/systemd/system/conmon.service` as follows:
 
 ```ini

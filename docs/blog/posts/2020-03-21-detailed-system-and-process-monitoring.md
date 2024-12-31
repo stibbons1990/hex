@@ -420,4 +420,5 @@ be added later, here are some ideas:
 - GPU load, VRAM, temperature, fan speed, power draw
 
 These and more may be added later, keep an eye on the full
-scripts in the [**Continuous Monitoring**](../../conmon.md) page.
+scripts in the [**Continuous Monitoring**](../../projects/conmon.md)
+project page.
