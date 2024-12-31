@@ -177,7 +177,14 @@ including the OS, this last test also reproduced the problem:
 
 Notice the glitch lines around the top-right corner and through the Select button, plus the fixed-size square area down-and-right from the mouse cursor. This area followed the cursor, as you can see in this video.
 
-![type:video](https://www.youtube.com/embed/Sk11E_4gmYw)
+<iframe
+  width="800"
+  height="450"
+  src="https://www.youtube.com/embed/Sk11E_4gmYw?si=R-VynLLZmOs_RKtj"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen></iframe>
 
 In the NVidia forum, a top contributor suggested to
 *check for a general hardware fault using gpu-burn or cuda-gpumemtest*.
@@ -456,7 +463,14 @@ Not only the corrupted graphics happened again, it was much worse. While previou
 
 ![Extremely corrupted video on the SDDM login manager (2 of 2)](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg)
 
-![type:video](https://www.youtube.com/embed/QaTqfMccrlc)
+<iframe
+  width="800"
+  height="450"
+  src="https://www.youtube.com/embed/QaTqfMccrlc?si=heZtZuyQdUOeN9P7"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen></iframe>
 
 ## Root Cause Confirmation
 
