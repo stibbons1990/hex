@@ -37,12 +37,15 @@ plugins:
   - macros:
       on_undefined: strict
   - mkdocs-video
+  - search
 site_name: Inadvisably Applied Magic
 site_url: https://stibbons1990.github.io/hex/
 theme:
   name: material
   features:
     - content.code.copy
+    - search.highlight
+    - search.suggest
   icon:
     logo: fontawesome/solid/hat-wizard
   palette:

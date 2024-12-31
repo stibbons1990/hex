@@ -1,0 +1,2947 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2022/11/05/the-weirdest-corrupted-video-on-an-nvidia-card/">
+      
+      
+        <link rel="prev" href="../../../10/12/crucial-mx500-ssd-found-problematic/">
+      
+      
+        <link rel="next" href="../../12/ubuntu-studio-2204-on-computer-for-a-young-artist/">
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.0">
+    
+    
+      
+        <title>The weirdest corrupted video on an NVidia card - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.9f615399.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.649f08f9.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-Y167L3ZVGY",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+   <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+    html.glightbox-open { overflow: initial; height: 100%; }
+    .gslide-title { margin-top: 0px; user-select: text; }
+    .gslide-desc { color: #666; user-select: text; }
+    .gslide-image img { background: white; }
+    .gscrollbar-fixer { padding-right: 15px; }
+    .gdesc-inner { font-size: 0.75rem; }
+    body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+    body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+    body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="../../../../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#what-happened" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="m64 416 104.6-235.3c15.3-34.4 40.3-63.5 72-83.7L387.5 3c3-1.9 6.5-2.9 10-2.9C407.7 0 416 8.3 416 18.6v1.6c0 2.6-.5 5.1-1.4 7.5l-59.8 149.2c-1.9 4.7-2.8 9.7-2.8 14.7 0 5.5 1.2 11 3.4 16.1L448 416H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.3H64zm215.6-274.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7-6.7-20.2zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              The weirdest corrupted video on an NVidia card
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="m64 416 104.6-235.3c15.3-34.4 40.3-63.5 72-83.7L387.5 3c3-1.9 6.5-2.9 10-2.9C407.7 0 416 8.3 416 18.6v1.6c0 2.6-.5 5.1-1.4 7.5l-59.8 149.2c-1.9 4.7-2.8 9.7-2.8 14.7 0 5.5 1.2 11 3.4 16.1L448 416H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.3H64zm215.6-274.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7-6.7-20.2zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    About This Place
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../conmon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Continuous Monitoring
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Unexpected Linux Adventures
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Archive
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2024
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2023/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2023
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2022/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2022
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2020/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2020
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2019/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2019
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Categories
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    monitoring
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    python
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/tapo/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    tapo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/linux/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    linux
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/ubuntu/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ubuntu
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/github/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    github
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/markdown/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    markdown
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/blog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    blog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/migration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    migration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/mkdocs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    mkdocs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/material/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    material
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/intel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    intel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/nuc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nuc
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/kubernetes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    kubernetes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/docker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    docker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/server/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    server
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/self-hosted/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    self-hosted
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/music/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    music
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/media/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    media
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/navidrome/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    navidrome
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/dns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/photo-albums/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    photo-albums
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/photoprism/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    photoprism
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/homebox/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    homebox
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/inventory/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    inventory
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/activitywatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ActivityWatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/time-tracking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    time-tracking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/ebook/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ebook
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/komga/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    komga
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/firefly-iii/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    firefly-iii
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/studio/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    studio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/desktop/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    desktop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/steam/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    steam
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/proton/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    proton
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/videogames/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    videogames
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/bethesda/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bethesda
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/fallout/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    fallout
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/raspberrypi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    raspberrypi
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/influxdb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    influxdb
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/grafana/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    grafana
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/minecraft/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    minecraft
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/java/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    java
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/bedrock/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bedrock
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/audiobookshelf/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    audiobookshelf
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/audiobooks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    audiobooks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/encryption/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    encryption
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/veracrypt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    veracrypt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/luks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    luks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/cryptsetup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    cryptsetup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/displaycal/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    displaycal
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/skyrim/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    skyrim
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/mods/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    mods
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/audio/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    audio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/recording/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    recording
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/alsa/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    alsa
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/headphones/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    headphones
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/ea/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ea
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/bioware/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bioware
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/jekyll/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    jekyll
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/plex/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    plex
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/xhci/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    xhci
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/usb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    usb
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/hardware/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hardware
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/failure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    failure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/workaround/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    workaround
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/asus/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    asus
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/mediatek/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    mediatek
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/glitch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    glitch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/timeout/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    timeout
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/keyboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    keyboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/macropad/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    macropad
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/qmk/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    qmk
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/firmware/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    firmware
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/vscode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    vscode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/nvidia/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    nvidia
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    troubleshooting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/gpuburn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    gpuburn
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/cuda/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    cuda
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/crucial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    crucial
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/ssd/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ssd
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/locales/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    locales
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/chrome/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    chrome
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/firefox/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    firefox
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/raid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RAID
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/btrfs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Btrfs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/intel-nuc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Intel NUC
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/audible/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Audible
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/bash/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Bash
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/mp3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MP3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-happened" class="md-nav__link">
+    What Happened
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regaining-control" class="md-nav__link">
+    Regaining Control
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#root-cause-analysis" class="md-nav__link">
+    Root Cause Analysis
+  </a>
+  
+    <nav class="md-nav" aria-label="Root Cause Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpu-burn" class="md-nav__link">
+    gpu-burn
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cuda-gpumemtest" class="md-nav__link">
+    cuda-gpumemtest
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worse-than-ever" class="md-nav__link">
+    Worse Than Ever
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#root-cause-confirmation" class="md-nav__link">
+    Root Cause Confirmation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#back-to-normal" class="md-nav__link">
+    Back To Normal
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__title">
+                <div class="md-nav__link">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+              </li>
+              <li class="md-nav__item">
+                <div class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                  <time datetime="2022-11-05 00:00:00" class="md-ellipsis">November 5, 2022</time>
+                </div>
+              </li>
+              
+              
+                <li class="md-nav__item">
+                  <div class="md-nav__link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3H9m3 2 4 13 3-1-4-13-3 1M5 5v13h3V5H5M3 19v2h18v-2H3Z"/></svg>
+                    <span class="md-ellipsis">
+                      in
+                      
+                        <a href="../../../../category/linux/">linux</a>, 
+                        <a href="../../../../category/hardware/">hardware</a>, 
+                        <a href="../../../../category/failure/">failure</a>, 
+                        <a href="../../../../category/nvidia/">nvidia</a>, 
+                        <a href="../../../../category/troubleshooting/">troubleshooting</a>, 
+                        <a href="../../../../category/gpuburn/">gpuburn</a>, 
+                        <a href="../../../../category/cuda/">cuda</a></span>
+                  </div>
+                </li>
+              
+              
+                
+                <li class="md-nav__item">
+                  <div class="md-nav__link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
+                    <span class="md-ellipsis">
+                      
+                        13 min read
+                      
+                    </span>
+                  </div>
+                </li>
+              
+            </ul>
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+
+
+  <h1>The weirdest corrupted video on an NVidia card</h1>
+
+<div><p>This is the kind of thing that makes you think,
+<em>this </em><em>really</em><em> only happens to me</em>.</p>
+<p>Back in June, when the availability and price of graphics card
+finally approached <em>relatively</em> normal values, I got myself an new
+<a href="https://www.guru3d.com/articles-pages/asus-geforce-rtx-3070-tuf-gaming-review,33.html">ASUS GeForce TUF Gaming RTX 3070 Ti OC Edition</a>
+(to replace the old
+<a href="https://www.guru3d.com/articles-pages/asus-geforce-gtx-1070-strix-gaming-review,12.html">ASUS GeForce GTX 1070 STRIX</a>
+from 2017). It still was still nearly $800 but it was clearly never
+going to come down to $570 the old one costed back in August 2017.</p>
+<p>Then, in September, the new card died. Somewhat <em>surreptitiously...</em></p>
+<!-- more -->
+
+<h2 id="what-happened">What Happened</h2>
+<p>It started small, like oak trees.</p>
+<p>At first there were just faint <em>glitchy</em> thin lines blinking across
+the screen. Searching for posts discussing this kind of video
+artifacts, came up empty.</p>
+<p>When the problem started I was running
+<a href="https://ubuntustudio.org/2020/04/ubuntu-studio-20-04-lts-released/">Ubuntu Studio 20.04</a>
+with KDE Plasma. After a couple of weeks of trying a few tweaks
+(e.g. disable compositor) and seeing how nothing really helped,
+I decided to install
+<a href="https://ubuntustudio.org/2022/04/ubuntu-studio-22-04-lts-released/">Ubuntu Studio 22.04</a>
+and at first it looked perfect, but then the problem manifested
+again as soon as the first reboot with the NVidia driver.</p>
+<p>The artifact would manifest mostly when the screen was locked,
+sometimes when it wasn’t, and affect only the top 10-15% of the
+screen, plus a fixed-size square area down-and-right of the mouse
+cursor. It got worse day after day, and soon the entire screen was
+affected, the corruption looked like large areas of the image would
+turn one color (blue, magenta, green, etc.) and the artifacts
+<em>followed</em> the content of the screen, so that the corrupted areas
+would align with the clouds, sky and water in landscape photos.</p>
+<p>From there, the problem quickly evolved to the point where graphics
+are corrupted as soon as the login manager started up, upon login the
+very simple splash screen was corrupted, and then the whole desktop
+environment was so badly corrupted it was barely possible to even see
+where the mouse cursor was and the text in Konsole was unreadable.
+At that point, going back the text-only terminal with <code>Ctrl+Alt+F2</code>
+presented such badly corrupted output it was unreadable.</p>
+<h2 id="regaining-control">Regaining Control</h2>
+<p>The first suspect is usually the proprietary NVidia drivers, so the
+first workaround, to be able to use the PC, was to switch to the
+<code>nouveau</code> driver:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp"># </span>dpkg<span class="w"> </span>-P<span class="w"> </span>nvidia-driver-515
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gp"># </span>apt<span class="w"> </span>autoremove
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp"># </span>apt<span class="w"> </span>update
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gp"># </span>apt<span class="w"> </span>install<span class="w"> </span>xserver-xorg-video-nouveau
+</span></code></pre></div>
+<p>The last 2 commands didn’t actually do anything. After this, rebooting
+led to a perfectly usable system without any graphical glitches.</p>
+<p>Ubuntu 22.04 had
+<a href="https://linuxconfig.org/how-to-install-the-nvidia-drivers-on-ubuntu-22-04">version 470 available for easy installation</a>, and this version 
+<a href="https://www.nvidia.com/download/driverResults.aspx/176525/en-us/">supports the RTX 3070 cards</a>,
+so that was the next workaround. The trick to switch back to an older
+version is to hold / freeze them to that version:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp"># </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-470
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="gp"># </span>apt-mark<span class="w"> </span>hold<span class="w"> </span>nvidia-driver-470<span class="w"> </span>libnvidia-cfg1-470<span class="w"> </span>libnvidia-common-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>libnvidia-compute-470<span class="w"> </span>libnvidia-compute-470:i386<span class="w"> </span>libnvidia-decode-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>libnvidia-decode-470:i386<span class="w"> </span>libnvidia-egl-wayland1<span class="w"> </span>libnvidia-encode-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>libnvidia-encode-470:i386<span class="w"> </span>libnvidia-extra-470<span class="w"> </span>libnvidia-fbc1-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span>libnvidia-fbc1-470:i386<span class="w"> </span>libnvidia-gl-470<span class="w"> </span>libnvidia-gl-470:i386<span class="w"> </span>libnvidia-ifr1-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span>libnvidia-ifr1-470:i386<span class="w"> </span>libxnvctrl0<span class="w"> </span>nvidia-compute-utils-470<span class="w"> </span>nvidia-dkms-470<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span>nvidia-kernel-common-470<span class="w"> </span>nvidia-kernel-source-470<span class="w"> </span>nvidia-prime<span class="w"> </span>nvidia-settings<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span>nvidia-utils-470<span class="w"> </span>screen-resolution-extra<span class="w"> </span>xserver-xorg-video-nvidia-470
+</span></code></pre></div>
+<p>After this, rebooting led to straight back into the problem;
+corrupted video as soon as SDDM came up, and still corrupted after
+going to TTY.</p>
+<p>Uninstall the NVidia drivers and rebooting solved the problem again.
+This time needed to uninstall all packages explicitly:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp"># </span>apt<span class="w"> </span>remove<span class="w"> </span><span class="k">$(</span>dpkg<span class="w"> </span>-l<span class="w"> </span><span class="p">|</span>grep<span class="w"> </span><span class="s1">'nvidia.*470'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'{print $2}'</span><span class="k">)</span>
+</span></code></pre></div>
+<p>That was enough to go back to the nouveau driver.
+A few more packages had to be removed later:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp"># </span>apt<span class="w"> </span>remove<span class="w"> </span>screen-resolution-extra<span class="w"> </span>nvidia-settings<span class="w"> </span>nvidia-prime<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>libnvidia-egl-wayland1:amd64<span class="w"> </span>libxnvctrl0:amd64
+</span></code></pre></div>
+<p>It became clear that switching back and forth between the Nvidia and
+nouveau drivers was going to be necessary more than a few times, so I
+create a couple of helper scripts I could run despite not being able
+to read the screen:</p>
+<div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
+<span class="normal"><a href="#__codelineno-4-2">2</a></span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span>
+<span class="normal"><a href="#__codelineno-4-4">4</a></span>
+<span class="normal"><a href="#__codelineno-4-5">5</a></span>
+<span class="normal"><a href="#__codelineno-4-6">6</a></span>
+<span class="normal"><a href="#__codelineno-4-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="ch">#!/bin/sh</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"blacklist nouveau"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="w">  </span>&gt;<span class="w">  </span>/etc/modprobe.d/blocklist-nvidia-nouveau.conf
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"options nouveau modeset=0"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="w">  </span>&gt;&gt;<span class="w"> </span>/etc/modprobe.d/blocklist-nvidia-nouveau.conf
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a>update-initramfs<span class="w"> </span>-u
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-515
+</span></code></pre></div></td></tr></table></div>
+<div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span>
+<span class="normal"><a href="#__codelineno-5-2">2</a></span>
+<span class="normal"><a href="#__codelineno-5-3">3</a></span>
+<span class="normal"><a href="#__codelineno-5-4">4</a></span>
+<span class="normal"><a href="#__codelineno-5-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="ch">#!/bin/sh</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a>dpkg<span class="w"> </span>-P<span class="w"> </span>nvidia-driver-515
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a>apt<span class="w"> </span>remove<span class="w"> </span>-y<span class="w"> </span><span class="k">$(</span>dpkg<span class="w"> </span>-l<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">'nvidia.*515'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'{print $2}'</span><span class="k">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a>apt<span class="w"> </span>autoremove<span class="w"> </span>-y
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a>rm<span class="w"> </span>-f<span class="w"> </span>/etc/modprobe.d/blocklist-nvidia-nouveau.conf
+</span></code></pre></div></td></tr></table></div>
+<p>The lines to
+<a href="https://linuxconfig.org/how-to-disable-blacklist-nouveau-nvidia-driver-on-ubuntu-22-04-jammy-jellyfish-linux">disable the <code>nouveau</code> driver</a>
+are a precaution to keep the output from
+<a href="https://helpmanual.io/help/nvidia-bug-report.sh/"><code>nvidia-bug-report.sh</code></a>
+(part of <code>nvidia-utils-515</code>) from mentions the <code>nouveau</code> driver when
+it is not in use.</p>
+<h2 id="root-cause-analysis">Root Cause Analysis</h2>
+<p>With this easy-switch toolkit in hand, it was time to go on a Wild
+Hunt for the root cause of the problem by changing one thing at a time...</p>
+<ul>
+<li>Going back to Ubuntu 20.04 (still available in its old partition)
+   and try with NVidia drivers 470, 510 and 515.</li>
+<li>Use the same screen on a laptop.</li>
+<li>Connect the screen directly to the PC.</li>
+<li>Try every DisplayPort cables at hand.</li>
+<li>Confirm all DisplayPort cables are rated DP 1.2 (rated 4k@60).</li>
+<li>Replaced DisplayPort 1.2 with HDMI 2.0 cable (rated 4k@60).</li>
+<li>Tried <a href="https://pop.system76.com/">Pop!_OS live USB</a> because it
+   ships with the latest NVidia driver.</li>
+</ul>
+<p>Normally the PC and laptop share the screen and keyboard via
+<a href="https://www.startech.com/en-ch/server-management/sv231dpddua2">StarTech SV231DPDDUA2</a>
+DisplayPort KVM Switch rated 4K 60Hz. I took this KVM switch out of
+the equation early on, so most of the tests were on a direct
+PC-to-screen DP 1.2 connection.</p>
+<p>Being <em>quite confident</em> that the problem was in the graphics card itself, but no idea how to go from here, I posted the problem in the NVidia forum:
+<a href="https://forums.developer.nvidia.com/t/extremely-corrupted-graphics-only-with-nvidia-driver-515-on-rtx-3070-ti/228223">Extremely corrupted graphics <em>only</em> with NVidia driver 515 on RTX 3070 Ti</a>.</p>
+<p>Shortly after that, a friend suggested trying with
+<a href="https://pop.system76.com/">Pop!_OS live USB</a>
+because it ships with the latest NVidia driver.
+Having already removed everything else out of the way,
+including the OS, this last test also reproduced the problem:</p>
+<p><a class="glightbox" href="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-popos-live-usb.jpg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Welcome dialog of live USB OS with NVidia drivers showing the same glitchy graphical artifacts" src="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-popos-live-usb.jpg"></a></p>
+<p>Notice the glitch lines around the top-right corner and through the Select button, plus the fixed-size square area down-and-right from the mouse cursor. This area followed the cursor, as you can see in this video.</p>
+<p><a class="glightbox" href="https://www.youtube.com/embed/Sk11E_4gmYw" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><div class="video-container"><iframe src="https://www.youtube.com/embed/Sk11E_4gmYw" style="position:relative;width:100%;height:22.172vw" frameborder="0" allowfullscreen alt="type:video"></iframe></div></a></p>
+<p>In the NVidia forum, a top contributor suggested to
+<em>check for a general hardware fault using gpu-burn or cuda-gpumemtest</em>.</p>
+<p>None of these tools are directly available in Ubuntu 22.04 so first
+I had to install them.</p>
+<h3 id="gpu-burn"><code>gpu-burn</code></h3>
+<p>First I needed to reinstall the NVidia driver and CUDA libraries. To avoid corrupting the graphics or interfering with the test, I chose to disable SDDM before rebooting:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp"># </span>systemctl<span class="w"> </span>disable<span class="w"> </span>sddm
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="gp"># </span>/root/nvidia-on.sh
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="gp"># </span>reboot
+</span></code></pre></div>
+<p>Installed gpu-burn from
+<a href="https://github.com/wilicc/gpu-burn">wilicc/gpu-burn</a>
+and followed the instructions from
+<a href="http://wili.cc/blog/gpu-burn.html">wili.cc/blog/gpu-burn.html</a>;
+using <code>COMPUTE=8.6</code> for RTX 3070 Ti
+(<a href="https://developer.nvidia.com/cuda-gpus">source</a>):</p>
+<p>Apparently, <em>one does not simply</em> <code>make</code> this.
+Many headers are missing or not found:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>g++ -O3 -Wno-unused-result -I/usr/local/cuda/include -c gpu_burn-drv.cpp
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>gpu_burn-drv.cpp:51:10: fatal error: cuda.h: No such file or directory
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>   51 | #include &lt;cuda.h&gt;
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>      |          ^~~~~~~~
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>compilation terminated.
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>make: *** [Makefile:32: gpu_burn-drv.o] Error 1
+</span></code></pre></div>
+<p>Installing the <code>nvidia-cuda-dev</code> or <code>nvidia-cuda-toolkit</code> packages
+was not an option because both wanted to remove the latest NVidia
+driver (<code>nvidia-driver-515</code>) and replace it with older drivers.
+Instead, found the missing headers and added <code>-I</code> flags to <code>gcc</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp"># </span>g++<span class="w"> </span>-O3<span class="w"> </span>-Wno-unused-result<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-I/usr/local/cuda/include<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-I/usr/src/linux-headers-5.15.0-47-lowlatency/include/linux<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>-I/usr/src/linux-headers-5.15.0-47-lowlatency/include<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>-I/usr/src/linux-headers-5.15.0-47-lowlatency/arch/x86/include/generated<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span>-I/usr/src/linux-lowlatency-headers-5.15.0-47/arch/x86/include<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span>-c<span class="w"> </span>gpu_burn-drv.cpp
+</span></code></pre></div>
+<p>Still not being enough, the build failed with yet another error:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>gpu_burn-drv.cpp:52:10: fatal error: cublas_v2.h: No such file or directory
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>   52 | #include "cublas_v2.h"
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>      |          ^~~~~~~~~~~~~
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>compilation terminated.
+</span></code></pre></div>
+<p>This one was trickier. There is was trace of <code>cublas_v2.h</code> anywhere,
+installing the <code>libcublas11</code> and <code>libcublaslt11</code> packages did not help.</p>
+<p>The only clue I found was in
+<a href="https://github.com/NVIDIA/apex/issues/957">github.com/NVIDIA/apex/issues/957</a>
+to install a package directly, but it is not installable in Ubuntu 22.04 so I had to follow the instructions for Ubuntu 22.04 at developer.<a href="https://developer.nvidia.com/cuda-downloads">nvidia.com/cuda-downloads</a>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp"># </span>wget<span class="w"> </span>-O<span class="w"> </span>/etc/apt/preferences.d/cuda-repository-pin-600<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="gp"># </span>wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda-repo-ubuntu2204-11-7-local_11.7.1-515.65.01-1_amd64.deb
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="gp"># </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cuda-repo-ubuntu2204-11-7-local_11.7.1-515.65.01-1_amd64.deb
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="gp"># </span>cp<span class="w"> </span>/var/cuda-repo-ubuntu2204-11-7-local/cuda-*-keyring.gpg<span class="w"> </span>/usr/share/keyrings/
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="gp"># </span>apt-get<span class="w"> </span>update
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="gp"># </span>apt-get<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>cuda
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To undo this change later, remove
+<code>/etc/apt/preferences.d/cuda-repository-pin-600</code>
+and run <code>apt update</code>.</p>
+</div>
+<p>Finally, one can simply <code>make</code> and run <code>gpu_burn</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp"># </span>make<span class="w"> </span><span class="nv">COMPUTE</span><span class="o">=</span><span class="m">8</span>.6
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="gp"># </span>./gpu_burn<span class="w"> </span><span class="m">120</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">Burning for 120 seconds.</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">GPU 0: NVIDIA GeForce RTX 3070 Ti (UUID: GPU-0c349bdd-3426-f2d3-4b26-c0b4bf0aad2e)</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="go">Initialized device 0 with 7974 MB of memory (7451 MB available, using 6706 MB of it), using FLOATS</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="go">Results are 16777216 bytes each, thus performing 417 iterations</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="go">10.8%  proc'd: 8757 (13280 Gflop/s)   errors: 0   temps: 54 C </span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="go">    Summary at:   Mon Sep 19 05:38:21 PM CEST 2022</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="go">21.7%  proc'd: 18765 (13235 Gflop/s)   errors: 0   temps: 59 C </span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="go">    Summary at:   Mon Sep 19 05:38:34 PM CEST 2022</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="go">32.5%  proc'd: 28773 (13186 Gflop/s)   errors: 0   temps: 61 C </span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="go">    Summary at:   Mon Sep 19 05:38:47 PM CEST 2022</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="go">43.3%  proc'd: 38781 (13178 Gflop/s)   errors: 0   temps: 64 C </span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="go">    Summary at:   Mon Sep 19 05:39:00 PM CEST 2022</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="go">53.3%  proc'd: 47955 (13135 Gflop/s)   errors: 0   temps: 64 C </span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="go">    Summary at:   Mon Sep 19 05:39:12 PM CEST 2022</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="go">64.2%  proc'd: 57963 (13125 Gflop/s)   errors: 0   temps: 66 C </span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="go">    Summary at:   Mon Sep 19 05:39:25 PM CEST 2022</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="go">75.0%  proc'd: 67971 (13144 Gflop/s)   errors: 0   temps: 67 C </span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="go">    Summary at:   Mon Sep 19 05:39:38 PM CEST 2022</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="go">85.8%  proc'd: 77562 (13033 Gflop/s)   errors: 0   temps: 67 C </span>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="go">    Summary at:   Mon Sep 19 05:39:51 PM CEST 2022</span>
+</span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>
+</span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="go">96.7%  proc'd: 87570 (13038 Gflop/s)   errors: 0   temps: 68 C </span>
+</span><span id="__span-11-32"><a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="go">    Summary at:   Mon Sep 19 05:40:04 PM CEST 2022</span>
+</span><span id="__span-11-33"><a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a>
+</span><span id="__span-11-34"><a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="go">100.0%  proc'd: 91323 (13090 Gflop/s)   errors: 0   temps: 68 C </span>
+</span><span id="__span-11-35"><a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="go">Killing processes.. Freed memory for dev 0</span>
+</span><span id="__span-11-36"><a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="go">Uninitted cublas</span>
+</span><span id="__span-11-37"><a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="go">done</span>
+</span><span id="__span-11-38"><a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a>
+</span><span id="__span-11-39"><a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="go">Tested 1 GPUs:</span>
+</span><span id="__span-11-40"><a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a><span class="go">    GPU 0: OK</span>
+</span></code></pre></div>
+<p>Then run it again using doubles (see
+<a href="https://github.com/wilicc/gpu-burn#usage">usage</a>):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp"># </span>./gpu_burn<span class="w"> </span>-d<span class="w"> </span><span class="m">120</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="go">Burning for 120 seconds.</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="go">GPU 0: NVIDIA GeForce RTX 3070 Ti (UUID: GPU-0c349bdd-3426-f2d3-4b26-c0b4bf0aad2e)</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="go">Initialized device 0 with 7974 MB of memory (7451 MB available, using 6706 MB of it), using DOUBLES</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="go">Results are 33554432 bytes each, thus performing 207 iterations</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="go">10.8%  proc'd: 207 (289 Gflop/s)   errors: 0   temps: 48 C </span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="go">    Summary at:   Mon Sep 19 05:41:43 PM CEST 2022</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="go">25.0%  proc'd: 414 (312 Gflop/s)   errors: 0   temps: 50 C </span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="go">    Summary at:   Mon Sep 19 05:42:00 PM CEST 2022</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="go">37.5%  proc'd: 621 (312 Gflop/s)   errors: 0   temps: 51 C </span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="go">    Summary at:   Mon Sep 19 05:42:15 PM CEST 2022</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="go">48.3%  proc'd: 1035 (316 Gflop/s)   errors: 0   temps: 52 C </span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="go">    Summary at:   Mon Sep 19 05:42:28 PM CEST 2022</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="go">62.5%  proc'd: 1242 (316 Gflop/s)   errors: 0   temps: 53 C </span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="go">    Summary at:   Mon Sep 19 05:42:45 PM CEST 2022</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="go">75.0%  proc'd: 1449 (316 Gflop/s)   errors: 0   temps: 53 C </span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="go">    Summary at:   Mon Sep 19 05:43:00 PM CEST 2022</span>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>
+</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="go">85.8%  proc'd: 1863 (316 Gflop/s)   errors: 0   temps: 54 C </span>
+</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="go">    Summary at:   Mon Sep 19 05:43:13 PM CEST 2022</span>
+</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>
+</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="go">100.0%  proc'd: 2070 (316 Gflop/s)   errors: 0   temps: 54 C </span>
+</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="go">    Summary at:   Mon Sep 19 05:43:30 PM CEST 2022</span>
+</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a>
+</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="go">100.0%  proc'd: 2070 (316 Gflop/s)   errors: 0   temps: 54 C </span>
+</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="go">Killing processes.. Freed memory for dev 0</span>
+</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="go">Uninitted cublas</span>
+</span><span id="__span-12-33"><a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="go">done</span>
+</span><span id="__span-12-34"><a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a>
+</span><span id="__span-12-35"><a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="go">Tested 1 GPUs:</span>
+</span><span id="__span-12-36"><a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a><span class="go">    GPU 0: OK</span>
+</span></code></pre></div>
+<p>Both operations brought the GPU to 100% utilization and about 90%
+of VRAM usage, but the first run went harder on power and thermals:</p>
+<p><a class="glightbox" href="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-1.jpg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Chart of GPU load, temperature, fan and power usage during the 2 2-minute runs of gpu-burn" src="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-1.jpg"></a></p>
+<p>Later I re-run <code>gpu-burn</code> for a longer time. The example in GitHub is
+to run for 1 hour, the recommendation I got in the NVidia forum was
+just 10 minutes, so to meet them in the middle I tried with 20 minutes:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp"># </span>./gpu_burn<span class="w"> </span>-d<span class="w"> </span><span class="m">1200</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">Burning for 1200 seconds.</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="go">GPU 0: NVIDIA GeForce RTX 3070 Ti (UUID: GPU-0c349bdd-3426-f2d3-4b26-c0b4bf0aad2e)</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="go">Initialized device 0 with 7974 MB of memory (7451 MB available, using 6706 MB of it), using DOUBLES</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="go">Results are 33554432 bytes each, thus performing 207 iterations</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="go">10.4%  proc'd: 2070 (316 Gflop/s)   errors: 0   temps: 53 C </span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">    Summary at:   Mon Sep 19 10:32:55 PM CEST 2022</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="go">20.8%  proc'd: 4554 (316 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="go">    Summary at:   Mon Sep 19 10:34:59 PM CEST 2022</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="go">30.8%  proc'd: 6624 (314 Gflop/s)   errors: 0   temps: 57 C </span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="go">    Summary at:   Mon Sep 19 10:37:00 PM CEST 2022</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="go">41.2%  proc'd: 8901 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="go">    Summary at:   Mon Sep 19 10:39:05 PM CEST 2022</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="go">51.7%  proc'd: 11178 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="go">    Summary at:   Mon Sep 19 10:41:10 PM CEST 2022</span>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>
+</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="go">61.7%  proc'd: 13455 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="go">    Summary at:   Mon Sep 19 10:43:10 PM CEST 2022</span>
+</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a>
+</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="go">71.8%  proc'd: 15525 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-25"><a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="go">    Summary at:   Mon Sep 19 10:45:11 PM CEST 2022</span>
+</span><span id="__span-13-26"><a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a>
+</span><span id="__span-13-27"><a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="go">82.2%  proc'd: 17802 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-28"><a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="go">    Summary at:   Mon Sep 19 10:47:16 PM CEST 2022</span>
+</span><span id="__span-13-29"><a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>
+</span><span id="__span-13-30"><a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="go">92.2%  proc'd: 20079 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-31"><a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a><span class="go">    Summary at:   Mon Sep 19 10:49:16 PM CEST 2022</span>
+</span><span id="__span-13-32"><a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>
+</span><span id="__span-13-33"><a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a><span class="go">100.0%  proc'd: 21735 (314 Gflop/s)   errors: 0   temps: 56 C </span>
+</span><span id="__span-13-34"><a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a><span class="go">Killing processes.. Freed memory for dev 0</span>
+</span><span id="__span-13-35"><a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a><span class="go">Uninitted cublas</span>
+</span><span id="__span-13-36"><a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a><span class="go">done</span>
+</span><span id="__span-13-37"><a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a>
+</span><span id="__span-13-38"><a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a><span class="go">Tested 1 GPUs:</span>
+</span><span id="__span-13-39"><a id="__codelineno-13-39" name="__codelineno-13-39" href="#__codelineno-13-39"></a><span class="go">    GPU 0: OK</span>
+</span></code></pre></div>
+<p><a class="glightbox" href="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-2.jpg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Chart of GPU load, temperature, fan and power usage during the 20-minute run of gpu-burn" src="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-test-2.jpg"></a></p>
+<h3 id="cuda-gpumemtest"><code>cuda-gpumemtest</code></h3>
+<p>Installed <code>cuda_memtest</code> from
+<a href="https://github.com/ComputationalRadiationPhysics/cuda_memtest">ComputationalRadiationPhysics/cuda_memtest</a>
+because the <code>cuda-gpumemtest</code> in
+<a href="https://sourceforge.net/projects/cudagpumemtest/files/">sourceforge.net/cudagpumemtest</a>
+was last updated in 2012.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="gp"># </span>apt-get<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>cmake
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="gp"># </span>git<span class="w"> </span>clone<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>https://github.com/ComputationalRadiationPhysics/cuda_memtest.git
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="gp"># </span><span class="nb">cd</span><span class="w"> </span>cuda_memtest/
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="gp"># </span>mkdir<span class="w"> </span>build
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="gp"># </span><span class="nb">cd</span><span class="w"> </span>build
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="gp"># </span>cmake<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">  </span>-DCMAKE_CUDA_ARCHITECTURES<span class="o">=</span><span class="m">86</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">  </span>-DCMAKE_CUDA_COMPILER:PATH<span class="o">=</span>/usr/local/cuda-11.7/bin/nvcc
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="gp"># </span>make
+</span></code></pre></div>
+<p>This actually worked on the first try 😁</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp"># </span>./cuda_memtest<span class="w"> </span>--stress
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">[09/19/2022 17:58:29][rapture][0]:Running cuda memtest, version 1.2.3</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="go">[09/19/2022 17:58:29][rapture][0]:NVRM version: NVIDIA UNIX x86_64 Kernel Module  515.65.01  Wed Jul 20 14:00:58 UTC 2022</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="go">[09/19/2022 17:58:29][rapture][0]:num_gpus=1</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="go">[09/19/2022 17:58:29][rapture][0]:Device name=NVIDIA GeForce RTX 3070 Ti, global memory size=8361607168, serial=unknown (NVML runtime error)</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="go">[09/19/2022 17:58:30][rapture][0]:Attached to device 0 successfully.</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="go">[09/19/2022 17:58:30][rapture][0]:WARNING: driver reported at least 8192524288 bytes are free but largest possible allocation is 8191475712 bytes.</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="go">[09/19/2022 17:58:30][rapture][0]:Allocated 7812 MB</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="go">[09/19/2022 17:58:30][rapture][0]:Test10 [Memory stress test]</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="go">[09/19/2022 17:58:30][rapture][0]:Test10 with pattern=0x10a8a7b723cac6bc</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="go">[09/19/2022 17:58:45][rapture][0]:Test10 finished in 14.9 seconds</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="go">[09/19/2022 17:58:45][rapture][0]:Test10 [Memory stress test]</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="go">[09/19/2022 17:58:45][rapture][0]:Test10 with pattern=0x3a96c31549d494a5</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="go">[09/19/2022 17:58:59][rapture][0]:Test10 finished in 14.9 seconds</span>
+</span></code></pre></div>
+<p>This test took much longer; after 4.5 hours it was still running
+and hadn’t found any errors.</p>
+<h3 id="worse-than-ever">Worse Than Ever</h3>
+<p>While the above results seemed to indicate the GPU was “OK”, sure
+enough after reenabling SDDM (<code>systemctl enable sddm</code>) and rebooting,
+the issue happened again. And this time, worse than ever.</p>
+<p>Not only the corrupted graphics happened again, it was much worse. While previously it wouldn’t happen until Xorg started, now the graphics are corrupted as soon as Grub shows up, and the login screen that used to be barely corrupted is now extremely corrupted. These are just 2 consecutive frames from the video of SDDM (below):</p>
+<p><a class="glightbox" href="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-1.jpg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Extremely corrupted video on the SDDM login manager (1 of 2)" src="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-1.jpg"></a></p>
+<p><a class="glightbox" href="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Extremely corrupted video on the SDDM login manager (2 of 2)" src="../../../../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg"></a></p>
+<p><a class="glightbox" href="https://www.youtube.com/embed/QaTqfMccrlc" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><div class="video-container"><iframe src="https://www.youtube.com/embed/QaTqfMccrlc" style="position:relative;width:100%;height:22.172vw" frameborder="0" allowfullscreen alt="type:video"></iframe></div></a></p>
+<h2 id="root-cause-confirmation">Root Cause Confirmation</h2>
+<p>With the new card now entirely unusable, there was nothing left to do
+with it than to remove it and repackage it for RMA.</p>
+<p>Installing the old card back and re-enabling the NVidia drivers was
+absolutely free of any troubles, offering further proof than
+<em>nothing else was wrong</em>.</p>
+<p>Another issue that I had previously dismissed as unrelated suddenly
+seemed very much related. In the weeks leading up to this issue,
+I had noticed <em>mildly broken</em> graphics in Skyrim: sometimes textures
+would go missing and a character’s armor or face would be all shiny
+smooth blue. This issue also stopped when switching back to the old card.</p>
+<p>It was all too easy to assume this was caused by bugs in the game
+(which is famous for), since I had also experienced the
+<a href="https://www.nexusmods.com/masseffect/mods/181">Black Blobs bug in Mass Effect</a>
+caused by poor support of hardware much newer than the game.</p>
+<h2 id="back-to-normal">Back To Normal</h2>
+<p>Fortunately, this happened within the warranty period of the new card (just a few months), so eventually I received a replacement card from the shop. The new card has been working quite well for a few days so far.</p></div>
+
+
+  
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["content.code.copy", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
+      
+    
+  <script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(() => { lightbox.reload() });
+</script></body>
+</html>
