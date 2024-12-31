@@ -14,8 +14,6 @@ title: The weirdest corrupted video on an NVidia card
 This is the kind of thing that makes you think,
 *this **really** only happens to me*.
 
-<!-- more --> 
-
 Back in June, when the availability and price of graphics card
 finally approached *relatively* normal values, I got myself an new
 [ASUS GeForce TUF Gaming RTX 3070 Ti OC Edition](https://www.guru3d.com/articles-pages/asus-geforce-rtx-3070-tuf-gaming-review,33.html)
@@ -25,6 +23,8 @@ from 2017). It still was still nearly $800 but it was clearly never
 going to come down to $570 the old one costed back in August 2017.
 
 Then, in September, the new card died. Somewhat *surreptitiously...*
+
+<!-- more --> 
 
 ## What Happened
 
@@ -177,7 +177,7 @@ including the OS, this last test also reproduced the problem:
 
 Notice the glitch lines around the top-right corner and through the Select button, plus the fixed-size square area down-and-right from the mouse cursor. This area followed the cursor, as you can see in this video.
 
-<iframe width="800" height="450" src="https://www.youtube.com/embed/Sk11E_4gmYw?si=R-VynLLZmOs_RKtj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+![type:video](https://www.youtube.com/embed/Sk11E_4gmYw)
 
 In the NVidia forum, a top contributor suggested to
 *check for a general hardware fault using gpu-burn or cuda-gpumemtest*.
@@ -456,7 +456,7 @@ Not only the corrupted graphics happened again, it was much worse. While previou
 
 ![Extremely corrupted video on the SDDM login manager (2 of 2)](../media/2022-11-05-the-weirdest-corrupted-video-on-an-nvidia-card/nvidia-corrupted-video-on-sddm-2.jpg)
 
-<iframe width="800" height="450" src="https://www.youtube.com/embed/QaTqfMccrlc?si=heZtZuyQdUOeN9P7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+![type:video](https://www.youtube.com/embed/QaTqfMccrlc)
 
 ## Root Cause Confirmation
 

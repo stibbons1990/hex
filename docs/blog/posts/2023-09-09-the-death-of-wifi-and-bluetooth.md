@@ -476,4 +476,4 @@ continues to work. May that last a really long time 😁
 After spending the whole morning troubleshooting this, and the rest of
 the day writing all the above, all I want now is to play a bit of Skyrim!
 
-<iframe width="800" height="335" src="https://www.youtube.com/embed/JvImL-2AJaI?si=-N8pbDyvnBHonBb3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+![type:video](https://www.youtube.com/embed/JvImL-2AJaI)

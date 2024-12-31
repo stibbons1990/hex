@@ -36,6 +36,7 @@ plugins:
   - glightbox
   - macros:
       on_undefined: strict
+  - mkdocs-video
 site_name: Inadvisably Applied Magic
 site_url: https://stibbons1990.github.io/hex/
 theme:

@@ -25,7 +25,7 @@ another Markdown-based documentation framwork that looks really good!
 
 For a tutorial, see [Material for MkDocs: Full Tutorial To Build And Deploy Your Docs Portal](https://youtu.be/xlABhbnNrfI?si=b17fSmSDjA6yzpeq).
 
-<iframe width="800" height="450" src="https://www.youtube.com/embed/xlABhbnNrfI?si=ngShg7A9gOXy1YXg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+![type:video](https://www.youtube.com/embed/xlABhbnNrfI)
 
 For more inspiration, see also
 [Beautiful Pages on GitLab with mkdocs](https://yodamad.hashnode.dev/beautiful-pages-on-gitlab-with-mkdocs).
