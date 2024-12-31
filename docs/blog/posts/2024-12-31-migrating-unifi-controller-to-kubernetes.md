@@ -10,29 +10,32 @@ categories:
 title: Migrating UniFi Controller to Kubernetes
 ---
 
-<!-- more -->
-
-Install
-[linuxserver.io/docker-unifi-network-application/](https://docs.linuxserver.io/images/docker-unifi-network-application/)
-loosely based on
-[Upgrading to linuxserver.io unifi-network-application docker](https://www.reddit.com/r/unRAID/comments/1abxn3i/upgrading_to_linuxserverio/)
+The old UniFi Controller and its required Mongo DB have been a bit
+of a hassle to keep updated while running directly on the host OS in
+[my little homelab server](2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
+so the time has come to migrate this to the new
+[linuxserver.io/docker-unifi-network-application](https://docs.linuxserver.io/images/docker-unifi-network-application/)
+[on my little Kubernetes cluster](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
 
 !!! warning
 
-    **Do not**
+    Beware of outdated documentation, most articles out there like
     [Install Unifi Controller on Kubernetes](https://anakinfoxe.com/blog/install-unifi-on-k8s/),
-    because that one is based on the **deprecated**
-    [linuxserver/unifi-controller](https://hub.docker.com/r/linuxserver/unifi-controller).
-    Also, avoid
+    are based on the **deprecated**
+    [linuxserver/unifi-**controller**](https://hub.docker.com/r/linuxserver/unifi-controller),
+    while others like
     [setting up the UniFi Network Controller using Docker](https://pimylifeup.com/unifi-docker/)
-    using the outdated
-    [jacobalberty/unifi-docker](https://github.com/jacobalberty/unifi-docker).
+    are using
+    [jacobalberty/unifi-docker](https://github.com/jacobalberty/unifi-docker)
+    which was quite outdated until recently.
+
+<!-- more -->
 
 ## Deploy the Unifi Network Application
 
 ### System requirements
 
-The Unifi Network Application depends requires a Mongo DB backend
+The Unifi Network Application requires a Mongo DB backend
 and both will need writeable directories and a dedicated user:
 
 ``` console
@@ -442,25 +445,32 @@ that had to be sorted out along the way:
 
 ??? note "This image does not seem to use the `system.properties` files."
 
-    The `~MONGO_...~` strings in the `system.properties` files,
+    The `~MONGO_...~` strings in the `system.properties` files
     [should be replaced](https://github.com/linuxserver/docker-unifi-network-application/blob/main/root/etc/s6-overlay/s6-rc.d/init-unifi-network-application-config/run#L48-L52)
     with the values of the environment variables set in the
-    deployment; but they are not:
+    deployment, but they are not:
 
     ``` console
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ')  -- cat /defaults/system.properties | grep MONGO
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- cat /defaults/system.properties | grep MONGO
     db.mongo.uri=mongodb://~MONGO_USER~:~MONGO_PASS~@~MONGO_HOST~:~MONGO_PORT~/~MONGO_DBNAME~?tls=~MONGO_TLS~~MONGO_AUTHSOURCE~
     statdb.mongo.uri=mongodb://~MONGO_USER~:~MONGO_PASS~@~MONGO_HOST~:~MONGO_PORT~/~MONGO_DBNAME~_stat?tls=~MONGO_TLS~~MONGO_AUTHSOURCE~
     unifi.db.name=~MONGO_DBNAME~
 
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut cat: /config/data/system.properties: No such file or directory
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- cat /config/data/system.properties
+    cat: /config/data/system.properties: No such file or directory
     command terminated with exit code 1
     ```
 
     Yet the environment variables are correctly set in the running pod:
 
     ``` console
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ')  -- printenv | grep MONGO
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- printenv | grep MONGO
     MONGO_PORT=27017
     MONGO_PASS=*************************
     MONGO_USER=unifi
@@ -475,7 +485,9 @@ that had to be sorted out along the way:
     MONGO_SVC_PORT_27017_TCP=tcp://10.104.94.112:27017
     MONGO_SVC_PORT_27017_TCP_PORT=27017
 
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ')  -- cat /run/s6/container_environment/MONGO_PORT
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- cat /run/s6/container_environment/MONGO_PORT
     27017
     ```
 
@@ -524,7 +536,9 @@ that had to be sorted out along the way:
     The environment variables are correctly set in the running pod:
 
     ``` console
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ')  -- nc -zv mongo-svc 27017
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- nc -zv mongo-svc 27017
     nc: connect to mongo-svc (10.104.94.112) port 27017 (tcp) failed: Connection refused
     command terminated with exit code 1
     ```
@@ -533,7 +547,9 @@ that had to be sorted out along the way:
     **only** when the `mongo` deployment has `targetPort: 27017`
 
     ``` console
-    $ kubectl -n unifi exec $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ')  -- nc -zv mongo-svc.unifi 27017
+    $ kubectl -n unifi exec \
+      $(kubectl get pods -n unifi | grep unifi | cut -f1 -d' ') \
+      -- nc -zv mongo-svc.unifi 27017
     Connection to mongo-svc.unifi (10.104.94.112) 27017 port [tcp/*] succeeded!
     ```
 
@@ -672,8 +688,7 @@ that had to be sorted out along the way:
 
 ### Final result
 
-Simply apply the deployment and wait a minutes or two for services
-to spin up:
+Apply the deployment and wait a few minutes for services to start:
 
 ``` console
 $ kubectl apply -f unifi.yaml
@@ -755,3 +770,8 @@ Generating 4,096 bit RSA key pair and self-signed certificate (SHA384withRSA) wi
 ```
 
 ![](../media/2024-12-31-migrating-unifi-controller-to-kubernetes/unifi-setup-login.png)
+
+From this point on, follow the documentation for
+[UniFi - Backups and Migration](https://help.ui.com/hc/en-us/articles/360008976393-UniFi-Backups-and-Migration)
+to migrate the current site from the old controller to the new
+UniFi Network Application.
