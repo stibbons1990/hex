@@ -12,10 +12,12 @@ title: Self-hosted photo albums with PhotoPrism®
 ---
 
 [PhotoPrism®](https://www.photoprism.app/) is *an AI-Powered Photos App
-for the Decentralized Web* I heard some good comments about.I tried it [on my *other* Kubernetes cluster](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md)
+for the Decentralized Web* I heard some good comments about. I tried it [on my *other* Kubernetes cluster](2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md)
 and here are impressions so far.
 
 <!-- more -->
+
+## Deployment
 
 The following deployment is based on the PhotoPrism®
 [Setup Using Docker Compose](https://docs.photoprism.app/getting-started/docker-compose/):
@@ -271,7 +273,9 @@ so that I can directly visit http://photoprism.rapture.uu.am
 192.168.0.220   photoprism.rapture.uu.am
 ```
 
-But before using the web application, PhotoPrism® needs some time to
+## Performance
+
+Before using the web application, PhotoPrism® needs some time to
 scan and index the images. In this case, it was a good half hour:
 
 ![CPU load from PhotoPrism indexing and video playback](../media/2024-08-24-self-hosted-photo-albums-with-photoprism/photoprism_cpu_load_index_and_video_playback.png)
@@ -305,6 +309,8 @@ under `/photoprism/storage` and all the while all I cold see was
 
 ![CPU load from PhotoPrism indexing and video playback](../media/2024-08-24-self-hosted-photo-albums-with-photoprism/photoprism_video_playback.png)
 
+## Big Problem
+
 But the most surprising, and eventually frustrating of all, was that
 only a small portion of the overall photo library appears to have been
 indexed.
@@ -324,6 +330,8 @@ seems to apply here and nothing at all explains why
 
 Even disabling **all** the options to
 [Stack](https://docs.photoprism.app/user-guide/settings/library/#stacks) photos, *and then* forcing a full reindex.
+
+## More Problems
 
 Additional (*significant*) issues:
 

@@ -1,6 +1,5 @@
 ---
 title: Continuous Monitoring
-permalink: /conmon/
 hide:
   - footer
 ---
