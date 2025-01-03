@@ -219,6 +219,68 @@ good tool to mitigate phishing and malware attacks on the web and
 possibly leverage blocking of adult domains; provided it works better
 than [Pi-hole®](#pi-hole).
 
+#### AFFiNE
+
+[AFFiNE](https://affine.pro/) *is a workspace with fully merged docs,
+whiteboards and databases*, a *privacy-focused, local-first,
+open-source, and ready-to-use alternative for Notion & Miro*.
+
+To [self-host AFFiNE](https://docs.affine.pro/docs/self-host-affine)
+in a Kubernetes cluster, a deployment including AFFiNE and its
+dependencies can be created from their example
+[`compose.yaml`](https://github.com/toeverything/AFFiNE/blob/canary/.github/deployment/self-host/compose.yaml).
+
+#### Authentik
+
+[Authentik](https://goauthentik.io/) allows restricting access to a
+specific set of users based on their email addresses, so that each
+applications can only be accessed by their legit users and their
+authentication is enforced by their respective identity providers.
+
+In particular, it is clearly documented that the rather popular
+`@gmail.com` addresses are supported by the
+[Google](https://docs.goauthentik.io/docs/users-sources/sources/social-logins/google/)
+identity provider (see also 
+[authentik/discussions/1776](https://github.com/goauthentik/authentik/discussions/1776)).
+
+#### Fail2Ban
+
+[Fail2Ban](https://github.com/fail2ban/fail2ban?tab=readme-ov-file#fail2ban-ban-hosts-that-cause-multiple-authentication-errors)
+*scans log files and bans IP addresses conducting too many failed login
+attempts*.
+
+This is already setup in the host OS but is limited to the
+SSH service, which is has
+[password authentication disabled](../blog/posts/2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md#disable-ssh-password-authentication).
+The next step would be to set it up to ban IPs that fail to
+authenticate through [Authentik](#authentik).
+
+#### Gatus
+
+[Gatus](https://github.com/TwiN/gatus) is *a developer-oriented health
+dashboard to monitor your services, evaluate the result of queries
+based on conditions and health checks can be paired with alerting*,
+e.g. via 
+[Ntfy alerts](https://github.com/TwiN/gatus?tab=readme-ov-file#configuring-ntfy-alerts)
+to push notifications to your phone via [ntfy](https://ntfy.sh/).
+
+#### Gitea
+
+[Gitea](https://about.gitea.com/products/gitea/) is a
+*painless, self-hosted Git service*, although the last (first)
+time I tried it, it was painfully finicky to use,
+[setting up Nginx ingress with HTTPs took me a while](../blog/posts/2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#add-ingress-for-the-first-pod)
+and I could never figure out how to use it as the (only) remote
+repository when working from
+[Visual Studio Code Server](#visual-studio-code-server).
+
+#### Heimdall
+
+[Heimdall Application Dashboard](https://heimdall.site/) is
+*a dashboard for all your web applications and links to anything else*
+which seems more versatile than a applications-only dashboard like
+[Homepage](#homepage).
+
 #### Homepage
 
 [Homepage](https://gethomepage.dev/) is a modern, highly customizable
@@ -306,6 +368,21 @@ been missing since
 [Google Reader](https://en.wikipedia.org/wiki/Google_Reader)
 shut down on July 1, 2013.
 
+#### Ollama
+
+[Ollama](https://ollama.com/) allows you to *get up and running with
+large language models*, including Llama 3.3, Phi 3, Mistral, Gemma 2,
+and others. Whether this can actually be useful or fun, that is to be
+determined; it should be at least some fun for
+[things with object / audio detection](https://www.reddit.com/r/selfhosted/comments/1bjdbjb/comment/kvrtkgx/).
+
+There is a Helm chart in
+[otwld/ollama-helm](https://github.com/otwld/ollama-helm)
+and a user-friendly self-hosted WebUI at
+[open-webui/open-webui](https://github.com/open-webui/open-webui).
+You can even install
+[both Ollama and Open WebUI using Helm](https://github.com/open-webui/open-webui/blob/main/INSTALLATION.md#installing-both-ollama-and-open-webui-using-helm).
+
 #### Pterodactyl®
 
 [Pterodactyl®](https://pterodactyl.io/) is a *free, open-source game server management panel designed with security in mind*, *which runs 
@@ -314,8 +391,9 @@ beautiful and intuitive UI to end users*.
 
 There is an example `docker-compose.yml`
 [here](https://technotim.live/posts/pterodactyl-game-server/).
-The full list of supported games is split in 2 groups:
-[pelican-eggs/games-standalone](https://github.com/pelican-eggs/games-standalone),
+The full list of supported games is split between
+[pelican-eggs/games-standalone](https://github.com/pelican-eggs/games-standalone)
+and
 [pelican-eggs/games-steamcmd](https://github.com/pelican-eggs/games-steamcmd).
 
 #### Pi-hole®
@@ -327,7 +405,24 @@ but instead blocking phishing and malware domains. This requires using
 manually, like
 [tweedge/emerging-threats-pihole](https://github.com/tweedge/emerging-threats-pihole).
 
-#### scrutiny
+#### Ryot
+
+[Ryot](https://github.com/IgnisDa/ryot?tab=readme-ov-file#ryot)
+is *a self hosted platform for tracking various facets of your life - media, fitness, etc.* which seems to include everything that
+[Yamtrack](#yamtrack) and [MediaTracker](#mediatracker) can track,
+*plus* other activities outside of media; it is focused in fitness
+but it could be used for other activities like studying, music
+practice, workshop time, other hobbies, sleep, etc.
+
+It supports Integration with Jellyfin, Plex, **Audiobookshelf** and
+[many more](https://docs.ryot.io/importing.html),
+[OpenID Connect](https://docs.ryot.io/guides/authentication.html),
+sending notifications to Discord and Ntfy. However, it's not yet ready
+to [track everything](https://github.com/IgnisDa/ryot/issues/73),
+and without an open import format like [Yamtrack](#yamtrack),
+it may more sense to invest in the latter.
+
+#### Scrutiny
 
 [scrutiny](https://github.com/AnalogJ/scrutiny?tab=readme-ov-file#scrutiny)
 is a *WebUI for smartd S.M.A.R.T monitoring* that includes a
@@ -344,6 +439,13 @@ could be useful keep track of projects, tasks and their depedencies,
 although it is not yet clear whether a Kanban dashboard is what would
 help organizing hobby projects.
 
+#### UniFi Poller
+
+[UniFi Poller](https://unpoller.com/) *allows you to collect data from
+your UniFi network controller, save it to a database, and then display
+it on pre-supplied attractive and data-rich Grafana dashboards* and
+you can also *re-use existing database or Grafana installations*.
+
 #### VictoriaMetrics
 
 Migrating [Continuous Monitoring](#continuous-monitoring),
@@ -355,10 +457,42 @@ Migrating [Continuous Monitoring](#continuous-monitoring),
 *is a fast, cost-saving, and scalable solution for monitoring and
 managing time series data*.
 
+#### Yamtrack
+
+[Yamtrack](https://github.com/FuzzyGrim/Yamtrack?tab=readme-ov-file#yamtrack)
+*is a self hosted media tracker for movies, tv shows, anime and manga*
+but, more interestingly to me, also books and video games. It even has
+*integration with Jellyfin, to automatically track new media watched*,
+which is nice, but what I'd really love to see is integration with
+[Audiobookshelf](#audiobookshelf) and [Komga](#komga), for books,
+and [Steam](https://store.steampowered.com/) for games.
+
+There is perhaps enough information available about the
+[Yamtrack CSV import format](https://github.com/FuzzyGrim/Yamtrack/issues/246)
+that it may be not too hard to hack something together to import
+listening history and play time history using the available APIs:
+
+*   [Audiobookshelf API](https://api.audiobookshelf.org/#sessions)
+    exposes listening sessions and libraries.
+*   [Komga REST API](https://komga.org/docs/api/rest)
+    exposes progression and metadata for each book.
+*   [Steam Web API](https://developer.valvesoftware.com/wiki/Steam_Web_API)
+    exposes recent (2-weeks) and total (*forever*) play time,
+    and the list of owned games. These can be used to track
+    progress and purchases of games.
+
 ### Discarded
 
 These applications were evaluated based on their documentation and/or
 live demos, and deemed not a good match for my intended purpose/s.
+
+#### MediaTracker
+
+[MediaTracker](https://github.com/bonukai/MediaTracker?tab=readme-ov-file#mediatracker--------)
+is a *self hosted platform for tracking movies, tv shows, video games,
+books* **and audiobooks**, which *would* make it more interesting
+than [Yamtrack](#yamtrack) *if only* it would allowe you to
+[add media manually](https://github.com/bonukai/MediaTracker/issues/652).
 
 #### Nginx Proxy Manager
 
