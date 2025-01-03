@@ -287,6 +287,21 @@ which seems more versatile than a applications-only dashboard like
 application dashboard that could be useful to have a *big picture* view
 of all services in one place, should there ever be too many of them.
 
+#### Home Assistant
+
+[Home Assistant](https://www.home-assistant.io/) may become a necessary upgrade from
+[Continuous Monitoring for TP-Link Tapo devices](../blog/posts/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md),
+especially for purposes of automating changes in around the house.
+
+There are quite a few ways to install and run Home Assistant, such as imaging a whole
+[Raspberry Pi](https://www.home-assistant.io/installation/raspberrypi)
+with its Home Assistant's own distribution, which seems a bit overkill, or with
+[docker-compose](https://www.home-assistant.io/installation/linux#docker-compose),
+which comes closer to fitting my preferred setup of running in Kubernetes.
+[abalage/home-assistant-k8s](https://github.com/abalage/home-assistant-k8s/tree/main?tab=readme-ov-file#home-assistant-k8s)
+implements exactly this and would probably be my preferred method, although it might need
+[a trick or two to make discovery work](https://www.reddit.com/r/homeassistant/comments/ygmcpg/anyone_running_it_in_kubernetes_and_if_yes_how/).
+
 #### Immich
 
 [Immich](https://immich.app/) is a *self-hosted photo and video
