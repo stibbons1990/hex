@@ -1617,6 +1617,9 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/md0        1.9T  1.6T  309G  84% /home/raid
 ```
 
+Finally, comment out the line for the swap file (`/swap.img`),
+because that won't be necessary in a system with 32GB of RAM.
+
 At this point a reboot would be in order, if only to make sure all
 the above is still working well after a reboot.
 
