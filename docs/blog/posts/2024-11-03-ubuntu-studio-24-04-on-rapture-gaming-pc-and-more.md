@@ -3794,3 +3794,12 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda        5.5T  5.1T  425G  93% /home/raid
 /dev/nvme0n1p4  3.5T  1.5T  2.1T  43% /home/new-m2
 ```
+
+Once both NVMe drives are filled in, the 
+[weekly btrfs scrub](#weekly-btrfs-scrub)
+shows very different disk I/O and
+*drastically* different temperatures:
+
+![Disk I/O chart show btrfs scrub](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/rapture-2x-nvme-btrfs-diskio.png)
+
+![SSD temperatures chart show btrfs scrub](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/rapture-2x-nvme-btrfs-temps.png)
