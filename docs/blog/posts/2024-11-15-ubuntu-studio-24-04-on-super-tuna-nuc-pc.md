@@ -506,9 +506,11 @@ do
 done
 ```
 
-**Note:** setting `BTRFS_SCRUB_SKIP="sda"` prevents Btrfs balancing from
-running on USB external storage if attached; not really necessary, but the
-script fails if this variable is left empty.
+!!! note
+
+    Setting `BTRFS_SCRUB_SKIP="sda"` prevents Btrfs balancing from running
+    on USB external storage if attached; not really necessary, but the
+    script fails if this variable is left empty.
 
 ``` console
 # /usr/local/bin/btrfs-scrub-all
@@ -538,6 +540,15 @@ The whole process takes about 7 minutes with the 4TB NVMe SSD about
 
 ![Resources used on a 7-minute run of btrfs scrub](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-15-min-with-btrfs-scrub.png)
 
+!!! note
+
+    The weekly Btrfs scrub doesn't seem to really need `inn` or any
+    of its dependencies, so this installation step was **skipped**:
+
+    ``` console
+    # apt install inn -y
+    ```
+
 ### Make SDDM Look Good
 
 Ubuntu Studio 24.04 uses 
@@ -554,10 +565,12 @@ which I like to install system-wide.
 # unzip -d /usr/share/sddm/themes Breeze-Noir-Dark.zip
 ```
 
-**Note:** action icons won’t render if the directory name is
-changed. If needed, change the directory name in the `iconSource` fields in `Main.qml` to match final directory name
-so icons show. This is not the only thing that breaks when
-changing the directory name.
+!!! warning
+
+    Action icons won’t render if the directory name is changed. If needed,
+    change the directory name in the `iconSource` fields in `Main.qml` to
+    match final directory name so icons show. This is not the only thing
+    that breaks when changing the directory name.
 
 Other than installing this theme, all I really change in it
 is the background image to use 
@@ -616,7 +629,7 @@ MaximumUid=1001
 MinimumUid=1000
 ```
 
-### Bluetooth controller and devices
+### Bluetooth controller
 
 The following shows up in `dmesg`:
 
@@ -653,81 +666,13 @@ Bluetooth: hci0: Firmware SHA1: 0x23bac558
 Bluetooth: MGMT ver 1.22
 ```
 
-!!! todo "TODO: pair bluetooth headphones"
+#### Bluetooth headphones
 
-## Appendix: What Was Undone
+Pairing headphones (Bose QuietComfort SE) was quick and easy. As a fun
+bonus, every time the PC connects to the headphones an audible notification
+announced *connected to super tuna* which is fun.
 
-This section describes problems that were encountered only the first time
-installing Ubuntu Studio 24.04, some of which never were resolved.
-
-### Remove CUPS
-
-On two occassions `cupsd` has suddently gone up to 200% CPU usage and
-stayed up there for 30+ minutes with no sign of and end to come.
-
-``` console
-root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
-root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
-root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
-root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
-```
-
-``` console
-# snap services
-Servicio                                             Encendido  Actual  Notas
-canonical-livepatch.canonical-livepatchd             activado   activo  -
-cups.cups-browsed                                    activado   activo  -
-cups.cupsd                                           activado   activo  -
-firmware-updater.firmware-notifier                   activado   -       user,timer-activated
-firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado   -       user
-root@super-tuna:~# snap stop cups
-Detenido.
-root@super-tuna:~# snap disable cups
-cups desactivado
-
-# ps aux | grep cupsd
-root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
-root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
-
-# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
-==> /var/log/cups/access_log <==
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
-localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
-localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
-localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
-localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
-
-==> /var/log/cups/error_log <==
-E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
-
-# snap services
-Servicio                                             Encendido    Actual    Notas
-canonical-livepatch.canonical-livepatchd             activado     activo    -
-cups.cups-browsed                                    desactivado  inactivo  -
-cups.cupsd                                           desactivado  inactivo  -
-firmware-updater.firmware-notifier                   activado     -         user,timer-activated
-firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado     -         user
-```
-
-``` console
-# killall /usr/sbin/cupsd
-root@super-tuna:~# ps aux | grep /usr/sbin/cupsd
-root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
-
-# killall /usr/sbin/cupsd
-# ps aux | grep /usr/sbin/cupsd
-root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
-```
-
-### Stop Memory Leaks
+## Kernel memory leak
 
 Only in this Nuc PC is Ubuntu Studio 24.04 showing a huge memory leak
 and it seems to be in the kernel rather than in any application/s:
@@ -747,78 +692,83 @@ rebooting:
 
 ![Memory usage in the last 9 hours](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-9-h.png)
 
-Killing the most memory intensive process had previously made no dent:
+??? note "Red herring: `fluidsynth`"
 
-``` console
-# ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
-USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
-root     2661652   0.5   0.7   246360    1568376 ?      SLsl    07:57    0:13 /usr/bin/fluidsynth -is /usr/share/sounds/sf3/default-GM.sf3 HOME=/ro>
-sddm     2405392   0.2   0.4   158060    1140264 ?      Sl      00:48    1:03 /usr/bin/sddm-greeter --socket /tmp/sddm-:0-KPzxxr --theme /usr/share>
-colord     12644   0.0   0.3   120748     425728 ?      Ssl     00:40    0:00 /usr/libexec/colord LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local/>
-root     2381522   0.0   0.2    83072     763252 tty2   Ssl+    00:47    0:14 /usr/lib/xorg/Xorg -nolisten tcp -background none -seat seat0 vt2 -au>
-root         481   0.0   0.2    75596     137064 ?      S<s     00:40    0:19 /usr/lib/systemd/systemd-journald LANG=es_ES.UTF-8 PATH=/usr/local/sb>
-root       14132   0.0   0.1    40788     477384 ?      Ssl     00:54    0:01 /usr/libexec/fwupd/fwupd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/l>
-root        1680   0.0   0.1    33252    2731468 ?      Ssl     00:40    0:02 /usr/lib/snapd/snapd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
-minidlna    1645   0.0   0.1    36224     336280 ?      SLsl    00:40    0:00 /usr/sbin/minidlnad -f /etc/minidlna.conf -P /run/minidlna/minidlna.p>
-debian-+   30046   0.3   0.1    61244    1252000 ?      Ssl     00:40    1:26 /usr/bin/tor --defaults-torrc /usr/share/tor/tor-service-defaults-tor>
+    Killing the most memory intensive process had previously made no dent:
 
-# killall /usr/bin/fluidsynth
-# ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
-USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
-sddm     2405392   0.2   0.4   158060    1140328 ?      Sl      00:48    1:04 /usr/bin/sddm-greeter --socket /tmp/sddm-:0-KPzxxr --theme /usr/share>
-colord     12644   0.0   0.3   120748     425728 ?      Ssl     00:40    0:00 /usr/libexec/colord LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local/>
-root     2381522   0.0   0.2    83072     763252 tty2   Ssl+    00:47    0:14 /usr/lib/xorg/Xorg -nolisten tcp -background none -seat seat0 vt2 -au>
-root         481   0.0   0.2    76236     137064 ?      S<s     00:40    0:19 /usr/lib/systemd/systemd-journald LANG=es_ES.UTF-8 PATH=/usr/local/sb>
-root       14132   0.0   0.1    40788     477384 ?      Ssl     00:54    0:01 /usr/libexec/fwupd/fwupd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/l>
-root        1680   0.0   0.1    33252    2731468 ?      Ssl     00:40    0:02 /usr/lib/snapd/snapd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
-minidlna    1645   0.0   0.1    36224     336280 ?      SLsl    00:40    0:00 /usr/sbin/minidlnad -f /etc/minidlna.conf -P /run/minidlna/minidlna.p>
-debian-+   30046   0.3   0.1    61244    1252000 ?      Ssl     00:40    1:27 /usr/bin/tor --defaults-torrc /usr/share/tor/tor-service-defaults-tor>
-vnstat      5498   0.0   0.0     3584       5476 ?      Ss      00:40    0:03 /usr/sbin/vnstatd -n LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
+    ``` console
+    # ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
+    USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
+    root     2661652   0.5   0.7   246360    1568376 ?      SLsl    07:57    0:13 /usr/bin/fluidsynth -is /usr/share/sounds/sf3/default-GM.sf3 HOME=/ro>
+    sddm     2405392   0.2   0.4   158060    1140264 ?      Sl      00:48    1:03 /usr/bin/sddm-greeter --socket /tmp/sddm-:0-KPzxxr --theme /usr/share>
+    colord     12644   0.0   0.3   120748     425728 ?      Ssl     00:40    0:00 /usr/libexec/colord LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local/>
+    root     2381522   0.0   0.2    83072     763252 tty2   Ssl+    00:47    0:14 /usr/lib/xorg/Xorg -nolisten tcp -background none -seat seat0 vt2 -au>
+    root         481   0.0   0.2    75596     137064 ?      S<s     00:40    0:19 /usr/lib/systemd/systemd-journald LANG=es_ES.UTF-8 PATH=/usr/local/sb>
+    root       14132   0.0   0.1    40788     477384 ?      Ssl     00:54    0:01 /usr/libexec/fwupd/fwupd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/l>
+    root        1680   0.0   0.1    33252    2731468 ?      Ssl     00:40    0:02 /usr/lib/snapd/snapd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
+    minidlna    1645   0.0   0.1    36224     336280 ?      SLsl    00:40    0:00 /usr/sbin/minidlnad -f /etc/minidlna.conf -P /run/minidlna/minidlna.p>
+    debian-+   30046   0.3   0.1    61244    1252000 ?      Ssl     00:40    1:26 /usr/bin/tor --defaults-torrc /usr/share/tor/tor-service-defaults-tor>
 
-# free -h
-               total        used        free      shared  buff/cache   available
-Mem:            30Gi        27Gi       3.6Gi       188Mi       1.0Gi       3.8Gi
-Swap:          8.0Gi       256Ki       8.0Gi
+    # killall /usr/bin/fluidsynth
+    # ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
+    USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
+    sddm     2405392   0.2   0.4   158060    1140328 ?      Sl      00:48    1:04 /usr/bin/sddm-greeter --socket /tmp/sddm-:0-KPzxxr --theme /usr/share>
+    colord     12644   0.0   0.3   120748     425728 ?      Ssl     00:40    0:00 /usr/libexec/colord LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local/>
+    root     2381522   0.0   0.2    83072     763252 tty2   Ssl+    00:47    0:14 /usr/lib/xorg/Xorg -nolisten tcp -background none -seat seat0 vt2 -au>
+    root         481   0.0   0.2    76236     137064 ?      S<s     00:40    0:19 /usr/lib/systemd/systemd-journald LANG=es_ES.UTF-8 PATH=/usr/local/sb>
+    root       14132   0.0   0.1    40788     477384 ?      Ssl     00:54    0:01 /usr/libexec/fwupd/fwupd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/l>
+    root        1680   0.0   0.1    33252    2731468 ?      Ssl     00:40    0:02 /usr/lib/snapd/snapd LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
+    minidlna    1645   0.0   0.1    36224     336280 ?      SLsl    00:40    0:00 /usr/sbin/minidlnad -f /etc/minidlna.conf -P /run/minidlna/minidlna.p>
+    debian-+   30046   0.3   0.1    61244    1252000 ?      Ssl     00:40    1:27 /usr/bin/tor --defaults-torrc /usr/share/tor/tor-service-defaults-tor>
+    vnstat      5498   0.0   0.0     3584       5476 ?      Ss      00:40    0:03 /usr/sbin/vnstatd -n LANG=es_ES.UTF-8 PATH=/usr/local/sbin:/usr/local>
 
-```
+    # free -h
+                  total        used        free      shared  buff/cache   available
+    Mem:            30Gi        27Gi       3.6Gi       188Mi       1.0Gi       3.8Gi
+    Swap:          8.0Gi       256Ki       8.0Gi
+    ```
 
-That `fluidsynth` process may have been a leftover from having started `ardour`
-earlier, but this was not really a problematic case of
-[Fluidsynth Starting Automatically On Boot; Login Freezing](https://askubuntu.com/questions/1446116/fluidsynth-starting-automatically-on-boot-login-freezing-connected-how-to-so).
+    That `fluidsynth` process may have been a leftover from having started `ardour`
+    earlier, but this was not really a problematic case of
+    [Fluidsynth Starting Automatically On Boot; Login Freezing](https://askubuntu.com/questions/1446116/fluidsynth-starting-automatically-on-boot-login-freezing-connected-how-to-so).
 
-The trick in [linuxatemyram.com](https://www.linuxatemyram.com/)
-to drop caches did not help:
+??? note "Red herring: `drop_caches`"
 
-``` console
-# echo 3 | sudo tee /proc/sys/vm/drop_caches
-3
+    The trick in [linuxatemyram.com](https://www.linuxatemyram.com/)
+    to drop caches did not help:
 
-# free -h
-               total        used        free      shared  buff/cache   available
-Mem:            30Gi        26Gi       4.5Gi       188Mi       781Mi       4.6Gi
-Swap:          8.0Gi       256Ki       8.0Gi
+    ``` console
+    # echo 3 | sudo tee /proc/sys/vm/drop_caches
+    3
 
-# free -m
-               total        used        free      shared  buff/cache   available
-Mem:           31645       27081        4200         186        1013        4563
-Swap:           8191           0        8191
-```
+    # free -h
+                  total        used        free      shared  buff/cache   available
+    Mem:            30Gi        26Gi       4.5Gi       188Mi       781Mi       4.6Gi
+    Swap:          8.0Gi       256Ki       8.0Gi
 
-Indeed this only releases the `buff/cache` memory, not that which is `used`:
+    # free -m
+                  total        used        free      shared  buff/cache   available
+    Mem:           31645       27081        4200         186        1013        4563
+    Swap:           8191           0        8191
+    ```
 
-![Memory usage in the last 15 minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-15-min.png)
+    Indeed this only releases the `buff/cache` memory, not that which is `used`:
 
-There was another hint somewhere (Red Hat Oracle documentation)
-about the number of "huge pages" but that is already set to zero:
+    ![Memory usage in the last 15 minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-last-15-min.png)
 
-``` console
-# cat /proc/sys/vm/nr_hugepages 
-0
-```
+    There was another hint somewhere (Red Hat Oracle documentation)
+    about the number of "huge pages" but that is already set to zero:
+
+    ``` console
+    # cat /proc/sys/vm/nr_hugepages 
+    0
+    ```
+
+### Suspect driver: `i915`
 
 After a wider and deeper investigation
 (see ~1500 lines in [this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt))
-it turned out be a memory leak bug in the `i915` driver:
+it looks like a memory leak bug in the `i915` driver:
 
 ``` console
 # apt install smem -y
@@ -868,8 +818,6 @@ Linux super-tuna 6.8.0-47-lowlatency #47.1-Ubuntu SMP PREEMPT_DYNAMIC Mon Oct  7
         Kernel driver in use: i915
         Kernel modules: i915, xe
 ```
-
-#### Maybe in the i915 driver
 
 Since the `i915` and `xe` drivers are taking more memory than
 all others, it looked like this could be a case of memory leak
@@ -924,12 +872,21 @@ from May 2024 and is not yet applied to the source file
 `linux-source-6.8.0` package. This one seems a more likely fix,
 and a much simpler change to implement.
 
-??? todo "TODO: BuildYourOwnKernel or reinstall."
+The patch apperas to have been
+[resent in late November, 2024](https://lore.kernel.org/lkml/Z1DNlAPvPNtgpMXO@ashyti-mobl2.lan/T/),
+[committed in early December](https://gbmc.googlesource.com/linux/+/2828e5808bcd5aae7fdcd169cac1efa2701fa2dd),
+and that may be related to the patch not being (yet) available in the
+6.8.0-47 and 6.8.0-49 kernels. The patch may be included in later kernels,
+but after an update in early January, 2025 the kernel updated to 6.8.0-51
+and yet the linux-source-6.8.0 package on version 6.8.0-**51**.52 still
+does not have the patched applied.
 
-    Try [BuildYourOwnKernel](https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
-    with that one-line patch and see if that helps. Maybe reinstall the system.
+!!! todo
 
-#### Maybe somewhere else
+    [BuildYourOwnKernel](https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
+    with the patched applied, see if that helps.
+
+### Maybe somewhere else?
 
 If the `i915` is not behind this memory leak, the one other lead from
 [this log](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/2024-11-16-14-50.txt) is, by far, the largest
@@ -986,103 +943,101 @@ root@rapture:~# slabtop -o | head -10
 ```
 
 To compare again, the biggest user of kernel dynamic memory is
-- `btrfs_inode` in `rapture`, with 1,149,792K after a good 20 hours up
-- `kmalloc-rnd-12-8k` in `super-tuna`, with 2,391,360K after barely 1 hour up
 
-**5 hours later** `kmalloc-rnd-12-8k` in `super-tuna` is up **13.71 GB** again:
+*   `btrfs_inode` in `rapture`, with 1,149,792K after a good 20 hours up
+*   `kmalloc-rnd-12-8k` in `super-tuna`, with 2,391,360K after barely 1 hour up
 
-``` console
-# smem -twk
-Area                           Used      Cache   Noncache 
-firmware/hardware                 0          0          0 
-kernel image                      0          0          0 
-kernel dynamic memory         16.4G       2.2G      14.2G 
-userspace memory               1.6G     534.1M       1.1G 
-free memory                   12.9G      12.9G          0 
-----------------------------------------------------------
-                              30.9G      15.6G      15.3G 
-# smem -wp
-Area                           Used      Cache   Noncache 
-firmware/hardware             0.00%      0.00%      0.00% 
-kernel image                  0.00%      0.00%      0.00% 
-kernel dynamic memory        53.19%      7.08%     46.11% 
-userspace memory              5.24%      1.69%      3.55% 
-free memory                  41.57%     41.57%      0.00% 
+**5 hours later** `kmalloc-rnd-12-8k` in `super-tuna` is up **13.71 GB**
+again, which amounts for most of the `SUnreclaim` memory.
 
-# lsmod | sort -nr -k 2 | head -3
-i915                 4284416  59
-xe                   2711552  0
-btrfs                2015232  1
+??? terminal "`kmalloc-rnd-12-8k` up 13.7 GB, `SUnreclaim` up 15.3 GB."
 
-# slabtop -o | sort -r -n -k 7 | head -10
-1797400 1797400 100%    8.00K 449350        4  14379200K kmalloc-rnd-12-8k      
- 22302  22302 100%    1.16K    826       27     26432K ext4_inode_cache       
-117432 116955  99%    0.19K   2796       42     22368K dentry                 
- 22900  22835  99%    0.62K    916       25     14656K inode_cache            
- 20944  20925  99%    0.57K    748       28     11968K radix_tree_node        
- 72324  69525  96%    0.14K   2583       28     10332K kernfs_node_cache      
-   954    946  99%   10.25K    318        3     10176K task_struct            
- 13754  13041  94%    0.70K    299       46      9568K proc_inode_cache       
- 48510  47450  97%    0.19K   1155       42      9240K cred_jar               
- 85137  85137 100%    0.10K   2183       39      8732K buffer_head     
-```
+    ``` console
+    # smem -twk
+    Area                           Used      Cache   Noncache 
+    firmware/hardware                 0          0          0 
+    kernel image                      0          0          0 
+    kernel dynamic memory         16.4G       2.2G      14.2G 
+    userspace memory               1.6G     534.1M       1.1G 
+    free memory                   12.9G      12.9G          0 
+    ----------------------------------------------------------
+                                  30.9G      15.6G      15.3G 
+    # smem -wp
+    Area                           Used      Cache   Noncache 
+    firmware/hardware             0.00%      0.00%      0.00% 
+    kernel image                  0.00%      0.00%      0.00% 
+    kernel dynamic memory        53.19%      7.08%     46.11% 
+    userspace memory              5.24%      1.69%      3.55% 
+    free memory                  41.57%     41.57%      0.00% 
+
+    # lsmod | sort -nr -k 2 | head -3
+    i915                 4284416  59
+    xe                   2711552  0
+    btrfs                2015232  1
+
+    # slabtop -o | sort -r -n -k 7 | head -10
+    1797400 1797400 100%    8.00K 449350        4  14379200K kmalloc-rnd-12-8k      
+    22302  22302 100%    1.16K    826       27     26432K ext4_inode_cache       
+    117432 116955  99%    0.19K   2796       42     22368K dentry                 
+    22900  22835  99%    0.62K    916       25     14656K inode_cache            
+    20944  20925  99%    0.57K    748       28     11968K radix_tree_node        
+    72324  69525  96%    0.14K   2583       28     10332K kernfs_node_cache      
+      954    946  99%   10.25K    318        3     10176K task_struct            
+    13754  13041  94%    0.70K    299       46      9568K proc_inode_cache       
+    48510  47450  97%    0.19K   1155       42      9240K cred_jar               
+    85137  85137 100%    0.10K   2183       39      8732K buffer_head     
+
+    # cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
+    kmalloc-rnd-12-8k 1962444 1962444   8192    4    8 : tunables    0    0    0 : slabdata 490611 490611      0
+
+    # head -3 /proc/slabinfo; cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
+    slabinfo - version: 2.1
+    # name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
+    QIPCRTR               78     78    832   39    8 : tunables    0    0    0 : slabdata      2      2      0
+    kmalloc-rnd-12-8k 1963068 1963068   8192    4    8 : tunables    0    0    0 : slabdata 490767 490767      0
+
+    # free -h
+                  total        used        free      shared  buff/cache   available
+    Mem:            30Gi        17Gi        11Gi       748Mi       2.7Gi        13Gi
+    Swap:          8.0Gi          0B       8.0Gi
+
+    # cat /proc/meminfo 
+    MemTotal:       32404656 kB
+    MemFree:        12123032 kB
+    MemAvailable:   13785908 kB
+    Buffers:          137656 kB
+    Cached:          2610480 kB
+    SwapCached:            0 kB
+    Active:          1825832 kB
+    Inactive:        1126328 kB
+    Active(anon):     970752 kB
+    Inactive(anon):        0 kB
+    Active(file):     855080 kB
+    Inactive(file):  1126328 kB
+    Unevictable:      940008 kB
+    Mlocked:          212356 kB
+    SwapTotal:       8388604 kB
+    SwapFree:        8388604 kB
+    Zswap:                 0 kB
+    Zswapped:              0 kB
+    Dirty:               256 kB
+    Writeback:             0 kB
+    AnonPages:       1143976 kB
+    Mapped:           548812 kB
+    Shmem:            766728 kB
+    KReclaimable:     101908 kB
+    Slab:           16161044 kB
+    SReclaimable:     101908 kB
+    SUnreclaim:     16059136 kB
+    KernelStack:       13280 kB
+    PageTables:        27176 kB
+    ...
+    ```
 
 Google web search shows a single search result for `"kmalloc-rnd-12-8k"`
 [which does not lead to a conclusive solution](https://discussion.fedoraproject.org/t/kernel-memory-leak-fedora-40-nvidia-drivers-ollama/135038/29).
 
-``` console
-# cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
-kmalloc-rnd-12-8k 1962444 1962444   8192    4    8 : tunables    0    0    0 : slabdata 490611 490611      0
-
-# head -3 /proc/slabinfo; cat /proc/slabinfo | grep "kmalloc-rnd-12-8k"
-slabinfo - version: 2.1
-# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
-QIPCRTR               78     78    832   39    8 : tunables    0    0    0 : slabdata      2      2      0
-kmalloc-rnd-12-8k 1963068 1963068   8192    4    8 : tunables    0    0    0 : slabdata 490767 490767      0
-
-# free -h
-               total        used        free      shared  buff/cache   available
-Mem:            30Gi        17Gi        11Gi       748Mi       2.7Gi        13Gi
-Swap:          8.0Gi          0B       8.0Gi
-
-# cat /proc/meminfo 
-MemTotal:       32404656 kB
-MemFree:        12123032 kB
-MemAvailable:   13785908 kB
-Buffers:          137656 kB
-Cached:          2610480 kB
-SwapCached:            0 kB
-Active:          1825832 kB
-Inactive:        1126328 kB
-Active(anon):     970752 kB
-Inactive(anon):        0 kB
-Active(file):     855080 kB
-Inactive(file):  1126328 kB
-Unevictable:      940008 kB
-Mlocked:          212356 kB
-SwapTotal:       8388604 kB
-SwapFree:        8388604 kB
-Zswap:                 0 kB
-Zswapped:              0 kB
-Dirty:               256 kB
-Writeback:             0 kB
-AnonPages:       1143976 kB
-Mapped:           548812 kB
-Shmem:            766728 kB
-KReclaimable:     101908 kB
-Slab:           16161044 kB
-SReclaimable:     101908 kB
-SUnreclaim:     16059136 kB
-KernelStack:       13280 kB
-PageTables:        27176 kB
-...
-```
-
-#### Maybe add more swap
-
-https://tecadmin.net/how-to-add-swap-in-ubuntu-24-04/
-
-#### Apparently Gone After Reinstalling
+### Maybe gone after reinstalling?
 
 Out of frustation with this opaque memory leak and a few other details,
 decided to reinstall Ubuntu Studio 24.04 anew.
@@ -1097,7 +1052,7 @@ was no longer happening:
 
 ![Memory usage in a 2-hour period with memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-with-memory-leak.png)
 
-Moroever, it seems the CPU cores are running visibly cooler now:
+Moreover, it seems the CPU cores are running visibly cooler now:
 
 ![Memory usage in a 2-hour period withou memory leak](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-2-h-without-memory-leak.png)
 
@@ -1110,9 +1065,369 @@ This *should* be irrelevant, but when the system locazation affects
 everything down to the output from commands, it might just happen that
 different number format and/or translated messages may trigger bugs.
 
-Also, the weekly Btrfs scrub doesn't seem to really need `inn` or any
-of its dependencies, so this installation step was **skipped**:
+### **Not** gone after reinstalling
+
+The (or *a*) memory leak is still there, even if only it grows slowly enough
+that it takes about 3 days to reach the point where almost all 32 GB of RAM
+are taken up by `SUnreclaim` and the biggest memory hoarder is, by far,
+`kmalloc-rnd-11-8k`:
+
+```console
+# cat /proc/meminfo
+...
+Slab:           31814260 kB
+SReclaimable:      50868 kB
+SUnreclaim:     31763392 kB
+...
+
+# slabtop -o | head -10
+ Active / Total Objects (% used)    : 4817156 / 5002245 (96.3%)
+ Active / Total Slabs (% used)      : 1032290 / 1032290 (100.0%)
+ Active / Total Caches (% used)     : 342 / 386 (88.6%)
+ Active / Total Size (% used)       : 31637718.69K / 31682510.83K (99.9%)
+ Minimum / Average / Maximum Object : 0.01K / 6.33K / 10.25K
+
+  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME                   
+3931151 3931151 100%    8.00K 1010822        4  32346304K kmalloc-rnd-11-8k      
+ 71145  36213  50%    0.05K    837       85      3348K shared_policy_node     
+ 67928  67790  99%    0.14K   2426       28      9704K kernfs_node_cache      
+
+# cat /proc/slabinfo | grep "kmalloc-rnd-11-8k"
+kmalloc-rnd-11-8k 3931772 3931772   8192    4    8 : tunables    0    0    0 : slabdata 1011434 1011434      0
+
+# head -3 /proc/slabinfo; cat /proc/slabinfo | grep kmalloc-rnd-11-8k
+slabinfo - version: 2.1
+# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
+QIPCRTR               78     78    832   39    8 : tunables    0    0    0 : slabdata      2      2      0
+kmalloc-rnd-11-8k 3931887 3931887   8192    4    8 : tunables    0    0    0 : slabdata 1011528 1011528      0
+```
+
+??? terminal "Repeat run or debug commands above shows about the same."
+
+    ```console
+    # free -h
+                  total        used        free      shared  buff/cache   available
+    Mem:            30Gi        30Gi       291Mi        61Mi       152Mi        73Mi
+    Swap:          8.0Gi       271Mi       7.7Gi
+
+    # ps -ax -eo user,pid,pcpu:5,pmem:5,rss:8=R-MEM,vsz:10=V-MEM,tty:6=TTY,stat:5,bsdstart:7,bsdtime:7,args | (read h; echo "$h"; sort -nr -k 4) | head -10 | less -SEX
+    USER         PID  %CPU  %MEM    R-MEM      V-MEM TTY    STAT    START    TIME COMMAND
+    vnstat      2707   0.0   0.0     1536       5516 ?      Ss     Jan  5    0:17 /usr/sbin/vnstatd -n LANG=en_US.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin USER=vnstat LOGNAME=vnstat HOME=/var/lib/vnstat INVOCATION_ID=ac8c9f302e5444b691575435a6157b99 JOURNAL_STREAM=8:29855 STATE_DIRECTORY=/var/lib/vnstat SYSTEMD_EXEC_PID=2707 MEMORY_PRESSURE_WATCH=/sy>
+    systemd+    1201   0.0   0.0     1152      91044 ?      Ssl    Jan  5    0:01 /usr/lib/systemd/systemd-timesyncd LANG=en_US.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin NOTIFY_SOCKET=/run/systemd/notify WATCHDOG_PID=1201 WATCHDOG_USEC=180000000 USER=systemd-timesync LOGNAME=systemd-timesync INVOCATION_ID=9f337859e19249b2977af8bb586f2c94 JOURNAL_STREA>
+    systemd+    1196   0.0   0.0      384      22008 ?      Ss     Jan  5    0:48 /usr/lib/systemd/systemd-resolved LANG=en_US.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin NOTIFY_SOCKET=/run/systemd/notify WATCHDOG_PID=1196 WATCHDOG_USEC=180000000 USER=systemd-resolve LOGNAME=systemd-resolve INVOCATION_ID=5707dd899b2541a289e315ed6616d70c JOURNAL_STREAM=8>
+    syslog      1787   0.0   0.0      640     222508 ?      Ssl    Jan  5    0:02 /usr/sbin/rsyslogd -n -iNONE LANG=en_US.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin NOTIFY_SOCKET=/run/systemd/notify LISTEN_PID=1787 LISTEN_FDS=1 LISTEN_FDNAMES=syslog.socket USER=root INVOCATION_ID=94eeaa8f349e456fa5df905f17729693 JOURNAL_STREAM=8:29727 SYSTEMD_EXEC_PID=>
+    rtkit       3291   0.0   0.0     1024      22940 ?      SNsl   Jan  5    0:04 /usr/libexec/rtkit-daemon LANG=en_US.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin NOTIFY_SOCKET=/run/systemd/notify USER=root INVOCATION_ID=6e9a99b6e2ab44019c666b2ae4b886cc JOURNAL_STREAM=8:21269 SYSTEMD_EXEC_PID=3291 MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/system.slice/rtkit->
+    root          99   0.2   0.0        0          0 ?      S      Jan  5   11:40 [ksoftirqd/15]
+    root         984   0.0   0.0        0          0 ?      I<     Jan  5    0:00 [kworker/R-btrfs]
+    root         983   0.0   0.0        0          0 ?      I<     Jan  5    0:00 [kworker/R-btrfs]
+    root         982   0.0   0.0        0          0 ?      I<     Jan  5    0:00 [kworker/R-btrfs]
+
+    # echo 3 | tee /proc/sys/vm/drop_caches
+    3
+
+    # free -h
+                  total        used        free      shared  buff/cache   available
+    Mem:            30Gi        30Gi       245Mi        87Mi       187Mi        32Mi
+    Swap:          8.0Gi       257Mi       7.7Gi
+
+    # free -m
+                  total        used        free      shared  buff/cache   available
+    Mem:           31645       31594         269          79         166          50
+    Swap:           8191         265        7926
+
+    # sync
+
+    # cat /proc/sys/vm/nr_hugepages
+    0
+
+    # smem -twk
+    Area                           Used      Cache   Noncache 
+    firmware/hardware                 0          0          0 
+    kernel image                      0          0          0 
+    kernel dynamic memory         30.6G     155.9M      30.4G 
+    userspace memory              39.4M      19.6M      19.8M 
+    free memory                  278.6M     278.6M          0 
+    ----------------------------------------------------------
+                                  30.9G     454.1M      30.5G 
+
+    # smem -wp
+    Area                           Used      Cache   Noncache 
+    firmware/hardware             0.00%      0.00%      0.00% 
+    kernel image                  0.00%      0.00%      0.00% 
+    kernel dynamic memory        99.00%      0.43%     98.57% 
+    userspace memory              0.13%      0.06%      0.07% 
+    free memory                   0.86%      0.86%      0.00% 
+
+    # lsmod | sort -nr -k 2 | head
+    i915                 4292608  27
+    xe                   2715648  0
+    btrfs                2019328  1
+    mac80211             1720320  1 iwlmvm
+    kvm                  1409024  1 kvm_intel
+    cfg80211             1323008  3 iwlmvm,iwlwifi,mac80211
+    bluetooth            1028096  34 btrtl,btmtk,btintel,btbcm,bnep,btusb,rfcomm
+    iwlmvm                872448  0
+    iwlwifi               598016  1 iwlmvm
+    thunderbolt           516096  0
+
+    # uname -a
+    Linux super-tuna 6.8.0-49-lowlatency #49.1-Ubuntu SMP PREEMPT_DYNAMIC Sun Nov 10 10:00:36 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+
+    # slabtop -o | head -10
+    Active / Total Objects (% used)    : 4817156 / 5002245 (96.3%)
+    Active / Total Slabs (% used)      : 1032290 / 1032290 (100.0%)
+    Active / Total Caches (% used)     : 342 / 386 (88.6%)
+    Active / Total Size (% used)       : 31637718.69K / 31682510.83K (99.9%)
+    Minimum / Average / Maximum Object : 0.01K / 6.33K / 10.25K
+
+      OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME                   
+    3931151 3931151 100%    8.00K 1010822        4  32346304K kmalloc-rnd-11-8k      
+    71145  36213  50%    0.05K    837       85      3348K shared_policy_node     
+    67928  67790  99%    0.14K   2426       28      9704K kernfs_node_cache      
+
+    # cat /proc/slabinfo | grep "kmalloc-rnd-11-8k"
+    kmalloc-rnd-11-8k 3931772 3931772   8192    4    8 : tunables    0    0    0 : slabdata 1011434 1011434      0
+
+    # head -3 /proc/slabinfo; cat /proc/slabinfo | grep kmalloc-rnd-11-8k
+    slabinfo - version: 2.1
+    # name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
+    QIPCRTR               78     78    832   39    8 : tunables    0    0    0 : slabdata      2      2      0
+    kmalloc-rnd-11-8k 3931887 3931887   8192    4    8 : tunables    0    0    0 : slabdata 1011528 1011528      0
+
+    # cat /proc/meminfo
+    MemTotal:       32404500 kB
+    MemFree:          283740 kB
+    MemAvailable:      60448 kB
+    Buffers:            2388 kB
+    Cached:           102356 kB
+    SwapCached:         9336 kB
+    Active:            21592 kB
+    Inactive:          33280 kB
+    Active(anon):       7320 kB
+    Inactive(anon):     6100 kB
+    Active(file):      14272 kB
+    Inactive(file):    27180 kB
+    Unevictable:       62500 kB
+    Mlocked:              16 kB
+    SwapTotal:       8388604 kB
+    SwapFree:        8105176 kB
+    Zswap:                 0 kB
+    Zswapped:              0 kB
+    Dirty:               552 kB
+    Writeback:             0 kB
+    AnonPages:         10912 kB
+    Mapped:            18372 kB
+    Shmem:             63280 kB
+    KReclaimable:      50868 kB
+    Slab:           31814260 kB
+    SReclaimable:      50868 kB
+    SUnreclaim:     31763392 kB
+    KernelStack:        9344 kB
+    PageTables:        10260 kB
+    SecPageTables:         0 kB
+    NFS_Unstable:          0 kB
+    Bounce:                0 kB
+    WritebackTmp:          0 kB
+    CommitLimit:    24590852 kB
+    Committed_AS:    1989136 kB
+    VmallocTotal:   34359738367 kB
+    VmallocUsed:       50920 kB
+    VmallocChunk:          0 kB
+    Percpu:            21888 kB
+    HardwareCorrupted:     0 kB
+    AnonHugePages:         0 kB
+    ShmemHugePages:     8192 kB
+    ShmemPmdMapped:        0 kB
+    FileHugePages:         0 kB
+    FilePmdMapped:         0 kB
+    Unaccepted:            0 kB
+    HugePages_Total:       0
+    HugePages_Free:        0
+    HugePages_Rsvd:        0
+    HugePages_Surp:        0
+    Hugepagesize:       2048 kB
+    Hugetlb:               0 kB
+    DirectMap4k:      315792 kB
+    DirectMap2M:     8658944 kB
+    DirectMap1G:    25165824 kB
+    ```
+
+??? quote "[Understanding Linux Kernel Memory Statistics](https://blogs.oracle.com/linux/post/understanding-linux-kernel-memory-statistics) explains these values:"
+
+    #### Byte-level memory: VMalloc
+
+    ##### Slab allocator
+
+    The kernel uses various data structures in different kernel components and
+    drivers. Some examples are `struct mm_struct` used for each process's address
+    space and `struct buffer_head` used in filesystem I/O.
+    The Slab allocator manages caches of commonly used objects kept in an
+    initialized state available to be used later. This saves time for allocating,
+    initialising, and freeing objects.
+
+    The following statistics offer insights into the Slab allocator’s impact.
+
+    *   `Slab` is the total memory used by all Slab caches.
+    *   `SReclaimable is` the amount of the Slab that might be reclaimed 
+        (such as cache objects like dentry).
+    *   `SUnreclaim` is the opposite. When unreclaimable slab memory takes up a
+        high percentage of the total memory, system performance may be affected.
+
+    ```
+    Slab:            1622084 kB
+    SReclaimable:    1000692 kB
+    SUnreclaim:       621392 kB
+    ```
+
+    Slab memory can grow when a kernel component or a driver requests memory
+    but fails to release the memory properly, which is a typical memory leak
+    case. Delving deeper into the specifics of `/proc/slabinfo` is crucial
+    for identifying the particular slab object that has accumulated substantial
+    memory usage.
+
+    ...
+
+    For byte-level memory, `kmalloc` and `vmalloc` are involved. `kmalloc`
+    allocates physically contiguous memory regions, while `vmalloc` handles
+    memory blocks that may not be available in contiguous memory regions.
+
+### Debug memory leak
+
+If applying the `i915` patch does not help, the next step would be to do a
+[Kernel dynamic memory analysis](https://elinux.org/Kernel_dynamic_memory_analysis)
+to find out what is leaking memory.
+
+This should be relatively easy since `/sys/kernel/debug/tracing/trace`
+is already present, although it only contains the headers. To enable
+tracing of memory events, add this to kernel parameters:
+
+```
+trace_event=kmem:kmalloc,kmem:kmem_cache_alloc,kmem:kfree,kmem:kmem_cache_free
+```
+
+This could be done by adding `/etc/default/grub.d/trace.cfg` with
+
+```ini
+# Enable tracing of memory events
+GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT trace_event=kmem:kmalloc,kmem:kmem_cache_alloc,kmem:kfree,kmem:kmem_cache_free"
+```
+
+Alternative methods:
+
+*   [Kernel Memory Leak Detector](https://www.kernel.org/doc/html/v4.10/dev-tools/kmemleak.html) would require enabling `CONFIG_DEBUG_KMEMLEAK`
+    when compling a new kernel, because `/sys/kernel/debug/kmemleakls`
+    is not present.
+*   [euspectre/kedr](https://github.com/euspectre/kedr/wiki) seems more
+    involved, based on its
+    [step-by-step tutorial](https://github.com/euspectre/kedr/wiki/kedr_manual_getting_started).
+
+### Disable swap
+
+Swap was disabled by commenting out the corresponding line in `/etc/fstab`.
+
+The memory leak was detected when the Chrome browser started crashing
+consistently despite running only one tab on one web application, and
+eventually even SSH sessions where crashing and at that point it seems
+the availability of swap lead the system to go into thrashing, because
+at that point essentially all the RAM was taken up and Chrome could no
+longer allocate enough memory:
+
+![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-chrome-crash.png)
+
+In the 82 hours the system had been running until it was no longer stable,
+the memory leak had squeezed Chrome (and eventually everything else) out of
+all available memory:
+
+![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-user-ram-full-after-82-hours.png)
+![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-82-hours.png)
+
+This could have been detected earlier, since the *used* RAM had already
+grown to 14 GB in the first 24 hours:
+
+![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-up-14G-after-24-hours.png)
+
+Such a memory leak did not afect
+[Raven](./2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more.md)
+even afte 7 days running the same Ubuntu Studio 24.04, installed from the
+same USB media following the same process, running the same desktop and
+even more applications; but that PC has an NVidia card, like most others.
+
+![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/raven-ram-full-after-96-hours.png)
+
+
+## Appendix: What Was Undone
+
+This section describes problems that were encountered only the first time
+installing Ubuntu Studio 24.04, some of which never were resolved.
+
+### Remove CUPS
+
+On two occassions `cupsd` has suddently gone up to 200% CPU usage and
+stayed up there for 30+ minutes with no sign of and end to come.
 
 ``` console
-# apt install inn -y
+root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
+root        9582  0.0  0.0  63780 12032 ?        S    Nov16   0:00 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
+root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=auto cupsd
+root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
 ```
+
+``` console
+# snap services
+Servicio                                             Encendido  Actual  Notas
+canonical-livepatch.canonical-livepatchd             activado   activo  -
+cups.cups-browsed                                    activado   activo  -
+cups.cupsd                                           activado   activo  -
+firmware-updater.firmware-notifier                   activado   -       user,timer-activated
+firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado   -       user
+
+# snap stop cups
+Detenido.
+
+# snap disable cups
+cups desactivado
+
+# ps aux | grep cupsd
+root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
+root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
+
+# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
+==> /var/log/cups/access_log <==
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
+localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
+localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
+localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
+localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
+localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
+
+==> /var/log/cups/error_log <==
+E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
+E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
+
+# snap services
+Servicio                                             Encendido    Actual    Notas
+canonical-livepatch.canonical-livepatchd             activado     activo    -
+cups.cups-browsed                                    desactivado  inactivo  -
+cups.cupsd                                           desactivado  inactivo  -
+firmware-updater.firmware-notifier                   activado     -         user,timer-activated
+firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  activado     -         user
+```
+
+``` console
+# killall /usr/sbin/cupsd
+
+# ps aux | grep /usr/sbin/cupsd
+root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
+
+# killall /usr/sbin/cupsd
+# ps aux | grep /usr/sbin/cupsd
+root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
+```
+
+This issue did not repeat after reinstalling.
