@@ -1332,19 +1332,19 @@ the availability of swap lead the system to go into thrashing, because
 at that point essentially all the RAM was taken up and Chrome could no
 longer allocate enough memory:
 
-![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-chrome-crash.png)
+![Heavy I/O suggests thrashing happened for several minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-chrome-crash.png)
 
 In the 82 hours the system had been running until it was no longer stable,
 the memory leak had squeezed Chrome (and eventually everything else) out of
 all available memory:
 
-![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-user-ram-full-after-82-hours.png)
-![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-82-hours.png)
+![Per-application memory usage shows chrome losing ability to allocate memory after 82 hours](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-user-ram-full-after-82-hours.png)
+![System-wide memory usage shows all memory used and nothing available after 82 hours](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-full-after-82-hours.png)
 
 This could have been detected earlier, since the *used* RAM had already
 grown to 14 GB in the first 24 hours:
 
-![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-up-14G-after-24-hours.png)
+![System-wide memory usage up to 14 GB in the first 24 hours](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-ram-up-14G-after-24-hours.png)
 
 Such a memory leak did not afect
 [Raven](./2024-12-27-ubuntu-studio-24-04-on-raven-gaming-pc-and-more.md)
@@ -1352,18 +1352,12 @@ even afte 7 days running the same Ubuntu Studio 24.04, installed from the
 same USB media following the same process, running the same desktop and
 even more applications; but that PC has an NVidia card, like most others.
 
-![](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/raven-ram-full-after-96-hours.png)
+![System-wide memory usage stays at healthy levels after several days](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/raven-ram-full-after-96-hours.png)
 
+## Remove CUPS
 
-## Appendix: What Was Undone
-
-This section describes problems that were encountered only the first time
-installing Ubuntu Studio 24.04, some of which never were resolved.
-
-### Remove CUPS
-
-On two occassions `cupsd` has suddently gone up to 200% CPU usage and
-stayed up there for 30+ minutes with no sign of and end to come.
+On several occassions `cupsd` had suddently gone up to 200% CPU usage
+and stayed up there for 30+ minutes with no sign of and end to come.
 
 ``` console
 root        5512  0.0  0.0   2892  1664 ?        Ss   Nov16   0:00 /bin/sh /snap/cups/1067/scripts/run-cupsd
@@ -1372,62 +1366,57 @@ root     3659053  0.0  0.0   7160  2048 pts/2    S+   00:29   0:00 grep --color=
 root     3689314  194  0.0 184064 12416 ?        Rsl  00:00  56:44 /usr/sbin/cupsd -l
 ```
 
+This PC won't have any printers connected to it, so CUPS can be removed:
+
 ``` console
 # snap services
-Servicio                                             Encendido  Actual  Notas
-canonical-livepatch.canonical-livepatchd             activado   activo  -
-cups.cups-browsed                                    activado   activo  -
-cups.cupsd                                           activado   activo  -
-firmware-updater.firmware-notifier                   activado   -       user,timer-activated
-firmware-updater.firmware-updater-app                activado   -       user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado   -       user
+Service                                              Startup   Current   Notes
+canonical-livepatch.canonical-livepatchd             enabled   active    -
+chromium.daemon                                      disabled  inactive  -
+cups.cups-browsed                                    enabled   active    -
+cups.cupsd                                           enabled   active    -
+firmware-updater.firmware-notifier                   enabled   -         user,timer-activated
+firmware-updater.firmware-updater-app                enabled   -         user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  enabled   -         user
 
 # snap stop cups
-Detenido.
+Stopped.
 
 # snap disable cups
-cups desactivado
+cups disabled
 
 # ps aux | grep cupsd
-root      540028  0.0  0.0   7160  2048 pts/2    S+   00:33   0:00 grep --color=auto cupsd
-root     3689314  195  0.0 184064 12416 ?        Rsl  00:00  64:14 /usr/sbin/cupsd -l
+root     1865839  0.0  0.0  39304 12544 ?        Ss   00:00   0:00 /usr/sbin/cupsd -l
+root     2208813  0.0  0.0   9144  1920 pts/1    S+   00:24   0:00 grep --color=auto cupsd
 
-# tail -f /var/log/cups/*log /var/log/*log | grep -v pam_unix
+# tail -f /var/log/cups/*log  | grep -v pam_unix
 ==> /var/log/cups/access_log <==
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:40 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
-localhost - - [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
-localhost - cups-browsed [17/Nov/2024:00:00:46 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer successful-ok
-localhost - cups-browsed [17/Nov/2024:00:00:51 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - cups-browsed [17/Nov/2024:00:00:56 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
-localhost - - [17/Nov/2024:00:01:41 +0100] "POST / HTTP/1.1" 200 294 CUPS-Create-Local-Printer server-error-device-error
-localhost - - [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
-localhost - root [17/Nov/2024:00:33:11 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
+localhost - - [09/Jan/2025:00:00:00 +0100] "POST / HTTP/1.1" 200 357 Create-Printer-Subscriptions successful-ok
+localhost - - [09/Jan/2025:00:00:00 +0100] "POST / HTTP/1.1" 200 176 Create-Printer-Subscriptions successful-ok
+localhost - - [09/Jan/2025:00:00:05 +0100] "POST /admin/ HTTP/1.1" 401 0 - -
+localhost - cups-browsed [09/Jan/2025:00:00:05 +0100] "POST /admin/ HTTP/1.1" 200 181 CUPS-Delete-Printer client-error-not-found
+localhost - - [09/Jan/2025:00:23:29 +0100] "POST / HTTP/1.1" 401 120 Cancel-Subscription successful-ok
+localhost - root [09/Jan/2025:00:23:29 +0100] "POST / HTTP/1.1" 200 120 Cancel-Subscription successful-ok
 
 ==> /var/log/cups/error_log <==
-E [17/Nov/2024:00:01:11 +0100] (null): Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] Brother_HL_2130_series_pi_f1: Unable to connect to pi-f1.local:631: Connection timed out
-E [17/Nov/2024:00:02:12 +0100] [Client 15] Returning IPP server-error-device-error for CUPS-Create-Local-Printer (ipp://localhost/) from localhost.
 
 # snap services
-Servicio                                             Encendido    Actual    Notas
-canonical-livepatch.canonical-livepatchd             activado     activo    -
-cups.cups-browsed                                    desactivado  inactivo  -
-cups.cupsd                                           desactivado  inactivo  -
-firmware-updater.firmware-notifier                   activado     -         user,timer-activated
-firmware-updater.firmware-updater-app                activado     -         user,dbus-activated
-snapd-desktop-integration.snapd-desktop-integration  activado     -         user
+Service                                              Startup   Current   Notes
+canonical-livepatch.canonical-livepatchd             enabled   active    -
+chromium.daemon                                      disabled  inactive  -
+cups.cups-browsed                                    disabled  inactive  -
+cups.cupsd                                           disabled  inactive  -
+firmware-updater.firmware-notifier                   enabled   -         user,timer-activated
+firmware-updater.firmware-updater-app                enabled   -         user,dbus-activated
+snapd-desktop-integration.snapd-desktop-integration  enabled   -         user
+
+# systemctl stop cups.service
+
+# ps aux | grep cupsd
+root     2271225  0.0  0.0   9144  2176 pts/1    S+   00:29   0:00 grep --color=auto cupsd
 ```
 
-``` console
-# killall /usr/sbin/cupsd
+This issue repeated after reinstalling, lasting for up to 90 minutes:
 
-# ps aux | grep /usr/sbin/cupsd
-root      889361  0.0  0.0  35328 11264 ?        Ss   00:34   0:00 /usr/sbin/cupsd -l
+![cupsd stays at 200% CPU for 90 minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-cupsd-cpu-200.png)
 
-# killall /usr/sbin/cupsd
-# ps aux | grep /usr/sbin/cupsd
-root     1081663  0.6  0.0  35328 11136 ?        Ss   00:35   0:00 /usr/sbin/cupsd -l
-```
-
-This issue did not repeat after reinstalling.
