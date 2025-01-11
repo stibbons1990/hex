@@ -169,3 +169,18 @@ games from GOG:
 *  [What does the "Dragon Age: Origins - Ultimate Edition DLC CD Key" do?](https://steamcommunity.com/app/47810/discussions/0/558752450420490163)
 *  [How to get all the DLC](https://steamcommunity.com/app/47810/discussions/0/1698300679774459377/)
 *  [Downloadable content (Origins)](https://dragonage.fandom.com/wiki/Downloadable_content_(Origins))
+
+#### Update (2025-01-11)
+
+In the off-chance that this game might have worked better with the
+[Steam from snap](./2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#snap-package-removed),
+tried installing it again and tried all the above on it.
+
+To install `physx` the snap version of the plx directory was
+`$HOME/snap/steam/common/.local/share/Steam/steamapps/compatdata/47810/pfx`
+and the game was installed under
+`$HOME/snap/steam/common/.local/share/Steam/steamapps/common/Dragon Age Ultimate Edition`.
+
+Despite all the tweaks above and trying all versions of Proton **7.0-6**
+and newer, the game would not even show the launcher at all, so that's even worse
+than the [recent update with non-snap Steam](#update-2025-01-05).
