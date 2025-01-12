@@ -1301,16 +1301,86 @@ This should be relatively easy since `/sys/kernel/debug/tracing/trace`
 is already present, although it only contains the headers. To enable
 tracing of memory events, add this to kernel parameters:
 
-```
+``` ini
 trace_event=kmem:kmalloc,kmem:kmem_cache_alloc,kmem:kfree,kmem:kmem_cache_free
 ```
 
-This could be done by adding `/etc/default/grub.d/trace.cfg` with
+This can be done by adding `/etc/default/grub.d/trace.cfg` with
 
 ```ini
 # Enable tracing of memory events
 GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT trace_event=kmem:kmalloc,kmem:kmem_cache_alloc,kmem:kfree,kmem:kmem_cache_free"
 ```
+
+After 2 days running with this, there are 745,033 lines in
+`/sys/kernel/debug/tracing/trace` but it is not entirely clear what callsites
+they point to:
+
+``` console
+# grep alloc kmem.log | grep --color=no -o 'call_site=[a-zA-Z_0-9]*' | sed 's/call_site=//' > kmem.txt
+# sort kmem.txt | uniq -c | sort -nr | head
+ 138686 vm_area_dup
+  92207 anon_vma_clone
+  77047 getname_flags
+  75840 alloc_buffer_head
+  64657 vm_area_alloc
+  58102 mas_alloc_nodes
+  49660 __alloc_skb
+  44111 security_file_alloc
+  44111 alloc_empty_file
+  42981 anon_vma_fork
+  26055 __anon_vma_prepare
+  19385 i915_gem_do_execbuffer
+  10631 kvmalloc_node
+   9379 seq_open
+   8660 single_open
+   7014 drm_syncobj_array_wait_timeout
+   7014 drm_syncobj_array_find
+   6537 jbd2__journal_start
+   3071 __d_alloc
+   2765 prepare_creds
+   2763 security_prepare_creds
+   2648 security_inode_alloc
+   2527 kmalloc_reserve
+   2518 load_elf_binary
+   2517 load_elf_phdrs
+   2430 alloc_pipe_info
+   2361 krealloc
+   2102 alloc_extent_state
+   1883 genl_family_rcv_msg_attrs_parse
+   1804 memcg_alloc_slab_cgroups
+   1512 dup_task_struct
+   1509 security_task_alloc
+   1509 audit_alloc
+   1507 mas_dup_build
+   1507 dup_mm
+   1507 copy_signal
+   1507 copy_sighand
+   1506 dup_fd
+   1506 copy_fs_struct
+   1494 alloc_pid
+   1400 alloc_vmap_area
+   1350 proc_alloc_inode
+   1302 getname_kernel
+   1264 xas_alloc
+   1253 mm_alloc
+   1253 alloc_bprm
+   1215 alloc_inode
+   1173 __i915_request_create
+   1171 drm_syncobj_create
+   1171 add_fence_array
+    865 sg_kmalloc
+    831 mempool_alloc_slab
+    804 i915_vma_resource_alloc
+    798 drm_atomic_state_init
+    797 vma_create
+```
+
+It seems one would really need to
+[wrestle against gcc](https://elinux.org/Kernel_dynamic_memory_analysis#Obtaining_accurate_call_sites_.28or_The_painstaking_task_of_wrestling_against_gcc.29)
+to obtain accurate callsites. Moreover, the script to analyze this file
+([`trace_analyze.py`](https://github.com/ezequielgarcia/kmem-probe-framework/blob/master/post-process/trace_analyze.py))
+is from 2012 and writen in Python 2.
 
 Alternative methods:
 
