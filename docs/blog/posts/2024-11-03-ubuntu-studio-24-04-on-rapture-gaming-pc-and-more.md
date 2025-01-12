@@ -1947,6 +1947,19 @@ Extracting GE-Proton9-22.tar.gz to Steam directory...
 All done :)
 ```
 
+#### Snap package (reinstalled)
+
+Turns out some games actually work better with the snap version of Steam, or
+at least it was easy to get them to run *this time around*. In particular,
+[The Elder Scrolls® Online](https://steamdb.info/app/306130/) worked out of
+the box with the snap version of Steam, while it wouldn't install or launch
+otherwise, so Steam from Snap was installed again:
+
+``` console
+# snap install steam
+steam 1.0.0.81 from Canonical✓ installed
+```
+
 ### Minecraft Java Edition
 
 To avoid taking chances, copy the Minecraft launcher from the
@@ -3825,7 +3838,7 @@ Device             Start        End    Sectors  Size Type
 ```
 
 This finally allows taking the *old* new 4TB NVMe SSD down from 81% to a more
-comfortable __% so that installing big Steam games is not a problem.
+comfortable 69% so that installing big Steam games is not a problem.
 
 ``` console
 $ df -h
