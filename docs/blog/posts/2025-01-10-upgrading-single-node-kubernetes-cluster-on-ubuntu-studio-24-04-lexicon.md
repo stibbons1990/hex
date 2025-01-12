@@ -10,7 +10,9 @@ title: Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04 (lexicon)
 ---
 
 [Upgrading the single-node kubernetes cluster on rapture](./2024-09-22-upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.md)
-went smoothly, so it's time to repeat the process on `lexicon`.
+went smoothly, so it's time to repeat the process on `lexicon`, *especially*
+since the current version (1.26) will be
+[End Of Life next month](https://kubernetes.io/releases/patch-releases/#non-active-branch-history)!
 
 <!-- more -->
 
@@ -2891,3 +2893,94 @@ total 32
 ```
 
 So it seems rotation of server certificates *is* working correctly.
+
+This should lead to server certificates being rotated every time the cluster
+patch version is upgraded, which should happen definitely more than once or
+twice per year.
+
+### Upgrade to 1.32
+
+[Upgrade version 1.31.x to version 1.32.x](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/) now, again starting by
+determining which version to upgrade to and updating the minor version in the
+repository configuration and then find the latest patch version:
+
+``` console
+# curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key \
+  | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+# vi /etc/apt/sources.list.d/kubernetes.list
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /
+
+# apt update
+# apt-cache madison kubeadm
+   kubeadm | 1.32.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.32/deb  Packages
+```
+
+The latest patch version is 1.32.**0**; there is only one patch version.
+
+[Mathew Duggan](https://matduggan.com/author/mathew/)'s
+[Upgrading Kubernetes - A Practical Guide](https://matduggan.com/upgrading-kubernetes-safely/)
+makes a strong recommendation to
+*not upgrade the minor version until it hits patch .2 at least*.
+
+#### For later (1.32.3)
+
+Now, **before** updating `kubeadm`, drain the code again:
+
+??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
+
+    ``` console
+    # kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon
+    ```
+
+The latest patch version is 1.32.**3** and that is the one to
+[upgrade control plane nodes](https://v1-32.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#upgrading-control-plane-nodes) to:
+
+??? terminal "`apt-get update && apt-get install -y kubeadm='1.32.3-*'`"
+
+    ``` console
+    # apt-mark unhold kubeadm && \
+    apt-get update && apt-get install -y kubeadm='1.32.3-*' && \
+    apt-mark hold kubeadm
+
+    ```
+
+Verify and apply the upgrade plan:
+
+??? terminal "`# kubeadm upgrade plan && kubeadm upgrade apply v1.32.3`"
+
+    ``` console
+    # kubeadm upgrade plan
+
+    # kubeadm upgrade apply v1.32.3
+
+    ```
+
+Now that the control plane is updated, proceed to
+[upgrade kubelet and kubectl](https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#upgrade-kubelet-and-kubectl)
+
+??? terminal "`apt-get update && apt-get install -y kubelet='1.32.0-*' kubectl='1.32.0-*'`"
+
+    ``` console
+    # apt-mark unhold kubelet kubectl && \
+    apt-get update && apt-get install -y kubelet='1.32.3-*' kubectl='1.32.3-*' && \
+    apt-mark hold kubelet kubectl
+
+    # systemctl daemon-reload
+    # systemctl restart kubelet
+
+    # kubectl  version --output=yaml
+    ```
+
+Finally, bring the node back online by marking it schedulable:
+
+??? terminal "`# kubectl uncordon lexicon`"
+
+    ``` console
+    # kubectl uncordon lexicon
+    node/lexicon uncordoned
+    # kubectl get pods -A
+    ```
+
+After a minute or two all the services are back up and running and the
+Kubernetes dashboard shows all workloads green and OK again.
