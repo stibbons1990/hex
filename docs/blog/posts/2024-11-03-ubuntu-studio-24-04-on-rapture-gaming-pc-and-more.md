@@ -2590,6 +2590,108 @@ As or late 2024, the new project has its own
 [Installation Instructions (Linux)](https://github.com/eoyilmaz/displaycal-py3/blob/develop/docs/install_instructions_linux.md)
 but in Ubuntu Studio 24.04 none of this is necessary; `apt install displaycal` will do.
 
+### Prusa Slicer
+
+To install [PrusaSlicer](https://flathub.org/apps/com.prusa3d.PrusaSlicer)
+first need to [Set Up Flathub in Ubuntu](https://flathub.org/setup/Ubuntu):
+
+??? terminal "`# apt install flatpak -y`"
+
+    ``` console
+    # apt install flatpak -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      libmalcontent-0-0 libostree-1-1
+    Suggested packages:
+      malcontent-gui
+    The following NEW packages will be installed:
+      flatpak libmalcontent-0-0 libostree-1-1
+    0 upgraded, 3 newly installed, 0 to remove and 3 not upgraded.
+    Need to get 1,745 kB of archives.
+    After this operation, 6,553 kB of additional disk space will be used.
+    Get:1 http://ch.archive.ubuntu.com/ubuntu noble-updates/main amd64 libmalcontent-0-0 amd64 0.11.1-1ubuntu1 [22.3 kB]
+    Get:2 http://archive.ubuntu.com/ubuntu noble/universe amd64 libostree-1-1 amd64 2024.5-1build2 [373 kB]
+    Get:3 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 flatpak amd64 1.14.6-1ubuntu0.1 [1,350 kB]
+    Fetched 1,745 kB in 1s (3,120 kB/s)
+    Selecting previously unselected package libmalcontent-0-0:amd64.
+    (Reading database ... 489602 files and directories currently installed.)
+    Preparing to unpack .../libmalcontent-0-0_0.11.1-1ubuntu1_amd64.deb ...
+    Unpacking libmalcontent-0-0:amd64 (0.11.1-1ubuntu1) ...
+    Selecting previously unselected package libostree-1-1:amd64.
+    Preparing to unpack .../libostree-1-1_2024.5-1build2_amd64.deb ...
+    Unpacking libostree-1-1:amd64 (2024.5-1build2) ...
+    Selecting previously unselected package flatpak.
+    Preparing to unpack .../flatpak_1.14.6-1ubuntu0.1_amd64.deb ...
+    Unpacking flatpak (1.14.6-1ubuntu0.1) ...
+    Setting up libostree-1-1:amd64 (2024.5-1build2) ...
+    Setting up libmalcontent-0-0:amd64 (0.11.1-1ubuntu1) ...
+    Setting up flatpak (1.14.6-1ubuntu0.1) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Processing triggers for dbus (1.14.10-4ubuntu4.1) ...
+    Processing triggers for libc-bin (2.39-0ubuntu8.3) ...
+    ```
+
+For the time being, the only repository will be `flathub.org`:
+
+``` console
+# flatpak remote-add --if-not-exists flathub \
+  https://dl.flathub.org/repo/flathub.flatpakrepo
+```
+
+Once the repository is added, install the application:
+
+??? terminal "`# flatpak install flathub com.prusa3d.PrusaSlicer`"
+
+    ``` console
+    # flatpak install flathub com.prusa3d.PrusaSlicer
+    Looking for matches…
+    Required runtime for com.prusa3d.PrusaSlicer/x86_64/stable (runtime/org.gnome.Platform/x86_64/47) found in remote flathub
+    Do you want to install it? [Y/n]: 
+
+    (flatpak install:1943373): dconf-WARNING **: 13:36:55.591: unable to open file '/etc/dconf/db/site': Failed to open file “/etc/dconf/db/site”: open() failed: No such file or directory; expect degraded performance
+
+    com.prusa3d.PrusaSlicer permissions:
+        ipc                  network              x11                    devices
+        file access [1]      dbus access [2]      bus ownership [3]      system dbus access [4]
+
+        [1] /media, /run/media, home, xdg-run/gvfs
+        [2] com.prusa3d.prusaslicer.InstanceCheck.*, org.freedesktop.DBus.Introspectable.*
+        [3] com.prusa3d.prusaslicer.*
+        [4] org.freedesktop.UDisks2
+
+
+            ID                                         Branch     Op Remote  Download
+    1. [✓] com.prusa3d.PrusaSlicer.Locale             stable     i  flathub 137.4 kB / 11.6 MB
+    2. [✓] org.freedesktop.Platform.GL.default        24.08      i  flathub 156.1 MB / 156.3 MB
+    3. [✓] org.freedesktop.Platform.GL.default        24.08extra i  flathub  25.1 MB / 156.3 MB
+    4. [✓] org.freedesktop.Platform.GL.nvidia-550-120 1.4        i  flathub 308.2 MB / 308.2 MB
+    5. [✓] org.freedesktop.Platform.openh264          2.4.1      i  flathub 920.7 kB / 976.5 kB
+    6. [✓] org.gnome.Platform.Locale                  47         i  flathub  18.6 kB / 386.5 MB
+    7. [✓] org.gnome.Platform                         47         i  flathub 326.6 MB / 384.1 MB
+    8. [✓] com.prusa3d.PrusaSlicer                    stable     i  flathub  84.8 MB / 91.7 MB
+
+    Installing 8/8… ████████████████████ 100%  7.7 MB/s  00:00
+            ID                                         Branch     Op Remote  Download
+    1. [✓] com.prusa3d.PrusaSlicer.Locale             stable     i  flathub 137.4 kB / 11.6 MB
+    2. [✓] org.freedesktop.Platform.GL.default        24.08      i  flathub 156.1 MB / 156.3 MB
+    3. [✓] org.freedesktop.Platform.GL.default        24.08extra i  flathub  25.1 MB / 156.3 MB
+    4. [✓] org.freedesktop.Platform.GL.nvidia-550-120 1.4        i  flathub 308.2 MB / 308.2 MB
+    5. [✓] org.freedesktop.Platform.openh264          2.4.1      i  flathub 920.7 kB / 976.5 kB
+    6. [✓] org.gnome.Platform.Locale                  47         i  flathub  18.6 kB / 386.5 MB
+    7. [✓] org.gnome.Platform                         47         i  flathub 326.6 MB / 384.1 MB
+    8. [✓] com.prusa3d.PrusaSlicer                    stable     i  flathub  84.8 MB / 91.7 MB
+
+    Installation complete.
+    ```
+
+Then to run the application:
+
+``` console
+$ flatpak run com.prusa3d.PrusaSlicer
+```
+
 ## System Configuration
 
 The above having covered **installing** software, there are still
