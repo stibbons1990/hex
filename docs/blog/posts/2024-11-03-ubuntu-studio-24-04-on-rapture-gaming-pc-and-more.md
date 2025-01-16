@@ -2705,6 +2705,59 @@ Then to run the application:
 $ flatpak run com.prusa3d.PrusaSlicer
 ```
 
+### FreeCAD 1.0
+
+[FreeCAD](https://www.freecad.org/index.php) recent had a major
+[1.0 release](https://blog.freecad.org/2024/11/19/freecad-version-1-0-released/)
+that makes it a lot more palatable for many more people, so I gave it a try.
+
+[Download](https://www.freecad.org/downloads.php) the stable version, which is
+an [AppImage](https://appimage.org/) file and can be updated easily with
+[AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate):
+
+``` console
+$ mkdir $HOME/Applications
+$ cd $HOME/Applications
+
+$ wget -q https://github.com/FreeCAD/FreeCAD/releases/download/1.0.0/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage
+
+$ wget -q https://github.com/AppImageCommunity/AppImageUpdate/releases/download/2.0.0-alpha-1-20241225/AppImageUpdate-x86_64.AppImage
+
+$ ./AppImageUpdate-x86_64.AppImage FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage
+AppImageUpdate version 1-alpha (commit 362e637), build 223 built on 2024-12-25 15:11:36 UTC
+Fetching latest release information from GitHub API
+Updating from GitHub Releases via ZSync
+Fetching latest release information from GitHub API
+zsync2: Using CA bundle found on system: /etc/ssl/certs/ca-certificates.crt
+zsync2: /home/ponder/Downloads/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage found, using as seed file
+zsync2: Target file: /home/ponder/Downloads/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage
+zsync2: Reading seed file: /home/ponder/Downloads/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage
+zsync2: Usable data from seed files: 97.175505%
+zsync2: Renaming temp file
+zsync2: Fetching remaining blocks
+zsync2: Downloading from https://objects.githubusercontent.com/github-production-release-asset-2e65be/93114989/a70d4be4-ab21-4577-9ddc-51f71f55709f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250116%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250116T194102Z&X-Amz-Expires=300&X-Amz-Signature=6cd137d7eea382edbbbd3cee03d5e401cc5995d9c912b2eb734cda90217999f8&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3DFreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage&response-content-type=application%2Foctet-stream
+zsync2: optimized ranges, old requests count 254, new requests count 72
+
+zsync2: Verifying downloaded file
+zsync2: checksum matches OK
+zsync2: used 660779008 local, fetched 32539376
+```
+
+#### Tweak UI Font Size
+
+FreeCAD does not have an easy way to increase UI font size globally, the CSS
+tweak [here](https://www.reddit.com/r/FreeCAD/comments/1gpj0c6/comment/lwtsaby/)
+does not work, the recommended solution, while waiting for
+[HiDPI support](https://wiki.freecad.org/HiDPI_support), is to scale the entire
+UI up on high resolution screens:
+
+``` console
+/usr/bin/env \
+  QT_AUTO_SCREEN_SCALE_FACTOR=0 \
+  QT_SCALE_FACTOR=1.5 \
+  /home/ponder/Applications/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage
+```
+
 ## System Configuration
 
 The above having covered **installing** software, there are still
