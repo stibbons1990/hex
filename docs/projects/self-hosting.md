@@ -330,6 +330,18 @@ but there is a simple enough deployment
 and a more detailed, albeit older one
 [here](https://www.debontonline.com/2021/11/kubernetes-part-16-deploy-jellyfin.html).
 
+#### Kendo Manager
+
+[Kendo Manager](https://www.kendomanager.com/)
+
+
+
+#### Leantime
+
+[Leantime](https://github.com/Leantime/leantime/?tab=readme-ov-file#leantime)
+
+
+
 #### Netdata
 
 [Netdata](https://www.netdata.cloud/) *could* replace
@@ -397,6 +409,14 @@ and a user-friendly self-hosted WebUI at
 [open-webui/open-webui](https://github.com/open-webui/open-webui).
 You can even install
 [both Ollama and Open WebUI using Helm](https://github.com/open-webui/open-webui/blob/main/INSTALLATION.md#installing-both-ollama-and-open-webui-using-helm).
+
+#### OpenProject
+
+[OpenProject](https://www.openproject.org/)
+
+[Helm chart for OpenProject](https://www.openproject.org/docs/installation-and-operations/installation/helm-chart/)
+
+
 
 #### Pterodactyl®
 
@@ -471,6 +491,17 @@ Migrating [Continuous Monitoring](#continuous-monitoring),
 [VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics?tab=readme-ov-file#victoriametrics)
 *is a fast, cost-saving, and scalable solution for monitoring and
 managing time series data*.
+
+#### WeKan
+
+[WeKan](https://github.com/wekan/wekan?tab=readme-ov-file#wekan----open-source-kanban)
+is a collaborative kanban board application.
+Can be run with 
+[docker-compose](https://github.com/wekan/wekan/blob/main/docker-compose.yml)
+or installed with a Kubernetes
+[Helm chart](https://artifacthub.io/packages/helm/wekan/wekan).
+There is also an
+[Android app](https://play.google.com/store/apps/details?id=team.wekan.boards.twa).
 
 #### Yamtrack
 
