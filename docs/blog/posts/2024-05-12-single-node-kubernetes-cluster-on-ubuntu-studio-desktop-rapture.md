@@ -322,7 +322,7 @@ a new Kubernetes cluster:
 
 ### Prerequisites
 
-[Forwarding IPv4 and letting iptables see bridged traffic](https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
+[Forwarding IPv4 and letting iptables see bridged traffic](https://v1-29.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic)
 are already enabled in Ubuntu:
 
 ``` console
@@ -339,7 +339,7 @@ net.ipv4.ip_forward = 1
 ```
 
 *Even so*, **these must be enabled explicitly** to avoid issues
-later, [*ask me how I know*](2024-09-22-upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04.md).
+later, [*ask me how I know*](2024-09-22-kubernetes-cluster-dns-issues.md).
 
 ### Install containerd
 
@@ -1378,7 +1378,7 @@ To serve HTTPS requests on a single IP address, the
 `type: LoadBalancer`. As it happens, the `v1.10.1` manifest
 already has this property set in line 366:
 
-``` yaml linenums="1" title="nginx-ingress-controller.yaml"
+``` yaml linenums="335" hl_lines="32" title="nginx-ingress-controller.yaml"
 apiVersion: v1
 kind: Service
 metadata:
