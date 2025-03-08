@@ -381,6 +381,12 @@ useless and/or annoying behaviors, such as
 - Remove "You are leaving Steam" link filter from external sites
 - Hide "Open in Steam" banner
 
+#### ActivityWatch
+
+[ActivityWatch](https://addons.mozilla.org/en-US/firefox/addon/aw-watcher-web/)
+is necessary (or just useful) to report active browser tags to the
+[Self-hosted time tracking with ActivityWatch](./2024-06-30-self-hosted-time-tracking-with-activitywatch.md).
+
 #### Account-isolation Containers
 
 [Firefox Multi-Account Containers](https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/)
