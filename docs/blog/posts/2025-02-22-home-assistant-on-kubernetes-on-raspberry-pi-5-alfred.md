@@ -1,5 +1,4 @@
 ---
-draft: false
 date: 2025-02-22
 categories:
  - home assistant
@@ -2515,11 +2514,11 @@ Removing those `DROP` rules did not help:
 
 ### HTTPS certificates
 
-**TODO:** [Install Let’s Encrypt certificate as a secret](./2024-05-12-single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#install-lets-encrypt-certificate-as-a-secret)
+**TODO:** [Install Let’s Encrypt certificate as a secret](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#install-lets-encrypt-certificate-as-a-secret)
 
 #### Automatic renovation
 
-**TODO:** [Monthly renewal of certificates (automated)](./2024-05-12-single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#monthly-renewal-of-certificates-automated)
+**TODO:** [Monthly renewal of certificates (automated)](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#monthly-renewal-of-certificates-automated)
 
 ## Home Assistant
 
