@@ -546,3 +546,29 @@ $ sudo snap install bitwarden bw
 bitwarden 2025.2.1 from 8bit Solutions LLC (bitwarden✓) installed
 bw 2025.1.3 from 8bit Solutions LLC (bitwarden✓) installed
 ```
+
+## Final touches
+
+Once everything is setup with all the [profiles](#profiles) and accounts, or
+even during the processing of setting it all up, a few extra steps were taken
+to take the opportunity and spend a little extra time to make sure everything
+was more consistent and better organized than before, including
+
+- Generating and securely storing recovery codes for every account that
+  supports them. At first it seemd those would be only the ones with 2FA
+  enabled, but somehow a few more accounts did produce recovery codes, while
+  others did not.
+- Designate criteria to decide when to use each profile, such as *main profile
+  only for the most personal stuff, a second profile for work-related stuff, and
+  most importantly one or more additional profiles for everything else*. The
+  purpose of this separation is to avoid being distracted by work-related stuff
+  while shopping around, and vice-versa, and other such situations.
+- Review old profiles in all browsers for anything worth keeping, such as
+  long-forgotten tabs with interesting content that would be worth bookmarking
+  for future reference, but this time in a better-suited profile.
+
+Last but not least, **reconsidering Bitwarden Premium plans**. Once passwords
+have been migrated, even organized in folders, and **all** behind a single
+main password, and *all for free*, the value of upgrading to Premium
+[is a no-brainer](https://www.reddit.com/r/Bitwarden/comments/1dt3uz3/premium_is_it_worth_it/).
+[Upgrading to a Family plan is not yet worth it](https://www.reddit.com/r/Bitwarden/comments/1bwgbzd/subscribing_the_family_plan/).
