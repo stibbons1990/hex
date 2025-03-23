@@ -1716,7 +1716,7 @@ Events:              <none>
 
 ### Kubernetes Dashboard
 
-As for v1.29,
+As of v1.29,
 [Kubernetes Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
 supports only Helm-based 
 [installation](https://github.com/kubernetes/dashboard?tab=readme-ov-file#installation),
@@ -2262,6 +2262,73 @@ alfred (192.168.0.124) at 2c:cf:67:83:6f:3c [ether] on enp5s0
 [The LoadbalancerIP or the External SVC IP will never be pingable](https://stackoverflow.com/a/73307679)
 suggest this last test may have been futile, but either way neither `ping` nor
 `nc` nor `tcptraceroute` nor `mtr` can connect to HTTP/S ports on that IP.
+
+#### Kubernetes Dashboard Ingress
+
+With both Ngnix and the Kubernetes dashboard up and running, it is now possible to make
+the dashboard more conveniently accessible via Nginex. The URL will need to have the
+`NodePort` in it (e.g. [https://k8s.alfred:32035](https://k8s.alfred:32035)) because the
+service is unreachable when using a `LoadBalancer` IP. This `Ingress` is a slightly more
+complete one based on the example above:
+
+``` yaml title="dashboard/nginx-ingress.yaml"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: k8s.alfred
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+```
+
+This will point to the `kubernetes-dashboard-kong-proxy` which is the one listening on
+standard HTTPS port 443. This is the one targeted by the `kubectl port-forward` command
+above, which then exposes it on the node's port 8443.
+
+``` console
+$ kubectl apply -f dashboard/nginx-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress created
+```
+
+A very quick way to test that the new `Ingress` is working correctly, add the `Host` header
+to the above `curl` command:
+
+``` console
+$ curl 2>/dev/null \
+  -H "Host: k8s.alfred" \
+  -k https://192.168.0.124:32035/ \
+| head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```
+
+One this works in the local network, it can be made accessible externally by forwarding
+*a* port (443 if available, any other one otherwise) to the Nginx `NodePort` (32035) on
+the node's local IP address (`192.168.0.124`); this should work just as well as if Nginx
+had a `LoadBalancer` IP address. It is also necessary to update (or clone) the ingress
+rule to set `host` to the FQDN that points to the router's exterenal IP address, e.g.
+`k8s.alfred.uu.am`.
 
 #### More Flannel Troubleshooting
 
