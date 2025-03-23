@@ -1932,7 +1932,7 @@ $ helm upgrade \
   kubernetes-dashboard \
     kubernetes-dashboard/kubernetes-dashboard \
   --create-namespace \
-  --namespace kubernetes-dashboard
+  --namespace kubernetes-dashboard \
   --values=dashboard/values.yaml
 Release "kubernetes-dashboard" has been upgraded. Happy Helming!
 NAME: kubernetes-dashboard
@@ -2149,7 +2149,7 @@ namespace "ingress-nginx" deleted
 $ wget -O nginx-baremetal.yaml \
   https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0/deploy/static/provider/baremetal/deploy.yaml
 
-$ kubectl apply -f baremetal/deploy.yaml
+$ kubectl apply -f nginx-baremetal.yaml
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
 serviceaccount/ingress-nginx-admission created
@@ -2263,6 +2263,75 @@ alfred (192.168.0.124) at 2c:cf:67:83:6f:3c [ether] on enp5s0
 suggest this last test may have been futile, but either way neither `ping` nor
 `nc` nor `tcptraceroute` nor `mtr` can connect to HTTP/S ports on that IP.
 
+#### Allow snippet directives
+
+To enable the use of snippets annotations in the next section, it is necessary to override
+[`allow-snippet-annotations`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#allow-snippet-annotations)
+which is set `to false` by default to mitigate known vulnerability
+[CVE-2021-25742](https://nvd.nist.gov/vuln/detail/CVE-2021-25742).
+This vulnerability only applies in clusters where multiple users have Kubernetes
+namespace administrator privileges, which is not the case here.
+
+To enable this in the
+[deployment for bare metal clusters](https://kubernetes.github.io/ingress-nginx/deploy/#bare-metal-clusters),
+replace the `data: null` in line 323 with the following 3-line section:
+
+``` yaml title="nginx-baremetal.yaml" linenums="321" hl_lines="3-5"
+---
+apiVersion: v1
+data:
+  allow-snippet-annotations: "true"
+  annotations-risk-level: "Critical"
+kind: ConfigMap
+```
+
+Re-applying will only *configure* the `configmap` and webhook validation rules:
+
+``` console
+$ kubectl apply -f nginx-baremetal.yaml
+namespace/ingress-nginx unchanged
+serviceaccount/ingress-nginx unchanged
+serviceaccount/ingress-nginx-admission unchanged
+role.rbac.authorization.k8s.io/ingress-nginx unchanged
+role.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+clusterrole.rbac.authorization.k8s.io/ingress-nginx unchanged
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+rolebinding.rbac.authorization.k8s.io/ingress-nginx unchanged
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx unchanged
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+configmap/ingress-nginx-controller configured
+service/ingress-nginx-controller unchanged
+service/ingress-nginx-controller-admission unchanged
+deployment.apps/ingress-nginx-controller configured
+job.batch/ingress-nginx-admission-create unchanged
+job.batch/ingress-nginx-admission-patch unchanged
+ingressclass.networking.k8s.io/nginx unchanged
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission configured
+```
+
+??? note "Exactly why enable `allow-snippet-annotations` *and* raise the `annotations-risk-level`?"
+
+    Without enabling `allow-snippet-annotations`, deploying the `Ingress` in the next
+    section fails because the `configuration-snippet` used to hide server headers makes
+    the deployment fail:
+
+    ``` console
+    $ kubectl apply -f dashboard/nginx-ingress.yaml
+    {"metadata":{"annotations":{"cert-manager.io/issuer":"letsencrypt-staging","kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"networking.k8s.io/v1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{\"cert-manager.io/issuer\":\"letsencrypt-staging\",\"nginx.ingress.kubernetes.io/auth-tls-verify-client\":\"false\",\"nginx.ingress.kubernetes.io/backend-protocol\":\"HTTPS\",\"nginx.ingress.kubernetes.io/configuration-snippet\":\"more_set_headers \\\"server: hide\\\";\\n\",\"nginx.ingress.kubernetes.io/whitelist-source-range\":\"10.244.0.0/16\"},\"name\":\"kubernetes-dashboard-ingress\",\"namespace\":\"kubernetes-dashboard\"},\"spec\":{\"ingressClassName\":\"nginx\",\"rules\":[{\"host\":\"k8s.alfred.uu.am\",\"http\":{\"paths\":[{\"backend\":{\"service\":{\"name\":\"kubernetes-dashboard-kong-proxy\",\"port\":{\"number\":443}}},\"path\":\"/\",\"pathType\":\"Prefix\"}]}}],\"tls\":[{\"hosts\":[\"k8s.alfred.uu.am\"],\"secretName\":\"tls-secret\"}]}}\n","nginx.ingress.kubernetes.io/configuration-snippet":"more_set_headers \"server: hide\";\n"}},"spec":{"tls":[{"hosts":["k8s.alfred.uu.am"],"secretName":"tls-secret"}]}}
+    to:
+    Resource: "networking.k8s.io/v1, Resource=ingresses", GroupVersionKind: "networking.k8s.io/v1, Kind=Ingress"
+    Name: "kubernetes-dashboard-ingress", Namespace: "kubernetes-dashboard"
+    for: "dashboard/nginx-ingress.yaml": error when patching "dashboard/nginx-ingress.yaml": admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: nginx.ingress.kubernetes.io/configuration-snippet annotation cannot be used. Snippet directives are disabled by the Ingress administrator
+    ```
+
+    The `Snippet directives are disabled by the Ingress administrator` and the end of
+    the error message is the hint that `allow-snippet-annotations` needs to be enabled.
+
+    Without raisig the `annotations-risk-level` to `Critical`, the deployment fails
+    because, since controller 1.12, the annotation used to hide server headers
+    (`nginx.ingress.kubernetes.io/configuration-snippet`) is rated `Critical`.
+
 #### Kubernetes Dashboard Ingress
 
 With both Ngnix and the Kubernetes dashboard up and running, it is now possible to make
@@ -2281,6 +2350,8 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
     nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
 spec:
   ingressClassName: nginx
   rules:
@@ -2323,7 +2394,7 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 ```
 
-One this works in the local network, it can be made accessible externally by forwarding
+Once this works in the local network, it can be made accessible externally by forwarding
 *a* port (443 if available, any other one otherwise) to the Nginx `NodePort` (32035) on
 the node's local IP address (`192.168.0.124`); this should work just as well as if Nginx
 had a `LoadBalancer` IP address. It is also necessary to update (or clone) the ingress
@@ -2341,7 +2412,7 @@ destination `br-*****` are missing:
 
 ??? terminal "`root@lexicon ~ # iptables -nvL`"
 
-    ```
+    ``` console
     root@lexicon ~ # iptables -nvL
     Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
     pkts bytes target     prot opt in     out     source               destination         
@@ -2410,7 +2481,7 @@ destination `br-*****` are missing:
 
 ??? terminal "`root@lexicon ~ # iptables --list-rules`"
 
-    ```
+    ``` console
     root@lexicon ~ # iptables --list-rules
     -P INPUT ACCEPT
     -P FORWARD ACCEPT
@@ -2479,7 +2550,7 @@ destination `br-*****` are missing:
 
 ??? terminal "`pi@alfred:~ $ sudo iptables -nvL`"
 
-    ```
+    ``` console
     pi@alfred:~ $ sudo iptables -nvL
     Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
     pkts bytes target     prot opt in     out     source               destination         
@@ -2527,7 +2598,7 @@ destination `br-*****` are missing:
 
 ??? terminal "`pi@alfred:~ $ sudo iptables --list-rules`"
 
-    ```
+    ``` console
     pi@alfred:~ $ sudo iptables --list-rules
     -P INPUT ACCEPT
     -P FORWARD ACCEPT
@@ -2581,11 +2652,360 @@ Removing those `DROP` rules did not help:
 
 ### HTTPS certificates
 
-**TODO:** [Install Let’s Encrypt certificate as a secret](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#install-lets-encrypt-certificate-as-a-secret)
+The Kubernetes dashboard uses a self-signed certificate, and so does Nginx by default,
+which *works* in so far as encrypting traffic, but provides no guarantee that the traffic
+is coming from the actual servers and is just very annoying when browsers complain every
+time accessing the service. It is now time to get properly signed HTTPS certificates.
+*This is the way*.
+
+#### Install `cert-manager`
+
+[cert-manager](https://cert-manager.io/) is the native Kubernetes certificate
+management controller of choice to issue certificates from Let's Encrypt to
+[secure NGINX-ingress](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/).
+
+Having already installed Helm (3.17), deployed the NGINX
+[Ingress Controller](#ingress-controller), assigned `alfred.uu.am` to the
+router's external IP address, and deployed the
+[Kubernetes dashboard](#kubernetes-dashboard) service, the system is ready for
+[Step 5 - Deploy cert-manager](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-5---deploy-cert-manager),
+[installing with Helm](https://cert-manager.io/docs/installation/helm/):
+
+``` console
+$ helm repo add jetstack https://charts.jetstack.io --force-update
+"jetstack" has been added to your repositories
+
+$ helm install \
+    cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --version v1.17.0 \
+    --set crds.enabled=true
+NAME: cert-manager
+LAST DEPLOYED: Sun Mar 23 17:19:57 2025
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+```
+
+The `helm install` command takes several seconds to come back with the above output,
+at which point the pods and services are all up and running:
+
+``` console
+$ kubectl get all -n cert-manager
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/cert-manager-665948465f-2574k              1/1     Running   0          73s
+pod/cert-manager-cainjector-7c8f7984fb-6phv2   1/1     Running   0          73s
+pod/cert-manager-webhook-7594bcdb99-w4tr9      1/1     Running   0          73s
+
+NAME                              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)            AGE
+service/cert-manager              ClusterIP   10.109.245.11    <none>        9402/TCP           73s
+service/cert-manager-cainjector   ClusterIP   10.104.227.129   <none>        9402/TCP           73s
+service/cert-manager-webhook      ClusterIP   10.104.66.87     <none>        443/TCP,9402/TCP   73s
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cert-manager              1/1     1            1           73s
+deployment.apps/cert-manager-cainjector   1/1     1            1           73s
+deployment.apps/cert-manager-webhook      1/1     1            1           73s
+
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/cert-manager-665948465f              1         1         1       73s
+replicaset.apps/cert-manager-cainjector-7c8f7984fb   1         1         1       73s
+replicaset.apps/cert-manager-webhook-7594bcdb99      1         1         1       73s
+```
+
+#### Test `cert-manager`
+
+[Verify the installation](https://cert-manager.io/docs/installation/kubectl/#2-optional-end-to-end-verify-the-installation)
+by creating a simple self-signed certificate:
+
+??? code "Test certificate: `test-resources.yaml`"
+
+    ``` yaml title="test-resources.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: cert-manager-test
+    ---
+    apiVersion: cert-manager.io/v1
+    kind: Issuer
+    metadata:
+      name: test-selfsigned
+      namespace: cert-manager-test
+    spec:
+      selfSigned: {}
+    ---
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: selfsigned-cert
+      namespace: cert-manager-test
+    spec:
+      dnsNames:
+        - example.com
+      secretName: selfsigned-cert-tls
+      issuerRef:
+        name: test-selfsigned
+    ```
+
+Deploying this succeeds withing seconds, after which it can be cleaned up:
+
+??? terminal "`kubectl apply -f test-resources.yaml`"
+
+    ``` console
+    $ kubectl apply -f test-resources.yaml
+    namespace/cert-manager-test created
+    issuer.cert-manager.io/test-selfsigned created
+    certificate.cert-manager.io/selfsigned-cert created
+
+    $ kubectl describe certificate -n cert-manager-test
+    Name:         selfsigned-cert
+    Namespace:    cert-manager-test
+    Labels:       <none>
+    Annotations:  <none>
+    API Version:  cert-manager.io/v1
+    Kind:         Certificate
+    Metadata:
+      Creation Timestamp:  2025-03-23T16:32:58Z
+      Generation:          1
+      Resource Version:    2931074
+      UID:                 f0646ae2-8344-45a0-a453-f46ba16400b6
+    Spec:
+      Dns Names:
+        example.com
+      Issuer Ref:
+        Name:       test-selfsigned
+      Secret Name:  selfsigned-cert-tls
+    Status:
+      Conditions:
+        Last Transition Time:  2025-03-23T16:32:59Z
+        Message:               Certificate is up to date and has not expired
+        Observed Generation:   1
+        Reason:                Ready
+        Status:                True
+        Type:                  Ready
+      Not After:               2025-06-21T16:32:59Z
+      Not Before:              2025-03-23T16:32:59Z
+      Renewal Time:            2025-05-22T16:32:59Z
+      Revision:                1
+    Events:
+      Type    Reason     Age   From                                       Message
+      ----    ------     ----  ----                                       -------
+      Normal  Issuing    6s    cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+      Normal  Generated  5s    cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "selfsigned-cert-g9cv2"
+      Normal  Requested  5s    cert-manager-certificates-request-manager  Created new CertificateRequest resource "selfsigned-cert-1"
+      Normal  Issuing    5s    cert-manager-certificates-issuing          The certificate has been successfully issued
+
+    $ kubectl delete -f test-resources.yaml
+    namespace "cert-manager-test" deleted
+    issuer.cert-manager.io "test-selfsigned" deleted
+    certificate.cert-manager.io "selfsigned-cert" deleted
+    ```
+
+#### Configure Let's Encrypt
+
+[Step 6 - Configure a Let's Encrypt Issuer](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-6---configure-a-lets-encrypt-issuer)
+shows how to create an `Issuer`, but in this system with multiple services running in
+different namespaces, a `ClusterIssuer` is needed instead:
+
+``` yaml title="cert-manager-issuer.yaml"
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: stibbons@uu.am
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+```
+
+``` console
+$ kubectl create -f cert-manager-issuer.yaml
+clusterissuer.cert-manager.io/letsencrypt-prod created
+
+$ kubectl describe clusterissuer.cert-manager.io/letsencrypt-prod
+Name:         letsencrypt-prod
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         ClusterIssuer
+Metadata:
+  Creation Timestamp:  2025-03-23T19:11:39Z
+  Generation:          1
+  Resource Version:    2945998
+  UID:                 f75d8154-b858-4c3b-ae70-c1cb632f7d7c
+Spec:
+  Acme:
+    Email:  stibbons@uu.am
+    Private Key Secret Ref:
+      Name:  letsencrypt-prod
+    Server:  https://acme-v02.api.letsencrypt.org/directory
+    Solvers:
+      http01:
+        Ingress:
+          Class:  nginx
+Status:
+  Acme:
+    Last Private Key Hash:  M7S/jp7wvlxuzt4QTkelCzWNe5SqfhFZpqfAcNSOZL0=
+    Last Registered Email:  stibbons@uu.am
+    Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/2298686296
+  Conditions:
+    Last Transition Time:  2025-03-23T19:11:40Z
+    Message:               The ACME account was registered with the ACME server
+    Observed Generation:   1
+    Reason:                ACMEAccountRegistered
+    Status:                True
+    Type:                  Ready
+Events:                    <none>
+```
+
+#### Secure Kubernetes Dashboard Ingress
+
+[Step 7 - Deploy a TLS Ingress Resource](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-7---deploy-a-tls-ingress-resource)
+is the last step left to actually make pratical use of all the above. Based on the
+provided example, apply the equivalent changes to `dashboard/nginx-ingress.yaml`,
+using `cert-manager.io/cluster-issuer` instead of `cert-manager.io/issuer` and adding the
+`tls` section with just the relevant FQDN under `hosts`:
+
+``` yaml title="dashboard/nginx-ingress.yaml" hl_lines="7 26-29"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: k8s.alfred.uu.am
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - k8s.alfred.uu.am
+```
+
+Re-apply this deployment to trigger the request for a certificate signed by Let's Encrypt:
+
+``` console
+$ kubectl apply -f dashboard/nginx-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+```
+
+Now there will be a pending order and challenge for a new certificate, so it is
+time to forward the router's external port 80 to the `NodePort` of the ACME solver:
+
+``` console
+$ kubectl get svc -A | grep acme
+kubernetes-dashboard   cm-acme-http-solver-b9ckt              NodePort    10.96.223.114    <none>        8089:31453/TCP               13s
+```
+
+The pod behind the service is listening and the logs can be monitored in real time:
+
+``` console
+$ kubectl -n kubernetes-dashboard logs \
+  $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+
+I0323 20:44:32.293925       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="k8s.alfred.uu.am" expected_token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" expected_key="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc.AiIi2mdeMBlCng6As7epqFyP8bmjSGQqxIdEbnstHEo" listen_port=8089
+```
+
+Now, instead of forwarding directly to the `NodePort` of *this* ACME resolver, it is more
+convinient to update the router's forwarding rules only once, to forward port the external
+port 80 to the node's port **32080**, and then `patch` the ACME resolver service to
+[change the service's NodePort](https://stackoverflow.com/questions/65789509/kubernetes-how-to-change-service-ports-using-patch).
+
+The `patch` command is directed at the specific ACME resolver service in each namespace:
+
+``` console
+$ kubectl -n kubernetes-dashboard patch \
+    service cm-acme-http-solver-b9ckt \
+     -p '{"spec":{"ports": [{"port": 8089, "nodePort": 32080}]}}'
+service/cm-acme-http-solver-b9ckt patched
+
+$ kubectl get svc -A | grep acme
+kubernetes-dashboard   cm-acme-http-solver-b9ckt              NodePort    10.96.223.114    <none>        8089:32080/TCP               5m24s
+```
+
+Once the service is patched, the external connection reaches the resolver pod and the
+renewal is completed very shortly, which then deletes the pod and service. At that point,
+the command above to monitor the pod's logs will terminate when the pods finishes:
+
+``` hl_lines="2"
+I0323 20:49:58.055831       1 solver.go:104] "comparing token" logger="cert-manager.acmesolver" host="k8s.alfred.uu.am" path="/.well-known/acme-challenge/Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" base_path="/.well-known/acme-challenge" token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" headers={"Accept":["*/*"],"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)"]} expected_token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc"
+I0323 20:49:58.055843       1 solver.go:112] "got successful challenge request, writing key" logger="cert-manager.acmesolver" host="k8s.alfred.uu.am" path="/.well-known/acme-challenge/Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" base_path="/.well-known/acme-challenge" token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" headers={"Accept":["*/*"],"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)"]}
+E0323 20:49:59.002384       1 main.go:42] "error executing command" err="http: Server closed" logger="cert-manager"
+```
+
+From now on, accessing the Kubernetes dashboard at
+[https://k8s.alfred.uu.am/](https://k8s.alfred.uu.am/) will no longer result in browsers
+complaining about the connection not being secure.
 
 #### Automatic renovation
 
-**TODO:** [Monthly renewal of certificates (automated)](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#monthly-renewal-of-certificates-automated)
+The above technique to `patch` each ACME resolver service can be extended to automatically
+patch each service when it is found running:
+
+``` bash title="cert-renewal-port-fwd.sh"
+#!/bin/bash
+#
+# Patch the nodePort of running cert-manager renewal challenge, to listen
+# on port 32080 which is the one the router is forwarding port 80 to.
+
+# Check if there is a LetsEncrypt challenge resolver (acme) running.
+export KUBECONFIG=/etc/kubernetes/admin.conf
+namespace=$(kubectl get svc -A | grep acme | awk '{print $1}' | head -1)
+service=$(kubectl get svc -A | grep acme | awk '{print $2}' | head -1)
+
+# Patch the service to listen on port 32080 (set up in router).
+if [ -n "${namespace}" ] && [ -n "${service}" ]; then
+    kubectl -n "${namespace}" patch service "${service}" -p '{"spec":{"ports": [{"port": 8089, "nodePort":32080}]}}'
+fi
+```
+
+Install this script in a convenient location and setup `crontab` to run it hourly:
+
+``` cron
+# Hourly patch montly cert renewal solvers.
+30 * * * * /home/pi/cert-renewal-port-fwd.sh
+```
 
 ## Home Assistant
 
