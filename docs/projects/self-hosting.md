@@ -243,6 +243,15 @@ In particular, it is clearly documented that the rather popular
 identity provider (see also 
 [authentik/discussions/1776](https://github.com/goauthentik/authentik/discussions/1776)).
 
+#### Blocky
+
+[Blocky](https://0xerr0r.github.io/blocky/latest/) may be a better
+alternative to [Pi-hole®](#pi-hole) than [AdGuardHome](#adguardhome).
+Some people report having unexplained latency issues with AdGuard
+and/or some users experiencing broken websites, while these issues
+do not seem to occur with Blocky. There is no frontend, but the
+configuration lives in a single YAML file which is easy to track.
+
 #### Fail2Ban
 
 [Fail2Ban](https://github.com/fail2ban/fail2ban?tab=readme-ov-file#fail2ban-ban-hosts-that-cause-multiple-authentication-errors)
