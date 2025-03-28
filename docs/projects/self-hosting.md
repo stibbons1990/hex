@@ -558,7 +558,7 @@ paired with
 [ACME cert manager](../blog/posts/2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#https-with-lets-encrypt)
 deployment already provides the same functionality.
 
-IP restrictions and other advance settings can be deployed by making
+IP restrictions and other advanced settings can be deployed by making
 use of `nginx.ingress.kubernetes.io` annotation snippets.
 
 #### Outline
