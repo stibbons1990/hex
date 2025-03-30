@@ -3007,6 +3007,351 @@ Install this script in a convenient location and setup `crontab` to run it hourl
 30 * * * * /home/pi/cert-renewal-port-fwd.sh
 ```
 
+## Cloudflare Tunnel
+
+Although during the installation process this system was behind a router that
+supported port forwarding, so that ports 80 and 443 could be made available
+externally, the final destination may not provide this facility. To cope with
+an enviromeent without port forwarding capabilities, and/or a static IPv4
+address, or possibly even CGNAT in the future, a Cloudflare tunnel will be used.
+
+### Install `cloudflared`
+
+Download the latest `arm64` Debian package from
+[github.com/cloudflare/cloudflared/releases](https://github.com/cloudflare/cloudflared/releases),
+check its integrity with `sha256sum` and install it:
+
+``` console
+$ wget https://github.com/cloudflare/cloudflared/releases/download/2025.2.1/cloudflared-linux-arm64.deb
+
+$ sha256sum cloudflared-linux-arm64.deb
+d0ed56717ea678d4a189d5e58892cfaf6eb4c1d8b6b511e266968b4ef0cd6f1a  cloudflared-linux-arm64.deb
+
+$ sudo dpkg -i cloudflared-linux-arm64.deb
+Selecting previously unselected package cloudflared.
+(Reading database ... 83794 files and directories currently installed.)
+Preparing to unpack cloudflared-linux-arm64.deb ...
+Unpacking cloudflared (2025.2.1) ...
+Setting up cloudflared (2025.2.1) ...
+Processing triggers for man-db (2.11.2-2) ...
+```
+
+### Create a tunnel
+
+??? note " Cloudflare requires **adding a site** before creating a tunnel."
+    
+    Before creating a tunnel, Cloudflare requires 
+    [adding a site](http://127.0.0.1:8000/hex/blog/2025/03/28/remote-access-options-for-self-hosted-services/#add-a-site/),
+    which in turn requires updating DNS settins in a domain,
+    as well as on Cloudflare, all of which can take hours to take effect.
+
+??? tip "`very-very-dark-gray.top` is an example cheap domain."
+
+    `very-very-dark-gray.top` is an example cheap domain, probably not great
+    for public or customer-facing applications, but should be fine for purely
+    self-hosted personal applications.
+
+[Create a tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/)
+named `alfred` using `cloudflared` as the connector. Cloudflare will provide the commands
+to run, including installating the connector (already done) and connecting the tunnel:
+
+```
+$ sudo cloudflared service install eyJhIjoiMD...
+2025-03-29T10:07:08Z INF Using Systemd
+2025-03-29T10:07:10Z INF Linux service for cloudflared installed successfully
+```
+
+!!! note "The token in the command is much longer that Cloudflare shows."
+
+A few seconds after running the commmand, the Cloudflare console will show the
+tunnel as **Connected**; otherwise something is blocking it.
+
+#### Public hostnames
+
+Once the tunnel is working, access to the
+[Kubernetes dashboard ingress](#kubernetes-dashboard-ingress) can be enabled
+by adding a **public hostname** to make `localhost:32035`
+(the `NodePort` of Nginx, using **HTTPS**) available *behind*
+[https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/).
+
+Make sure to **enable *No TLS Verify*** under *Additional application settings
+\> TLS* because Nginx will not be using the certificate from Let's Encrypt.
+
+Before Cloudflare *can* reach the Kubernetes dashboard through that URL,
+an additional `host` rule must be added to the
+[Kubernetes Dashboard Ingress](#kubernetes-dashboard-ingress), so that
+Nginx knows to route requests with that `Host` value to the right service.
+Otherwise, Nginx will not find anything matching that URL:
+
+``` console
+$ curl 2>/dev/null \
+  -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
+  -k https://192.168.0.124:32035/ \
+| head
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
+A rule for `host: kubernetes-alfred.very-very-dark-gray.top` must be added:
+
+``` yaml title="dashboard/nginx-ingress.yaml" linenums="14" hl_lines="4-13"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kubernetes-alfred.very-very-dark-gray.top
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+    - host: k8s.alfred.uu.am
+```
+
+After applying this change, the `kubernetes-dashboard-kong-proxy` service is
+available *behind* `kubernetes-alfred.very-very-dark-gray.top`:
+
+``` console
+$ kubectl apply -f dashboard/nginx-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress created
+
+$ curl 2>/dev/null \
+  -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
+  -k https://192.168.0.124:32035/ \
+| head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```
+
+[https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/)
+will now lead to the Kubernetes dashboard, through its own HTTPS tunnel,
+provided all the configurations have been applied correctly.
+
+``` console
+$ curl 2>/dev/null \
+  -k https://kubernetes-alfred.very-very-dark-gray.top/ \
+| head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```
+
+??? warning "Do not try using multi-level domains."
+
+    If the same hostname is added as `kubernetes.alfred.very-very-dark-gray.top`
+    that's a 2nd-level domain and connections will fail, e.g. in Firefox with
+    `SSL_ERROR_NO_CYPHER_OVERLAP` (and `curl` is also unable to connect)
+
+    The reason for this to fail is that the Cloudflare 
+    [Universal SSL certificates](https://developers.cloudflare.com/ssl/edge-certificates/universal-ssl/)
+    only cover apex domain and one level of subdomain; see
+    [Multi-level subdomains](https://developers.cloudflare.com/ssl/troubleshooting/version-cipher-mismatch/#multi-level-subdomains).
+
+??? warning "Don't forget to **enable** **No TLS Verify**."
+
+    If **No TLS Verify** is not enabled, the **502 Bad Gateway** page will
+    continue to show, because Cloudflare won't accept connecting to Nginx with
+    the default self-signed certificate. This can be checked by
+    [viewing `cloudflared` logs](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/monitor-tunnels/logs/#view-logs)
+    in the CLI to get detailed error messages:
+
+    ``` console
+    $ cloudflared tail 3923ef0b-986b-43cd-9066-d48035a77f89
+    2025-03-29T17:50:56Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
+    2025-03-29T17:50:56Z ERR unable to construct management request URL error="unable to acquire management token for requested tunnel id: Error locating origin cert: client didn't specify origincert path"
+    ```
+
+    Here is the error message in a more readable format:
+
+    > Cannot determine default origin certificate path.  
+    > No file cert.pem in `[~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp`
+    > `/etc/cloudflared /usr/local/etc/cloudflared]`.  
+    > You need to specify the origin certificate path by specifying the
+    > `origincert` option in the configuration file, or set `TUNNEL_ORIGIN_CERT`
+    > environment variable `originCertPath=`  
+    > 2025-03-29T17:50:56Z ERR unable to construct management request URL
+    > `error="unable to acquire management token for requested tunnel id: `
+    > `Error locating origin cert: client didn't specify origincert path"`
+
+??? warning "**HTTP Host Header** must match the hostname **exactly**."
+    
+    Overriding **HTTP Settings > HTTP Host Header** in the tunnel should not
+    be necessary; by default it will send the correct `Host` header. Otherwise,
+    if the override header is not exactly the same as the tunnel's hostname,
+    e.g. `kubernetes.alfred.very-very-dark-gray.top` instead of
+    `kubernetes-alfred.very-very-dark-gray.top`, requests will not match
+    any rules in Nginx and recieve a **404 Not Found** response:
+
+    ``` console
+    $ curl 2>/dev/null \
+      -k https://kubernetes-alfred.very-very-dark-gray.top/ \
+    | head
+    <html>
+    <head><title>404 Not Found</title></head>
+    <body>
+    <center><h1>404 Not Found</h1></center>
+    <hr><center>nginx</center>
+    </body>
+    </html>
+    ```
+
+    To confirm the problem is in Nginx and not in the `cloudflared` connector,
+    temporarily run the `port-forward` to make the
+    [Kubernetes Dashboard](#kubernetes-dashboard)
+    accessible directly without going through Nginx:
+
+    ``` console
+    $ kubectl -n kubernetes-dashboard port-forward \
+      svc/kubernetes-dashboard-kong-proxy 8443:443 \
+      --address 0.0.0.0
+    Forwarding from 0.0.0.0:8443 -> 8443
+    ^C
+    ```
+
+    **Edit** the `kubernetes-alfred.very-very-dark-gray.top` tunnel to poin to
+    `https://localhost:8443` and the dashboard becomes immediately available.
+
+    To debug the problem in Nginx, increase logging level to the maximum
+    (`debug`):
+
+    ``` yaml title="nginx-baremetal.yaml" linenums="321" hl_lines="6"
+    ---
+    apiVersion: v1
+    data:
+      allow-snippet-annotations: "true"
+      annotations-risk-level: "Critical"
+      error-log-level: debug
+    kind: ConfigMap
+    ```
+
+    After applying this change, the logs of the `ingress-nginx-controller`
+    will included **lots** of details and will stream *fast*; be ready to
+    grep for the relevant hostname to find the log entries for the request:
+
+    ``` console hl_lines="6 10"
+    kubectl logs -n ingress-nginx \
+      $(kubectl get pods -n ingress-nginx | grep ingress-nginx-controller | cut -f1 -d' ') -f
+    ...
+    "GET / HTTP/1.1
+    Host: kubernetes.alfred.very-very-dark-gray.top
+    X-Request-ID: 3a67e281e598abf5d21dda0679f0be59
+    X-Real-IP: 10.244.0.1
+    X-Forwarded-For: 10.244.0.1
+    X-Forwarded-Host: kubernetes.alfred.very-very-dark-gray.top
+    X-Forwarded-Port: 443
+    X-Forwarded-Proto: https
+    X-Forwarded-Scheme: https
+    X-Scheme: https
+    X-Original-Forwarded-For: 217.162.57.64
+    User-Agent: curl/8.5.0
+    Accept: */*
+    Accept-Encoding: gzip, br
+    Cdn-Loop: cloudflare; loops=1
+    Cf-Connecting-Ip: 217.162.57.64
+    Cf-Ipcountry: CH
+    Cf-Ray: 92815e1e1c1a039c-ZRH
+    Cf-Visitor: {"scheme":"https"}
+    Cf-Warp-Tag-Id: 3923ef0b-986b-43cd-9066-d48035a77f89
+    ...
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 event timer del: 22: 689556672
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 generic phase: 0
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 rewrite phase: 1
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http script value: "internal"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http script set $proxy_upstream_name
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 test location: "/"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 using configuration "/"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http cl:-1 max:1048576
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 rewrite phase: 3
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http finalize request: 404, "/?" a:1, c:1
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http special response: 404, "/?"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 http set discard body
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 lua header filter for user lua code, uri "/"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 lua capture header filter, uri "/"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 headers more header filter, uri "/"
+    2025/03/29 18:18:03 [debug] 1392#1392: *8405048 HTTP/1.1 404 Not Found
+    ```
+
+### Let's Encrypt via tunnel
+
+To use Let's Encrypt certificates behind a Cloudflare tunnel, an additional
+**Public hostname** must be added to the tunnel, to route requests for paths under
+`/.well-known/` to port **32080** over plain **HTTP**. Combined with the patching of
+ACME solvers from [Automatic renovation](#automatic-renovation), this makes solvers
+for `HTTP01` challenges reachable, so certificates can be issued and renewed.
+
+The **Public hostname** to route requests under `/.well-known/` **must** be the
+first one (these can be dragged to rearrange their order):
+
+![Public hostnames on Cloudflare tunnel](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/tunnel-kubernetes-alfred-public-hostnames.png)
+
+[To avoid hitting Let's Encrypt rate limits](https://stackoverflow.com/a/74006118),
+*use a different secret name for each host*:
+
+``` yaml title="dashboard/nginx-ingress.yaml" linenums="37" hl_lines="5-7"
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - k8s.alfred.uu.am
+    - secretName: tls-secret-cloudflare
+      hosts:
+        - kubernetes-alfred.very-very-dark-gray.top
+```
+
+After applying this update to the ingress, the sequence of events to
+[Secure Kubernetes Dashboard Ingress](#secure-kubernetes-dashboard-ingress) is repeated,
+with a few extra steps involving the Cloudflare tunnel:
+
+1.  A new solver starts, listening on a `NodePort`; this can be found in the list of
+    services:
+    ``` console
+    $ kubectl get svc -A | grep acme
+    kubernetes-dashboard   cm-acme-http-solver-chp9k              NodePort    10.103.151.109   <none>        8089:30956/TCP               3s
+    ```
+1.  The logs indicate the solver is listening:
+    ``` console
+    $ kubectl -n kubernetes-dashboard logs \
+      $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+    I0330 12:04:55.423524       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="kubernetes-alfred.very-very-dark-gray.top" expected_token="aqO1GODyRAWRg4nnh6keja5mdYVSJg0zcA01eL0CHtI" expected_key="aqO1GODyRAWRg4nnh6keja5mdYVSJg0zcA01eL0CHtI.AiIi2mdeMBlCng6As7epqFyP8bmjSGQqxIdEbnstHEo" listen_port=8089
+    ```
+1.  Streaming logs for the Cloudflare tunnel connector shows **Request failed** about
+    once a minute, with the URL for the challenge
+    (`/.well-known/acme-challenge/aqO1GODyRAWRg4nnh6keja5mdYVSJg0zcA01eL0CHtI`).
+    Error details show it cannot connect to port **32080**:
+    `"dial tcp [::1]:32080: connect: connection refused"`.
+1.  After `cert-renewal-port-fwd.sh` runs and patches the solver, it's listening on port
+    **32080**:
+    ``` console
+    $ kubectl get svc -A | grep acme
+    kubernetes-dashboard   cm-acme-http-solver-chp9k              NodePort    10.103.151.109   <none>        8089:32080/TCP               2m35s
+    ```
+1.  Streaming logs for the tunnel connector now shows **OK** for subsequent requests.
+1.  The solver receives the requests and finishes successfully.
+
+At this point it is no longer necessary to have **No TLS Verify** enable under
+*Additional application settings \> TLS* because Nginx is now using a certificate
+signed by Let's Encrypt. However, if **No TLS Verify** is to be disabled, then it
+is necessary to set **Origin Server Name** (`kubernetes-alfred.very-very-dark-gray.top`)
+to the FQDN so that Cloudflare accpets the certificate.
+
 ## Home Assistant
 
 **TODO:** install [Home Assistant](https://www.home-assistant.io/) with
