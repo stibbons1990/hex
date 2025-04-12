@@ -9,13 +9,20 @@ title: Remote access options for self-hosted services
 
 Running self-hosted services behind a router that allows port forwarding is *mostly* as
 simple as forwarding a few ports, mainly 443 for everything over HTTP**S** and port 80 for
-[automatically renewing Let's Encrypt certificates](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#automatic-renovation.md).
+[automatically renewing Let's Encrypt certificates](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#automatic-renovation).
 
 Otherwise, being behind a router that either doens't allow port forwarding, or just doesn't
 work well, or being behind [CGNAT](https://en.wikipedia.org/wiki/Carrier-grade_NAT),
 may require the use of some sort of tunnels to route inbound traffic using outbound
 connections. This can also be useful even in the above case, when multiple systems need to
 be reachable *on port 80*.
+
+??? note "Cloudflare tunnels do not enable access on port 80."
+
+    Cloudflare redirects port 80 to 443, to upgrade HTTP connections to HTTPS. That means
+    ACME HTTP-01 challenges to renew Let's Encrypt certificates need to be routed to the
+    relevant port (80 or 32080) based on the request **path**; see
+    [Let's Encrypt via tunnel](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#lets-encrypt-via-tunnel).
 
 <!-- more -->
 
@@ -95,8 +102,8 @@ relevant self-hosted services as follows:
 DNS records are setup to point the various `<service>.<node>.uu.am` to the external IP
 address of the router, with port 80 redirected to **one** node's port `32080`, so that
 HTTPS certificates can be renewed automatically, and port 443 pointing to Nginx on **one**
-node. It is possibly to access Nginx on additional nodes by forwarding a different port,
-but the automated renewals of HTTPS certificates is only possibly over port 80.
+node. While it is possible to access Nginx on additional nodes by forwarding a different
+port, the automated renewals of HTTPS certificates is only possible over port 80.
 
 This limitation may mean the node that is rechable through the external port 80 is the
 only one that can serve high-bandwidth content directly via port forwarding. All other
@@ -104,42 +111,79 @@ nodes will need to use Cloudflare tunnels, and thus be restricted to HTML-only o
 low-bandwidth traffic, or use Tailscale Funnel to serve high-bandwidth traffic, and
 thus be restricted to specific clients.
 
-### Cloudflare
+## Cloudflare
 
-#### Cloudflare Tunnels
+To get started with Cloudflare, create account and a team (e.g. `high-energy-building`),
+select the **Free plan**, enter billing details and checkout. Make sure to enable 2FA
+authentiction and take a look around for other settings to personalize.
 
-- https://tsmith.co/2023/cloudflare-zero-trust-tunnels-for-the-homelab/
-- https://chriscolotti.us/technology/how-to-setup-and-use-cloudflare-tunnels/
+### Add the first site
 
-- https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
-- https://developers.cloudflare.com/cloudflare-one/policies/access/
+[Adding a site](https://developers.cloudflare.com/fundamentals/setup/manage-domains/add-site/)
+is required before creating a tunnel. This can be an external domain, although it requires
+replacing that domain's DNS with the one from Cloudflare. It seems most convenient to have
+a dedicated domain for self-hosted applications, to be used mostly, if not exclusively,
+through Cloudflare tunnels. For this purpose, I've registered `very-very-dark-gray.top`
+with Porkbun and cleared the default DNS records, which removed their
+[parking domain](https://kb.porkbun.com/article/239-cname-alias-record-with-that-host-already-exists-error).
 
-This requires using Cloudflare for DNS.
+Start at the **Account Home** in
+[dash.cloudflare.com](https://dash.cloudflare.com/0041a4dbd1c161fe785c4f63fa8fcc06/home),
+enter the new domain and select the option to *Manually enter DNS records* since
+there is none anyway. Scroll down to select the **Free plan** and continue to
+start adding DNS records.
 
-Create a tunnel in the Cloudflare Zero Trust Web interface and bring up a
-docker container. You only need one container “per source IP” like your house.
-You can then run multiple application hostnames over that tunnel.
+Having no DNS records yet, 3 warnings are shown about missing an MX record to for
+emails to `@very-very-dark-gray.top` addresses and missing A/AAAA/CNAME records
+for the root domain and `www`. All that is fine, there is no need for those.
 
-To creat a tunnel in Zero Trust:
+As a quick test, add a subdomain for `alfred` pointing to the router's external
+IPv4 address and let it be proxied by Cloudflare to see how that goes. Then
+replace the DNS for this domain with the ones from Cloudflare's, and wait.
 
-1.  Go to Access–>Tunnels on the menu.
-2.  Give the tunnel a name.
-3.  Install the connector; this can run in docker, docker compose, etc.
-4.  Assign at least one application route
-    -  Externally this exposed as `sub.domain/path`
-    -  Internally this redirects to an IP+port (HTTP/S or SSH/RDP)
+Once the change is live, go under **DNS > Settings** in Cloudflare and
+[Enable DNSSEC](https://developers.cloudflare.com/dns/dnssec/).
 
-You can also run the connector with the same token from multiple hosts inside
-the homelab network, so that one keeps the tunnel up while the other updates.
+### Cloudflare Tunnels
 
-#### Cloudflare Access
+Tunnels are very easy to setup; accessing applications behind them not necessarily so much.
+[Cloudflare Tunnels in Alfred](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
+involved an *unfair* amount of troubleshooting to get the Kubernetes dashboard to work at
+[https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/),
+eventually using it's own Let's Encrypt certificates.
 
-https://chriscolotti.us/technology/how-to-add-cloudflare-access-to-tunnels/
+### Cloudflare Access
 
-#### Cloudflare HTTPS certificates
+[Zero Trust Web Access](https://developers.cloudflare.com/learning-paths/zero-trust-web-access/)
+builds on top of the previous setup; once an applications is made available through a
+tunnel, restricting access to a fixed set of users (e.g. Google accounts) requires only
+a few more steps:
 
-https://community.cloudflare.com/t/tunnel-encrypted/751222/2
+1.  [Set up Google as an identity provider](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/google/),
+    which requires creating an OAuth Client ID in the Google Cloud Console.
 
-### Tailscale
+    The OAuth client will be limited to a list of (max 100) test users, which is more than
+    enough but those users have to be manually added in the Google Cloud Console, under
+    [/auth/audience?project=very-very-dark-gray](https://console.cloud.google.com/auth/audience?project=very-very-dark-gray).
 
-https://tailscale.com/kb/1223/funnel
+1.  Create a **Policy** (e.g *Google Account*) to **Allow** only a few users, with
+    **only one Include rule** to match those users' email addresses.
+
+1.  [Create an Access application](https://developers.cloudflare.com/learning-paths/zero-trust-web-access/access-application/create-access-app/); more precisely a
+    **self-hosted** application (e.g. `kubernetes-alfred`) for a **Public hostname**
+    ([https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/)) and add **only** the **Google Account** policy, so that
+    only users that match that policy are allowed. To authenicate those users, enable
+    **only** the *Google* authentication in **Login methods** ane enable **Instant Auth**.
+
+So long as **only one policy** is added to the applications *and* that policy has
+**only one Include rule**, only those users added to that Include rule are allowed in.
+
+Additional sources of inspiration (not reference):
+
+- [Cloudflare Tunnels with SSO/OAuth working for immich](https://github.com/immich-app/immich/discussions/8299)
+- [HOWTO: Secure Cloudflare Tunnels remote access](https://community.home-assistant.io/t/howto-secure-cloudflare-tunnels-remote-access/570837/1)
+
+## Tailscale
+
+TODO: start with <https://tailscale.com/kb/1223/funnel> to learn about Tailscale Funnel,
+then set one up to access an SSH server that is not otherwise externally reachable.
