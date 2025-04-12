@@ -185,5 +185,215 @@ Additional sources of inspiration (not reference):
 
 ## Tailscale
 
-TODO: start with <https://tailscale.com/kb/1223/funnel> to learn about Tailscale Funnel,
-then set one up to access an SSH server that is not otherwise externally reachable.
+[Tailscale quickstart](https://tailscale.com/kb/1017/install) explains the basics and how to
+get started as a [personal user](https://tailscale.com/kb/1017/install#personal-users).
+
+### Create a tailnet
+
+[Create a tailnet](https://tailscale.com/kb/1017/install#create-a-tailnet)
+by singing up with your choice of identity provider; e.g. signging up with a `@gmail.com`
+account automatically set the tailnet up so that other `@gmail.com` users can be invited
+to form part of the "team". Choosing the **Personal Plan** keeps the service free of charge,
+there is not even a requirement to setup a valid billing method (e.g. credit card).
+
+The quickstart wizard will wait until **Tailscale** is installed on 2 systems, e.g. a
+server and a PC. The installation process is as simple as running their `install.sh` script:
+
+??? terminal "Installation of Tailscale on **alfred**"
+
+    ``` console
+    pi@alfred:~ $ curl -fsSL https://tailscale.com/install.sh | sh
+    Installing Tailscale for debian bookworm, using method apt
+    + sudo mkdir -p --mode=0755 /usr/share/keyrings
+    + curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+    + sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list
+    + sudo tee /etc/apt/sources.list.d/tailscale.list
+    # Tailscale packages for debian bookworm
+    deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main
+    + sudo chmod 0644 /etc/apt/sources.list.d/tailscale.list
+    + sudo apt-get update
+    Hit:1 http://deb.debian.org/debian bookworm InRelease
+    Hit:2 http://archive.raspberrypi.com/debian bookworm InRelease                                               
+    Hit:3 https://download.docker.com/linux/debian bookworm InRelease                                            
+    Hit:4 http://deb.debian.org/debian-security bookworm-security InRelease                                      
+    Hit:5 http://deb.debian.org/debian bookworm-updates InRelease                                                
+    Hit:6 https://baltocdn.com/helm/stable/debian all InRelease                                                  
+    Hit:7 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  InRelease
+    Get:8 https://pkgs.tailscale.com/stable/debian bookworm InRelease               
+    Get:9 https://pkgs.tailscale.com/stable/debian bookworm/main armhf Packages [12.2 kB]
+    Get:10 https://pkgs.tailscale.com/stable/debian bookworm/main arm64 Packages [12.3 kB]
+    Get:11 https://pkgs.tailscale.com/stable/debian bookworm/main all Packages [354 B]
+    Fetched 31.4 kB in 1s (29.4 kB/s)  
+    Reading package lists... Done
+    + sudo apt-get install -y tailscale tailscale-archive-keyring
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following packages were automatically installed and are no longer required:
+      linux-headers-6.6.51+rpt-common-rpi linux-kbuild-6.6.51+rpt
+    Use 'sudo apt autoremove' to remove them.
+    The following NEW packages will be installed:
+      tailscale tailscale-archive-keyring
+    0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.
+    Need to get 29.6 MB of archives.
+    After this operation, 56.1 MB of additional disk space will be used.
+    Get:2 https://pkgs.tailscale.com/stable/debian bookworm/main all tailscale-archive-keyring all 1.35.181 [3,082 B]
+    Get:1 https://pkgs.tailscale.com/stable/debian bookworm/main arm64 tailscale arm64 1.82.0 [29.6 MB]   
+    Fetched 29.6 MB in 15s (2,040 kB/s)                                                                          
+    Selecting previously unselected package tailscale.
+    (Reading database ... 91338 files and directories currently installed.)
+    Preparing to unpack .../tailscale_1.82.0_arm64.deb ...
+    Unpacking tailscale (1.82.0) ...
+    Selecting previously unselected package tailscale-archive-keyring.
+    Preparing to unpack .../tailscale-archive-keyring_1.35.181_all.deb ...
+    Unpacking tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale (1.82.0) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/tailscaled.service → /lib/systemd/system/tailscaled.service.
+    + [ false = true ]
+    + set +x
+    Installation complete! Log in to start using Tailscale by running:
+
+    sudo tailscale up
+    ```
+
+??? terminal "Installation of Tailscale on **rapture**"
+
+    ``` console
+    $ curl -fsSL https://tailscale.com/install.sh | sh
+    Installing Tailscale for ubuntu noble, using method apt
+    + sudo mkdir -p --mode=0755 /usr/share/keyrings
+    + curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+    + sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list
+    + sudo tee /etc/apt/sources.list.d/tailscale.list
+    # Tailscale packages for ubuntu noble
+    deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main
+    + sudo chmod 0644 /etc/apt/sources.list.d/tailscale.list
+    + sudo apt-get update
+    Hit:1 http://ch.archive.ubuntu.com/ubuntu noble InRelease
+    Hit:2 https://brave-browser-apt-release.s3.brave.com stable InRelease                                        
+    Hit:3 https://repo.steampowered.com/steam stable InRelease                                                   
+    Hit:4 http://ch.archive.ubuntu.com/ubuntu noble-updates InRelease                                            
+    Hit:5 http://archive.ubuntu.com/ubuntu noble InRelease                                                       
+    Hit:6 http://ch.archive.ubuntu.com/ubuntu noble-backports InRelease                                          
+    Hit:7 https://packages.microsoft.com/repos/code stable InRelease                                             
+    Hit:8 https://dl.google.com/linux/chrome/deb stable InRelease                                                
+    Hit:9 http://archive.ubuntu.com/ubuntu noble-updates InRelease                                               
+    Hit:10 https://esm.ubuntu.com/apps/ubuntu noble-apps-security InRelease                                      
+    Hit:11 https://esm.ubuntu.com/apps/ubuntu noble-apps-updates InRelease                                       
+    Hit:12 https://esm.ubuntu.com/infra/ubuntu noble-infra-security InRelease                        
+    Hit:13 https://esm.ubuntu.com/infra/ubuntu noble-infra-updates InRelease                         
+    Hit:14 http://security.ubuntu.com/ubuntu noble-security InRelease          
+    Get:15 https://pkgs.tailscale.com/stable/ubuntu noble InRelease
+    Get:16 https://pkgs.tailscale.com/stable/ubuntu noble/main all Packages [354 B]
+    Get:17 https://pkgs.tailscale.com/stable/ubuntu noble/main i386 Packages [12.2 kB]
+    Get:18 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 Packages [12.7 kB]
+    Fetched 31.8 kB in 1s (23.3 kB/s)                
+    Reading package lists... Done
+    N: Skipping acquire of configured file 'main/binary-i386/Packages' as repository 'https://brave-browser-apt-release.s3.brave.com stable InRelease' doesn't support architecture 'i386'
+    + sudo apt-get install -y tailscale tailscale-archive-keyring
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following NEW packages will be installed:
+      tailscale tailscale-archive-keyring
+    0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.
+    Need to get 31.5 MB of archives.
+    After this operation, 59.1 MB of additional disk space will be used.
+    Get:2 https://pkgs.tailscale.com/stable/ubuntu noble/main all tailscale-archive-keyring all 1.35.181 [3,082 B]
+    Get:1 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 tailscale amd64 1.82.0 [31.5 MB]       
+    Fetched 31.5 MB in 14s (2,258 kB/s)                                                                          
+    Selecting previously unselected package tailscale.
+    (Reading database ... 491341 files and directories currently installed.)
+    Preparing to unpack .../tailscale_1.82.0_amd64.deb ...
+    Unpacking tailscale (1.82.0) ...
+    Selecting previously unselected package tailscale-archive-keyring.
+    Preparing to unpack .../tailscale-archive-keyring_1.35.181_all.deb ...
+    Unpacking tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale (1.82.0) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/tailscaled.service → /usr/lib/systemd/system/tailscaled.service.
+    + [ false = true ]
+    + set +x
+    Installation complete! Log in to start using Tailscale by running:
+
+    sudo tailscale up
+    ```
+
+After installing the software, running `sudo tailscale up` will provide a URL to 
+authenticate and the system will show up as ready in the wizard:
+
+``` console
+$ sudo tailscale up
+
+To authenticate, visit:
+
+        https://login.tailscale.com/a/______________
+
+Success.
+```
+
+Repeat the process with the second system and the wizzard will show both as active;
+along with a useful test to check that all is working well:
+
+> Every device in your Tailscale network has a private 100.x.y.z IP address
+> that you can reach no matter where you are. And every protocol works —
+> SSH, RDP, HTTP, Minecraft — use whatever you want while Tailscale is running.
+
+![Successful Tailscale Quickstart](../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-quickstart-success.png)
+
+And indeed that *just works*; an SSH connection to `pi@100.113.110.3` instantly connects to
+`alfred` and SSH key authentication just works (after accepting this new hostname).
+
+From this point on, one can connect more devices, by repeating the above 2 steps:
+install Tailscale, then authenticate it to join this tailnet. It may be a good idea to add
+all desired devices before proceeding to additional configuration changes, such as
+
+*   [Set up DNS](https://login.tailscale.com/admin/dns), to more easily connect to devices.
+*   [Share a node](https://tailscale.com/kb/1084/sharing) with users on other networks.
+*   [Set up access controls](https://login.tailscale.com/admin/acls) to limit which devices
+    can talk to each other.
+
+### Set up DNS
+
+The first step when setting up DNS, although optional, should be to rename the tailnet to a
+more memorable ("fun") name. There is a limited number of 4 randomly generated names to pick
+from, which one can reroll many times but will never, probably by design, contain only
+dictionary words. Some of the "funniest" names offered were:
+
+*   `blenny-godzilla.ts.net`
+*   `chicken-fujita.ts.net`
+*   `ocelot-betelgeuse.ts.net`
+*   `raptor-penny.ts.net`
+*   `royal-penny.ts.net`
+*   `risk-truck.ts.net`
+*   `xantu-lizard.ts.net`
+
+The tailnet name is not too important, so just pick the first one that isn't too long or
+hard to spell, then try re-rolling a few times just in a case a better one shows up.
+
+[MagicDNS](https://tailscale.com/kb/1081/magicdns) being enabled by default, it should be
+possibly to ping or SSH directly to `alfred.xantu-lizard.ts.net`, etc.
+
+### Tailscale Serve
+
+[Tailscale Serve](https://tailscale.com/kb/1312/serve) lets you route traffic from other
+devices on your tailnet to a local service running on your device. This means the local
+service is made available to other devices in your tailnet, without making it available
+**publicly** on the internet.
+
+!!! note
+
+    [Tailscale SSH](https://tailscale.com/kb/1193/tailscale-ssh) seems unnecessary for a
+    single admin using SSH; so long as the tailnet IP address is reachable.
+
+### Tailscale Funnel
+
+[Tailscale Funnel](https://tailscale.com/kb/1223/funnel) lets you route traffic from the
+broader internet to a local service, like a web app, for anyone to access—even if they
+don't use Tailscale. This can be used to expose non-HTML sensitive applications over 
+**HTTPS**, with the caveat that traffic is not protected from abuse as with Cloudflare.
