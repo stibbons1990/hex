@@ -3304,6 +3304,8 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 ```
 
+#### Troubleshooting public hostnames
+
 ??? warning "Do not try using multi-level domains."
 
     If the same hostname is added as `kubernetes.alfred.very-very-dark-gray.top`
@@ -3376,7 +3378,7 @@ You may obtain a copy of the License at
     ^C
     ```
 
-    **Edit** the `kubernetes-alfred.very-very-dark-gray.top` tunnel to poin to
+    **Edit** the `kubernetes-alfred.very-very-dark-gray.top` tunnel to point to
     `https://localhost:8443` and the dashboard becomes immediately available.
 
     To debug the problem in Nginx, increase logging level to the maximum

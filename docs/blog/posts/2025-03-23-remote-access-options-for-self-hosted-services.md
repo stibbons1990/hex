@@ -589,13 +589,79 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software
 ```
 
-Then again, MagicDNS takes a while to propagate to public DNS, so even from another host
-in the same tailnet, this test will fail for the first few hours:
+??? note "Then again, MagicDNS takes a while to propagate to public DNS."
 
-``` console
-$ curl -k https://kubernetes-alfred.royal-penny.ts.net/ 
-curl: (6) Could not resolve host: kubernetes-alfred.royal-penny.ts.net
-```
+    Even from another host in the same tailnet, this test will fail for the
+    first few hours:
+
+    ``` console
+    $ curl -k https://kubernetes-alfred.royal-penny.ts.net/ 
+    curl: (6) Could not resolve host: kubernetes-alfred.royal-penny.ts.net
+    ```
+
+    This is because, even when querying the tailnet DNS server, the new host
+    is not yet resolved:
+
+    ``` console hl_lines="7"
+    $ dig kubernetes-alfred.royal-penny.ts.net 100.100.100.100  
+
+    ; <<>> DiG 9.18.30-0ubuntu0.24.04.2-Ubuntu <<>> kubernetes-alfred.royal-penny.ts.net 100.100.100.100
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 57292
+    ;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+    ;; OPT PSEUDOSECTION:
+    ; EDNS: version: 0, flags:; udp: 65494
+    ;; QUESTION SECTION:
+    ;kubernetes-alfred.royal-penny.ts.net. IN A
+    ```
+
+    In the meantime, only in the tailnet node where the Tailscale Kubernetes operator
+    is running, the new host is already resolved:
+
+    ``` console hl_lines="7 13"
+    $ dig kubernetes-alfred.royal-penny.ts.net 100.100.100.100  
+
+    ; <<>> DiG 9.18.33-1~deb12u2-Debian <<>> kubernetes-alfred.royal-penny.ts.net 100.100.100.100
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41209
+    ;; flags: qr aa rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+    ;; QUESTION SECTION:
+    ;kubernetes-alfred.royal-penny.ts.net. IN A
+
+    ;; ANSWER SECTION:
+    kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20
+    ```
+
+    From that host, even querying the default (system) DNS already resolves the new host:
+
+    ``` console hl_lines="7 13"
+    $ dig kubernetes-alfred.royal-penny.ts.net
+
+    ; <<>> DiG 9.18.33-1~deb12u2-Debian <<>> kubernetes-alfred.royal-penny.ts.net
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 22456
+    ;; flags: qr aa rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+    ;; QUESTION SECTION:
+    ;kubernetes-alfred.royal-penny.ts.net. IN A
+
+    ;; ANSWER SECTION:
+    kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20
+    ```
+
+!!! warning
+
+    While DNS takes hours to propagate access to the Tailscale Ingress, the previously
+    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/> starts
+    returning 404 Not Found immediately. The reason could not be determined even by
+    [adding `error-log-level: debug` to `nginx-baremetal.yaml`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-public-hostnames),
+    but **removing** the Tailscale Ingress immediately restored access to the previously
+    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/>.
 
 #### Private access through invite
 
