@@ -1,6 +1,5 @@
 ---
 date: 2025-03-28
-draft: true
 categories:
  - privacy
  - security
@@ -377,7 +376,103 @@ The tailnet name is not too important, so just pick the first one that isn't too
 hard to spell, then try re-rolling a few times just in a case a better one shows up.
 
 [MagicDNS](https://tailscale.com/kb/1081/magicdns) being enabled by default, it should be
-possibly to ping or SSH directly to `alfred.xantu-lizard.ts.net`, etc.
+possible to ping or SSH directly to `alfred.royal-penny.ts.net`, etc.
+
+``` console
+$ ping alfred.royal-penny.ts.net
+PING alfred.royal-penny.ts.net (100.113.110.3) 56(84) bytes of data.
+64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=1 ttl=64 time=5.51 ms
+64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=2 ttl=64 time=4.92 ms
+64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=3 ttl=64 time=5.37 ms
+^C
+--- alfred.royal-penny.ts.net ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 4.921/5.264/5.505/0.249 ms
+```
+
+!!! note
+
+    MagicDNS seems to need some time to propagate, so that for several minutes (possibly a
+    few hours) after connecting each host, its name will not resolve.
+
+Once DNS has propagated, it is also possible to SSH directly to any host by its FQDN.
+
+To make web services more easily available, one can add a `CNAME` record for a publicly
+reachable domain to redirect every hostname under a subdomain to a specirfic host (node)
+in the tailnet, e.g. redirect everything under `.alfred.very-very-dark-gray.top` to the
+`alfred` node, **disabling** traffic proxying so that this is only a **DNS only** redirect:
+
+![Add a CNAME record in Cloudflare DNS](../media/2025-03-23-remote-access-options-for-self-hosted-services/cloudflare-dns-add-cname-alfred.png)
+
+Unfortunately, this does not support adding a port number, so the services would only be available when listening on standard ports, e.g. when using a `LoadBalancer` IP in
+Kubernetes nodes. However, whether it's because a `LoadBalancer` IP is not the same as the
+node's IP, or something else, HTTPS connections are rejected on port 443 (but not 22):
+
+``` console
+$ telnet 100.113.110.3 443
+Trying 100.113.110.3...
+telnet: Unable to connect to remote host: Connection refused
+
+$ telnet 100.113.110.3 22
+Trying 100.113.110.3...
+Connected to 100.113.110.3.
+Escape character is '^]'.
+SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
+^]
+telnet> 
+Connection closed.
+```
+
+It seems services can only be accessed through `NodePort` ports, 
+
+``` console
+$ curl -k https://kubernetes.alfred.very-very-dark-gray.top/
+curl: (7) Failed to connect to kubernetes.alfred.very-very-dark-gray.top port 443 after 1 ms: Couldn't connect to server
+
+$ curl 2>/dev/null \
+  -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
+  -k https://kubernetes.alfred.very-very-dark-gray.top:32035/ \
+| head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+```
+
+Moreover, exposing port 80 *and* redirecting it to a different `NodePort`, as needed for
+[automatically renewing Let's Encrypt certificates](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#automatic-renovation),
+does not seem to be possible. HTTPS access should be setup differently, as follows.
+
+### Set up HTTPS access
+
+There are more elaborate setups to enable easier access to web apps over HTTPS:
+
+*   [Securely Exposing Applications on Kubernetes With Tailscale](https://joshrnoll.com/securely-exposing-applications-on-kubernetes-with-tailscale/)
+    using the [Kubernetes operator](https://tailscale.com/kb/1236/kubernetes-operator)
+    and the *Tailscale Ingress Controller*. This enables private (from within the tailnet)
+    access over HTTPS with (not self-) signed SSL certificates.
+*   [Exposing a Service **to the public internet** using Ingress and Tailscale Funnel](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-service-to-the-public-internet-using-ingress-and-tailscale-funnel)
+    seems like a plausible method to similarly expose local services, but also to clients
+    that are not in the same tailnet (or even in their own tailnet).
+
+!!! todo
+
+    One of the above methods should allow accessing Alfred's Kubernetes dashboard at
+    <http://kubernetes.alfred.very-very-dark-gray.top/> **without** proxying traffic
+    through Cloudflare.
+
+[NGINX: Secure global access with Tailscale](https://medium.com/@rar1871/nginx-secure-global-access-with-tailscale-2f2cff773e24)
+may be redudant with the above methods.
+
+[Tailscale Authentication for NGINX](https://tailscale.com/blog/tailscale-auth-nginx)
+may be useful to use Tailscale to provide an SSO experience, which in turn can delegate
+to popular service providers (e.g. Google for `@gmail.com` accounts).
 
 ### Tailscale Serve
 
