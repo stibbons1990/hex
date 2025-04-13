@@ -1603,7 +1603,7 @@ is as simple as applying the provided manifest:
 $ wget \
   https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
 
-$ kubectl apply -f metallb-native.yaml
+$ kubectl apply -f metallb/metallb-native.yaml
 namespace/metallb-system created
 customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io created
 customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io created
@@ -2263,6 +2263,146 @@ alfred (192.168.0.124) at 2c:cf:67:83:6f:3c [ether] on enp5s0
 suggest this last test may have been futile, but either way neither `ping` nor
 `nc` nor `tcptraceroute` nor `mtr` can connect to HTTP/S ports on that IP.
 
+#### Fix MetalLB Speaker
+
+The problem turned out to be that
+[MetalLB is not advertising my service from my control-plane nodes or from my single node cluster](https://metallb.universe.tf/troubleshooting/#metallb-is-not-advertising-my-service-from-my-control-plane-nodes-or-from-my-single-node-cluster)
+but the solution to *make sure your nodes are not labeled with the*
+[*`node.kubernetes.io/exclude-from-external-load-balancers`*](https://kubernetes.io/docs/reference/labels-annotations-taints/#node-kubernetes-io-exclude-from-external-load-balancers)
+*label* was **not** enough; the label was present but empty, and setting the label
+explicitly to `false` did not help:
+
+``` console
+$ kubectl describe node alfred | grep exclude
+                    node.kubernetes.io/exclude-from-external-load-balancers=
+
+$ kubectl label nodes alfred \
+  node.kubernetes.io/exclude-from-external-load-balancers=false \
+  --overwrite
+node/alfred labeled
+
+$ kubectl describe node alfred | grep exclude
+                    node.kubernetes.io/exclude-from-external-load-balancers=false
+```
+
+This alone makes no difference, even when connecting the NIC to the wired LAN.
+
+``` console
+# arping 192.168.0.124
+ARPING 192.168.0.124
+60 bytes from 2c:cf:67:83:6f:3b (192.168.0.124): index=0 time=161.545 usec
+60 bytes from 2c:cf:67:83:6f:3c (192.168.0.124): index=1 time=176.240 msec
+60 bytes from 2c:cf:67:83:6f:3c (192.168.0.124): index=2 time=177.685 msec
+60 bytes from 2c:cf:67:83:6f:3b (192.168.0.124): index=3 time=153.981 usec
+^C
+--- 192.168.0.124 statistics ---
+2 packets transmitted, 4 packets received,   0% unanswered (2 extra)
+rtt min/avg/max/std-dev = 0.154/88.560/177.685/88.404 ms
+
+# arping 192.168.0.151
+ARPING 192.168.0.151
+Timeout
+Timeout
+^C
+--- 192.168.0.151 statistics ---
+3 packets transmitted, 0 packets received, 100% unanswered (0 extra)
+```
+
+Reading further in that troubleshooting section, *one way to circumvent the issue is
+to provide the speakers with the `--ignore-exclude-lb`*. In this case, the flag can be
+added under the `args` for the Speaker's `DaemonSet` in the manifest:
+
+``` yaml title="metallb/metallb-native.yaml.yaml" linenums="1759" hl_lines="28"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: metallb
+    component: speaker
+  name: speaker
+  namespace: metallb-system
+spec:
+  selector:
+    matchLabels:
+      app: metallb
+      component: speaker
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "7472"
+        prometheus.io/scrape: "true"
+      labels:
+        app: metallb
+        component: speaker
+    spec:
+      containers:
+      - args:
+        - --port=7472
+        - --log-level=info
+        - --ignore-exclude-lb=true
+```
+
+After applying this change, and reverting the [Ingress Controller](#ingress-controller)
+service to the `LoadBalancer` type, NGinx is finally reachable from other hosts:
+
+``` console
+# arping 192.168.0.151
+ARPING 192.168.0.151
+60 bytes from 2c:cf:67:83:6f:3b (192.168.0.151): index=0 time=224.584 usec
+60 bytes from 2c:cf:67:83:6f:3b (192.168.0.151): index=1 time=216.128 usec
+^C
+--- 192.168.0.151 statistics ---
+2 packets transmitted, 2 packets received,   0% unanswered (0 extra)
+rtt min/avg/max/std-dev = 0.216/0.220/0.225/0.004 ms
+
+$ curl 2>/dev/null \
+  -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
+  -k https://192.168.0.151/ | head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+```
+
+As a nice bonus, NGinx still replies to the old `NodePort` port `32035`.
+
+??? terminal "`kubectl apply -f metallb/metallb-native.yaml`"
+
+    ``` console
+    $ kubectl apply -f metallb/metallb-native.yaml
+    namespace/metallb-system unchanged
+    customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io unchanged
+    customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io unchanged
+    customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io configured
+    customresourcedefinition.apiextensions.k8s.io/communities.metallb.io unchanged
+    customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io unchanged
+    customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io unchanged
+    customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io unchanged
+    serviceaccount/controller unchanged
+    serviceaccount/speaker unchanged
+    role.rbac.authorization.k8s.io/controller unchanged
+    role.rbac.authorization.k8s.io/pod-lister unchanged
+    clusterrole.rbac.authorization.k8s.io/metallb-system:controller unchanged
+    clusterrole.rbac.authorization.k8s.io/metallb-system:speaker unchanged
+    rolebinding.rbac.authorization.k8s.io/controller unchanged
+    rolebinding.rbac.authorization.k8s.io/pod-lister unchanged
+    clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller unchanged
+    clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker unchanged
+    configmap/metallb-excludel2 unchanged
+    secret/metallb-webhook-cert unchanged
+    service/metallb-webhook-service unchanged
+    deployment.apps/controller unchanged
+    daemonset.apps/speaker configured
+    validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-configuration configured
+    ```
+
 #### Allow snippet directives
 
 To enable the use of snippets annotations in the next section, it is necessary to override
@@ -2335,9 +2475,7 @@ validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admiss
 #### Kubernetes Dashboard Ingress
 
 With both Ngnix and the Kubernetes dashboard up and running, it is now possible to make
-the dashboard more conveniently accessible via Nginex. The URL will need to have the
-`NodePort` in it (e.g. [https://k8s.alfred:32035](https://k8s.alfred:32035)) because the
-service is unreachable when using a `LoadBalancer` IP. This `Ingress` is a slightly more
+the dashboard more conveniently accessible via Nginx. This `Ingress` is a slightly more
 complete one based on the example above:
 
 ``` yaml title="dashboard/nginx-ingress.yaml"
@@ -2382,7 +2520,7 @@ to the above `curl` command:
 ``` console
 $ curl 2>/dev/null \
   -H "Host: k8s.alfred" \
-  -k https://192.168.0.124:32035/ \
+  -k https://192.168.0.151/ \
 | head
 <!--
 Copyright 2017 The Kubernetes Authors.
@@ -2395,9 +2533,8 @@ You may obtain a copy of the License at
 ```
 
 Once this works in the local network, it can be made accessible externally by forwarding
-*a* port (443 if available, any other one otherwise) to the Nginx `NodePort` (32035) on
-the node's local IP address (`192.168.0.124`); this should work just as well as if Nginx
-had a `LoadBalancer` IP address. It is also necessary to update (or clone) the ingress
+*a* port (443 if available, any other one otherwise) to the Nginx `LoadBalancer` IP (or `NodePort` on the node's local IP address; this should work just as well as if Nginx
+had a `LoadBalancer` IP address). It is also necessary to update (or clone) the ingress
 rule to set `host` to the FQDN that points to the router's exterenal IP address, e.g.
 `k8s.alfred.uu.am`.
 
@@ -3070,8 +3207,8 @@ tunnel as **Connected**; otherwise something is blocking it.
 
 Once the tunnel is working, access to the
 [Kubernetes dashboard ingress](#kubernetes-dashboard-ingress) can be enabled
-by adding a **public hostname** to make `localhost:32035`
-(the `NodePort` of Nginx, using **HTTPS**) available *behind*
+by adding a **public hostname** to make `localhost:32035` (the `NodePort` of Nginx,
+using **HTTPS**), or the `LoadBalancer` IP, available *behind*
 [https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/).
 
 Make sure to **enable *No TLS Verify*** under *Additional application settings
@@ -3084,6 +3221,18 @@ Nginx knows to route requests with that `Host` value to the right service.
 Otherwise, Nginx will not find anything matching that URL:
 
 ``` console
+$ curl 2>/dev/null \
+  -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
+  -k https://192.168.0.151/ \
+| head
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
 $ curl 2>/dev/null \
   -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
   -k https://192.168.0.124:32035/ \
@@ -3125,7 +3274,7 @@ ingress.networking.k8s.io/kubernetes-dashboard-ingress created
 
 $ curl 2>/dev/null \
   -H "Host: kubernetes-alfred.very-very-dark-gray.top" \
-  -k https://192.168.0.124:32035/ \
+  -k https://192.168.0.151/ \
 | head
 <!--
 Copyright 2017 The Kubernetes Authors.
