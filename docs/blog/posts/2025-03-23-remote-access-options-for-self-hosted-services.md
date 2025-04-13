@@ -3,6 +3,9 @@ date: 2025-03-28
 categories:
  - privacy
  - security
+ - cloudflare
+ - tailscale
+ - tunnels
 title: Remote access options for self-hosted services
 ---
 
@@ -56,11 +59,17 @@ implementation depending on the type of traffic served by the application behind
   **low-bandwidth** non-HTML content, e.g. SSH sessions. Ideally with password
   authentication disabled!
 
-- **Non-HTML *sensitive* or *high-bandwidth* content** can be made *reachable* externally,
-  albeit from only a few clients, through the use of
-  [Tailscale Funnel](https://tailscale.com/kb/1223/funnel) (or similar) to establish
-  [fully-encrypted](https://tailscale.com/kb/1504/encryption) (TLS passthrough) tunnels
-  between *sites* (LANs) and a few trusted clients.
+- **Non-HTML *sensitive* ~~or *high-bandwidth*~~ content** can also be made *reachable*
+  externally, through the use of  [Tailscale Funnel](https://tailscale.com/kb/1223/funnel)
+  (or similar) to establish [fully-encrypted](https://tailscale.com/kb/1504/encryption)
+  (TLS passthrough) tunnels between *sites* (LANs) and a few trusted clients. However,
+  [this is only suitable for low-bandwidth applications](https://www.reddit.com/r/Tailscale/comments/188jvlr/is_funnels_really_slow/),
+  and there is no way of knowing how tightly bandwidth is restricted.
+
+- **Non-HTML *high-bandwidth* content** (sensitive or not) seems to be only practical to
+  expose by opening and forwarding ports; as much as this seems to be the method most
+  people recommend *against*. This is also the method that *just won't work* when working
+  with a defective or restriced router, or behind CGNAT.
 
 ## Options chosen
 
@@ -445,50 +454,219 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software
 ```
 
-Moreover, exposing port 80 *and* redirecting it to a different `NodePort`, as needed for
+However, exposing port 80 *and* redirecting it to a different `NodePort`, as needed for
 [automatically renewing Let's Encrypt certificates](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#automatic-renovation),
 does not seem to be possible. HTTPS access should be setup differently, as follows.
 
 ### Set up HTTPS access
 
-There are more elaborate setups to enable easier access to web apps over HTTPS:
+Exposing **Kubernetes** services throuth Tailscale requires the use of the
+[Kubernetes operator](https://tailscale.com/kb/1236/kubernetes-operator), which involves
+the following one-time (per node/host) setup and one additional `Ingress` per service.
 
-*   [Securely Exposing Applications on Kubernetes With Tailscale](https://joshrnoll.com/securely-exposing-applications-on-kubernetes-with-tailscale/)
-    using the [Kubernetes operator](https://tailscale.com/kb/1236/kubernetes-operator)
-    and the *Tailscale Ingress Controller*. This enables private (from within the tailnet)
-    access over HTTPS with (not self-) signed SSL certificates.
-*   [Exposing a Service **to the public internet** using Ingress and Tailscale Funnel](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-service-to-the-public-internet-using-ingress-and-tailscale-funnel)
-    seems like a plausible method to similarly expose local services, but also to clients
-    that are not in the same tailnet (or even in their own tailnet).
+#### Tailscale Kubernetes operator
 
-!!! todo
+[Securely Exposing Applications on Kubernetes With Tailscale](https://joshrnoll.com/securely-exposing-applications-on-kubernetes-with-tailscale/)
+using the **Tailscale Kubernetes operator** and the *Tailscale Ingress Controller*
+enables access over HTTPS with valid (signed) SSL certificates from within your Tailnet.
 
-    One of the above methods should allow accessing Alfred's Kubernetes dashboard at
-    <http://kubernetes.alfred.very-very-dark-gray.top/> **without** proxying traffic
-    through Cloudflare.
+Create a `tailscale` namespace and **allow privilege escalation** via a namespace label:
 
-[NGINX: Secure global access with Tailscale](https://medium.com/@rar1871/nginx-secure-global-access-with-tailscale-2f2cff773e24)
-may be redudant with the above methods.
+``` console
+$ kubectl create namespace tailscale
+namespace/tailscale created
 
-[Tailscale Authentication for NGINX](https://tailscale.com/blog/tailscale-auth-nginx)
-may be useful to use Tailscale to provide an SSO experience, which in turn can delegate
-to popular service providers (e.g. Google for `@gmail.com` accounts).
+$ kubectl label namespace tailscale pod-security.kubernetes.io/enforce=privileged
+namespace/tailscale labeled
+```
 
-### Tailscale Serve
+[Edit Tailscale ACL](https://login.tailscale.com/admin/acls/file) to set the following
+`tagOwners`:
 
-[Tailscale Serve](https://tailscale.com/kb/1312/serve) lets you route traffic from other
-devices on your tailnet to a local service running on your device. This means the local
-service is made available to other devices in your tailnet, without making it available
-**publicly** on the internet.
+``` json
+"tagOwners": {
+   "tag:k8s-operator": [],
+   "tag:k8s": ["tag:k8s-operator"],
+}
+```
 
-!!! note
+Create an [Oauth Client](https://login.tailscale.com/admin/settings/oauth), with a unique
+name (e.g. `k8s-operator` or `k8s-operator-alfred`) and read/write access to
+**Devices > Core** and **Keys > Auth Keys**, with the `k8s-operator` **tag** in both.
+**Copy the Client ID and secret**, keep them safe because these will never be provided
+again. Then install the Tailscale Kubernetes operator with Helm using these:
 
-    [Tailscale SSH](https://tailscale.com/kb/1193/tailscale-ssh) seems unnecessary for a
-    single admin using SSH; so long as the tailnet IP address is reachable.
+``` console
+$ helm repo add tailscale https://pkgs.tailscale.com/helmcharts && helm repo update
+"tailscale" has been added to your repositories
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "kubernetes-dashboard" chart repository
+...Successfully got an update from the "ingress-nginx" chart repository
+...Successfully got an update from the "jetstack" chart repository
+...Successfully got an update from the "tailscale" chart repository
+Update Complete. ⎈Happy Helming!⎈
 
-### Tailscale Funnel
+$ helm upgrade \
+  --install \
+  tailscale-operator \
+  tailscale/tailscale-operator \
+  --namespace=tailscale \
+  --create-namespace \
+  --set-string oauth.clientId="_________________" \
+  --set-string oauth.clientSecret="tskey-client-_________________-__________________________________" \
+  --wait
+Release "tailscale-operator" does not exist. Installing it now.
+NAME: tailscale-operator
+LAST DEPLOYED: Sun Apr 13 16:58:26 2025
+NAMESPACE: tailscale
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
+Before proceeding further,
+[enabling HTTPS](https://tailscale.com/kb/1153/enabling-https#configure-https)
+is required to make Kubernetes accessible over Tailscale Ingress operator.
+After enabling HTTPS in the Tailscale console, a certificate must be requested from each
+server by running `tailscale cert`:
+
+``` console
+$ sudo tailscale cert alfred.royal-penny.ts.net
+Wrote public cert to alfred.royal-penny.ts.net.crt
+Wrote private key to alfred.royal-penny.ts.net.key
+```
+
+Using the Tailscale Ingress Controller is now possible by adding a new `Ingress`, e.g.
+[the Kubernetes dashboard in `alfred`](2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#kubernetes#dashboard-ingress)
+can be now exposed at <https://kubernetes-alfred.royal-penny.ts.net> by adding this
+`Ingress` in `nginx-ingress.yaml`:
+
+``` yaml title="dashboard/nginx-ingress.yaml" linenums="44" hl_lines="7-16"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+spec:
+  defaultBackend:
+    service:
+      name: kubernetes-dashboard-kong-proxy
+      port:
+        number: 443
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - kubernetes-alfred
+```
+
+After applying this change, the new service `kubernetes-alfred` shows up in the list of
+**Machines** in the Tailscale console:
+
+``` console
+$ kubectl apply -f dashboard/nginx-ingress.yaml 
+ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+```
+
+![Kubernetes Operator Machines in Tailscale Console](../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-kubernetes-operator-machines.png)
+
+Access can be tested with `curl` (from within the tailnet):
+
+``` console
+$ curl 2>/dev/null \
+  -k https://kubernetes-alfred.royal-penny.ts.net/ \
+| head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+```
+
+Then again, MagicDNS takes a while to propagate to public DNS, so even from another host
+in the same tailnet, this test will fail for the first few hours:
+
+``` console
+$ curl -k https://kubernetes-alfred.royal-penny.ts.net/ 
+curl: (6) Could not resolve host: kubernetes-alfred.royal-penny.ts.net
+```
+
+#### Private access through invite
+
+Once a node is reachable by using a public FQDN, other users (e.g. friends and familiy)
+can be [invited through Tailscale](https://youtu.be/Vt4PDUXB_fg?t=646) to access that one
+service from their computers or phones.
+
+#### Public access through Funnel
 
 [Tailscale Funnel](https://tailscale.com/kb/1223/funnel) lets you route traffic from the
 broader internet to a local service, like a web app, for anyone to access—even if they
-don't use Tailscale. This can be used to expose non-HTML sensitive applications over 
-**HTTPS**, with the caveat that traffic is not protected from abuse as with Cloudflare.
+don't use Tailscale. This can be used to expose **low-bandwidth** sensitive applications over **HTTPS**, with the caveat that traffic is not protected from abuse as with Cloudflare.
+[Tailscale Funnel are slow by design](https://www.reddit.com/r/Tailscale/comments/188jvlr/is_funnels_really_slow/),
+so this method only really works well for non-HTTP applications that are low-bandwidth,
+e.g. SSH or perhaps gaming servers.
+
+[Exposing a Service **to the public internet** using Ingress and Tailscale Funnel](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-service-to-the-public-internet-using-ingress-and-tailscale-funnel)
+enables access to local (Kubernetes) services also to clients that are not in the same
+tailnet, or even in their own tailnet. This is *as simple* as adding the following
+annotation to the Tailscale `Ingress` for a Kubernetes service:
+
+``` yaml title="dashboard/nginx-ingress.yaml" linenums="44" hl_lines="5-6"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    tailscale.com/funnel: "true"
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+spec:
+  defaultBackend:
+    service:
+      name: kubernetes-dashboard-kong-proxy
+      port:
+        number: 443
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - kubernetes-alfred
+```
+
+**Before** applying this change,
+[Edit Tailscale ACL](https://login.tailscale.com/admin/acls/file)
+to allow Kubernetes Operator proxy services to use Tailscale Funnel:
+
+1. Expand the **Funnel** section and select **Add Funnel to policy**.
+2. Edit the `nodeAttrs` to allow nodes created by the Kubernetes operator to use Funnel:
+
+``` json linenums="61" hl_lines="6"
+  "nodeAttrs": [
+    {
+      // Funnel policy, which lets tailnet members control Funnel
+      // for their own devices.
+      // Learn more at https://tailscale.com/kb/1223/tailscale-funnel/
+      "target": ["tag:k8s"], // tag that Tailscale Operator uses to tag proxies; defaults to 'tag:k8s'
+      "attr":   ["funnel"],
+    },
+  ],
+```
+
+Then applying the change to the `Ingress` manifest:
+
+``` console
+$ kubectl apply -f dashboard/nginx-ingress.yaml 
+ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+```
+
+!!! todo
+
+    Once DNS has propagated to resolve <https://kubernetes-alfred.royal-penny.ts.net>
+    to the machine's VPN IP address (`100.117.196.31`); enable the `funnel` annotation
+    and wait for DNS to propagate *again* to test access using this method.
