@@ -656,12 +656,64 @@ Unless required by applicable law or agreed to in writing, software
 
 !!! warning
 
-    While DNS takes hours to propagate access to the Tailscale Ingress, the previously
-    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/> starts
+    While DNS takes ~~hours~~ **about 2 days**  to propagate access to the Tailscale
+    Ingress, the previously setup Nginx Ingress for
+    <https://kubernetes-alfred.very-very-dark-gray.top/> starts
     returning 404 Not Found immediately. The reason could not be determined even by
-    [adding `error-log-level: debug` to `nginx-baremetal.yaml`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-public-hostnames),
-    but **removing** the Tailscale Ingress immediately restored access to the previously
-    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/>.
+    [adding `error-log-level: debug` to `nginx-baremetal.yaml`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-public-hostnames).
+    
+    **Removing** the Tailscale Ingress immediately restored access to the previously
+    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/>
+    **the first time**, but doing the same 2 days later did not have the same effect;
+    the Dashboard at the Cloudflare subdomain did not became available again, while the
+    *finally* available Dashboard on the Tailscale subdomain also became unavailable.
+
+    To make this *even worse*, removing the Ingress and adding it back later will result
+    in a different Tailscale IP address being assigned to it, so that's another 2 days of
+    waiting until DNS records propagate.
+
+*Eventually*, after **2 days**, the new host is finally resolved:
+
+``` console hl_lines="7 15"
+$ dig kubernetes-alfred.royal-penny.ts.net
+
+; <<>> DiG 9.18.30-0ubuntu0.24.04.2-Ubuntu <<>> kubernetes-alfred.royal-penny.ts.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 10204
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;kubernetes-alfred.royal-penny.ts.net. IN A
+
+;; ANSWER SECTION:
+kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20
+
+;; Query time: 1 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
+;; WHEN: Tue Apr 15 23:54:58 CEST 2025
+;; MSG SIZE  rcvd: 82
+```
+
+At that point the Kubernetes dashboard is finally accessible at
+<https://kubernetes-alfred.royal-penny.ts.net/>
+from hosts in the same tailnet:
+
+``` console
+$ curl 2>/dev/null -k https://kubernetes-alfred.royal-penny.ts.net/ | head
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+```
 
 #### Private access through invite
 
@@ -731,8 +783,7 @@ ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged
 ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
 ```
 
-!!! todo
-
-    Once DNS has propagated to resolve <https://kubernetes-alfred.royal-penny.ts.net>
-    to the machine's VPN IP address (`100.117.196.31`); enable the `funnel` annotation
-    and wait for DNS to propagate *again* to test access using this method.
+Once DNS has propagated to resolve <https://kubernetes-alfred.royal-penny.ts.net> to the
+machine's Tailscale IP address (`100.74.213.20`); enabling the `funnel` annotation and
+applying the change results in yet another Tailscale IP address begin assigned to it, so
+there we go to wait for DNS to propagate *again* to test access using this method.
