@@ -468,7 +468,7 @@ the following one-time (per node/host) setup and one additional `Ingress` per se
 
 [Securely Exposing Applications on Kubernetes With Tailscale](https://joshrnoll.com/securely-exposing-applications-on-kubernetes-with-tailscale/)
 using the **Tailscale Kubernetes operator** and the *Tailscale Ingress Controller*
-enables access over HTTPS with valid (signed) SSL certificates from within your Tailnet.
+enables access over HTTPS with valid (signed) SSL certificates from within your tailnet.
 
 Create a `tailscale` namespace and **allow privilege escalation** via a namespace label:
 
@@ -541,12 +541,12 @@ Using the Tailscale Ingress Controller is now possible by adding a new `Ingress`
 can be now exposed at <https://kubernetes-alfred.royal-penny.ts.net> by adding this
 `Ingress` in `nginx-ingress.yaml`:
 
-``` yaml title="dashboard/nginx-ingress.yaml" linenums="44" hl_lines="7-16"
+``` yaml title="dashboard/nginx-ingress.yaml" linenums="44" hl_lines="5 7-16"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kubernetes-dashboard-ingress
+  name: kubernetes-dashboard-ingress-tailscale
   namespace: kubernetes-dashboard
 spec:
   defaultBackend:
@@ -560,14 +560,61 @@ spec:
         - kubernetes-alfred
 ```
 
-After applying this change, the new service `kubernetes-alfred` shows up in the list of
-**Machines** in the Tailscale console:
+??? warning "This new `Ingress` needs its own **unique** `metadata.name`."
+
+    This new `Ingress` needs its own **unique** `name`, hence the addition of
+    `-tailscale` to the `name` above.
+
+    Otherwise, while DNS takes ~~hours~~ **about 2 days** to propagate access to the Tailscale Ingress, the previously working setup to access the Ingress for
+    <https://kubernetes-alfred.very-very-dark-gray.top/> starts
+    returning 404 Not Found immediately. The reason could not be determined even by
+    [adding `error-log-level: debug` to `nginx-baremetal.yaml`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-public-hostnames), but the issue becomes apparent when listing
+    all `Ingress` before and after adding the Tailscale `Ingress`:
+
+    **Before:**  
+    ``` console
+    $ kubectl get ingress -A
+    NAMESPACE              NAME                           CLASS            HOSTS                                                             ADDRESS         PORTS     AGE
+    kubernetes-dashboard   kubernetes-dashboard           internal-nginx   localhost                                                                         80, 443   53d
+    kubernetes-dashboard   kubernetes-dashboard-ingress   nginx            kubernetes-alfred.very-very-dark-gray.top,k8s.alfred.uu.am        192.168.0.121   80, 443   26d
+    ```
+
+    **After:**  
+    ``` console
+    $ kubectl get ingress -A
+    NAMESPACE              NAME                           CLASS            HOSTS       ADDRESS                                 PORTS     AGE
+    kubernetes-dashboard   kubernetes-dashboard           internal-nginx   localhost                                           80, 443   53d
+    kubernetes-dashboard   kubernetes-dashboard-ingress   tailscale        *           kubernetes-alfred.royal-penny.ts.net    80, 443   26d
+    ```
+
+    The `nginx` (class) `Ingress` is **replaced** by the `tailscale` (class) `Ingress`
+    and thus <https://kubernetes-alfred.very-very-dark-gray.top/> is no longer mapped.
+    Avoid this by using **unique `metadata.name` values within each `namespace`**.
+    
+    **Removing** the Tailscale Ingress immediately restored access to the previously
+    setup Nginx Ingress **the first time**, but doing the same 2 days later did not have
+    the same effect; the Dashboard at the Cloudflare subdomain did not became available
+    again, while the Dashboard *finally* available on the Tailscale subdomain also became
+    unavailable.
+
+    To make this *even worse*, removing the Ingress and adding it back later will result
+    in a different Tailscale IP address being assigned to it, so that's another 2 days of
+    waiting until DNS records propagate.
 
 ``` console
 $ kubectl apply -f dashboard/nginx-ingress.yaml 
 ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged
 ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+
+$ kubectl get ingress -A
+NAMESPACE              NAME                                     CLASS            HOSTS                                                             ADDRESS                                 PORTS     AGE
+kubernetes-dashboard   kubernetes-dashboard                     internal-nginx   localhost                                                                                                 80, 443   53d
+kubernetes-dashboard   kubernetes-dashboard-ingress             nginx            kubernetes-alfred.very-very-dark-gray.top,k8s.alfred.uu.am        192.168.0.121                           80, 443   26d
+kubernetes-dashboard   kubernetes-dashboard-ingress-tailscale   tailscale        *                                                                 kubernetes-alfred.royal-penny.ts.net    80, 443   54s
 ```
+
+After applying this change, the new service `kubernetes-alfred` shows up in the list of
+**Machines** in the Tailscale console:
 
 ![Kubernetes Operator Machines in Tailscale Console](../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-kubernetes-operator-machines.png)
 
@@ -654,24 +701,6 @@ Unless required by applicable law or agreed to in writing, software
     kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20
     ```
 
-!!! warning
-
-    While DNS takes ~~hours~~ **about 2 days**  to propagate access to the Tailscale
-    Ingress, the previously setup Nginx Ingress for
-    <https://kubernetes-alfred.very-very-dark-gray.top/> starts
-    returning 404 Not Found immediately. The reason could not be determined even by
-    [adding `error-log-level: debug` to `nginx-baremetal.yaml`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-public-hostnames).
-    
-    **Removing** the Tailscale Ingress immediately restored access to the previously
-    setup Nginx Ingress for <https://kubernetes-alfred.very-very-dark-gray.top/>
-    **the first time**, but doing the same 2 days later did not have the same effect;
-    the Dashboard at the Cloudflare subdomain did not became available again, while the
-    *finally* available Dashboard on the Tailscale subdomain also became unavailable.
-
-    To make this *even worse*, removing the Ingress and adding it back later will result
-    in a different Tailscale IP address being assigned to it, so that's another 2 days of
-    waiting until DNS records propagate.
-
 *Eventually*, after **2 days**, the new host is finally resolved:
 
 ``` console hl_lines="7 15"
@@ -742,7 +771,7 @@ kind: Ingress
 metadata:
   annotations:
     tailscale.com/funnel: "true"
-  name: kubernetes-dashboard-ingress
+  name: kubernetes-dashboard-ingress-tailscale
   namespace: kubernetes-dashboard
 spec:
   defaultBackend:
@@ -787,3 +816,7 @@ Once DNS has propagated to resolve <https://kubernetes-alfred.royal-penny.ts.net
 machine's Tailscale IP address (`100.74.213.20`); enabling the `funnel` annotation and
 applying the change results in yet another Tailscale IP address begin assigned to it, so
 there we go to wait for DNS to propagate *again* to test access using this method.
+
+Eventually, after another couple of days for DNS to propagate, the Kubernetes dashboard
+is available at <https://kubernetes-alfred.royal-penny.ts.net> also for computers **not**
+in the same tailnet.
