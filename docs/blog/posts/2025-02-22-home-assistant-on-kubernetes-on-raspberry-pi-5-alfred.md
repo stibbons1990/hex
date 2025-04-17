@@ -2267,25 +2267,16 @@ suggest this last test may have been futile, but either way neither `ping` nor
 
 The problem turned out to be that
 [MetalLB is not advertising my service from my control-plane nodes or from my single node cluster](https://metallb.universe.tf/troubleshooting/#metallb-is-not-advertising-my-service-from-my-control-plane-nodes-or-from-my-single-node-cluster)
-but the solution to *make sure your nodes are not labeled with the*
-[*`node.kubernetes.io/exclude-from-external-load-balancers`*](https://kubernetes.io/docs/reference/labels-annotations-taints/#node-kubernetes-io-exclude-from-external-load-balancers)
-*label* was **not** enough; the label was present but empty, and setting the label
-explicitly to `false` did not help:
+and the solutions are to either remove the node label, or make MetalLB circumvent it.
+
+This label is present by default in control panel nodes, so it is found here now:
 
 ``` console
 $ kubectl describe node alfred | grep exclude
                     node.kubernetes.io/exclude-from-external-load-balancers=
-
-$ kubectl label nodes alfred \
-  node.kubernetes.io/exclude-from-external-load-balancers=false \
-  --overwrite
-node/alfred labeled
-
-$ kubectl describe node alfred | grep exclude
-                    node.kubernetes.io/exclude-from-external-load-balancers=false
 ```
 
-This alone makes no difference, even when connecting the NIC to the wired LAN.
+While this label is in effect, MetalLB virtual IPs are not found even by `arping`:
 
 ``` console
 # arping 192.168.0.124
@@ -2308,11 +2299,30 @@ Timeout
 3 packets transmitted, 0 packets received, 100% unanswered (0 extra)
 ```
 
-Reading further in that troubleshooting section, *one way to circumvent the issue is
-to provide the speakers with the `--ignore-exclude-lb`*. In this case, the flag can be
-added under the `args` for the Speaker's `DaemonSet` in the manifest:
+IP address `.124` is the node's (non-virtual) address, `.154` is a `LoalBalancder`
+virtual address issued by MetalLB. 
 
-``` yaml title="metallb/metallb-native.yaml.yaml" linenums="1759" hl_lines="28"
+##### Remove node label `node.kubernetes.io/exclude-from-external-load-balancers`
+
+The recommended solution is to *make sure your nodes are not labeled with the*
+[*`node.kubernetes.io/exclude-from-external-load-balancers`*](https://kubernetes.io/docs/reference/labels-annotations-taints/#node-kubernetes-io-exclude-from-external-load-balancers)
+*label*. This means **removing** the label (setting the label explicitly to `false`
+is not enough):
+
+``` console
+$ kubectl label nodes alfred \
+  node.kubernetes.io/exclude-from-external-load-balancers-
+node/alfred unlabeled
+```
+
+##### Make MetalLB circumvent the node label
+
+An alternative method is provided in the troubleshooting guide as well: *one way to
+circumvent the issue is to provide the speakers with the `--ignore-exclude-lb`*.
+In this case, the flag can be added under the `args` for the Speaker's `DaemonSet` in
+the manifest:
+
+``` yaml title="metallb/metallb-native.yaml" linenums="1759" hl_lines="28"
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -2343,8 +2353,9 @@ spec:
         - --ignore-exclude-lb=true
 ```
 
-After applying this change, and reverting the [Ingress Controller](#ingress-controller)
-service to the `LoadBalancer` type, NGinx is finally reachable from other hosts:
+After applying **either** of the above changes, and reverting the
+[Ingress Controller](#ingress-controller) service to the `LoadBalancer` type,
+NGinx is finally reachable from other hosts:
 
 ``` console
 # arping 192.168.0.151
