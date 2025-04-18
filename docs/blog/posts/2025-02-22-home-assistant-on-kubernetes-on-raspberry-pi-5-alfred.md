@@ -3220,7 +3220,7 @@ Once the tunnel is working, access to the
 [Kubernetes dashboard ingress](#kubernetes-dashboard-ingress) can be enabled
 by adding a **public hostname** to make `localhost:32035` (the `NodePort` of Nginx,
 using **HTTPS**), or the `LoadBalancer` IP, available *behind*
-[https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/).
+<https://kubernetes-alfred.very-very-dark-gray.top/>.
 
 Make sure to **enable *No TLS Verify*** under *Additional application settings
 \> TLS* because Nginx will not be using the certificate from Let's Encrypt.
@@ -3297,7 +3297,7 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 ```
 
-[https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/)
+<https://kubernetes-alfred.very-very-dark-gray.top/>
 will now lead to the Kubernetes dashboard, through its own HTTPS tunnel,
 provided all the configurations have been applied correctly.
 

@@ -625,7 +625,45 @@ report metrics to `lexicon` on its `NodePort` (30086).
 
 ## Remote Access
 
-### Cloudflare
+[Remote access options for self-hosted services](./2025-03-23-remote-access-options-for-self-hosted-services.md)
+may no longer require opening any ports in the router for this server,
+although that option remains available should it become necessary.
+
+### Cloudflare Tunnel
+
+[Cloudflare Tunnels in Alfred](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
+proved to be a good solution for making web sites externally available but still
+[protected behind SSO with Zero Trust Web Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access).
+Since all that was already setup, and there are no services running in this server yet,
+all there is to do here and now is just install `cloudflared` and join.
+
+Install the latest `cloudflared` using the instructions provided when 
+[creating a tunnel](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#create-a-tunnel):
+
+``` console
+# curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+  | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+
+# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+  | tee /etc/apt/sources.list.d/cloudflared.list
+
+# install cloudflared
+sudo apt-get update && sudo apt-get install cloudflared
+```
+
+Then run the command to connect to the new tunnel:
+
+``` console
+# cloudflared service install eyJhIjoiMD...
+2025-04-18T21:45:27Z INF Using Systemd
+2025-04-18T21:45:27Z INF Linux service for cloudflared installed successfully
+```
+
+Although a public hostname is not yet necessary for this tunnel, create one for
+<https://kubernetes-octavo.very-very-dark-gray.top/> to be used later for the
+Kubernetes Dashboard, just pointing to <https://localhost> for now. Make sure to **enable** the **TLS** option **No TLS Verify**, so the tunnel can be used **without**
+[HTTPS certificates](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#https-certificates)
+since they do not seem to be necessary when using Cloudflare tunnels.
 
 ### Tailscale
 
