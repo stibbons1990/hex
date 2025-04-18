@@ -65,7 +65,26 @@ then update the `DBNAME` variable in the `conmon` scripts).
 
 ## Install Conmon
 
-Choose *a* version of the `conmon` script and install it as
+The monitoring script can be installed in any system to report metrics back to
+the InfluxDB server.
+
+A few common tools are required which are not always installed by default:
+
+``` console
+# apt install -y curl jq iotop-c lm-sensors 
+```
+
+To gather metrics from GPUs, install also
+
+*   `intel-gpu-tools` for Intel GPUs.
+*   The latest `nvidia-utils-xxx` for NVidia GPUs
+    (check with `apt-cache search nvidia-smi`).
+
+If the target InfluxDB server 
+[requires HTTP authenticatoin](../blog/posts/2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#secure-influxdb),
+copy or create the credentials into `/etc/conmon/influxdb-auth`(and `chmod 400` it).
+
+Then choose *a* version of the `conmon` script and install it as
 `/usr/local/bin/conmon` and run it as a service by creating
 `/etc/systemd/system/conmon.service` as follows:
 
@@ -92,6 +111,14 @@ Then enable and start the services in `systemd`:
 # systemctl start conmon.service
 # systemctl status conmon.service
 ```
+
+Once all this is working, the monitoring script can be updated with 
+[`deploy-to-pcs`](#deploy-to-pcs) or [`deploy-to-rpis`](#deploy-to-rpis).
+
+After a minute or so, there should be enough metrics already in InfluxDB to
+create a dashboard in Grafana to display them. A good starting point can be
+cloning an existing dashboard from a similar system, then tweaking the
+`tag::host` filter in all queries and some of the `Max` values.
 
 ### The future of Flux
 
