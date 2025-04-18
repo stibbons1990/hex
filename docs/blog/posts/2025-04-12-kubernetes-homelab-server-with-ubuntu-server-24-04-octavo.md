@@ -613,9 +613,15 @@ simply install `auditd`:
     No VM guests are running outdated hypervisor (qemu) binaries on this host.
     ```
 
+### NAS NFS mount
 
+Add the [NFS mount](./2025-04-18-synology-ds423-for-the-homelab-luggage.md#nfs)
+in `/etc/fstab` to mount `/home/nas`, create the directory and mount it.
 
 ## Continuous Monitoring
+
+[Install Continuous Monitoring](../../projects/conmon.md#install-conmon) and
+report metrics to `lexicon` on its `NodePort` (30086).
 
 ## Remote Access
 
