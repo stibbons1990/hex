@@ -177,11 +177,18 @@ a few more steps:
 1.  Create a **Policy** (e.g *Google Account*) to **Allow** only a few users, with
     **only one Include rule** to match those users' email addresses.
 
-1.  [Create an Access application](https://developers.cloudflare.com/learning-paths/zero-trust-web-access/access-application/create-access-app/); more precisely a
-    **self-hosted** application (e.g. `kubernetes-alfred`) for a **Public hostname**
-    ([https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/)) and add **only** the **Google Account** policy, so that
-    only users that match that policy are allowed. To authenicate those users, enable
-    **only** the *Google* authentication in **Login methods** ane enable **Instant Auth**.
+1.  [Create an Access application](https://developers.cloudflare.com/learning-paths/zero-trust-web-access/access-application/create-access-app/)
+
+    *   Choose **self-hosted** application and name it after the public
+        host it will expose (e.g. `kubernetes-alfred`).
+    *   Add a **Public hostname**
+    ([https://kubernetes-alfred.very-very-dark-gray.top/](https://kubernetes-alfred.very-very-dark-gray.top/))
+    *   Add **only** the **Google Account** policy, so that
+        only users that match that policy are allowed.
+    *   To authenicate those users, enable **only** the *Google*
+        authentication in **Login methods**.
+    *   Finally, enable **Instant Auth**.
+    *   Then accept the defaults in the next two pages and **Save**.
 
 So long as **only one policy** is added to the applications *and* that policy has
 **only one Include rule**, only those users added to that Include rule are allowed in.
