@@ -227,14 +227,13 @@ Could not chdir to home directory /var/services/homes/ponder: No such file or di
 [Cloudflare Tunnels in Alfred](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
 proved to be a good solution for making web sites externally available but
 still protected behind SSO with **Zero Trust Web Access**.
-
 Instead of installing and running `cloudflared` in the NAS (which
 [should be possible](https://community.cloudflare.com/t/access-synology-nas-portal-via-cloudflared/497798/3)),
 simply create a tunnel using the connector already running in the new
-[Kubernetes homelab server (octavo)](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md)
+[Kubernetes homelab server (octavo)](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md).
 
 Directly create a public hostname for this tunnel, to point
-<https://luggage.very-very-dark-gray.top/> to the HTTP endpoint on
+<https://luggage.very-very-dark-gray.top/> to the HTTP**S** endpoint on
 port **5001** using the static IP address. Make sure to **enable** the
 **TLS** option **No TLS Verify**, so the tunnel can be used **without**
 HTTPS certificates, because setting that up in the NAS isn't necessary.
