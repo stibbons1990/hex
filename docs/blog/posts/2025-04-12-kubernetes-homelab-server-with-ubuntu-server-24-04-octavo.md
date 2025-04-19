@@ -637,14 +637,14 @@ proved to be a good solution for making web sites externally available but still
 Since all that was already setup, and there are no services running in this server yet,
 all there is to do here and now is just install `cloudflared` and join.
 
-Install the latest `cloudflared` using the instructions provided when 
-[creating a tunnel](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#create-a-tunnel):
+Install the latest `cloudflared` using the instructions provided for
+[Ubuntu 24.04](https://pkg.cloudflare.com/index.html#debian-any):
 
 ``` console
 # curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
   | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 
-# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared noble main' \
   | tee /etc/apt/sources.list.d/cloudflared.list
 
 # install cloudflared

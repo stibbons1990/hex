@@ -101,7 +101,7 @@ the Kubernetes servers in the meantime.
 
 Find the IP address assigned to the NAS and add it in `/etc/hosts` with a fun
 name, then open its port **5000** over *plain* HTTP, e.g.
-<http://luggage:5000/>
+<https://luggage:5001/>
 
 ![](../media/2025-04-18-synology-ds423-for-the-homelab-luggage/ds423-device-info.png)
 
@@ -221,6 +221,30 @@ Could not chdir to home directory /var/services/homes/ponder: No such file or di
 ```
 
 ### Remote access
+
+#### Cloudflare Tunnel
+
+[Cloudflare Tunnels in Alfred](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
+proved to be a good solution for making web sites externally available but
+still protected behind SSO with **Zero Trust Web Access**.
+
+Instead of installing and running `cloudflared` in the NAS (which
+[should be possible](https://community.cloudflare.com/t/access-synology-nas-portal-via-cloudflared/497798/3)),
+simply create a tunnel using the connector already running in the new
+[Kubernetes homelab server (octavo)](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md)
+
+Directly create a public hostname for this tunnel, to point
+<https://luggage.very-very-dark-gray.top/> to the HTTP endpoint on
+port **5001** using the static IP address. Make sure to **enable** the
+**TLS** option **No TLS Verify**, so the tunnel can be used **without**
+HTTPS certificates, because setting that up in the NAS isn't necessary.
+
+Then setup [Cloudflare Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access)
+by adding a new application for the new public hostname, protected by
+a single identity provider (e.g. Google account). While not strictly
+necessary, this means only a few trusted users can even reach the login
+page of the NAS, after passing the identity check through Cloudflare,
+before having a chance to try to log in.
 
 #### Setup SSH
 

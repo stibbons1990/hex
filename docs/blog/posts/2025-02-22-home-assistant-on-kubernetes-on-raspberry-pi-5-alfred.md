@@ -3165,23 +3165,18 @@ address, or possibly even CGNAT in the future, a Cloudflare tunnel will be used.
 
 ### Install `cloudflared`
 
-Download the latest `arm64` Debian package from
-[github.com/cloudflare/cloudflared/releases](https://github.com/cloudflare/cloudflared/releases),
-check its integrity with `sha256sum` and install it:
+Install the latest `cloudflared` using the instructions provided for
+[Any Debian Based Distribution](https://pkg.cloudflare.com/index.html#debian-any):
 
 ``` console
-$ wget https://github.com/cloudflare/cloudflared/releases/download/2025.2.1/cloudflared-linux-arm64.deb
+# curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+  | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 
-$ sha256sum cloudflared-linux-arm64.deb
-d0ed56717ea678d4a189d5e58892cfaf6eb4c1d8b6b511e266968b4ef0cd6f1a  cloudflared-linux-arm64.deb
+# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+  | tee /etc/apt/sources.list.d/cloudflared.list
 
-$ sudo dpkg -i cloudflared-linux-arm64.deb
-Selecting previously unselected package cloudflared.
-(Reading database ... 83794 files and directories currently installed.)
-Preparing to unpack cloudflared-linux-arm64.deb ...
-Unpacking cloudflared (2025.2.1) ...
-Setting up cloudflared (2025.2.1) ...
-Processing triggers for man-db (2.11.2-2) ...
+# install cloudflared
+sudo apt-get update && sudo apt-get install cloudflared
 ```
 
 ### Create a tunnel
