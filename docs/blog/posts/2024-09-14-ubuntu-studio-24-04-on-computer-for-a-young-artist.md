@@ -1171,6 +1171,8 @@ yields a few results with a few common themes:
   `ubuntu-drivers autoinstall` (unclear what this installed)
   - [Ubuntu not booting - i2c timeout error?](https://askubuntu.com/questions/1522974/ubuntu-not-booting-i2c-timeout-error) thread in
     askubuntu.com yielded no useful answers.
+- From the NVidia developer forum on Jul 29, 2023: 
+  [GT1660 Nvidia errors in ubuntu 18.04 - nvidia-gpu i2c timeout error e0000000](https://forums.developer.nvidia.com/t/gt1660-nvidia-errors-in-ubuntu-18-04-nvidia-gpu-i2c-timeout-error-e0000000/144935/3)
 - From `r/archlinux` on Oct 31, 2021: [nvidia-gpu 0000:07:00.3: i2c timeout error e0000000](https://www.reddit.com/r/archlinux/comments/qjteir/nvidiagpu_000007003_i2c_timeout_error_e0000000/)
   - shows this error is nothing new, and points to
   - [[Dual system, Ubuntu 20.04]nvidia-gpu: i2c timeout error; ucsi_ccg: i2c_transfer failed -110, ucsi_ccg_init failed](https://askubuntu.com/questions/1278399/dual-system-ubuntu-20-04nvidia-gpu-i2c-timeout-error-ucsi-ccg-i2c-transfer)
@@ -1418,3 +1420,92 @@ What does work is booting the previous kernel (6.8.0-49), so the
 workaround may be to rollback, or possibly to
 [Install Linux Kernel 6.9](https://9to5linux.com/you-can-now-install-linux-kernel-6-9-on-ubuntu-24-04-lts-heres-how).
 In the meantime, selecting the old kernel manually should work.
+
+#### 2nd round
+
+Found an even more recent thread (December 2024) in
+<https://forums.linuxmint.com/viewtopic.php?t=435952>
+with a slightly more complete workaround:
+
+``` console
+# echo "blacklist nouveau" \
+  >> /etc/modprobe.d/blacklist-nouveua.conf
+
+# echo "options nvidia NVreg_PreserveVideoMemoryAllocations=1" \
+  >> /etc/modprobe.d/nvidia.conf
+
+# echo "options nvidia-drm modeset=1 fbdev=1" \
+  >> /etc/modprobe.d/nvidia.conf
+
+# update-initramfs -c -k $(uname -r)
+```
+
+This adds blacklisting the `nouveau` driver, but this is not enough;
+at least not combined with `fbdev=1` alone:
+
+``` console
+# dmesg | egrep -i -C4 'nouveau|vesa|afb|nvidia|modeset'
+```
+
+``` dmesg
+[    6.009721] systemd-journald[685]: Rotating system journal.
+[    6.234214] ccp 0000:0b:00.2: enabling device (0000 -> 0002)
+[    6.235094] piix4_smbus 0000:00:14.0: SMBus Host Controller at 0xb00, revision 0
+[    6.235099] piix4_smbus 0000:00:14.0: Using register 0x02 for SMBus port selection
+[    6.243520] nvidiafb: Device ID: 10de21c4 
+[    6.243528] nvidiafb: unknown NV_ARCH
+[    6.244322] piix4_smbus 0000:00:14.0: Auxiliary SMBus Host Controller at 0xb20
+[    6.247032] mc: Linux media interface: v0.10
+[    6.251040] ccp 0000:0b:00.2: ccp enabled
+[    6.251147] ccp 0000:0b:00.2: psp enabled
+--
+[    6.447418] snd_hda_codec_realtek hdaudioC2D0:    inputs:
+[    6.447422] snd_hda_codec_realtek hdaudioC2D0:      Front Mic=0x19
+[    6.447426] snd_hda_codec_realtek hdaudioC2D0:      Rear Mic=0x18
+[    6.447430] snd_hda_codec_realtek hdaudioC2D0:      Line=0x1a
+[    6.448014] input: HDA NVidia HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:03.1/0000:0a:00.1/sound/card0/input8
+[    6.448126] input: HDA NVidia HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:03.1/0000:0a:00.1/sound/card0/input9
+[    6.448241] input: HDA NVidia HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:03.1/0000:0a:00.1/sound/card0/input10
+[    6.448365] input: HDA NVidia HDMI/DP,pcm=9 as /devices/pci0000:00/0000:00:03.1/0000:0a:00.1/sound/card0/input11
+[    6.462474] input: HD-Audio Generic Front Mic as /devices/pci0000:00/0000:00:08.1/0000:0c:00.3/sound/card2/input12
+[    6.462592] input: HD-Audio Generic Rear Mic as /devices/pci0000:00/0000:00:08.1/0000:0c:00.3/sound/card2/input13
+[    6.462665] input: HD-Audio Generic Line as /devices/pci0000:00/0000:00:08.1/0000:0c:00.3/sound/card2/input14
+[    6.462727] input: HD-Audio Generic Line Out Front as /devices/pci0000:00/0000:00:08.1/0000:0c:00.3/sound/card2/input15
+--
+[    7.085598] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    7.164422] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    7.164640] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[    7.164788] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+[    7.428902] nvidia-gpu 0000:0a:00.3: i2c timeout error e0000000
+[    7.428912] ucsi_ccg 1-0008: i2c_transfer failed -110
+[    7.428918] ucsi_ccg 1-0008: ucsi_ccg_init failed - -110
+[    7.428923] ucsi_ccg: probe of 1-0008 failed with error -110
+[    7.974293] usb 3-2.2: set resolution quirk: cval->res = 384
+```
+
+The output from `inxi -Gx` still shows the `nouveau` is the one in use:
+
+``` console
+# inxi -Gx
+Graphics:
+  Device-1: NVIDIA TU116 [GeForce GTX 1660 SUPER] vendor: Micro-Star MSI driver: N/A arch: Turing
+    bus-ID: 0a:00.0
+  Device-2: Logitech Webcam C270 driver: snd-usb-audio,uvcvideo type: USB bus-ID: 3-2.2:4
+  Display: server: X.org v: 1.21.1.11 with: Xwayland v: 23.2.6 driver: X:
+    loaded: modesetting,nouveau unloaded: fbdev,vesa gpu: N/A tty: 110x59
+  API: EGL v: 1.5 drivers: swrast platforms: active: surfaceless,device
+    inactive: gbm,wayland,x11
+  API: OpenGL v: 4.5 vendor: mesa v: 24.2.8-1ubuntu1~24.04.1 note: console (EGL sourced)
+    renderer: llvmpipe (LLVM 19.1.1 256 bits)
+  API: Vulkan v: 1.3.275 drivers: N/A surfaces: N/A devices: 1
+
+# lspci -vnn | grep -Ei "vga|3d|display|kernel"
+
+0a:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU116 [GeForce GTX 1660 SUPER] [10de:21c4] (rev a1) (prog-if 00 [VGA controller])
+        Kernel modules: nvidiafb, nouveau
+```
+
+!!! todo
+
+    Try again with `options nvidia NVreg_PreserveVideoMemoryAllocations=1`
+    in `/etc/modprobe.d/nvidia.conf`.
