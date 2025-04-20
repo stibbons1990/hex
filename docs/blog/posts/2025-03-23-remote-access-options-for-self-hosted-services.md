@@ -190,6 +190,18 @@ a few more steps:
     *   Finally, enable **Instant Auth**.
     *   Then accept the defaults in the next two pages and **Save**.
 
+1.  If this application will need to renew its own Let's Encrypt certificates,
+    create another Policy called to **Bypass** all authentication mechanisms,
+    and set the selector to **Everyone** as in the examples for the action
+    [Bypass](https://developers.cloudflare.com/cloudflare-one/policies/access/#bypass).
+
+1.  Then create another Access application as the previou one, with these changes:
+
+    *   Set the same as `kubernetes-alfred-well-known`.
+    *   Add the same *Public hostname* with **Path** set to `.well-known`.
+    *   Add **only** the **Bypass** policy.
+    *   Then accept the defaults in the next two pages and **Save**.
+
 So long as **only one policy** is added to the applications *and* that policy has
 **only one Include rule**, only those users added to that Include rule are allowed in.
 
@@ -412,6 +424,8 @@ rtt min/avg/max/mdev = 4.921/5.264/5.505/0.249 ms
     a few hours) after connecting each host, its name will not resolve.
 
 Once DNS has propagated, it is also possible to SSH directly to any host by its FQDN.
+
+#### DNS alias with `CNAME`
 
 To make web services more easily available, one can add a `CNAME` record for a publicly
 reachable domain to redirect every hostname under a subdomain to a specirfic host (node)
