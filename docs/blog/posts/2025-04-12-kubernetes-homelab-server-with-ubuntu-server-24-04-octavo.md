@@ -1,6 +1,5 @@
 ---
 date: 2025-04-12
-draft: true
 categories:
  - Linux
  - Hardware
@@ -666,5 +665,105 @@ Kubernetes Dashboard, just pointing to <https://localhost> for now. Make sure to
 since they do not seem to be necessary when using Cloudflare tunnels.
 
 ### Tailscale
+
+[Install Tailscale](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale)
+and connect the server to the alredy existing tailnet:
+
+??? terminal "Installation of Tailscale on **octavo**"
+
+    ``` console
+    # curl -fsSL https://tailscale.com/install.sh | sh
+    Installing Tailscale for ubuntu noble, using method apt
+    + mkdir -p --mode=0755 /usr/share/keyrings
+    + curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+    + tee /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
+    + curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list
+    + tee /etc/apt/sources.list.d/tailscale.list
+    # Tailscale packages for ubuntu noble
+    deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main
+    + chmod 0644 /etc/apt/sources.list.d/tailscale.list
+    + apt-get update
+    Hit:1 http://ch.archive.ubuntu.com/ubuntu noble InRelease
+    Get:2 http://ch.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]                                   
+    Hit:3 https://pkg.cloudflare.com/cloudflared noble InRelease                                                 
+    Hit:4 http://ch.archive.ubuntu.com/ubuntu noble-backports InRelease                                          
+    Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease                                             
+    Get:6 https://pkgs.tailscale.com/stable/ubuntu noble InRelease                                            
+    Get:7 https://pkgs.tailscale.com/stable/ubuntu noble/main all Packages [354 B]
+    Get:8 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 Packages [12.8 kB]
+    Get:9 https://esm.ubuntu.com/apps/ubuntu noble-apps-security InRelease [7,595 B]
+    Get:10 https://esm.ubuntu.com/apps/ubuntu noble-apps-updates InRelease [7,480 B]
+    Get:11 https://esm.ubuntu.com/infra/ubuntu noble-infra-security InRelease [7,474 B]
+    Get:12 https://esm.ubuntu.com/infra/ubuntu noble-infra-updates InRelease [7,473 B]
+    Fetched 176 kB in 3s (64.1 kB/s)      
+    Reading package lists... Done
+    + apt-get install -y tailscale tailscale-archive-keyring
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following NEW packages will be installed:
+      tailscale tailscale-archive-keyring
+    0 upgraded, 2 newly installed, 0 to remove and 1 not upgraded.
+    Need to get 31.5 MB of archives.
+    After this operation, 59.1 MB of additional disk space will be used.
+    Get:2 https://pkgs.tailscale.com/stable/ubuntu noble/main all tailscale-archive-keyring all 1.35.181 [3,082 B]
+    Get:1 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 tailscale amd64 1.82.5 [31.5 MB]
+    Fetched 31.5 MB in 13s (2,462 kB/s)                                                                          
+    Selecting previously unselected package tailscale.
+    (Reading database ... 125870 files and directories currently installed.)
+    Preparing to unpack .../tailscale_1.82.5_amd64.deb ...
+    Unpacking tailscale (1.82.5) ...
+    Selecting previously unselected package tailscale-archive-keyring.
+    Preparing to unpack .../tailscale-archive-keyring_1.35.181_all.deb ...
+    Unpacking tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale-archive-keyring (1.35.181) ...
+    Setting up tailscale (1.82.5) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/tailscaled.service → /usr/lib/systemd/system/tailscaled.service.
+    Scanning processes...                                                                                         
+    Scanning processor microcode...                                                                               
+    Scanning linux images...                                                                                      
+
+    Running kernel seems to be up-to-date.
+
+    The processor microcode seems to be up-to-date.
+
+    No services need to be restarted.
+
+    No containers need to be restarted.
+
+    No user sessions are running outdated binaries.
+
+    No VM guests are running outdated hypervisor (qemu) binaries on this host.
+    + [ false = true ]
+    + set +x
+    Installation complete! Log in to start using Tailscale by running:
+
+    tailscale up
+    ```
+
+After installing the software, running `tailscale up` will provide a URL to 
+authenticate and add the server to the tailnet:
+
+``` console
+# tailscale up
+
+To authenticate, visit:
+
+        https://login.tailscale.com/a/______________
+
+Success.
+```
+
+Once added to the tailnet, an SSH connection to `octavo.royal-penny.ts.net` instantly
+connects to `octavo` and SSH key authentication just works (after accepting this new
+hostname).
+
+Additional setup will be needed later on, once services are running on Kubernetes:
+
+1.  Install the [Tailscale Kubernetes operator](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator)
+    and add an `Ingress` to use it.
+1.  Optional: enable [Public access through Funnel](./2025-03-23-remote-access-options-for-self-hosted-services.md#public-access-through-funnel)
+    for services that need to be accessible from outside the tailnet.
 
 ## Kubernetes

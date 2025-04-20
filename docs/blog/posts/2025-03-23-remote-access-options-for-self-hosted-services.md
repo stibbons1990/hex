@@ -361,8 +361,8 @@ along with a useful test to check that all is working well:
 
 ![Successful Tailscale Quickstart](../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-quickstart-success.png)
 
-And indeed that *just works*; an SSH connection to `pi@100.113.110.3` instantly connects to
-`alfred` and SSH key authentication just works (after accepting this new hostname).
+And indeed that *just works*; an SSH connection to `pi@100.113.110.3` instantly connects
+to `alfred` and SSH key authentication just works (after accepting this new hostname).
 
 From this point on, one can connect more devices, by repeating the above 2 steps:
 install Tailscale, then authenticate it to join this tailnet. It may be a good idea to add
@@ -408,8 +408,8 @@ rtt min/avg/max/mdev = 4.921/5.264/5.505/0.249 ms
 
 !!! note
 
-    MagicDNS seems to need some time to propagate, so that for several minutes (possibly a
-    few hours) after connecting each host, its name will not resolve.
+    MagicDNS seems to need some time to propagate, so that for several minutes (possibly
+    a few hours) after connecting each host, its name will not resolve.
 
 Once DNS has propagated, it is also possible to SSH directly to any host by its FQDN.
 

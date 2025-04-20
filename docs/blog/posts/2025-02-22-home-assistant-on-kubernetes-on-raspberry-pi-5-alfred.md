@@ -3509,6 +3509,22 @@ signed by Let's Encrypt. However, if **No TLS Verify** is to be disabled, then i
 is necessary to set **Origin Server Name** (`kubernetes-alfred.very-very-dark-gray.top`)
 to the FQDN so that Cloudflare accpets the certificate.
 
+## Tailscale
+
+[Set up Tailscale](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale),
+which involved mostly setting this up on the Tailscale admin console,
+and several changes in `alfred`:
+
+1.  Install `tailscale` and connect to a new tailnet when creating the first one.
+1.  Install the [Tailscale Kubernetes operator](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator)
+    and add a *Tailscale* `Ingress` to the [Kubernetes Dashboard Ingress](#kubernetes-dashboard-ingress).
+1.  As a test, enabled [Public access through Funnel](./2025-03-23-remote-access-options-for-self-hosted-services.md#public-access-through-funnel)
+    to check how services can be made accessible from outside the tailnet.
+    *   Not really necessary for the Kubernetes Dashboard, because SSH access is
+        necessary to obtain a token and Tailnet Funnel does not offer anything like
+        [Cloudflare Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access)
+        that could possibly take over authentication.
+
 ## Home Assistant
 
 **TODO:** install [Home Assistant](https://www.home-assistant.io/) with
