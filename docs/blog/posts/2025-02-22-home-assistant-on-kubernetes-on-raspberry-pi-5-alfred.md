@@ -3184,7 +3184,7 @@ sudo apt-get update && sudo apt-get install cloudflared
 ??? note " Cloudflare requires **adding a site** before creating a tunnel."
     
     Before creating a tunnel, Cloudflare requires 
-    [adding a site](http://127.0.0.1:8000/hex/blog/2025/03/28/remote-access-options-for-self-hosted-services/#add-a-site/),
+    [adding a site](./2025-03-23-remote-access-options-for-self-hosted-services.md#add-a-site/),
     which in turn requires updating DNS settins in a domain,
     as well as on Cloudflare, all of which can take hours to take effect.
 
@@ -3195,8 +3195,9 @@ sudo apt-get update && sudo apt-get install cloudflared
     self-hosted personal applications.
 
 [Create a tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/)
-named `alfred` using `cloudflared` as the connector. Cloudflare will provide the commands
-to run, including installating the connector (already done) and connecting the tunnel:
+named `alfred` using `cloudflared` as the connector. Cloudflare will provide the
+commands to run, including installating the connector (already done) and connecting
+the tunnel:
 
 ```
 $ sudo cloudflared service install eyJhIjoiMD...
@@ -3507,7 +3508,7 @@ At this point it is no longer necessary to have **No TLS Verify** enable under
 *Additional application settings \> TLS* because Nginx is now using a certificate
 signed by Let's Encrypt. However, if **No TLS Verify** is to be disabled, then it
 is necessary to set **Origin Server Name** (`kubernetes-alfred.very-very-dark-gray.top`)
-to the FQDN so that Cloudflare accpets the certificate.
+to the FQDN so that Cloudflare accepts the certificate.
 
 ## Tailscale
 
@@ -3527,9 +3528,535 @@ and several changes in `alfred`:
 
 ## Home Assistant
 
-**TODO:** install [Home Assistant](https://www.home-assistant.io/) with
-[docker-compose](https://www.home-assistant.io/installation/linux#docker-compose),
-which comes closer to fitting my preferred setup of running in Kubernetes.
+To install [Home Assistant](https://www.home-assistant.io/) in Kubernetes,
 [abalage/home-assistant-k8s](https://github.com/abalage/home-assistant-k8s/tree/main?tab=readme-ov-file#home-assistant-k8s)
-implements exactly this and would probably be my preferred method, although it might need
-[a trick or two to make discovery work](https://www.reddit.com/r/homeassistant/comments/ygmcpg/anyone_running_it_in_kubernetes_and_if_yes_how/).
+offers a very good starting point, including the use of `kustomize` which
+will be useful to have the same *base* deployment in two systems with
+minimal differences.
+
+[Additional tweaks](https://www.reddit.com/r/homeassistant/comments/ygmcpg/anyone_running_it_in_kubernetes_and_if_yes_how/) 
+are needed to make discovery work, based off the
+[docker-compose](https://www.home-assistant.io/installation/linux#docker-compose):
+
+``` yaml hl_lines="10-11"
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /PATH_TO_YOUR_CONFIG:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+```
+
+### Base deployment
+
+In addition to `privileged: true` and `network_mode: host`
+[it is also necessary to add certain `capabilities`](https://www.reddit.com/r/homeassistant/comments/ygmcpg/comment/iu9eomv/)
+to make network discover work. It is not yet clear whether this will be
+actually necessary for the currently available devices, mostly just
+[TP-Link Tapo devices](./2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md).
+Further adjustments include adding a hard-coded `namespace` and adding two
+different `Ingress`; one for use with [Tailscale](#tailscale) and the other
+one for use with [Cloudflare Tunnel](#cloudflare-tunnel).
+
+*   `configmap.yaml` includes a minimal `configuration.yaml` needed to allow
+     requests through the reverse proxy.
+*   `persistent-volume.yaml` provides a simple physical volume (and claim)
+    to store files in a local directory.
+*   `deployment.yaml` defines how the Home Assistant pod runs and updates.
+*   `service.yaml` defines how the pod's port 8123 is exposed, to be used by...
+*   `ingress.yaml` which maps specific hostnames (FQDN) to the pod's port 8123.
+*   `kustomization.yaml` presents all the above to be *kustomized* for each server.
+
+#### Caveat on reverse proxies
+
+The initial configuration created by Home Assistant includes mostly empty files,
+which does not allow request coming through reverse proxies. Services are running,
+but Cloudflare and Tailscale are getting nothing but `400: Bad Request`:
+
+``` console
+$ curl 2>/dev/null \
+  -H "Host: home-assistant-alfred.very-very-dark-gray.top" \
+  -k https://192.168.0.151/ 
+400: Bad Request
+
+$ curl -I -k https://home-assistant-alfred.royal-penny.ts.net/
+HTTP/2 400 
+content-type: text/plain; charset=utf-8
+date: Sun, 20 Apr 2025 19:42:46 GMT
+server: Python/3.13 aiohttp/3.11.16
+content-length: 16
+```
+
+Inspecting the logs from the `home-assistant` pod shows this is in fact an issue in
+Home Assistant itself:
+
+``` console
+$ kubectl logs -n home-assistant \
+  $(kubectl get pods -n home-assistant | grep home-assistant | cut -f1 -d' ') -f
+s6-rc: info: service legacy-services successfully started
+2025-04-20 21:42:26.465 ERROR (MainThread) [homeassistant.components.http.forwarded] A request from a reverse proxy was received from 10.244.0.105, but your HTTP integration is not set-up for reverse proxies
+```
+
+[This warning became an error in 2021.7](https://community.home-assistant.io/t/a-request-from-a-reverse-proxy-was-received-from/314089)
+and the solution is to add the following into Home Assistant's `configuration.yaml`
+[to allow the reverse proxy](https://www.home-assistant.io/integrations/http/#reverse-proxies)
+(allowing the entire Kubernetes IP range):
+
+``` yaml title="/home/k8s/home-assistant/configuration.yaml"
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.244.0.0/16
+```
+
+Changes to files in `/home/k8s/home-assistant` will persist through pod and node 
+restarts because this config directory is mounted to a persistent volume. However,
+such changes to config files will not be effective without restarting the pod or node.
+A `ConfigMap` can be used to achieve a more permanent solution for the above, which is
+why it is included below. Such a `ConfigMap` is found in the manifests presented in
+[Running your Home Assistant on Kubernetes — Part II](https://faun.pub/running-your-home-assistant-on-kubernetes-part-ii-60eb46a73c61),
+but these are problematic because (apparently) the use of `!` in the `ConfigMap`
+leads to Home Assistant failing to parse the config and going into *recovery mode*.
+
+#### Base deployment manifests
+
+!!! warning
+
+    Avoid use of `!include` in the `ConfigMap` or else Home Assistan will fail to
+    parse it, go into *recovery mode* and start without allowing requests coming in
+    through the reverse proxy. The following `ConfigMap` omits such lines to address
+    the [Caveat on reverse proxies](#caveat-on-reverse-proxies).
+
+??? k8s "`base/configmap.yaml`"
+
+    ``` yaml
+    ---
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: home-assistant-configmap
+    data:
+      configuration.yaml: |-
+        default_config:
+        http:
+          use_x_forwarded_for: true
+          trusted_proxies:
+            - 10.244.0.0/16
+    ```
+
+??? k8s "`base/persistent-volume.yaml`"
+
+    ``` yaml
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: home-assistant-pv-config
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/home-assistant
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: home-assistant-config-root
+    spec:
+      storageClassName: manual
+      volumeName: home-assistant-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ```
+
+??? k8s "`base/deployment.yaml`"
+
+    ``` yaml
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: home-assistant
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: home-assistant
+      name: home-assistant
+    spec:
+      revisionHistoryLimit: 3
+      replicas: 1
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: home-assistant
+      template:
+        metadata:
+          labels:
+            app: home-assistant
+        spec:
+        # securityContext:
+        #   fsGroup: 33
+        #   fsGroupChangePolicy: "OnRootMismatch"
+          containers:
+            - name: home-assistant-app
+              image: "ghcr.io/home-assistant/home-assistant:stable"
+              imagePullPolicy: Always
+              securityContext:
+                capabilities:
+                  add:
+                    - NET_ADMIN
+                    - NET_RAW
+                    - NET_BROADCAST
+                privileged: true
+              envFrom:
+                - configMapRef:
+                    name: home-assistant-config
+              ports:
+                - name: http
+                  containerPort: 8123
+                  protocol: TCP
+              resources: {}
+              livenessProbe:
+                tcpSocket:
+                  port: 8123
+                initialDelaySeconds: 0
+                failureThreshold: 3
+                timeoutSeconds: 1
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 8123
+                initialDelaySeconds: 0
+                failureThreshold: 3
+                timeoutSeconds: 1
+                periodSeconds: 10
+              startupProbe:
+                tcpSocket:
+                  port: 8123
+                initialDelaySeconds: 0
+                failureThreshold: 30
+                timeoutSeconds: 1
+                periodSeconds: 5
+              volumeMounts:
+                - name: ha-config-root
+                  mountPath: /config
+                - name: configmap-file
+                  mountPath: /config/configuration.yaml
+                  subPath: configuration.yaml
+          restartPolicy: Always
+          hostNetwork: true
+          volumes:
+            - name: ha-config-root
+              persistentVolumeClaim:
+                claimName: home-assistant-config-root
+            - name: configmap-file
+              configMap:
+                name: home-assistant-configmap
+    ```
+
+??? k8s "`base/service.yaml`"
+
+    ``` yaml
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: home-assistant
+      name: home-assistant-svc
+    spec:
+      type: ClusterIP
+      ports:
+      - port: 8123
+        targetPort: http
+        protocol: TCP
+        name: http
+    ```
+
+??? k8s "`base/ingress.yaml`"
+
+    ``` yaml
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: home-assistant-nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: REPLACEME  # FQDN for Cloudflare Tunnel or port-forwarded
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: home-assistant-svc
+                  port:
+                    name: "http"
+      tls:
+        - hosts:
+            - REPLACEME  # FQDN for Cloudflare Tunnel or port-forwarded
+          secretName: tls-secret
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: home-assistant-tailscale
+    spec:
+      ingressClassName: tailscale
+      defaultBackend:
+        service:
+          name: home-assistant-svc
+          port:
+            name: "http"
+      tls:
+        - hosts:
+            - REPLACEME  # Hostname-only for Tailscale [Funnel]
+    ```
+
+??? k8s "`base/kustomization.yaml`"
+
+    ``` yaml
+    apiVersion: kustomize.config.k8s.io/v1beta1
+    kind: Kustomization
+    namespace: home-assistant
+    resources:
+    - configmap.yaml
+    - deployment.yaml
+    - ingress.yaml
+    - persistent-volume.yaml
+    - service.yaml
+    configMapGenerator:
+    - name: home-assistant-config
+      literals:
+      - TZ="UTC"
+    labels:
+    - includeSelectors: true
+      pairs:
+        app.kubernetes.io/name: home-assistant
+        app: home-assistant
+    ```
+
+### Kustomized deployment
+
+For each server to start this deployment on, create a `kustomization.yaml`
+file under a directory named after the server and adjust the relevant
+values:
+
+*   Set `TZ` under `configMapGenerator` to the correct time zone.
+*   Set `/spec/rules/0/host` and `/spec/tls/0/hosts/0` for the
+    `Ingress` named `home-assistant-nginx` to the FQDN from Cloudflare.
+*   Set `/spec/rules/0/host` and `/spec/tls/0/hosts/0` for the
+    `Ingress` named `home-assistant-tailscale` to the *Machine* name
+     from Tailscale (just the hostname, not the FQDN).
+
+``` yaml title="alfred/kustomization.yaml" linenums="1" hl_lines="10 19 22 29"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../base
+
+configMapGenerator:
+- name: home-assistant-config
+  behavior: replace
+  literals:
+  - TZ="Europe/Madrid"
+
+patches:
+  - target: #FQDN for Cloudflare Tunnel or port-forwarded
+      kind: Ingress
+      name: home-assistant-nginx
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: home-assistant-alfred.very-very-dark-gray.top
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-alfred.very-very-dark-gray.top
+  - target: # Hostname-only for Tailscale [Funnel]
+      kind: Ingress
+      name: home-assistant-tailscale
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-alfred
+```
+
+There are two different checks to make before applying this deployment:
+
+1.  Run `kubectl kustomize alfred` to inspect that the generated deployment manifest
+    does replace the correct values.
+
+1.  Run `kubectl apply -k alfred --dry-run=client` to verify that `kubectl` finds
+    on errors in the generated manifest.
+
+### Prepare remote access
+
+**Before** applying the deployment, Cloudflare Tunnel and Access should be setup so
+that the Let's Encrypt certificate can be obtained and the Home Assistant frontend
+is easily accessible while at the same time well secured.
+
+#### Cloudflare
+
+Since [Cloudflare Tunnel](#cloudflare-tunnel) is already working, go in to
+[Zero Trust](https://one.dash.cloudflare.com/) and go to **Networks > Tunnels**,
+find the relevant connector (**alfred**) and
+[add a public hostname](#public-hostnames) named `home-assistant-alfred` to point
+<https://home-assistant-alfred.very-very-dark-gray.top/> to the appropriate targets
+as seen in [Let's Encrypt via tunnel](#lets-encrypt-via-tunnel):
+
+1.  Requests for files under `.well-known` must go to `http://localhost:32080` so that
+    [HTTPS certificates](#https-certificates) can be issued.
+1.  Requests for everything else (`*`) must to to the `LoadBalancer` IP of Nginx
+    over HTTP**S** (`https://192.168.0.151`) with the **TLS > Origin Server Name**
+    configured as `home-assistant-alfred.very-very-dark-gray.top`
+    *   *TLS > No TLS Verify* should not be necessary, unless there are issues
+        obtaining Let's Encrypt certificates.
+
+Restrict access to this public hostname by **creating an Access application** in
+[Cloudflare Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access),
+so that only trusted users can actually access
+<https://home-assistant-alfred.very-very-dark-gray.top/>
+(with a bypass policy for files under `.well-known`).
+
+If all the above has been correctly setup, requests for files under `.well-known`
+will receive `error code: 502` because the `Ingress` is not deployed yet, and requests
+for any other files should receive a redirect to `cloudflareaccess.com`.
+
+#### Tailscale
+
+No preparation is necessary for [Tailscale](#tailscale) if the server already has the
+[Tailscale Kubernetes operator](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator)
+installed. However, Tailscale DNS typically take a day or two to propagate after the
+deployment is applied and the `home-assistant-alfred` *machine* is created.
+
+### Deployment Start
+
+``` console
+$ sudo mkdir /home/k8s/home-assistant/
+$ sudo ls -lah /home/k8s/home-assistant/
+total 8.0K
+drwxr-xr-x 2 root root 4.0K Apr 20 22:44 .
+drwxr-xr-x 3 root root 4.0K Apr 20 22:44 ..
+
+$ kubectl apply -k alfred
+namespace/home-assistant created
+configmap/home-assistant-config-79257h2772 created
+configmap/home-assistant-configmap created
+service/home-assistant-svc created
+persistentvolume/home-assistant-pv-config created
+persistentvolumeclaim/home-assistant-config-root created
+deployment.apps/home-assistant created
+ingress.networking.k8s.io/home-assistant-nginx created
+ingress.networking.k8s.io/home-assistant-tailscale created
+
+$ kubectl get all -n home-assistant
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/home-assistant-74fc8db56f-ws6j4   1/1     Running   0          2m21s
+
+NAME                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/home-assistant-svc   ClusterIP   10.99.217.239   <none>        8123/TCP   2m21s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/home-assistant   1/1     1            1           2m21s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/home-assistant-74fc8db56f   1         1         1       2m21s
+
+$ kubectl get ingress -n home-assistant
+NAME                       CLASS       HOSTS                                           ADDRESS                                    PORTS     AGE
+home-assistant-nginx       nginx       home-assistant-alfred.very-very-dark-gray.top   192.168.0.121                              80, 443   2m26s
+home-assistant-tailscale   tailscale   *                                               home-assistant-alfred.royal-penny.ts.net   80, 443   2m26s
+
+$ sudo ls -lah /home/k8s/home-assistant
+total 808K
+drwxr-xr-x 6 root root 4.0K Apr 20 23:24 .
+drwxr-xr-x 3 root root 4.0K Apr 20 23:22 ..
+drwxr-xr-x 4 root root 4.0K Apr 20 23:24 blueprints
+drwxr-xr-x 2 root root 4.0K Apr 20 23:24 .cloud
+-rw-r--r-- 1 root root    0 Apr 20 23:23 configuration.yaml
+-rw-r--r-- 1 root root    8 Apr 20 23:24 .HA_VERSION
+-rw-r--r-- 1 root root    0 Apr 20 23:24 home-assistant.log
+-rw-r--r-- 1 root root    0 Apr 20 23:24 home-assistant.log.1
+-rw-r--r-- 1 root root    0 Apr 20 23:24 home-assistant.log.fault
+-rw-r--r-- 1 root root 4.0K Apr 20 23:24 home-assistant_v2.db
+-rw-r--r-- 1 root root  32K Apr 20 23:40 home-assistant_v2.db-shm
+-rw-r--r-- 1 root root 741K Apr 20 23:40 home-assistant_v2.db-wal
+drwxr-xr-x 2 root root 4.0K Apr 20 23:39 .storage
+drwxr-xr-x 2 root root 4.0K Apr 20 23:24 tts
+
+$ kubectl get svc -A | grep acme
+home-assistant         cm-acme-http-solver-7qb57                         NodePort       10.103.172.33    <none>          8089:32447/TCP               0s
+```
+
+After less than a minute, the ACME solver is patched to listen on port `32080`,
+and after just about another minute the solver is gone. At that point Home Assistant
+is available at both <https://home-assistant-alfred.royal-penny.ts.net/> and
+<https://home-assistant-alfred.very-very-dark-gray.top/>; ready to start the
+onboarding process.
+
+Although it should not be necessary, it is possible to restore now the original
+`configuration.yaml` file, with the additional lines to allow traffic through
+reverse proxies (under `http`):
+
+``` yaml title="/home/k8s/home-assistant/configuration.yaml"
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.244.0.0/16
+```
+
+## Conclusion
+
+*One does not simply...* anything!
+
+All this started with a *fairly simple* goal: run Home Assistant on a Raspberry Pi 5.
+Adding Kubernetes to the mix certainly adds complexity, but at the same time enables
+future expansion by *easily* adding more services later.
+
+The choice of [hardware](#hardware) turned out to be the least problematic part of
+this project, although the Raspberry Pi OS can be attributed the issues leading to
+[troubleshooting the Kubernetes bootstrap](#troubleshooting-bootstrap). Installing
+[Kubernetes v1.32.2](#kubernetes) may be responsible for most of the other issues
+and complications encountered, such as [Flannel troubles](#troubleshooting-flannel),
+[trouble with the Kubernetes dashboard](#troubleshooting-dashboard),
+[MetalLB speaker](#fix-metallb-speaker),
+[Ingress directives](#allow-snippet-directives) and possibly even
+[more toubles with Flannel](#more-flannel-troubleshooting). And then Home Assistant
+itself had to present [its own issues with reverse proxies](#caveat-on-reverse-proxies).
+
+On the plus side, this project has been a good test run to learn about
+[Cloudflare Tunnel](#cloudflare-tunnel) (and
+[Cloudflare Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access)),
+[Tailscale](#tailscale) and [Kustomize](#kustomized-deployment), all of which will
+be reused to setup remote access and services in the new
+[ Kubernetes homelab server with Ubuntu Server 24.04 (octavo)](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md).
