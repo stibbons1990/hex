@@ -4065,6 +4065,71 @@ errors persisted after rebooting the server at least twice, over several hours. 
 despite all those errors, Home Assistant seems to be working very well, as it was able
 to automatically discover several devices in the network.
 
+#### Bluetooth failed setup
+
+The one warning Home Assistant was showing after onboarding was related
+to the Bluetooth controller:
+
+    Intel Corporate None (DC:21:48:43:B7:C2)  
+    No devices or entities  
+    Failed setup, will retry: hci0 (DC:21:48:43:B7:C2): hci0 (DC:21:48:43:B7:C2): DBus service not found; make sure the DBus socket is available: [Errno 2] No such file or directory
+
+[Making the DBus socket available in the container](https://www.home-assistant.io/integrations/bluetooth/#additional-details-for-container-core-and-supervised-installs)
+by *mounting* `/run/dbus` helped a bit:
+
+``` yaml title="base/deployment.yaml" linenums="68" hl_lines="7-8 18-20"
+          volumeMounts:
+            - name: ha-config-root
+              mountPath: /config
+            - name: configmap-file
+              mountPath: /config/configuration.yaml
+              subPath: configuration.yaml
+            - name: dev-dbus
+              mountPath: /run/dbus
+      restartPolicy: Always
+      hostNetwork: true
+      volumes:
+        - name: ha-config-root
+          persistentVolumeClaim:
+            claimName: home-assistant-config-root
+        - name: configmap-file
+          configMap:
+            name: home-assistant-configmap
+        - name: dev-dbus
+          hostPath:
+            path: /run/dbus
+```
+
+``` console
+$ kubectl apply -k lexicon
+namespace/home-assistant unchanged
+configmap/home-assistant-config-59kccc4bcd unchanged
+configmap/home-assistant-configmap unchanged
+service/home-assistant-svc unchanged
+persistentvolume/home-assistant-pv-config unchanged
+persistentvolumeclaim/home-assistant-config-root unchanged
+deployment.apps/home-assistant configured
+ingress.networking.k8s.io/home-assistant-nginx unchanged
+ingress.networking.k8s.io/home-assistant-tailscale unchanged
+```
+
+After reloading the integration, the error was different:
+
+    Failed setup, will retry: hci0 (DC:21:48:43:B7:C2): hci0 (DC:21:48:43:B7:C2): Failed to start Bluetooth: [org.freedesktop.DBus.Error.ServiceUnknown] The name org.bluez was not provided by any .service files; Try power cycling the Bluetooth hardware. 
+
+This suggests **all 3** steps in the Home Assistant documentation are
+required, including *Switching from dbus-daemon to dbus-broker* and
+*Installing BlueZ*.
+
+``` console
+# apt install bluez dbus-broker -y
+
+# systemctl --global enable dbus-broker.service
+```
+
+After this, without reloading the Bluetooth integration, it was instantely
+fixed and ready to use.
+
 ## Conclusion
 
 *One does not simply...* anything!
