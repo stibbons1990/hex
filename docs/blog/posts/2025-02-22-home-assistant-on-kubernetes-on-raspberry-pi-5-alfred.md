@@ -4035,6 +4035,36 @@ http:
     - 10.244.0.0/16
 ```
 
+#### Deployment in `lexicon`
+
+To test the *portability* of this deployment, applied it to `lexicon` and it
+seemed to work, except for an error that shows in the logs every 30 seconds:
+
+``` logs
+2025-04-21 11:14:49.560 ERROR (MainThread) [async_upnp_client.ssdp] Received error: [Errno 126] Required key not available, transport: <_SelectorDatagramTransport fd=40 read=polling write=<idle, bufsize=0>>, socket: <asyncio.TransportSocket fd=40, family=2, type=2, proto=0, laddr=('0.0.0.0', 55239)>
+2025-04-21 11:15:19.561 ERROR (MainThread) [async_upnp_client.ssdp] Received error: [Errno 126] Required key not available, transport: <_SelectorDatagramTransport fd=40 read=polling write=<idle, bufsize=0>>, socket: <asyncio.TransportSocket fd=40, family=2, type=2, proto=0, laddr=('0.0.0.0', 55239)>
+2025-04-21 11:15:49.561 ERROR (MainThread) [async_upnp_client.ssdp] Received error: [Errno 126] Required key not available, transport: <_SelectorDatagramTransport fd=40 read=polling write=<idle, bufsize=0>>, socket: <asyncio.TransportSocket fd=40, family=2, type=2, proto=0, laddr=('0.0.0.0', 55239)>
+2025-04-21 11:16:19.562 ERROR (MainThread) [async_upnp_client.ssdp] Received error: [Errno 126] Required key not available, transport: <_SelectorDatagramTransport fd=40 read=polling write=<idle, bufsize=0>>, socket: <asyncio.TransportSocket fd=40, family=2, type=2, proto=0, laddr=('0.0.0.0', 55239)>
+```
+
+There are multiple threads with pretty much exactly the same error lines in the
+[Home Assistant Community](https://community.home-assistant.io/t/network-failed-without-reason/843528),
+but all of them *die out with a solution* other than *restart Home Assistant* or
+*unplug and replug the network cable*:
+
+*   2023-01-08: [Network Crashing](https://community.home-assistant.io/t/network-crashing/515157)
+*   2021-11-04: [HA Blue loosing connection - Network unreachable](https://community.home-assistant.io/t/ha-blue-loosing-connection-network-unreachable/353001)
+*   2024-01-09: [HA crashed with no obvious reason](https://community.home-assistant.io/t/ha-crashed-with-no-obvious-reason/670042)
+*   2024-05-28: [\[async_upnp_client.ssdp\] Received error: \[Errno 101\] Network unreachable](https://community.home-assistant.io/t/async-upnp-client-ssdp-received-error-errno-101-network-unreachable/733815)
+*   2025-02-07: [Network failed without reason](https://community.home-assistant.io/t/network-failed-without-reason/843528)
+
+[This workaround by `/u/TristanDJr` (2023-01-28)](https://www.reddit.com/r/homeassistant/comments/10mt3ac/comment/j67qt78/)
+seems to embrace the *unfixable* nature of the issue by constantly checking for loss
+of network connectivity and resetting the WiFi interface when trigged. However, these
+errors persisted after rebooting the server at least twice, over several hours. And yet,
+despite all those errors, Home Assistant seems to be working very well, as it was able
+to automatically discover several devices in the network.
+
 ## Conclusion
 
 *One does not simply...* anything!
