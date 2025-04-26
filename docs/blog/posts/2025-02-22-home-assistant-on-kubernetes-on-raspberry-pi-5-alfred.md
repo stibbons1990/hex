@@ -4130,6 +4130,375 @@ required, including *Switching from dbus-daemon to dbus-broker* and
 After this, without reloading the Bluetooth integration, it was instantely
 fixed and ready to use.
 
+### Protect critical plugs
+
+A few smart plugs must never be powered off, at least not accidentally.
+To prevent that from happening, these can be **hidden** (not disabled)
+[so they don't show in dashboards](https://community.home-assistant.io/t/is-it-possible-to-protect-a-switch-from-being-turned-off-accidentally/778126).
+They remain available under **Settings > Devices & services**, where they
+can still be powered off if necessary.
+
+### Home Assistant Community Store
+
+Several of the following improvements require installing components from the
+[HACS](https://www.hacs.xyz/docs/use/) (*Home Assistant Community Store*).
+
+This involves running the installation script from inside the pod:
+
+``` console
+$ kubectl get pods -n home-assistant
+NAME                              READY   STATUS    RESTARTS      AGE
+home-assistant-686974fbcb-rqv9t   1/1     Running   1 (17h ago)   26h
+
+$ kubectl exec --stdin --tty home-assistant-686974fbcb-rqv9t -n home-assistant -- /bin/bash
+```
+
+Once inside the pods, confirm that `wget` and `unzip` are available, then run:
+
+``` console
+lexicon:/config# wget -O install-hacs.sh https://get.hacs.xyz
+Connecting to get.hacs.xyz (172.67.68.101:443)
+Connecting to raw.githubusercontent.com (185.199.109.133:443)
+saving to 'install-hacs.sh'
+install-hacs.sh      100% |**************************************************************|  4990  0:00:00 ETA
+'install-hacs.sh' saved
+
+lexicon:/config# bash install-hacs.sh 
+INFO: Trying to find the correct directory...
+INFO: Found Home Assistant configuration directory at '/config'
+INFO: Creating custom_components directory...
+INFO: Changing to the custom_components directory...
+INFO: Downloading HACS
+Connecting to github.com (140.82.121.4:443)
+Connecting to github.com (140.82.121.4:443)
+Connecting to objects.githubusercontent.com (185.199.110.133:443)
+saving to 'hacs.zip'
+hacs.zip             100% |**************************************************************| 18.1M  0:00:00 ETA
+'hacs.zip' saved
+INFO: Creating HACS directory...
+INFO: Unpacking HACS...
+
+INFO: Verifying versions
+INFO: Current version is 2025.4.3, minimum version is 2024.4.1
+
+INFO: Removing HACS zip file...
+INFO: Installation complete.
+
+INFO: Remember to restart Home Assistant before you configure it
+
+lexicon:/config# 
+exit
+```
+
+One installed, restart Home Assistant using the power button icon at the top-right
+under **Settings > Hardware**.
+
+#### How to add cards
+
+[Hello World Card](https://github.com/home-assistant-tutorials/02.hello-world-card?tab=readme-ov-file#hello-world-card)
+explains the basics of installing and using custom cards.
+
+To *add a Resource* go to **Settings > Dashboards** and pick **Resources** from
+[the 3-dot menu in the top-right corner](https://community.home-assistant.io/t/where-are-dashboard-resources-tab-in-the-new-ui/435822/4).
+
+### Real-time power monitoring
+
+There is no built-in dashboard for real-time power usage, which is precisely what I
+need to re-implement 
+[Continuous Monitoring for TP-Link Tapo devices](./2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md).
+
+There are multiple solutions to evaluate, all of which seem to require varying degrees
+of crafting:
+
+*   [A *dashboard and used a bunch of mushrooms in concert with the sections layout*](https://community.home-assistant.io/t/wth-isn-t-there-a-dashboard-for-real-time-power-usage/802204/3)
+    with a graph of the last hour of usage.
+*   [ha-tdv-bar](#ha-tdv-bar) shows individual power usage, but not total.
+*   [Mini Graph Card](#mini-graph-card) supports showing better charts, but it does not
+    support showing **stacked** graphs or
+    [making the title show the total sum of all values](https://github.com/kalkih/mini-graph-card/discussions/1158).
+*   [Bubble Card](https://community.home-assistant.io/t/bubble-card-a-minimalist-card-collection-for-home-assistant-with-a-nice-pop-up-touch/609678/)
+    is *a minimalist card collection for Home Assistant with a nice pop-up touch*.
+*   [Mushroom](https://community.home-assistant.io/t/bubble-card-a-minimalist-card-collection-for-home-assistant-with-a-nice-pop-up-touch/609678/)
+    is a collection of cards for Home Assistant Dashboard UI.
+*   [HA COMPONENT KIT](https://github.com/shannonhochkins/ha-component-kit?tab=readme-ov-file#ha-component-kit) 
+    *to create seamless, highly customizable interfaces for Home Assistant dashboards*.
+*   [Understand templates to elevate your game](https://www.reddit.com/r/homeassistant/comments/1hxm7wq/comment/m6fcg8z/).
+
+#### ha-tdv-bar
+
+The [ha-tdv-bar](https://github.com/tdvtdv/ha-tdv-bar?tab=readme-ov-file#ha-tdv-bar)
+cards makes it very easy to show the *individual* power usage of multiple devices in a
+single card, but offers no easy way to show the **total** power usage across them all.
+
+#### Mini Graph Card
+
+[Lovelace Mini Graph Card](https://github.com/kalkih/mini-graph-card?tab=readme-ov-file#lovelace-mini-graph-card)
+supports showing better charts, where power usage can be in a single graph of multiple
+ones, but it does not support showing **stacked** graphs or
+[making the title show the total sum of all values](https://github.com/kalkih/mini-graph-card/discussions/1158).
+
+#### Multiple cards combined
+
+[Dashboard real-time power meter with device-level detail](https://community.home-assistant.io/t/dashboard-real-time-power-meter-with-device-level-detail/420763)
+combines
+[Config Template Card](https://github.com/iantrich/config-template-card?tab=readme-ov-file#config-template-card-card),
+[Custom Card Mod](https://github.com/thomasloven/lovelace-card-mod?tab=readme-ov-file#card-mod-3)
+([Add css styles to any lovelace card](https://community.home-assistant.io/t/card-mod-add-css-styles-to-any-lovelace-card/120744/9)),
+[Bar Card](https://community.home-assistant.io/t/lovelace-bar-card/87503)
+*to create a nice power consumption meter*. It also leverages
+[Virtual Energy Meters with PowerCalc](https://seanblanchfield.com/2022/02/virtual-energy-meters-with-powercalc)
+to create *virtual sensors* to monitor estimated power usage from devices
+that have a constant power usage.
+
+[Real Time Device Power Meter for Home Assistant](https://seanblanchfield.com/2022/05/real-time-device-power-meters-in-home-assistant)
+explains pretty well how to make this, including the creation of **virtual sensors** to
+account for power usage from devices without actual sensors. This involves creating a
+few YAML files directly in the Home Assistant `/config` directory (and then restarting
+Home Assistant to pick them up).
+
+Create the directory  `/home/k8s/home-assistant/templates/sensors/` to store the
+virtual sensors and update `configuration.yaml` to load files from it:
+
+``` yaml title="/home/k8s/home-assistant/configuration.yaml" hl_lines="16 17"
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.244.0.0/16
+
+template:
+  - sensor: !include_dir_merge_list  templates/sensors/
+```
+
+Then create a virtual sensor `all_power` with the aggregate sum of all power sensors:
+
+``` yaml title="/home/k8s/home-assistant/template/sensors/power.yaml" hl_lines="8-12"
+- name: all_power
+  unique_id: all_power
+  unit_of_measurement: W
+  device_class: power
+  state_class: measurement
+  state: >-
+    {{ 
+      states('sensor.mystrom_device_power')|float(0)
+      + states('sensor.homelab_current_consumption')|float(0)
+      + states('sensor.dell_1908fpc_current_consumption')|float(0)
+      + states('sensor.bed_heater_current_consumption')|float(0)
+      + states('sensor.bedlamp_current_consumption')|float(0)
+    }}
+```
+
+At this point it is necessary to restart Home Assistant, or at least reload YAML files.
+
+!!! note
+
+    Home Assistant may fail to reload YAML files or restart due to references in
+    `configuration.yaml` to non-existant files; this can be easily solved by creating
+    those files: `touch automations.yaml scripts.yaml scenes.yaml`.
+
+Once YAML files are reloaded, a new virtual sensor `all_power` should be available
+to create cards with it, e.g. a gauge:
+
+``` yaml
+type: gauge
+min: 0
+entity: sensor.all_power
+name: Current Electricity Usage
+max: 500
+needle: true
+severity:
+  green: 0
+  yellow: 100
+  red: 400
+unit: W
+```
+
+??? warning "Entity is currently unavailable: sensor.all_power"
+
+    Sometimes the new entity becomes unavailable. This appears to go away after a few
+    seconds, or a full Home Assistant restart, without leaving any clue in the logs.
+
+Combined with the previous cards ([ha-tdv-bar](#ha-tdv-bar) and
+[Mini Graph Card](#mini-graph-card)) this all comes together to offer a useful overview:
+
+![Home Assistant Power Dashboard](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/home-assistant-power-dashboard.png){: style="height:800px;width:360px"}
+
+#### A better bar card
+
+For a better bar card, install the
+[Custom Card Mod](https://github.com/thomasloven/lovelace-card-mod?tab=readme-ov-file#card-mod-3)
+manually and then add this card to the dashboard:
+
+??? code "Custom template card for individual power usage sensors."
+
+    ``` yaml
+    type: 'custom:config-template-card'
+    variables:
+      - entity: sensor.mystrom_device_power
+        name: Office
+      - entity: sensor.homelab_current_consumption
+        name: Homelab
+      - entity: sensor.dell_1908fpc_current_consumption
+        name: Dell 1908FPc
+      - entity: sensor.bed_heater_current_consumption
+        name: Bed heater
+      - entity: sensor.tv_smart_plug_power
+        name: TV
+      - entity: sensor.bedlamp_current_consumption
+        name: Bed lamp
+    entities: 
+      # Note: this list of entities may seem redundant, but is necessary to inform
+      # config-template-card which entities to watch for updates.
+      - sensor.mystrom_device_power
+      - sensor.homelab_current_consumption
+      - sensor.dell_1908fpc_current_consumption
+      - sensor.bed_heater_current_consumption
+      - sensor.bedlamp_current_consumption
+    element:
+      type: 'custom:bar-card'
+      entities: |- 
+        ${ vars.filter(v => {
+          let ent = states[v.entity];
+          if(ent === undefined || ent.state === undefined) {
+            console.warn(`Power meter: Entity ${v.entity} not found`);
+          }
+          else if(ent.state === 'unknown') {
+            console.warn(`Power meter: Entity ${v.entity} state is unknown`);
+          }
+          else if(isNaN(ent.state)) {
+            console.warn(`Power meter: Entity ${v.entity} state is not a number`);
+          }
+          else return Number(ent.state) > 5;
+        }).sort((v1,v2) => states[v2.entity].state - states[v1.entity].state)}
+        direction: right
+        entity_row: true
+        min: 0
+        max: ${ Math.max(...vars.map(v => states[v.entity]).filter(e => !!e).map(e => e.state).filter(n => !isNaN(n))) }
+      height: 20px
+      stack: vertical
+      decimal: 0
+      icon: 'mdi:flash'
+      positions:
+        icon: off
+        indicator: outside
+        name: inside
+        value: inside
+      severity:
+      - color: '#a1a1a18a'
+        from: 0
+        to: 2
+      - color: '#3ea8328a'
+        from: 2
+        to: 10
+      - color: '#85a8328a'
+        from: 10
+        to: 50
+      - color: '#a8a4328a'
+        from: 50
+        to: 200
+      - color: '#a887328a'
+        from: 200
+        to: 500
+      - color: '#a867328a'
+        from: 500
+        to: 1000
+      - color: '#a846328a'
+        from: 1000
+        to: 3000
+      - color: '#a832328a'
+        from: 3000
+        to: 10000
+      style: |-
+        #states > * {
+          margin: 1px;
+        }
+        bar-card-name,
+        bar-card-value {
+          font-size: 0.9rem;
+          color: #ffffffaa;
+          font-weight: bold;
+        }
+        bar-card-value	{
+          font-weight: bolder;
+        }
+        bar-card-indicator {
+          margin-top: 4px;
+          transform: scaleY(-1);
+        }
+    ```
+
+!!! todo
+
+    Find out why this doesn't work at all. It doesn't even show anything when editing
+    the dashboard and can't even be edited afterwards, it can only be deleted.
+
+#### InfluxDB
+
+[The influxdb integration](https://www.home-assistant.io/integrations/influxdb/)
+makes it possible to transfer all state changes to an external InfluxDB database.
+This could be used to transfer all data to the InfluxDB use for
+[Continuous Monitoring](#continuous-monitoring) and use a similar Grafana dashboard for
+[Continuous Monitoring for TP-Link Tapo devices](./2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md).
+
+To get started, add `influxdb:` to the main `configuration.yaml` and restart
+Home Assistant, then find the **InfluxDB** will be available under
+**Settings > Devices & services**. This integration cannot be configured from the UI;
+instead create a new InfluxDB database `home_assistant` using the InfluxDB CLI,
+with a retention policy of 800 days (well over 2 years):
+
+``` console
+$ influx -host localhost -port 30086 -username admin -password ''
+password: 
+Connected to http://localhost:30086 version 1.8.10
+InfluxDB shell version: 1.6
+
+> CREATE DATABASE home_assistant
+> CREATE RETENTION POLICY "800_days" ON "home_assistant" DURATION 800d REPLICATION 1
+> ALTER RETENTION POLICY "800_days" on "home_assistant" DURATION 800d REPLICATION 1 DEFAULT
+```
+
+To start sending metrics to InfluxDB, create a configuration based on the
+[full configuration for 1.xx installations](https://www.home-assistant.io/integrations/influxdb/#full-configuration-for-1xx-installations), without
+rules to `exclude` or `include` specific entities; no need to add
+[filters](https://www.home-assistant.io/integrations/influxdb/#configure-filter)
+(by default all entities are sent to InfluxDB):
+
+``` yaml
+influxdb:
+  host: 192.168.0.6
+  port: 30086
+  database: home_assistant
+  username: admin
+  password: MY_PASSWORD
+  max_retries: 3
+  default_measurement: state
+  tags:
+    instance: prod
+    source: hass
+```
+
+!!! note
+
+    If the InfluxDB is reached over HTTP**S** the above config need to have
+    `ssl: true` and, depending on whether SSL certificates are valid or not,
+    also `verify_ssl: true` (or `false`).  
+
+After restarting Home Assistant metrics start flowing into new measurements
+into the new InfluxDB database. These can be used to create dashboards in
+Grafana, after adding the new database as a new InfluxDB data source.
+
+[The InfluxDB `sensor`](https://www.home-assistant.io/integrations/influxdb/#sensor) *allows using values from a InfluxDB database to populate a sensor state. This can be used to present statistics as Home Assistant sensors, if used with the influxdb history integration. It can also be used with an external data source.* All this sound very
+interesting for potential future expansions!
+
 ## Conclusion
 
 *One does not simply...* anything!
