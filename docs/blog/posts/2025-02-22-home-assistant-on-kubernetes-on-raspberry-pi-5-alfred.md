@@ -258,7 +258,7 @@ The instructions in page 13 of the
 [Argon ONE V3 NVMe case manual](https://www.pi-shop.ch/downloads/dl/file/id/1127/product/3203/manual_argon_one_v3_m_2_nvme.pdf)
 to install the scripts for FAN control seem simple enough:
 
-![Page 13 of Argon ONE V3 NVMe case manual](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/argon-one-v3-nvme-manual-p13.png)
+![Page 13 of Argon ONE V3 NVMe case manual](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/argon-one-v3-nvme-manual-p13.png){: style="height:550px;width:764px"}
 
 However, these scripts were problematic for users with this hardware setup
 [as of early 2024](https://forum.argon40.com/t/argon-one-v3-power-button-and-fan-scripts-issue/2276/32)
@@ -1119,7 +1119,7 @@ Having reviewed the requirements and installed all the components already,
 [initialize the control-plane node](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#initializing-your-control-plane-node)
 with the following flags:
 
-*  `--cri-socket=/run/containerd/containerd.sock` to make sure Kubernetes
+*  `--cri-socket=unix:/run/containerd/containerd.sock` to make sure Kubernetes
    uses the containerd runtime.
 *  `--pod-network-cidr=10.244.0.0/16` as 
    [required by flannel](https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md),
@@ -1817,7 +1817,7 @@ Forwarding from 0.0.0.0:8443 -> 8443
 
 The dasboard is then available at [https://alfred:8443/](https://alfred:8443/):
 
-![Page 13 of Argon ONE V3 NVMe case manual](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/kubernetes-dashboard-login.png)
+![Kubernetes Dashboard login](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/kubernetes-dashboard-login.png){: style="height:342px;width:964px"}
 
 [Accessing the Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
 requires
@@ -2021,7 +2021,7 @@ essentially suggests two methods to install Nginx:
 [Supported Versions table](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table)
 indicates Nginx v1.12 is the first version compaible with Kubernetes v1.32 and,
 most conviniently, the updated version is nearly the only difference between
-the default depoloyment based on the Helm template and the deployment used in
+the default deployment based on the Helm template and the deployment used in
 previous clusters.
 
 ``` console
@@ -2104,8 +2104,10 @@ $ curl -k https://192.168.0.151/
 </html>
 ```
 
+#### Troubleshooting Ingress
+
 This is still not available from other hosts, connections to the `LoadBalancer`
-IP address times out or is refursed, on both ports.
+IP address times out or is refused, on both ports.
 [This Stack Overflow answer](https://stackoverflow.com/a/56053059) suggests
 the reason is likely to be that the pod itself is not accepting connections
 from external hosts, but the Helm chart seems to default to accepting them:
@@ -2138,7 +2140,8 @@ $ helm uninstall ingress-nginx \
   --namespace ingress-nginx   
 release "ingress-nginx" uninstalled
 
-$ kubectl get all -n ingress-nginxNAME                                           READY   STATUS        RESTARTS       AGE
+$ kubectl get all -n ingress-nginx
+NAME                                           READY   STATUS        RESTARTS       AGE
 pod/ingress-nginx-controller-cd9d6bbd7-c4cbp   1/1     Terminating   1 (167m ago)   5d20h
 
 $ kubectl delete namespace ingress-nginx
@@ -3095,9 +3098,9 @@ $ kubectl -n kubernetes-dashboard logs \
 I0323 20:44:32.293925       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="k8s.alfred.uu.am" expected_token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" expected_key="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc.AiIi2mdeMBlCng6As7epqFyP8bmjSGQqxIdEbnstHEo" listen_port=8089
 ```
 
-Now, instead of forwarding directly to the `NodePort` of *this* ACME resolver, it is more
-convinient to update the router's forwarding rules only once, to forward port the external
-port 80 to the node's port **32080**, and then `patch` the ACME resolver service to
+Now, instead of forwarding directly to the `NodePort` of *this* ACME resolver, it is more convinient to update the router's forwarding rules only once, to forward port the
+external port 80 to the node's port **32080**, and then `patch` the ACME resolve
+service to
 [change the service's NodePort](https://stackoverflow.com/questions/65789509/kubernetes-how-to-change-service-ports-using-patch).
 
 The `patch` command is directed at the specific ACME resolver service in each namespace:
@@ -3113,8 +3116,8 @@ kubernetes-dashboard   cm-acme-http-solver-b9ckt              NodePort    10.96.
 ```
 
 Once the service is patched, the external connection reaches the resolver pod and the
-renewal is completed very shortly, which then deletes the pod and service. At that point,
-the command above to monitor the pod's logs will terminate when the pods finishes:
+renewal is completed very shortly, which then deletes the pod and service. At that point, the command above to monitor the pod's logs will terminate when the pods
+finishes:
 
 ``` hl_lines="2"
 I0323 20:49:58.055831       1 solver.go:104] "comparing token" logger="cert-manager.acmesolver" host="k8s.alfred.uu.am" path="/.well-known/acme-challenge/Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" base_path="/.well-known/acme-challenge" token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc" headers={"Accept":["*/*"],"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)"]} expected_token="Ib9C-k31rDjp2A5SH7jmELo4F0VNBvOfWzXg6Mu6YWc"
@@ -3459,7 +3462,7 @@ for `HTTP01` challenges reachable, so certificates can be issued and renewed.
 The **Public hostname** to route requests under `/.well-known/` **must** be the
 first one (these can be dragged to rearrange their order):
 
-![Public hostnames on Cloudflare tunnel](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/tunnel-kubernetes-alfred-public-hostnames.png)
+![Public hostnames on Cloudflare tunnel](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/tunnel-kubernetes-alfred-public-hostnames.png){: style="height:319px;width:658px"}
 
 [To avoid hitting Let's Encrypt rate limits](https://stackoverflow.com/a/74006118),
 *use a different secret name for each host*:
