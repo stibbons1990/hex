@@ -70,6 +70,14 @@ Once the intaller boots, the installation steps were:
 1.  Confirm all previous choices and start to **install software**.
 1.  Once the installation is complete, remove the UBS stick and hit Enter to reboot.
 
+### Disable swap
+
+With 32 GB on a single DIMM and the possiblity to double that in the future, there is
+no need for `swap` and it can be
+[problematic for Kubernetes](#troubleshooting-kubeadm-init) later, so this should be
+disabled: remove the relevant line in `/etc/fstab`, reboot and delete the swap file
+(typically `/swap.img` or `/swapfile`).
+
 ### Tweak OpenSSH server
 
 Set the `root` password by first escalating with `sudo su -` and then using the
@@ -617,7 +625,7 @@ simply install `auditd`:
 Add the [NFS mount](./2025-04-18-synology-ds423-for-the-homelab-luggage.md#nfs)
 in `/etc/fstab` to mount `/home/nas`, create the directory and mount it.
 
-## Continuous Monitoring
+### Continuous Monitoring
 
 [Install Continuous Monitoring](../../projects/conmon.md#install-conmon) and
 report metrics to `lexicon` on its `NodePort` (30086).
@@ -767,3 +775,2482 @@ Additional setup will be needed later on, once services are running on Kubernete
     for services that need to be accessible from outside the tailnet.
 
 ## Kubernetes
+
+[Kubernetes on Raspberry Pi 5 (Alfred)](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#kubernetes)
+showed quite a few *new hurdles* caused by newer versions of Kubernetes (v1.32.2) and
+a few components; this most recent installation will be the main guide this time. On top
+of that, [Applications Installed](../../projects/self-hosting.md#applications-installed)
+and each application-specific post linked from there, will provide most of the guidance
+to install those applications to be *migrated* (here) to the new server. The old
+[Single-node Kubernetes cluster on an Intel NUC: lexicon](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
+may not add much at this point.
+
+### GitHub Repository
+
+Use the same [GitHub Repository](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#github-repository)
+as before and create a new directory for the new server:
+
+``` console
+$ git clone git@github.com:xxxx/kubernetes-deployments.git
+$ cd kubernetes-deployments/
+$ mkdir octavo
+```
+
+??? note "Initial Git+SSH setup"
+
+    Each new server requires an initial setup to authenticate with GitHub, using 
+    [a new SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent),
+    adding to the authorized SSH keys in the GitHub account, and coping `.gitconfig`
+    from a previous server.
+
+### Storage Requirements
+
+Docker and `containerd` store images under `/var/lib` by default, which is why the
+[when installing Ubuntu Server](#install-ubuntu-server-2404) a dedicated partition
+is created for `/var/lib`, so that it will (should) not be necessary to move images
+to the `/home` partition.
+
+### Install Helm
+
+[Install helm from APT](https://helm.sh/docs/intro/install/#from-apt-debianubuntu)
+because it will be required to install certain components later
+(e.g. [Kubernetes Dashboard](#kubernets-dashboard)):
+
+``` console
+$ curl https://baltocdn.com/helm/signing.asc \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/helm.gpg
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" \
+  | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+$ sudo apt-get update
+$ sudo apt-get install -y helm
+```
+
+### Install Kubernetes
+
+[Kubernetes current stable release](https://cdn.dl.k8s.io/release/stable.txt) is now
+v1.33.**0** which is only the **1st** patch in 1.33 and came out only a few days ago,
+so instead install the more stable **v1.32**.
+[Install kubeadm, kubelet and kubectl](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl) from Debian packages:
+
+``` console
+$ curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+$ sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+$ echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' \
+  | sudo tee /etc/apt/sources.list.d/kubernetes.list
+$ sudo apt-get update
+```
+
+Once the APT repository is ready, install the packages:
+
+??? terminal "`$ sudo apt-get install -y kubelet kubeadm kubectl`"
+
+    ``` console
+    $ sudo apt-get install -y kubelet kubeadm kubectl
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      conntrack cri-tools kubernetes-cni
+    The following NEW packages will be installed:
+      conntrack cri-tools kubeadm kubectl kubelet kubernetes-cni
+    0 upgraded, 6 newly installed, 0 to remove and 1 not upgraded.
+    Need to get 92.7 MB of archives.
+    After this operation, 338 MB of additional disk space will be used.
+    Get:1 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 conntrack amd64 1:1.4.8-1ubuntu1 [37.9 kB]
+    Get:2 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  cri-tools 1.32.0-1.1 [16.3 MB]
+    Get:3 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  kubeadm 1.32.4-1.1 [12.2 MB]
+    Get:4 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  kubectl 1.32.4-1.1 [11.2 MB]
+    Get:5 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  kubernetes-cni 1.6.0-1.1 [37.8 MB]
+    Get:6 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  kubelet 1.32.4-1.1 [15.2 MB]
+    Fetched 92.7 MB in 1s (66.3 MB/s)
+    Selecting previously unselected package conntrack.
+    (Reading database ... 140718 files and directories currently installed.)
+    Preparing to unpack .../0-conntrack_1%3a1.4.8-1ubuntu1_amd64.deb ...
+    Unpacking conntrack (1:1.4.8-1ubuntu1) ...
+    Selecting previously unselected package cri-tools.
+    Preparing to unpack .../1-cri-tools_1.32.0-1.1_amd64.deb ...
+    Unpacking cri-tools (1.32.0-1.1) ...
+    Selecting previously unselected package kubeadm.
+    Preparing to unpack .../2-kubeadm_1.32.4-1.1_amd64.deb ...
+    Unpacking kubeadm (1.32.4-1.1) ...
+    Selecting previously unselected package kubectl.
+    Preparing to unpack .../3-kubectl_1.32.4-1.1_amd64.deb ...
+    Unpacking kubectl (1.32.4-1.1) ...
+    Selecting previously unselected package kubernetes-cni.
+    Preparing to unpack .../4-kubernetes-cni_1.6.0-1.1_amd64.deb ...
+    Unpacking kubernetes-cni (1.6.0-1.1) ...
+    Selecting previously unselected package kubelet.
+    Preparing to unpack .../5-kubelet_1.32.4-1.1_amd64.deb ...
+    Unpacking kubelet (1.32.4-1.1) ...
+    Setting up conntrack (1:1.4.8-1ubuntu1) ...
+    Setting up kubectl (1.32.4-1.1) ...
+    Setting up cri-tools (1.32.0-1.1) ...
+    Setting up kubernetes-cni (1.6.0-1.1) ...
+    Setting up kubeadm (1.32.4-1.1) ...
+    Setting up kubelet (1.32.4-1.1) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Scanning processes...                                                                                         
+    Scanning processor microcode...                                                                               
+    Scanning linux images...                                                                                      
+
+    Running kernel seems to be up-to-date.
+
+    The processor microcode seems to be up-to-date.
+
+    No services need to be restarted.
+
+    No containers need to be restarted.
+
+    No user sessions are running outdated binaries.
+
+    No VM guests are running outdated hypervisor (qemu) binaries on this host.
+    ```
+
+And then, because updating Kubernetes is a rather involved process, hold them:
+
+``` console
+$ sudo apt-mark hold kubelet kubeadm kubectl
+kubelet set on hold.
+kubeadm set on hold.
+kubectl set on hold.
+```
+
+Note that the latest patch at this time is v1.32.**4**:
+
+``` console hl_lines="7"
+# kubectl version --output=yaml
+clientVersion:
+  buildDate: "2025-04-22T16:03:58Z"
+  compiler: gc
+  gitCommit: 59526cd4867447956156ae3a602fcbac10a2c335
+  gitTreeState: clean
+  gitVersion: v1.32.4
+  goVersion: go1.23.6
+  major: "1"
+  minor: "32"
+  platform: linux/amd64
+kustomizeVersion: v5.5.0
+
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+```
+
+[Enabling shell autocompletion](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#enable-kubectl-autocompletion)
+for `kubectl` is very easy, since bash-completion is already installed:
+
+``` console
+$ kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+$ sudo chmod a+r /etc/bash_completion.d/kubectl
+```
+
+#### Enable the kubelet service
+
+This step is only really necessary later, before 
+[bootstrapping the cluster with `kubeadm`](#bootstrap-with-kubeadm),
+but it can be done any time; the service will just be waiting:
+
+``` console
+$ sudo systemctl enable --now kubelet
+```
+
+### Install container runtime
+
+#### Networking setup
+
+[Enabling IPv4 packet forwarding](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#prerequisite-ipv4-forwarding-optional)
+is required for Kubernetes network and is **not** enabled by default:
+
+``` console hl_lines="2 41"
+$ sudo sysctl net.ipv4.ip_forward
+net.ipv4.ip_forward = 0
+
+$ cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
+
+$ sudo sysctl --system
+* Applying /usr/lib/sysctl.d/10-apparmor.conf ...
+* Applying /etc/sysctl.d/10-bufferbloat.conf ...
+* Applying /etc/sysctl.d/10-console-messages.conf ...
+* Applying /etc/sysctl.d/10-ipv6-privacy.conf ...
+* Applying /etc/sysctl.d/10-kernel-hardening.conf ...
+* Applying /etc/sysctl.d/10-magic-sysrq.conf ...
+* Applying /etc/sysctl.d/10-map-count.conf ...
+* Applying /etc/sysctl.d/10-network-security.conf ...
+* Applying /etc/sysctl.d/10-ptrace.conf ...
+* Applying /etc/sysctl.d/10-zeropage.conf ...
+* Applying /usr/lib/sysctl.d/50-pid-max.conf ...
+* Applying /usr/lib/sysctl.d/99-protect-links.conf ...
+* Applying /etc/sysctl.d/99-sysctl.conf ...
+* Applying /etc/sysctl.d/k8s.conf ...
+* Applying /etc/sysctl.conf ...
+kernel.apparmor_restrict_unprivileged_userns = 1
+net.core.default_qdisc = fq_codel
+kernel.printk = 4 4 1 7
+net.ipv6.conf.all.use_tempaddr = 2
+net.ipv6.conf.default.use_tempaddr = 2
+kernel.kptr_restrict = 1
+kernel.sysrq = 176
+vm.max_map_count = 1048576
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
+kernel.yama.ptrace_scope = 1
+vm.mmap_min_addr = 65536
+kernel.pid_max = 4194304
+fs.protected_fifos = 1
+fs.protected_hardlinks = 1
+fs.protected_regular = 2
+fs.protected_symlinks = 1
+net.ipv4.ip_forward = 1
+```
+
+This alone *was not enough* for the successful deployment of the 
+[Network plugin in `alfred`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#network-plugin)
+required after bootstraping the cluster. Additional setup proved to be required to
+[let iptables see bridged traffic](https://v1-29.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic),
+supposedly required only up to **v1.29**, when omitting these steps led to
+[the `kube-flannel` deployment failing to start up](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-flannel)
+(stuck in a crash loop):
+
+``` console
+$ sudo modprobe overlay
+$ sudo modprobe br_netfilter
+$ sudo tee /etc/modules-load.d/k8s.conf<<EOF
+br_netfilter
+overlay
+EOF
+
+$ sudo tee /etc/sysctl.d/k8s.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+```
+
+Reboot the system to make sure that the changes are permanent:
+
+``` console
+$ sudo sysctl -a | egrep 'net.ipv4.ip_forward |net.bridge.bridge-nf-call-ip'
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+
+$ lsmod | egrep 'overlay|bridge'
+overlay               212992  0
+bridge                421888  1 br_netfilter
+stp                    12288  1 bridge
+llc                    16384  2 bridge,stp
+```
+
+#### Install containerd
+
+[Installing a container runtime](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-runtime)
+comes next, with `containerd` being the runtime of choice.
+[Install using the apt repository](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository):
+
+``` console
+$ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  -o /etc/apt/keyrings/docker.asc
+$ sudo chmod a+r /etc/apt/keyrings/docker.asc
+$ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$ sudo apt-get update
+```
+
+Once the APT repository is ready, install the packages:
+
+??? terminal "`$ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`"
+
+    ``` console
+    $ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      docker-ce-rootless-extras libltdl7 libslirp0 pigz slirp4netns
+    Suggested packages:
+      cgroupfs-mount | cgroup-lite
+    The following NEW packages will be installed:
+      containerd.io docker-buildx-plugin docker-ce docker-ce-cli docker-ce-rootless-extras docker-compose-plugin
+      libltdl7 libslirp0 pigz slirp4netns
+    0 upgraded, 10 newly installed, 0 to remove and 1 not upgraded.
+    Need to get 120 MB of archives.
+    After this operation, 440 MB of additional disk space will be used.
+    Get:1 http://ch.archive.ubuntu.com/ubuntu noble/universe amd64 pigz amd64 2.8-1 [65.6 kB]
+    Get:2 https://download.docker.com/linux/ubuntu noble/stable amd64 containerd.io amd64 1.7.27-1 [30.5 MB]
+    Get:3 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libltdl7 amd64 2.4.7-7build1 [40.3 kB]
+    Get:4 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 libslirp0 amd64 4.7.0-1ubuntu3 [63.8 kB]
+    Get:5 http://ch.archive.ubuntu.com/ubuntu noble/universe amd64 slirp4netns amd64 1.2.1-1build2 [34.9 kB]
+    Get:6 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-buildx-plugin amd64 0.23.0-1~ubuntu.24.04~noble [34.6 MB]
+    Get:7 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce-cli amd64 5:28.1.1-1~ubuntu.24.04~noble [15.8 MB]
+    Get:8 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce amd64 5:28.1.1-1~ubuntu.24.04~noble [19.2 MB]
+    Get:9 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce-rootless-extras amd64 5:28.1.1-1~ubuntu.24.04~noble [6,092 kB]
+    Get:10 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-compose-plugin amd64 2.35.1-1~ubuntu.24.04~noble [13.8 MB]
+    Fetched 120 MB in 1s (94.1 MB/s)             
+    Selecting previously unselected package pigz.
+    (Reading database ... 140777 files and directories currently installed.)
+    Preparing to unpack .../0-pigz_2.8-1_amd64.deb ...
+    Unpacking pigz (2.8-1) ...
+    Selecting previously unselected package containerd.io.
+    Preparing to unpack .../1-containerd.io_1.7.27-1_amd64.deb ...
+    Unpacking containerd.io (1.7.27-1) ...
+    Selecting previously unselected package docker-buildx-plugin.
+    Preparing to unpack .../2-docker-buildx-plugin_0.23.0-1~ubuntu.24.04~noble_amd64.deb ...
+    Unpacking docker-buildx-plugin (0.23.0-1~ubuntu.24.04~noble) ...
+    Selecting previously unselected package docker-ce-cli.
+    Preparing to unpack .../3-docker-ce-cli_5%3a28.1.1-1~ubuntu.24.04~noble_amd64.deb ...
+    Unpacking docker-ce-cli (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Selecting previously unselected package docker-ce.
+    Preparing to unpack .../4-docker-ce_5%3a28.1.1-1~ubuntu.24.04~noble_amd64.deb ...
+    Unpacking docker-ce (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Selecting previously unselected package docker-ce-rootless-extras.
+    Preparing to unpack .../5-docker-ce-rootless-extras_5%3a28.1.1-1~ubuntu.24.04~noble_amd64.deb ...
+    Unpacking docker-ce-rootless-extras (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Selecting previously unselected package docker-compose-plugin.
+    Preparing to unpack .../6-docker-compose-plugin_2.35.1-1~ubuntu.24.04~noble_amd64.deb ...
+    Unpacking docker-compose-plugin (2.35.1-1~ubuntu.24.04~noble) ...
+    Selecting previously unselected package libltdl7:amd64.
+    Preparing to unpack .../7-libltdl7_2.4.7-7build1_amd64.deb ...
+    Unpacking libltdl7:amd64 (2.4.7-7build1) ...
+    Selecting previously unselected package libslirp0:amd64.
+    Preparing to unpack .../8-libslirp0_4.7.0-1ubuntu3_amd64.deb ...
+    Unpacking libslirp0:amd64 (4.7.0-1ubuntu3) ...
+    Selecting previously unselected package slirp4netns.
+    Preparing to unpack .../9-slirp4netns_1.2.1-1build2_amd64.deb ...
+    Unpacking slirp4netns (1.2.1-1build2) ...
+    Setting up docker-buildx-plugin (0.23.0-1~ubuntu.24.04~noble) ...
+    Setting up containerd.io (1.7.27-1) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/containerd.service → /usr/lib/systemd/system/containerd.service.
+    Setting up docker-compose-plugin (2.35.1-1~ubuntu.24.04~noble) ...
+    Setting up libltdl7:amd64 (2.4.7-7build1) ...
+    Setting up docker-ce-cli (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Setting up libslirp0:amd64 (4.7.0-1ubuntu3) ...
+    Setting up pigz (2.8-1) ...
+    Setting up docker-ce-rootless-extras (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Setting up slirp4netns (1.2.1-1build2) ...
+    Setting up docker-ce (5:28.1.1-1~ubuntu.24.04~noble) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+    Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /usr/lib/systemd/system/docker.socket.
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Processing triggers for libc-bin (2.39-0ubuntu8.4) ...
+    Scanning processes...                                                                                         
+    Scanning processor microcode...                                                                               
+    Scanning linux images...                                                                                      
+
+    Running kernel seems to be up-to-date.
+
+    The processor microcode seems to be up-to-date.
+
+    No services need to be restarted.
+
+    No containers need to be restarted.
+
+    No user sessions are running outdated binaries.
+
+    No VM guests are running outdated hypervisor (qemu) binaries on this host.
+    ```
+
+In just a few moments `docker` is already running:
+
+??? terminal "`$ systemctl status docker`"
+
+    ``` console
+    $ systemctl status docker
+    ● docker.service - Docker Application Container Engine
+        Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: enabled)
+        Active: active (running) since Sat 2025-04-26 15:17:27 CEST; 52s ago
+    TriggeredBy: ● docker.socket
+          Docs: https://docs.docker.com
+      Main PID: 198205 (dockerd)
+          Tasks: 22
+        Memory: 25.1M (peak: 27.5M)
+            CPU: 335ms
+        CGroup: /system.slice/docker.service
+                └─198205 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.329995883+02:00" level=info msg="detected 127.0.0.53 nameserver, assuming systemd-resolved, so using resolv.conf: /run/systemd/resolve/resolv.conf"
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.356938837+02:00" level=info msg="Creating a containerd client" address=/run/containerd/containerd.sock timeout=1m0s
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.391167891+02:00" level=info msg="Loading containers: start."
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.623474369+02:00" level=info msg="Loading containers: done."
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.651891549+02:00" level=info msg="Docker daemon" commit=01f442b containerd-snapshotter=false storage-driver=overlay2 version=28.1.1
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.652003229+02:00" level=info msg="Initializing buildkit"
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.686521864+02:00" level=info msg="Completed buildkit initialization"
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.694113345+02:00" level=info msg="Daemon has completed initialization"
+    Apr 26 15:17:27 octavo dockerd[198205]: time="2025-04-26T15:17:27.694180217+02:00" level=info msg="API listen on /run/docker.sock"
+    Apr 26 15:17:27 octavo systemd[1]: Started docker.service - Docker Application Container Engine.
+    ```
+
+The server is indeed reachable and its version can be checked:
+
+??? terminal "`$ sudo docker version`"
+
+    ``` console
+    $ sudo docker version
+    Client: Docker Engine - Community
+    Version:           28.1.1
+    API version:       1.49
+    Go version:        go1.23.8
+    Git commit:        4eba377
+    Built:             Fri Apr 18 09:52:14 2025
+    OS/Arch:           linux/amd64
+    Context:           default
+
+    Server: Docker Engine - Community
+    Engine:
+      Version:          28.1.1
+      API version:      1.49 (minimum version 1.24)
+      Go version:       go1.23.8
+      Git commit:       01f442b
+      Built:            Fri Apr 18 09:52:14 2025
+      OS/Arch:          linux/amd64
+      Experimental:     false
+    containerd:
+      Version:          1.7.27
+      GitCommit:        05044ec0a9a75232cad458027ca83437aae3f4da
+    runc:
+      Version:          1.2.5
+      GitCommit:        v1.2.5-0-g59923ef
+    docker-init:
+      Version:          0.19.0
+      GitCommit:        de40ad0
+    ```
+
+And the basic `hello-world` example just works:
+
+??? terminal "`$ sudo docker run hello-world`"
+
+    ``` console
+    $ sudo docker run hello-world
+    Unable to find image 'hello-world:latest' locally
+    latest: Pulling from library/hello-world
+    e6590344b1a5: Pull complete 
+    Digest: sha256:c41088499908a59aae84b0a49c70e86f4731e588a737f1637e73c8c09d995654
+    Status: Downloaded newer image for hello-world:latest
+
+    Hello from Docker!
+    This message shows that your installation appears to be working correctly.
+
+    To generate this message, Docker took the following steps:
+    1. The Docker client contacted the Docker daemon.
+    2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+        (amd64)
+    3. The Docker daemon created a new container from that image which runs the
+        executable that produces the output you are currently reading.
+    4. The Docker daemon streamed that output to the Docker client, which sent it
+        to your terminal.
+
+    To try something more ambitious, you can run an Ubuntu container with:
+     $ docker run -it ubuntu bash
+
+    Share images, automate workflows, and more with a free Docker ID:
+     https://hub.docker.com/
+
+    For more examples and ideas, visit:
+     https://docs.docker.com/get-started/
+
+    ```
+
+#### Configure containerd for Kubernetes
+
+The default configutation that comes with `containerd`, at least when installed from
+the APT repository, needs two adjustments to work with Kubernetes:
+
+1.   Enable the use of
+     [`systemd` cgroup driver](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#systemd-cgroup-driver),
+     because Ubuntu (22.04+) uses both `systemd` and
+     [cgroup v2](https://kubernetes.io/docs/concepts/architecture/cgroups/#using-cgroupv2).
+1.   Enable CRI integration, disabled in `/etc/containerd/config.toml`,
+     but needed to use `containerd` with Kubernetes.
+
+The safest method to set these configurations is to do it based off of the default configuration:
+
+``` console
+$ containerd config default \
+ | sed 's/disabled_plugins.*/disabled_plugins = []/' \
+ | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+ | sudo tee /etc/containerd/config.toml > /dev/null
+
+$ sudo systemctl restart containerd
+$ sudo systemctl restart kubelet
+```
+
+??? code "Resulting `/etc/containerd/config.toml`"
+
+    The resulting configuration enables `SystemdCgroup` under
+    `plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options`:
+
+    ``` ini hl_lines="1 45 73 128 139"
+    disabled_plugins = []
+    imports = []
+    oom_score = 0
+    plugin_dir = ""
+    required_plugins = []
+    root = "/var/lib/containerd"
+    state = "/run/containerd"
+    temp = ""
+    version = 2
+
+    [cgroup]
+      path = ""
+
+    [debug]
+      address = ""
+      format = ""
+      gid = 0
+      level = ""
+      uid = 0
+
+    [grpc]
+      address = "/run/containerd/containerd.sock"
+      gid = 0
+      max_recv_message_size = 16777216
+      max_send_message_size = 16777216
+      tcp_address = ""
+      tcp_tls_ca = ""
+      tcp_tls_cert = ""
+      tcp_tls_key = ""
+      uid = 0
+
+    [metrics]
+      address = ""
+      grpc_histogram = false
+
+    [plugins]
+
+      [plugins."io.containerd.gc.v1.scheduler"]
+        deletion_threshold = 0
+        mutation_threshold = 100
+        pause_threshold = 0.02
+        schedule_delay = "0s"
+        startup_delay = "100ms"
+
+      [plugins."io.containerd.grpc.v1.cri"]
+        cdi_spec_dirs = ["/etc/cdi", "/var/run/cdi"]
+        device_ownership_from_security_context = false
+        disable_apparmor = false
+        disable_cgroup = false
+        disable_hugetlb_controller = true
+        disable_proc_mount = false
+        disable_tcp_service = true
+        drain_exec_sync_io_timeout = "0s"
+        enable_cdi = false
+        enable_selinux = false
+        enable_tls_streaming = false
+        enable_unprivileged_icmp = false
+        enable_unprivileged_ports = false
+        ignore_deprecation_warnings = []
+        ignore_image_defined_volumes = false
+        image_pull_progress_timeout = "5m0s"
+        image_pull_with_sync_fs = false
+        max_concurrent_downloads = 3
+        max_container_log_line_size = 16384
+        netns_mounts_under_state_dir = false
+        restrict_oom_score_adj = false
+        sandbox_image = "registry.k8s.io/pause:3.8"
+        selinux_category_range = 1024
+        stats_collect_period = 10
+        stream_idle_timeout = "4h0m0s"
+        stream_server_address = "127.0.0.1"
+        stream_server_port = "0"
+        systemd_cgroup = false
+        tolerate_missing_hugetlb_controller = true
+        unset_seccomp_profile = ""
+
+        [plugins."io.containerd.grpc.v1.cri".cni]
+          bin_dir = "/opt/cni/bin"
+          conf_dir = "/etc/cni/net.d"
+          conf_template = ""
+          ip_pref = ""
+          max_conf_num = 1
+          setup_serially = false
+
+        [plugins."io.containerd.grpc.v1.cri".containerd]
+          default_runtime_name = "runc"
+          disable_snapshot_annotations = true
+          discard_unpacked_layers = false
+          ignore_blockio_not_enabled_errors = false
+          ignore_rdt_not_enabled_errors = false
+          no_pivot = false
+          snapshotter = "overlayfs"
+
+          [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
+            base_runtime_spec = ""
+            cni_conf_dir = ""
+            cni_max_conf_num = 0
+            container_annotations = []
+            pod_annotations = []
+            privileged_without_host_devices = false
+            privileged_without_host_devices_all_devices_allowed = false
+            runtime_engine = ""
+            runtime_path = ""
+            runtime_root = ""
+            runtime_type = ""
+            sandbox_mode = ""
+            snapshotter = ""
+
+            [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime.options]
+
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+
+            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+              base_runtime_spec = ""
+              cni_conf_dir = ""
+              cni_max_conf_num = 0
+              container_annotations = []
+              pod_annotations = []
+              privileged_without_host_devices = false
+              privileged_without_host_devices_all_devices_allowed = false
+              runtime_engine = ""
+              runtime_path = ""
+              runtime_root = ""
+              runtime_type = "io.containerd.runc.v2"
+              sandbox_mode = "podsandbox"
+              snapshotter = ""
+
+              [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+                BinaryName = ""
+                CriuImagePath = ""
+                CriuPath = ""
+                CriuWorkPath = ""
+                IoGid = 0
+                IoUid = 0
+                NoNewKeyring = false
+                NoPivotRoot = false
+                Root = ""
+                ShimCgroup = ""
+                SystemdCgroup = true
+
+          [plugins."io.containerd.grpc.v1.cri".containerd.untrusted_workload_runtime]
+            base_runtime_spec = ""
+            cni_conf_dir = ""
+            cni_max_conf_num = 0
+            container_annotations = []
+            pod_annotations = []
+            privileged_without_host_devices = false
+            privileged_without_host_devices_all_devices_allowed = false
+            runtime_engine = ""
+            runtime_path = ""
+            runtime_root = ""
+            runtime_type = ""
+            sandbox_mode = ""
+            snapshotter = ""
+
+            [plugins."io.containerd.grpc.v1.cri".containerd.untrusted_workload_runtime.options]
+
+        [plugins."io.containerd.grpc.v1.cri".image_decryption]
+          key_model = "node"
+
+        [plugins."io.containerd.grpc.v1.cri".registry]
+          config_path = ""
+
+          [plugins."io.containerd.grpc.v1.cri".registry.auths]
+
+          [plugins."io.containerd.grpc.v1.cri".registry.configs]
+
+          [plugins."io.containerd.grpc.v1.cri".registry.headers]
+
+          [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+
+        [plugins."io.containerd.grpc.v1.cri".x509_key_pair_streaming]
+          tls_cert_file = ""
+          tls_key_file = ""
+
+      [plugins."io.containerd.internal.v1.opt"]
+        path = "/opt/containerd"
+
+      [plugins."io.containerd.internal.v1.restart"]
+        interval = "10s"
+
+      [plugins."io.containerd.internal.v1.tracing"]
+
+      [plugins."io.containerd.metadata.v1.bolt"]
+        content_sharing_policy = "shared"
+
+      [plugins."io.containerd.monitor.v1.cgroups"]
+        no_prometheus = false
+
+      [plugins."io.containerd.nri.v1.nri"]
+        disable = true
+        disable_connections = false
+        plugin_config_path = "/etc/nri/conf.d"
+        plugin_path = "/opt/nri/plugins"
+        plugin_registration_timeout = "5s"
+        plugin_request_timeout = "2s"
+        socket_path = "/var/run/nri/nri.sock"
+
+      [plugins."io.containerd.runtime.v1.linux"]
+        no_shim = false
+        runtime = "runc"
+        runtime_root = ""
+        shim = "containerd-shim"
+        shim_debug = false
+
+      [plugins."io.containerd.runtime.v2.task"]
+        platforms = ["linux/amd64"]
+        sched_core = false
+
+      [plugins."io.containerd.service.v1.diff-service"]
+        default = ["walking"]
+        sync_fs = false
+
+      [plugins."io.containerd.service.v1.tasks-service"]
+        blockio_config_file = ""
+        rdt_config_file = ""
+
+      [plugins."io.containerd.snapshotter.v1.aufs"]
+        root_path = ""
+
+      [plugins."io.containerd.snapshotter.v1.blockfile"]
+        fs_type = ""
+        mount_options = []
+        root_path = ""
+        scratch_file = ""
+
+      [plugins."io.containerd.snapshotter.v1.btrfs"]
+        root_path = ""
+
+      [plugins."io.containerd.snapshotter.v1.devmapper"]
+        async_remove = false
+        base_image_size = ""
+        discard_blocks = false
+        fs_options = ""
+        fs_type = ""
+        pool_name = ""
+        root_path = ""
+
+      [plugins."io.containerd.snapshotter.v1.native"]
+        root_path = ""
+
+      [plugins."io.containerd.snapshotter.v1.overlayfs"]
+        mount_options = []
+        root_path = ""
+        sync_remove = false
+        upperdir_label = false
+
+      [plugins."io.containerd.snapshotter.v1.zfs"]
+        root_path = ""
+
+      [plugins."io.containerd.tracing.processor.v1.otlp"]
+
+      [plugins."io.containerd.transfer.v1.local"]
+        config_path = ""
+        max_concurrent_downloads = 3
+        max_concurrent_uploaded_layers = 3
+
+        [[plugins."io.containerd.transfer.v1.local".unpack_config]]
+          differ = ""
+          platform = "linux/amd64"
+          snapshotter = "overlayfs"
+
+    [proxy_plugins]
+
+    [stream_processors]
+
+      [stream_processors."io.containerd.ocicrypt.decoder.v1.tar"]
+        accepts = ["application/vnd.oci.image.layer.v1.tar+encrypted"]
+        args = ["--decryption-keys-path", "/etc/containerd/ocicrypt/keys"]
+        env = ["OCICRYPT_KEYPROVIDER_CONFIG=/etc/containerd/ocicrypt/ocicrypt_keyprovider.conf"]
+        path = "ctd-decoder"
+        returns = "application/vnd.oci.image.layer.v1.tar"
+
+      [stream_processors."io.containerd.ocicrypt.decoder.v1.tar.gzip"]
+        accepts = ["application/vnd.oci.image.layer.v1.tar+gzip+encrypted"]
+        args = ["--decryption-keys-path", "/etc/containerd/ocicrypt/keys"]
+        env = ["OCICRYPT_KEYPROVIDER_CONFIG=/etc/containerd/ocicrypt/ocicrypt_keyprovider.conf"]
+        path = "ctd-decoder"
+        returns = "application/vnd.oci.image.layer.v1.tar+gzip"
+
+    [timeouts]
+      "io.containerd.timeout.bolt.open" = "0s"
+      "io.containerd.timeout.metrics.shimstats" = "2s"
+      "io.containerd.timeout.shim.cleanup" = "5s"
+      "io.containerd.timeout.shim.load" = "5s"
+      "io.containerd.timeout.shim.shutdown" = "3s"
+      "io.containerd.timeout.task.state" = "2s"
+
+    [ttrpc]
+      address = ""
+      gid = 0
+      uid = 0
+    ```
+
+### Bootstrap with `kubeadm`
+
+[Creating a cluster with `kubeadm`](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+is the next big step towards creating the Kubernetes cluster.
+
+#### Initialize the control-plane
+
+Having reviewed the requirements and installed all the components already,
+[initialize the control-plane node](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#initializing-your-control-plane-node)
+with flags:
+
+*   `--cri-socket=unix:/run/containerd/containerd.sock` to make sure Kubernetes uses the containerd runtime.
+*   `--pod-network-cidr=10.244.0.0/16` as 
+    [required by flannel](https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md),
+    which is the [network plugin](#network-plugin) to be installed later.
+
+??? terminal "`$ sudo kubeadm init`"
+
+    ``` console
+    $ sudo kubeadm init \
+      --cri-socket=unix:/run/containerd/containerd.sock \
+      --pod-network-cidr=10.244.0.0/16
+    I0426 16:55:42.979255   33862 version.go:261] remote version is much newer: v1.33.0; falling back to: stable-1.32
+    [init] Using Kubernetes version: v1.32.4
+    [preflight] Running pre-flight checks
+    [preflight] Pulling images required for setting up a Kubernetes cluster
+    [preflight] This might take a minute or two, depending on the speed of your internet connection
+    [preflight] You can also perform this action beforehand using 'kubeadm config images pull'
+    W0426 16:55:43.482424   33862 checks.go:846] detected that the sandbox image "registry.k8s.io/pause:3.8" of the container runtime is inconsistent with that used by kubeadm.It is recommended to use "registry.k8s.io/pause:3.10" as the CRI sandbox image.
+    [certs] Using certificateDir folder "/etc/kubernetes/pki"
+    [certs] Generating "ca" certificate and key
+    [certs] Generating "apiserver" certificate and key
+    [certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local octavo] and IPs [10.96.0.1 10.0.0.8]
+    [certs] Generating "apiserver-kubelet-client" certificate and key
+    [certs] Generating "front-proxy-ca" certificate and key
+    [certs] Generating "front-proxy-client" certificate and key
+    [certs] Generating "etcd/ca" certificate and key
+    [certs] Generating "etcd/server" certificate and key
+    [certs] etcd/server serving cert is signed for DNS names [localhost octavo] and IPs [10.0.0.8 127.0.0.1 ::1]
+    [certs] Generating "etcd/peer" certificate and key
+    [certs] etcd/peer serving cert is signed for DNS names [localhost octavo] and IPs [10.0.0.8 127.0.0.1 ::1]
+    [certs] Generating "etcd/healthcheck-client" certificate and key
+    [certs] Generating "apiserver-etcd-client" certificate and key
+    [certs] Generating "sa" key and public key
+    [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+    [kubeconfig] Writing "admin.conf" kubeconfig file
+    [kubeconfig] Writing "super-admin.conf" kubeconfig file
+    [kubeconfig] Writing "kubelet.conf" kubeconfig file
+    [kubeconfig] Writing "controller-manager.conf" kubeconfig file
+    [kubeconfig] Writing "scheduler.conf" kubeconfig file
+    [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+    [control-plane] Using manifest folder "/etc/kubernetes/manifests"
+    [control-plane] Creating static Pod manifest for "kube-apiserver"
+    [control-plane] Creating static Pod manifest for "kube-controller-manager"
+    [control-plane] Creating static Pod manifest for "kube-scheduler"
+    [kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+    [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+    [kubelet-start] Starting the kubelet
+    [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests"
+    [kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+    [kubelet-check] The kubelet is healthy after 501.89299ms
+    [api-check] Waiting for a healthy API server. This can take up to 4m0s
+    [api-check] The API server is healthy after 3.503255484s
+    [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+    [kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+    [upload-certs] Skipping phase. Please see --upload-certs
+    [mark-control-plane] Marking the node octavo as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+    [mark-control-plane] Marking the node octavo as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+    [bootstrap-token] Using token: 7k3y4k.r8ebhonqgtm6anyr
+    [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+    [bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+    [bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+    [bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+    [bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+    [bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+    [kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+    [addons] Applied essential addon: CoreDNS
+    [addons] Applied essential addon: kube-proxy
+
+    Your Kubernetes control-plane has initialized successfully!
+
+    To start using your cluster, you need to run the following as a regular user:
+
+      mkdir -p $HOME/.kube
+      sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+      sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    Alternatively, if you are the root user, you can run:
+
+      export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    You should now deploy a pod network to the cluster.
+    Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+      https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+    Then you can join any number of worker nodes by running the following on each as root:
+
+    kubeadm join 10.0.0.8:6443 --token 7k3y4k.r8ebhonqgtm6anyr \
+            --discovery-token-ca-cert-hash sha256:18d968e92516e1a2808166d90a7d7c8b6f7b37cbac6328c49793863f9ae2b982 
+    ```
+
+Once this is done, Kubernetes control plane is running at `10.0.0.8:6443`
+
+``` console
+# export KUBECONFIG=/etc/kubernetes/admin.conf
+
+# kubectl cluster-info
+Kubernetes control plane is running at https://10.0.0.8:6443
+CoreDNS is running at https://10.0.0.8:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+# kubectl version --output=yaml
+clientVersion:
+  buildDate: "2025-04-22T16:03:58Z"
+  compiler: gc
+  gitCommit: 59526cd4867447956156ae3a602fcbac10a2c335
+  gitTreeState: clean
+  gitVersion: v1.32.4
+  goVersion: go1.23.6
+  major: "1"
+  minor: "32"
+  platform: linux/amd64
+kustomizeVersion: v5.5.0
+serverVersion:
+  buildDate: "2025-04-22T15:56:15Z"
+  compiler: gc
+  gitCommit: 59526cd4867447956156ae3a602fcbac10a2c335
+  gitTreeState: clean
+  gitVersion: v1.32.4
+  goVersion: go1.23.6
+  major: "1"
+  minor: "32"
+  platform: linux/amd6
+```
+
+#### Setup `kubectl` access
+
+To run `kubectl` as a non-root user, copy the Kubernetes config file under the
+`~/.kube` directory and set the right permissions to it:
+
+``` console
+$ mkdir $HOME/.kube
+$ sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+[sudo] password for ponder: 
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+$ ls -l $HOME/.kube/config
+-rw------- 1 ponder ponder 5648 Apr 26 17:03 /home/ponder/.kube/config
+$ kubectl cluster-info
+Kubernetes control plane is running at https://10.0.0.8:6443
+CoreDNS is running at https://10.0.0.8:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+```
+
+##### Troubleshooting bootstrap
+
+The first time around, `sudo kubeadm init` failed. This *didn't seem* to have been
+[swap not being disabled](#disable-swap)
+at first, but in the end disabling swap seems to have been the (only) solution.
+
+??? terminal "`$ sudo kubeadm init`"
+
+    ``` console
+    $ sudo kubeadm init \
+      --cri-socket=unix:/run/containerd/containerd.sock \
+      --pod-network-cidr=10.244.0.0/16
+
+    I0426 15:49:34.806666  537229 version.go:261] remote version is much newer: v1.33.0; falling back to: stable-1.32
+    [init] Using Kubernetes version: v1.32.4
+    [preflight] Running pre-flight checks
+            [WARNING Swap]: swap is supported for cgroup v2 only. The kubelet must be properly configured to use swap. Please refer to https://kubernetes.io/docs/concepts/architecture/nodes/#swap-memory, or disable swap on the node
+    [preflight] Pulling images required for setting up a Kubernetes cluster
+    [preflight] This might take a minute or two, depending on the speed of your internet connection
+    [preflight] You can also perform this action beforehand using 'kubeadm config images pull'
+    W0426 15:49:35.293520  537229 checks.go:846] detected that the sandbox image "registry.k8s.io/pause:3.8" of the container runtime is inconsistent with that used by kubeadm.It is recommended to use "registry.k8s.io/pause:3.10" as the CRI sandbox image.
+    [certs] Using certificateDir folder "/etc/kubernetes/pki"
+    [certs] Generating "ca" certificate and key
+    [certs] Generating "apiserver" certificate and key
+    [certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local octavo] and IPs [10.96.0.1 10.0.0.8]
+    [certs] Generating "apiserver-kubelet-client" certificate and key
+    [certs] Generating "front-proxy-ca" certificate and key
+    [certs] Generating "front-proxy-client" certificate and key
+    [certs] Generating "etcd/ca" certificate and key
+    [certs] Generating "etcd/server" certificate and key
+    [certs] etcd/server serving cert is signed for DNS names [localhost octavo] and IPs [10.0.0.8 127.0.0.1 ::1]
+    [certs] Generating "etcd/peer" certificate and key
+    [certs] etcd/peer serving cert is signed for DNS names [localhost octavo] and IPs [10.0.0.8 127.0.0.1 ::1]
+    [certs] Generating "etcd/healthcheck-client" certificate and key
+    [certs] Generating "apiserver-etcd-client" certificate and key
+    [certs] Generating "sa" key and public key
+    [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+    [kubeconfig] Writing "admin.conf" kubeconfig file
+    [kubeconfig] Writing "super-admin.conf" kubeconfig file
+    [kubeconfig] Writing "kubelet.conf" kubeconfig file
+    [kubeconfig] Writing "controller-manager.conf" kubeconfig file
+    [kubeconfig] Writing "scheduler.conf" kubeconfig file
+    [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+    [control-plane] Using manifest folder "/etc/kubernetes/manifests"
+    [control-plane] Creating static Pod manifest for "kube-apiserver"
+    [control-plane] Creating static Pod manifest for "kube-controller-manager"
+    [control-plane] Creating static Pod manifest for "kube-scheduler"
+    [kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+    [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+    [kubelet-start] Starting the kubelet
+    [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests"
+    [kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+    [kubelet-check] The kubelet is not healthy after 4m0.000397441s
+
+    Unfortunately, an error has occurred:
+            The HTTP call equal to 'curl -sSL http://127.0.0.1:10248/healthz' returned error: Get "http://127.0.0.1:10248/healthz": context deadline exceeded
+
+
+    This error is likely caused by:
+            - The kubelet is not running
+            - The kubelet is unhealthy due to a misconfiguration of the node in some way (required cgroups disabled)
+
+    If you are on a systemd-powered system, you can try to troubleshoot the error with the following commands:
+            - 'systemctl status kubelet'
+            - 'journalctl -xeu kubelet'
+
+    Additionally, a control plane component may have crashed or exited when started by the container runtime.
+    To troubleshoot, list all containers using your preferred container runtimes CLI.
+    Here is one example how you may list all running Kubernetes containers by using crictl:
+            - 'crictl --runtime-endpoint unix:/run/containerd/containerd.sock ps -a | grep kube | grep -v pause'
+            Once you have found the failing container, you can inspect its logs with:
+            - 'crictl --runtime-endpoint unix:/run/containerd/containerd.sock logs CONTAINERID'
+    error execution phase wait-control-plane: could not initialize a Kubernetes cluster
+    To see the stack trace of this error execute with --v=5 or higher
+    ```
+
+Swap was disabled (and the server was restarted) only after this happened, but it
+does not seem likely to have been the cause.
+
+The kubelet is running but possibly unhealthy, `systemctl status kubelet` shows the
+same line every 5 seconds:
+
+```
+Apr 26 16:11:29 octavo kubelet[3081]: E0426 16:11:29.654554    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+```
+
+Many errors and warning are logged and shown by `journalctl -xeu kubelet`, up to the
+point where the above error is repeated every 5 seconds:
+
+??? terminal "`$ journalctl -xeu kubelet`"
+
+    ``` console hl_lines="10-11 19 30-31"
+    $ journalctl -xeu kubelet
+    Apr 26 16:00:24 octavo systemd[1]: Started kubelet.service - kubelet: The Kubernetes Node Agent.
+    ░░ Subject: A start job for unit kubelet.service has finished successfully
+    ░░ Defined-By: systemd
+    ░░ Support: http://www.ubuntu.com/support
+    ░░ 
+    ░░ A start job for unit kubelet.service has finished successfully.
+    ░░ 
+    ░░ The job identifier is 192.
+    Apr 26 16:00:24 octavo kubelet[3081]: Flag --container-runtime-endpoint has been deprecated, This parameter should be set via the config file specified by the Kubelet's --config flag. See https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/ for more information.
+    Apr 26 16:00:24 octavo kubelet[3081]: Flag --pod-infra-container-image has been deprecated, will be removed in 1.35. Image garbage collector will get sandbox image information from CRI.
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.873338    3081 server.go:215] "--pod-infra-container-image will not be pruned by the image garbage collector in kubelet and should also be set in the remote runtime"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.878116    3081 server.go:520] "Kubelet version" kubeletVersion="v1.32.4"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.878137    3081 server.go:522] "Golang settings" GOGC="" GOMAXPROCS="" GOTRACEBACK=""
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.878359    3081 server.go:954] "Client rotation is on, will bootstrap in background"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.879746    3081 certificate_store.go:130] Loading cert/key pair from "/var/lib/kubelet/pki/kubelet-client-current.pem".
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.881693    3081 dynamic_cafile_content.go:161] "Starting controller" name="client-ca-bundle::/etc/kubernetes/pki/ca.crt"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.884220    3081 log.go:32] "RuntimeConfig from runtime service failed" err="rpc error: code = Unimplemented desc = unknown method RuntimeConfig for service runtime.v1.RuntimeService"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.884242    3081 server.go:1421] "CRI implementation should be updated to support RuntimeConfig when KubeletCgroupDriverFromCRI feature gate has been enabled. Falling back to using cgroupDriver from kubelet config."
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.892519    3081 server.go:772] "--cgroups-per-qos enabled, but --cgroup-root was not specified.  defaulting to /"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.892745    3081 container_manager_linux.go:268] "Container manager verified user specified cgroup-root exists" cgroupRoot=[]
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.892782    3081 container_manager_linux.go:273] "Creating Container Manager object based on Node Config" nodeConfig={"NodeName":"octavo","RuntimeCgroupsName":"","SystemCgroupsName":"","KubeletCgroupsName":"","KubeletOOMScoreAdj":-999,"ContainerRuntime":"","CgroupsPerQOS":true,"CgroupRoot":"/","CgroupDriver":"systemd","Kubele>
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.892963    3081 topology_manager.go:138] "Creating topology manager with none policy"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.892973    3081 container_manager_linux.go:304] "Creating device plugin manager"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.893096    3081 state_mem.go:36] "Initialized new in-memory state store"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.893362    3081 kubelet.go:446] "Attempting to sync node with API server"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.893383    3081 kubelet.go:341] "Adding static pod path" path="/etc/kubernetes/manifests"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.893401    3081 kubelet.go:352] "Adding apiserver pod source"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.893412    3081 apiserver.go:42] "Waiting for node sync before watching apiserver pods"
+    Apr 26 16:00:24 octavo kubelet[3081]: W0426 16:00:24.893859    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.Service: Get "https://10.0.0.8:6443/api/v1/services?fieldSelector=spec.clusterIP%21%3DNone&limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:24 octavo kubelet[3081]: W0426 16:00:24.893887    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.Node: Get "https://10.0.0.8:6443/api/v1/nodes?fieldSelector=metadata.name%3Doctavo&limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.893911    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.Service: failed to list *v1.Service: Get \"https://10.0.0.8:6443/api/v1/services?fieldSelector=spec.clusterIP%21%3DNone&limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" lo>
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.893993    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.Node: failed to list *v1.Node: Get \"https://10.0.0.8:6443/api/v1/nodes?fieldSelector=metadata.name%3Doctavo&limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="Unhan>
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894044    3081 kuberuntime_manager.go:269] "Container runtime initialized" containerRuntime="containerd" version="1.7.27" apiVersion="v1"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894351    3081 kubelet.go:890] "Not starting ClusterTrustBundle informer because we are in static kubelet mode"
+    Apr 26 16:00:24 octavo kubelet[3081]: W0426 16:00:24.894385    3081 probe.go:272] Flexvolume plugin directory at /usr/libexec/kubernetes/kubelet-plugins/volume/exec/ does not exist. Recreating.
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894658    3081 watchdog_linux.go:99] "Systemd watchdog is not enabled"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894673    3081 server.go:1287] "Started kubelet"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894770    3081 server.go:169] "Starting to listen" address="0.0.0.0" port=10250
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.894761    3081 ratelimit.go:55] "Setting rate limiting for endpoint" service="podresources" qps=100 burstTokens=10
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895021    3081 server.go:243] "Starting to serve the podresources API" endpoint="unix:/var/lib/kubelet/pod-resources/kubelet.sock"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.895066    3081 event.go:368] "Unable to write event (may retry after sleeping)" err="Post \"https://10.0.0.8:6443/api/v1/namespaces/default/events\": dial tcp 10.0.0.8:6443: connect: connection refused" event="&Event{ObjectMeta:{octavo.1839e3187cc326ed  default    0 0001-01-01 00:00:00 +0000 UTC <nil> <nil> map[] map[] [] [>
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895314    3081 fs_resource_analyzer.go:67] "Starting FS ResourceAnalyzer"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895343    3081 dynamic_serving_content.go:135] "Starting controller" name="kubelet-server-cert-files::/var/lib/kubelet/pki/kubelet.crt::/var/lib/kubelet/pki/kubelet.key"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895416    3081 volume_manager.go:297] "Starting Kubelet Volume Manager"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895449    3081 desired_state_of_world_populator.go:150] "Desired state populator starts to run"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.895492    3081 kubelet_node_status.go:466] "Error getting the current node from lister" err="node \"octavo\" not found"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.895521    3081 reconciler.go:26] "Reconciler: start to sync state"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.896004    3081 controller.go:145] "Failed to ensure lease exists, will retry" err="Get \"https://10.0.0.8:6443/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/octavo?timeout=10s\": dial tcp 10.0.0.8:6443: connect: connection refused" interval="200ms"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.896248    3081 factory.go:219] Registration of the crio container factory failed: Get "http://%2Fvar%2Frun%2Fcrio%2Fcrio.sock/info": dial unix /var/run/crio/crio.sock: connect: no such file or directory
+    Apr 26 16:00:24 octavo kubelet[3081]: W0426 16:00:24.897181    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.CSIDriver: Get "https://10.0.0.8:6443/apis/storage.k8s.io/v1/csidrivers?limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.897377    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.CSIDriver: failed to list *v1.CSIDriver: Get \"https://10.0.0.8:6443/apis/storage.k8s.io/v1/csidrivers?limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="UnhandledEr>
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.897627    3081 server.go:479] "Adding debug handlers to kubelet server"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.898015    3081 factory.go:221] Registration of the containerd container factory successfully
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.898031    3081 factory.go:221] Registration of the systemd container factory successfully
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.898126    3081 kubelet.go:1555] "Image garbage collection failed once. Stats initialization may not have completed yet" err="invalid capacity 0 on image filesystem"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.907984    3081 cpu_manager.go:221] "Starting CPU manager" policy="none"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.907991    3081 cpu_manager.go:222] "Reconciling" reconcilePeriod="10s"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.908003    3081 state_mem.go:36] "Initialized new in-memory state store"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.909090    3081 policy_none.go:49] "None policy: Start"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.909098    3081 memory_manager.go:186] "Starting memorymanager" policy="None"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.909104    3081 state_mem.go:35] "Initializing new in-memory state store"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.948672    3081 manager.go:519] "Failed to read data from checkpoint" checkpoint="kubelet_internal_checkpoint" err="checkpoint is not found"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.948805    3081 eviction_manager.go:189] "Eviction manager: starting control loop"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.948817    3081 container_log_manager.go:189] "Initializing container log rotate workers" workers=1 monitorPeriod="10s"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.948983    3081 plugin_manager.go:118] "Starting Kubelet Plugin Manager"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.949523    3081 eviction_manager.go:267] "eviction manager: failed to check if we have separate container filesystem. Ignoring." err="no imagefs label for configured runtime"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.949568    3081 eviction_manager.go:292] "Eviction manager: failed to get summary stats" err="failed to get node info: node \"octavo\" not found"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.952661    3081 kubelet_network_linux.go:50] "Initialized iptables rules." protocol="IPv4"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.953773    3081 kubelet_network_linux.go:50] "Initialized iptables rules." protocol="IPv6"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.953793    3081 status_manager.go:227] "Starting to sync pod status with apiserver"
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.953815    3081 watchdog_linux.go:127] "Systemd watchdog is not enabled or the interval is invalid, so health checking will not be started."
+    Apr 26 16:00:24 octavo kubelet[3081]: I0426 16:00:24.953821    3081 kubelet.go:2382] "Starting kubelet main sync loop"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.953861    3081 kubelet.go:2406] "Skipping pod synchronization" err="PLEG is not healthy: pleg has yet to be successful"
+    Apr 26 16:00:24 octavo kubelet[3081]: W0426 16:00:24.954293    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.RuntimeClass: Get "https://10.0.0.8:6443/apis/node.k8s.io/v1/runtimeclasses?limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.954314    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.RuntimeClass: failed to list *v1.RuntimeClass: Get \"https://10.0.0.8:6443/apis/node.k8s.io/v1/runtimeclasses?limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="Unha>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.051160    3081 kubelet_node_status.go:75] "Attempting to register node" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.051955    3081 kubelet_node_status.go:107] "Unable to register node with API server" err="Post \"https://10.0.0.8:6443/api/v1/nodes\": dial tcp 10.0.0.8:6443: connect: connection refused" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096663    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"ca-certs\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-ca-certs\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") " pod="kube-system/kube-controller->
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096703    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"usr-local-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-usr-local-share-ca-certificates\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1f>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096736    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"ca-certs\" (UniqueName: \"kubernetes.io/host-path/9143a118ddce4da18128e4a82a4a703f-ca-certs\") pod \"kube-apiserver-octavo\" (UID: \"9143a118ddce4da18128e4a82a4a703f\") " pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096755    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"k8s-certs\" (UniqueName: \"kubernetes.io/host-path/9143a118ddce4da18128e4a82a4a703f-k8s-certs\") pod \"kube-apiserver-octavo\" (UID: \"9143a118ddce4da18128e4a82a4a703f\") " pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096790    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"usr-local-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/9143a118ddce4da18128e4a82a4a703f-usr-local-share-ca-certificates\") pod \"kube-apiserver-octavo\" (UID: \"9143a118ddce4da18128e4a82a4a703f\">
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096824    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"etc-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-etc-ca-certificates\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") " pod="kube-s>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096849    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"flexvolume-dir\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-flexvolume-dir\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") " pod="kube-system/kube>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096876    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"k8s-certs\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-k8s-certs\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") " pod="kube-system/kube-controlle>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096896    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"etcd-certs\" (UniqueName: \"kubernetes.io/host-path/6a67e3805915a015cc4032245f92dbab-etcd-certs\") pod \"etcd-octavo\" (UID: \"6a67e3805915a015cc4032245f92dbab\") " pod="kube-system/etcd-octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096920    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"etcd-data\" (UniqueName: \"kubernetes.io/host-path/6a67e3805915a015cc4032245f92dbab-etcd-data\") pod \"etcd-octavo\" (UID: \"6a67e3805915a015cc4032245f92dbab\") " pod="kube-system/etcd-octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.096941    3081 controller.go:145] "Failed to ensure lease exists, will retry" err="Get \"https://10.0.0.8:6443/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/octavo?timeout=10s\": dial tcp 10.0.0.8:6443: connect: connection refused" interval="400ms"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.096967    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"kubeconfig\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-kubeconfig\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") " pod="kube-system/kube-control>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.097001    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"usr-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/ad9e0985cbbefcb442de36a1fa2a7651-usr-share-ca-certificates\") pod \"kube-controller-manager-octavo\" (UID: \"ad9e0985cbbefcb442de36a1fa2a7651\") ">
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.097020    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"kubeconfig\" (UniqueName: \"kubernetes.io/host-path/9a50c799dacb081ee9c958350b51d8ec-kubeconfig\") pod \"kube-scheduler-octavo\" (UID: \"9a50c799dacb081ee9c958350b51d8ec\") " pod="kube-system/kube-scheduler-octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.097037    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"etc-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/9143a118ddce4da18128e4a82a4a703f-etc-ca-certificates\") pod \"kube-apiserver-octavo\" (UID: \"9143a118ddce4da18128e4a82a4a703f\") " pod="kube-system/kub>
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.097054    3081 reconciler_common.go:251] "operationExecutor.VerifyControllerAttachedVolume started for volume \"usr-share-ca-certificates\" (UniqueName: \"kubernetes.io/host-path/9143a118ddce4da18128e4a82a4a703f-usr-share-ca-certificates\") pod \"kube-apiserver-octavo\" (UID: \"9143a118ddce4da18128e4a82a4a703f\") " pod="kub>
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.247411    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.251941    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.253846    3081 kubelet_node_status.go:75] "Attempting to register node" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.254394    3081 kubelet_node_status.go:107] "Unable to register node with API server" err="Post \"https://10.0.0.8:6443/api/v1/nodes\": dial tcp 10.0.0.8:6443: connect: connection refused" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.275473    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.301544    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:24 octavo kubelet[3081]: E0426 16:00:24.974201    3081 controller.go:145] "Failed to ensure lease exists, will retry" err="Get \"https://10.0.0.8:6443/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/octavo?timeout=10s\": dial tcp 10.0.0.8:6443: connect: connection refused" interval="800ms"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.134490    3081 kubelet_node_status.go:75] "Attempting to register node" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.135362    3081 kubelet_node_status.go:107] "Unable to register node with API server" err="Post \"https://10.0.0.8:6443/api/v1/nodes\": dial tcp 10.0.0.8:6443: connect: connection refused" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: W0426 16:00:25.220172    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.Node: Get "https://10.0.0.8:6443/api/v1/nodes?fieldSelector=metadata.name%3Doctavo&limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.220349    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.Node: failed to list *v1.Node: Get \"https://10.0.0.8:6443/api/v1/nodes?fieldSelector=metadata.name%3Doctavo&limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="Unhan>
+    Apr 26 16:00:25 octavo kubelet[3081]: W0426 16:00:25.451675    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.Service: Get "https://10.0.0.8:6443/api/v1/services?fieldSelector=spec.clusterIP%21%3DNone&limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.451792    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.Service: failed to list *v1.Service: Get \"https://10.0.0.8:6443/api/v1/services?fieldSelector=spec.clusterIP%21%3DNone&limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" lo>
+    Apr 26 16:00:25 octavo kubelet[3081]: W0426 16:00:25.487336    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.RuntimeClass: Get "https://10.0.0.8:6443/apis/node.k8s.io/v1/runtimeclasses?limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.487463    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.RuntimeClass: failed to list *v1.RuntimeClass: Get \"https://10.0.0.8:6443/apis/node.k8s.io/v1/runtimeclasses?limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="Unha>
+    Apr 26 16:00:25 octavo kubelet[3081]: W0426 16:00:25.504868    3081 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.CSIDriver: Get "https://10.0.0.8:6443/apis/storage.k8s.io/v1/csidrivers?limit=500&resourceVersion=0": dial tcp 10.0.0.8:6443: connect: connection refused
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.504969    3081 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.CSIDriver: failed to list *v1.CSIDriver: Get \"https://10.0.0.8:6443/apis/storage.k8s.io/v1/csidrivers?limit=500&resourceVersion=0\": dial tcp 10.0.0.8:6443: connect: connection refused" logger="UnhandledEr>
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.775421    3081 controller.go:145] "Failed to ensure lease exists, will retry" err="Get \"https://10.0.0.8:6443/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/octavo?timeout=10s\": dial tcp 10.0.0.8:6443: connect: connection refused" interval="1.6s"
+    Apr 26 16:00:25 octavo kubelet[3081]: I0426 16:00:25.938373    3081 kubelet_node_status.go:75] "Attempting to register node" node="octavo"
+    Apr 26 16:00:25 octavo kubelet[3081]: E0426 16:00:25.939217    3081 kubelet_node_status.go:107] "Unable to register node with API server" err="Post \"https://10.0.0.8:6443/api/v1/nodes\": dial tcp 10.0.0.8:6443: connect: connection refused" node="octavo"
+    Apr 26 16:00:26 octavo kubelet[3081]: E0426 16:00:26.436928    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:26 octavo kubelet[3081]: E0426 16:00:26.438217    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:26 octavo kubelet[3081]: E0426 16:00:26.439369    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:26 octavo kubelet[3081]: E0426 16:00:26.440112    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: E0426 16:00:27.442281    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: E0426 16:00:27.442300    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: E0426 16:00:27.442354    3081 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"octavo\" not found" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: I0426 16:00:27.540869    3081 kubelet_node_status.go:75] "Attempting to register node" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: E0426 16:00:27.804881    3081 nodelease.go:49] "Failed to get node when trying to set owner ref to the node lease" err="nodes \"octavo\" not found" node="octavo"
+    Apr 26 16:00:27 octavo kubelet[3081]: I0426 16:00:27.998050    3081 kubelet_node_status.go:78] "Successfully registered node" node="octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.072723    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/etcd-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: E0426 16:00:28.079480    3081 kubelet.go:3196] "Failed creating a mirror pod" err="pods \"etcd-octavo\" is forbidden: no PriorityClass with name system-node-critical was found" pod="kube-system/etcd-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.079531    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: E0426 16:00:28.086877    3081 kubelet.go:3196] "Failed creating a mirror pod" err="pods \"kube-apiserver-octavo\" is forbidden: no PriorityClass with name system-node-critical was found" pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.086955    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-controller-manager-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: E0426 16:00:28.092824    3081 kubelet.go:3196] "Failed creating a mirror pod" err="pods \"kube-controller-manager-octavo\" is forbidden: no PriorityClass with name system-node-critical was found" pod="kube-system/kube-controller-manager-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.092885    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-scheduler-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: E0426 16:00:28.094961    3081 kubelet.go:3196] "Failed creating a mirror pod" err="pods \"kube-scheduler-octavo\" is forbidden: no PriorityClass with name system-node-critical was found" pod="kube-system/kube-scheduler-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.372556    3081 apiserver.go:52] "Watching apiserver"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.442538    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: E0426 16:00:28.444604    3081 kubelet.go:3196] "Failed creating a mirror pod" err="pods \"kube-apiserver-octavo\" is forbidden: no PriorityClass with name system-node-critical was found" pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:28 octavo kubelet[3081]: I0426 16:00:28.472896    3081 desired_state_of_world_populator.go:158] "Finished populating initial desired state of world"
+    Apr 26 16:00:29 octavo kubelet[3081]: I0426 16:00:29.338842    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/etcd-octavo"
+    Apr 26 16:00:31 octavo kubelet[3081]: I0426 16:00:31.031022    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-controller-manager-octavo"
+    Apr 26 16:00:32 octavo kubelet[3081]: I0426 16:00:32.884678    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-scheduler-octavo"
+    Apr 26 16:00:34 octavo kubelet[3081]: I0426 16:00:34.459610    3081 pod_startup_latency_tracker.go:104] "Observed pod startup duration" pod="kube-system/etcd-octavo" podStartSLOduration=5.459582191 podStartE2EDuration="5.459582191s" podCreationTimestamp="2025-04-26 16:00:29 +0200 CEST" firstStartedPulling="0001-01-01 00:00:00 +0000 UTC" lastFinishedPulling="0001-01-01 00:00:0>
+    Apr 26 16:00:34 octavo kubelet[3081]: I0426 16:00:34.483008    3081 pod_startup_latency_tracker.go:104] "Observed pod startup duration" pod="kube-system/kube-controller-manager-octavo" podStartSLOduration=3.482988267 podStartE2EDuration="3.482988267s" podCreationTimestamp="2025-04-26 16:00:31 +0200 CEST" firstStartedPulling="0001-01-01 00:00:00 +0000 UTC" lastFinishedPulling=>
+    Apr 26 16:00:34 octavo kubelet[3081]: I0426 16:00:34.483102    3081 pod_startup_latency_tracker.go:104] "Observed pod startup duration" pod="kube-system/kube-scheduler-octavo" podStartSLOduration=2.483094445 podStartE2EDuration="2.483094445s" podCreationTimestamp="2025-04-26 16:00:32 +0200 CEST" firstStartedPulling="0001-01-01 00:00:00 +0000 UTC" lastFinishedPulling="0001-01->
+    Apr 26 16:00:35 octavo kubelet[3081]: I0426 16:00:35.015311    3081 kuberuntime_manager.go:1702] "Updating runtime config through cri with podcidr" CIDR="10.244.0.0/24"
+    Apr 26 16:00:35 octavo kubelet[3081]: I0426 16:00:35.016020    3081 kubelet_network.go:61] "Updating Pod CIDR" originalPodCIDR="" newPodCIDR="10.244.0.0/24"
+    Apr 26 16:00:36 octavo kubelet[3081]: I0426 16:00:36.698529    3081 kubelet.go:3194] "Creating a mirror pod for static pod" pod="kube-system/kube-apiserver-octavo"
+    Apr 26 16:00:36 octavo kubelet[3081]: I0426 16:00:36.724746    3081 pod_startup_latency_tracker.go:104] "Observed pod startup duration" pod="kube-system/kube-apiserver-octavo" podStartSLOduration=0.724721039 podStartE2EDuration="724.721039ms" podCreationTimestamp="2025-04-26 16:00:36 +0200 CEST" firstStartedPulling="0001-01-01 00:00:00 +0000 UTC" lastFinishedPulling="0001-01->
+    Apr 26 16:02:24 octavo kubelet[3081]: E0426 16:02:24.440322    3081 kubelet_node_status.go:460] "Node not becoming ready in time after startup"
+    Apr 26 16:02:24 octavo kubelet[3081]: E0426 16:02:24.460985    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+    Apr 26 16:02:29 octavo kubelet[3081]: E0426 16:02:29.463219    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+    Apr 26 16:02:34 octavo kubelet[3081]: E0426 16:02:34.465049    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+    Apr 26 16:02:39 octavo kubelet[3081]: E0426 16:02:39.467066    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+    Apr 26 16:02:44 octavo kubelet[3081]: E0426 16:02:44.468109    3081 kubelet.go:3002] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+    ...
+    ```
+
+Despite all these errors, `kubelet` and `containerd` are running, and *something* is
+listening on port 6443, but the `kubernetes-admin` has no access in any way.
+[Regenerating `kubeconfig` file for the admin user](https://stackoverflow.com/a/70892009)
+did not help either. Running `kubectl proxy` starts serving on port 8001 but all
+requests are still denied:
+
+``` console
+$ curl 2>/dev/null -X GET \
+  http://127.0.0.1:8001/api/v1/nodes/octavo/proxy/configz \
+| jq .
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "nodes \"octavo\" is forbidden: User \"kubernetes-admin\" cannot get resource \"nodes/proxy\" in API group \"\" at the cluster scope",
+  "reason": "Forbidden",
+  "details": {
+    "name": "octavo",
+    "kind": "nodes"
+  },
+  "code": 403
+}
+```
+
+At this point all that was left to do was
+[*tear down* the cluster](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#tear-down):
+
+??? terminal "`$ sudo kubeadm reset`"
+
+    ``` console
+    $ sudo kubeadm reset -f \
+      --cri-socket=unix:/run/containerd/containerd.sock \
+      --cleanup-tmp-dir
+    [reset] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
+    [reset] Use 'kubeadm init phase upload-config --config your-config.yaml' to re-upload it.
+    W0426 16:44:31.464050  537333 reset.go:143] [reset] Unable to fetch the kubeadm-config ConfigMap from cluster: failed to get config map: configmaps "kubeadm-config" is forbidden: User "kubernetes-admin" cannot get resource "configmaps" in API group "" in the namespace "kube-system"
+    [preflight] Running pre-flight checks
+    W0426 16:44:31.464336  537333 removeetcdmember.go:106] [reset] No kubeadm config, using etcd pod spec to get data directory
+    [reset] Deleted contents of the etcd data directory: /var/lib/etcd
+    [reset] Stopping the kubelet service
+    [reset] Unmounting mounted directories in "/var/lib/kubelet"
+    [reset] Deleting contents of directories: [/etc/kubernetes/manifests /var/lib/kubelet /etc/kubernetes/pki /etc/kubernetes/tmp]
+    [reset] Deleting files: [/etc/kubernetes/admin.conf /etc/kubernetes/super-admin.conf /etc/kubernetes/kubelet.conf /etc/kubernetes/bootstrap-kubelet.conf /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf]
+
+    The reset process does not clean CNI configuration. To do so, you must remove /etc/cni/net.d
+
+    The reset process does not reset or clean up iptables rules or IPVS tables.
+    If you wish to reset iptables, you must do so manually by using the "iptables" command.
+
+    If your cluster was setup to utilize IPVS, run ipvsadm --clear (or similar)
+    to reset your system's IPVS tables.
+
+    The reset process does not clean your kubeconfig files and you must remove them manually.
+    Please, check the contents of the $HOME/.kube/config file.
+
+    $ sudo mv /etc/kubernetes/ /etc/bad-kubernetes/
+    $ sudo mv /etc/cni /etc/bad-cni
+
+    $ sudo iptables -L
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    ts-input   all  --  anywhere             anywhere            
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination         
+    ts-forward  all  --  anywhere             anywhere            
+    DOCKER-USER  all  --  anywhere             anywhere            
+    DOCKER-FORWARD  all  --  anywhere             anywhere            
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    KUBE-FIREWALL  all  --  anywhere             anywhere            
+
+    Chain DOCKER (1 references)
+    target     prot opt source               destination         
+    DROP       all  --  anywhere             anywhere            
+
+    Chain DOCKER-BRIDGE (1 references)
+    target     prot opt source               destination         
+    DOCKER     all  --  anywhere             anywhere            
+
+    Chain DOCKER-CT (1 references)
+    target     prot opt source               destination         
+    ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+
+    Chain DOCKER-FORWARD (1 references)
+    target     prot opt source               destination         
+    DOCKER-CT  all  --  anywhere             anywhere            
+    DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere            
+    DOCKER-BRIDGE  all  --  anywhere             anywhere            
+    ACCEPT     all  --  anywhere             anywhere            
+
+    Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+    target     prot opt source               destination         
+    DOCKER-ISOLATION-STAGE-2  all  --  anywhere             anywhere            
+
+    Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+    target     prot opt source               destination         
+    DROP       all  --  anywhere             anywhere            
+
+    Chain DOCKER-USER (1 references)
+    target     prot opt source               destination         
+    RETURN     all  --  anywhere             anywhere            
+
+    Chain KUBE-FIREWALL (2 references)
+    target     prot opt source               destination         
+    DROP       all  -- !localhost/8          localhost/8          /* block incoming localnet connections */ ! ctstate RELATED,ESTABLISHED,DNAT
+
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+
+    Chain ts-forward (1 references)
+    target     prot opt source               destination         
+    MARK       all  --  anywhere             anywhere             MARK xset 0x40000/0xff0000
+    ACCEPT     all  --  anywhere             anywhere             mark match 0x40000/0xff0000
+    DROP       all  --  100.64.0.0/10        anywhere            
+    ACCEPT     all  --  anywhere             anywhere            
+
+    Chain ts-input (1 references)
+    target     prot opt source               destination         
+    ACCEPT     all  --  octavo.royal-penny.ts.net  anywhere            
+    RETURN     all  --  100.115.92.0/23      anywhere            
+    DROP       all  --  100.64.0.0/10        anywhere            
+    ACCEPT     all  --  anywhere             anywhere            
+    ACCEPT     udp  --  anywhere             anywhere             udp dpt:41641
+
+    $ sudo iptables -L -t nat
+    Chain PREROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+    DOCKER     all  --  anywhere             anywhere             ADDRTYPE match dst-type LOCAL
+
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+    DOCKER     all  --  anywhere            !localhost/8          ADDRTYPE match dst-type LOCAL
+
+    Chain POSTROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+    ts-postrouting  all  --  anywhere             anywhere            
+    MASQUERADE  all  --  172.17.0.0/16        anywhere            
+
+    Chain DOCKER (2 references)
+    target     prot opt source               destination         
+    RETURN     all  --  anywhere             anywhere            
+
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+
+    Chain ts-postrouting (1 references)
+    target     prot opt source               destination         
+    MASQUERADE  all  --  anywhere             anywhere             mark match 0x40000/0xff0000
+
+    $ sudo iptables -L -t mangle
+    Chain PREROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain POSTROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain KUBE-IPTABLES-HINT (0 references)
+    target     prot opt source               destination         
+
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+
+
+    $ sudo iptables -F
+    $ sudo iptables -t nat -F
+    $ sudo iptables -t mangle -F
+    $ sudo iptables -X
+
+
+    $ sudo iptables -L
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    $ sudo iptables -t nat
+    Chain PREROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain POSTROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain DOCKER (0 references)
+    target     prot opt source               destination         
+
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination         
+
+    Chain ts-postrouting (0 references)
+    target     prot opt source               destination         
+
+    $ sudo iptables -t mangle
+    Chain PREROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain POSTROUTING (policy ACCEPT)
+    target     prot opt source               destination         
+
+    Chain KUBE-IPTABLES-HINT (0 references)
+    target     prot opt source               destination         
+
+    Chain KUBE-KUBELET-CANARY (0 references)
+    target     prot opt source               destination
+    ```
+
+### Network plugin
+
+[Installing a Pod network add-on](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network)
+is the next required step and, once again, in lack of other suggestions,
+[deploying flannel manually](https://github.com/flannel-io/flannel#deploying-flannel-manually)
+like in previous clusters seems the way to go:
+
+``` console
+$ wget \
+  https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+$ kubectl apply -f kube-flannel.yml
+namespace/kube-flannel created
+serviceaccount/flannel created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created
+
+$ kubectl get all -n kube-flannel 
+NAME                        READY   STATUS    RESTARTS   AGE
+pod/kube-flannel-ds-m8h8n   1/1     Running   0          8s
+
+NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/kube-flannel-ds   1         1         1       1            1           <none>          8s
+```
+
+### Enable single-node cluster
+
+[Control plane node isolation](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation)
+is required for a single-node cluster, because otherwise a cluster will not schedule
+Pods on the control plane nodes for security reasons.
+This is reflected in the **`Taints`** found in the node details:
+
+``` console hl_lines="14 23"
+$ kubectl get nodes -o wide
+NAME     STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+octavo   Ready    control-plane   14m   v1.32.4   192.168.0.8   <none>        Ubuntu 24.04.2 LTS   6.8.0-58-generic   containerd://1.7.27
+
+$ kubectl describe node octavo
+Name:               octavo
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=octavo
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=
+                    node.kubernetes.io/exclude-from-external-load-balancers=
+Annotations:        flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"0a:7f:28:09:c7:77"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 10.0.0.8
+                    kubeadm.alpha.kubernetes.io/cri-socket: unix:/run/containerd/containerd.sock
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Sat, 26 Apr 2025 16:55:47 +0200
+Taints:             node-role.kubernetes.io/control-plane:NoSchedule
+Unschedulable:      false
+```
+
+Remove this taint to allow other pods to be scheduled:
+
+``` console
+$ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+node/octavo untainted
+
+$ kubectl describe node octavo | grep -i taint
+Taints:             <none>
+```
+
+#### Allow external load balancers
+
+The `node.kubernetes.io/exclude-from-external-load-balancers` label highlighted
+above will later lead to the problem of
+[MetalLB is not advertising my service from my control-plane nodes or from my single node cluster](https://metallb.universe.tf/troubleshooting/#metallb-is-not-advertising-my-service-from-my-control-plane-nodes-or-from-my-single-node-cluster);
+the recommened solution is to remove this label:
+
+``` console
+$ kubectl label nodes octavo \
+  node.kubernetes.io/exclude-from-external-load-balancers-
+node/octavo unlabeled
+```
+
+#### Test pod scheduling
+
+Before moving forward, run a test pod to confirm that pods can be scheduled:
+
+``` console
+$ kubectl apply -f https://k8s.io/examples/pods/commands.yaml
+pod/command-demo created
+
+$ kubectl get all
+NAME               READY   STATUS              RESTARTS   AGE
+pod/command-demo   0/1     ContainerCreating   0          1s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   24m
+```
+
+After a minute or two, the pod becomes `Completed`, indicating a successful run.
+With the cluster now ready to run pods and services, move on to installing more components that will be used by the actual services:
+[MetalLB Load Balancer](#metallb-load-balancer),
+[Kubernets Dashboard](#kubernets-dashboard),
+[Ingress Controller](#ingress-controller),
+[HTTPS certificates](#https-certificates)
+with Let’s Encrypt, including [automatic renewal](#automatic-renewal).
+[LocalPath PV provisioner](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#localpath-pv-provisioner)
+for simple persistent storage in local file systems would seem unnecessary,
+based on experience with previous clusters.
+
+### MetalLB Load Balancer
+
+A Load Balancer is going to be necessary for the [Dashboard](#kubernets-dashboard)
+and other services, to expose individual services via open ports on the server
+(`NodePort`) or virtual IP addresses.
+[Installation By Manifest](https://metallb.universe.tf/installation/#installation-by-manifest)
+is as simple as applying the provided manifest:
+
+``` console
+$ wget \
+  https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
+
+$ kubectl apply -f metallb/metallb-native.yaml
+namespace/metallb-system created
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io created
+customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io created
+serviceaccount/controller created
+serviceaccount/speaker created
+role.rbac.authorization.k8s.io/controller created
+role.rbac.authorization.k8s.io/pod-lister created
+clusterrole.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrole.rbac.authorization.k8s.io/metallb-system:speaker created
+rolebinding.rbac.authorization.k8s.io/controller created
+rolebinding.rbac.authorization.k8s.io/pod-lister created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller created
+clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker created
+configmap/metallb-excludel2 created
+secret/metallb-webhook-cert created
+service/metallb-webhook-service created
+deployment.apps/controller created
+daemonset.apps/speaker created
+validatingwebhookconfiguration.admissionregistration.k8s.io/metallb-webhook-configuration created
+```
+
+Soon enough the deployment should have the controller and speaker running:
+
+``` console
+$ kubectl get all -n metallb-system
+NAME                             READY   STATUS    RESTARTS   AGE
+pod/controller-bb5f47665-vt57w   1/1     Running   0          62s
+pod/speaker-92c2g                1/1     Running   0          62s
+
+NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/metallb-webhook-service   ClusterIP   10.98.162.115   <none>        443/TCP   62s
+
+NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/speaker   1         1         1       1            1           kubernetes.io/os=linux   62s
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/controller   1/1     1            1           62s
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/controller-bb5f47665   1         1         1       62s
+```
+
+MetalLB remains idle until configured, which is done by deploying resources into its
+namespace. A small range of IP addresses is advertised via
+[Layer 2 Configuration](https://metallb.universe.tf/configuration/#layer-2-configuration),
+which does not not require the IPs to be bound to the network interfaces:
+
+``` yaml hl_lines="8" title="metallb/ipaddress-pool-octavo.yaml"
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: production
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.0.171-192.168.0.180
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advert
+  namespace: metallb-system
+```
+
+The range is based on the local DHCP server configuration and which IPs are 
+currently in use; this range has just not been leased so far. The reason to
+use IPs from the leased range is that the router only allows adding port
+forwarding rules for those. This range is intentionally on the same network
+range and subnet as the DHCP server so that no routing is needed to reach
+MetalLB IPs.
+
+``` console hl_lines="7 28"
+$ kubectl apply -f metallb/ipaddress-pool-octavo.yaml
+ipaddresspool.metallb.io/production created
+l2advertisement.metallb.io/l2-advert created
+
+$ kubectl get ipaddresspool.metallb.io -n metallb-system 
+NAME         AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
+production   true          false             ["192.168.0.171-192.168.0.180"]
+
+$ kubectl get l2advertisement.metallb.io -n metallb-system 
+NAME        IPADDRESSPOOLS   IPADDRESSPOOL SELECTORS   INTERFACES
+l2-advert
+
+$ kubectl describe ipaddresspool.metallb.io production -n metallb-system 
+stem
+Name:         production
+Namespace:    metallb-system
+Labels:       <none>
+Annotations:  <none>
+API Version:  metallb.io/v1beta1
+Kind:         IPAddressPool
+Metadata:
+  Creation Timestamp:  2025-04-26T15:40:23Z
+  Generation:          1
+  Resource Version:    3974
+  UID:                 3a7c5d52-ab54-4cb8-b339-2a81930bf199
+Spec:
+  Addresses:
+    192.168.0.171-192.168.0.180
+  Auto Assign:       true
+  Avoid Buggy I Ps:  false
+Events:              <none>
+```
+
+### Kubernets Dashboard
+
+[Install the Helm repository](https://github.com/kubernetes/dashboard?tab=readme-ov-file#installation)
+for the Kubernetes dashboard (this requires having previously
+[installed Helm](#install-helm)):
+
+``` console
+$ helm repo add \
+  kubernetes-dashboard \
+  https://kubernetes.github.io/dashboard/
+"kubernetes-dashboard" has been added to your repositories
+```
+
+And install the Kubernetes dashboard without any customization:
+
+``` console
+$ helm upgrade \
+  --install kubernetes-dashboard \
+    kubernetes-dashboard/kubernetes-dashboard \
+  --create-namespace \
+  --namespace kubernetes-dashboard
+Release "kubernetes-dashboard" does not exist. Installing it now.
+NAME: kubernetes-dashboard
+LAST DEPLOYED: Sat Apr 26 17:56:44 2025
+NAMESPACE: kubernetes-dashboard
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+*************************************************************************************************
+*** PLEASE BE PATIENT: Kubernetes Dashboard may need a few minutes to get up and become ready ***
+*************************************************************************************************
+
+Congratulations! You have just installed Kubernetes Dashboard in your cluster.
+
+To access Dashboard run:
+  kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+NOTE: In case port-forward command does not work, make sure that kong service name is correct.
+      Check the services in Kubernetes Dashboard namespace using:
+        kubectl -n kubernetes-dashboard get svc
+
+Dashboard will be available at:
+  https://localhost:8443
+```
+
+After a minute or two, all services are running:
+
+``` console
+$ kubectl get all -n kubernetes-dashboard
+NAME                                                        READY   STATUS    RESTARTS   AGE
+pod/kubernetes-dashboard-api-64c997cbcc-cxbjt               1/1     Running   0          30s
+pod/kubernetes-dashboard-auth-5cf6848ffd-5vcm7              1/1     Running   0          30s
+pod/kubernetes-dashboard-kong-79867c9c48-dwncj              1/1     Running   0          30s
+pod/kubernetes-dashboard-metrics-scraper-76df4956c4-bx6wj   1/1     Running   0          30s
+pod/kubernetes-dashboard-web-56df7655d9-jc8ss               1/1     Running   0          30s
+
+NAME                                           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes-dashboard-api               ClusterIP   10.96.67.106    <none>        8000/TCP   30s
+service/kubernetes-dashboard-auth              ClusterIP   10.110.81.112   <none>        8000/TCP   30s
+service/kubernetes-dashboard-kong-proxy        ClusterIP   10.97.89.215    <none>        443/TCP    30s
+service/kubernetes-dashboard-metrics-scraper   ClusterIP   10.111.10.215   <none>        8000/TCP   30s
+service/kubernetes-dashboard-web               ClusterIP   10.99.213.93    <none>        8000/TCP   30s
+
+NAME                                                   READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kubernetes-dashboard-api               1/1     1            1           30s
+deployment.apps/kubernetes-dashboard-auth              1/1     1            1           30s
+deployment.apps/kubernetes-dashboard-kong              1/1     1            1           30s
+deployment.apps/kubernetes-dashboard-metrics-scraper   1/1     1            1           30s
+deployment.apps/kubernetes-dashboard-web               1/1     1            1           30s
+
+NAME                                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/kubernetes-dashboard-api-64c997cbcc               1         1         1       30s
+replicaset.apps/kubernetes-dashboard-auth-5cf6848ffd              1         1         1       30s
+replicaset.apps/kubernetes-dashboard-kong-79867c9c48              1         1         1       30s
+replicaset.apps/kubernetes-dashboard-metrics-scraper-76df4956c4   1         1         1       30s
+replicaset.apps/kubernetes-dashboard-web-56df7655d9               1         1         1       30s
+```
+
+The dashboard is now behind the `kubernetes-dashboard-kong-proxy` service, and
+the suggested `kubectl port-forward` command.can be used to map port 8443 to it:
+
+``` console
+$ kubectl -n kubernetes-dashboard port-forward \
+  svc/kubernetes-dashboard-kong-proxy 8443:443 \
+  --address 0.0.0.0
+Forwarding from 0.0.0.0:8443 -> 8443
+
+```
+
+The dasboard is then available at <https://octavo:8443/>:
+
+![Kubernetes Dashboard login](../media/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo/kubernetes-dashboard-login.png){: style="height:342px;width:964px"}
+
+!!! note
+
+    Documentation pages omit the `--address 0.0.0.0` flag, but without it the
+    dashboard is either unreachable or non-functional, see
+    [Troubleshooting Dashboard](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#troubleshooting-dashboard)
+    for details of how this issue was encountered before.
+
+[Accessing the Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
+requires
+[creating a sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md);
+the setup in the tutorial creates an example admin user with all privileges,
+good enough for now:
+
+``` yaml title="dashboard/admin-sa-rbac.yaml"
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  namespace: kubernetes-dashboard
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/service-account.name: "admin-user"   
+type: kubernetes.io/service-account-token
+```
+
+``` console
+$ kubectl apply -f dashboard/admin-sa-rbac.yaml
+serviceaccount/admin-user created
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+secret/admin-user created
+```
+
+To login on the dashboard as the `admin` user, each time, generate a new
+tokenw with:
+
+``` console
+$ kubectl -n kubernetes-dashboard create token admin-user
+```
+
+The next step is to make the dashboard available at a stable URL, without running
+the `kubectl port-forward` command.
+
+### Ingress Controller
+
+An Nginx Ingress Controller will be used to redirect HTTPS requests to different services depending on the `Host` header, while all those requests will be hitting
+the same IP address. The current Nginx
+[Installation Guide](https://kubernetes.github.io/ingress-nginx/deploy/)
+essentially suggests several methods to install Nginx, of which the first is Helm:
+
+``` console
+$ helm repo add \
+  ingress-nginx \
+  https://kubernetes.github.io/ingress-nginx
+"ingress-nginx" has been added to your repositories
+```
+
+To enable the use of snippets annotations, used to hide server headers, override
+[`allow-snippet-annotations`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#allow-snippet-annotations)
+which is set to `false` by default to mitigate known vulnerability
+[CVE-2021-25742](https://nvd.nist.gov/vuln/detail/CVE-2021-25742).
+The `nginx.ingress.kubernetes.io/configuration-snippet` is rated `Critical`, so the
+annotation also requires raisig the `annotations-risk-level`. To tweak both of these
+in the Helm chart, use the following `nginx-values.yaml`:
+
+``` yaml title="nginx-values.yaml"
+controller:
+  allowSnippetAnnotations: true
+  config:
+    annotations-risk-level: "Critical"
+```
+
+``` console
+$ helm upgrade \
+  --install ingress-nginx \
+  ingress-nginx/ingress-nginx \
+  --create-namespace \
+  --namespace ingress-nginx \
+  --values nginx-values.yaml
+Release "ingress-nginx" does not exist. Installing it now.
+NAME: ingress-nginx
+LAST DEPLOYED: Sat Apr 26 19:31:25 2025
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+```
+
+After just half a minute the service is available on the `LoadBalancer` IP address:
+
+``` console
+$ kubectl get all -n ingress-nginx
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/ingress-nginx-controller-b49d9c7b9-w26hb   1/1     Running   0          25s
+
+NAME                                         TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                      AGE
+service/ingress-nginx-controller             LoadBalancer   10.99.252.250   192.168.0.171   80:30278/TCP,443:30974/TCP   25s
+service/ingress-nginx-controller-admission   ClusterIP      10.96.96.221    <none>          443/TCP                      25s
+
+NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ingress-nginx-controller   1/1     1            1           25s
+
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/ingress-nginx-controller-b49d9c7b9   1         1         1       25
+```
+
+The first virtual IP address is assigned to the `ingress-nginx-controller` service and
+there is NGinx happily returning `404 Not found` *and* reachable from other hosts:
+
+``` console
+$ curl -k https://192.168.0.171/
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
+#### Kubernetes Dashboard Ingress
+
+With both Ngnix and the Kubernetes dashboard up and running, it is now possible to make
+the dashboard more conveniently accessible via Nginx. This `Ingress` is a slightly more
+complete one based on the example above, 
+
+``` yaml title="dashboard/octavo-ingress.yaml"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: k8s.octavo
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+```
+
+This points to the `kubernetes-dashboard-kong-proxy` service which is the one listening
+on the standard HTTPS port 443, and the one previously targeted by the
+`kubectl port-forward` command above. After applying this `Ingress`, adding the
+`Host: k8s.octavo` header will get the request correctly reach the dashboard:
+
+``` console
+$ kubectl apply -f dashboard/octavo-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress created
+
+$ curl 2>/dev/null \
+  -H "Host: k8s.octavo" \
+  -k https://192.168.0.171/ \
+| head -2
+<!--
+Copyright 2017 The Kubernetes Authors.
+```
+
+#### Cloudflare Ingress
+
+Having a [Cloudflare Tunnel](#cloudflare-tunnel) already setup with 
+<https://kubernetes-octavo.very-very-dark-gray.top/> (pointing to `https://localhost`),
+updating this to point to `https://192.168.0.171/` will make requests reach Nginx, and
+updating the `host` value above to the `kubernetes-octavo.very-very-dark-gray.top`
+makes the dashboard available at that address.
+
+#### Tailscale Ingress
+
+To make the dashboard available over [Tailscale](#tailscale), start by installing the
+[Tailscale Kubernetes operator](./blog-2025-03-28-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator):
+
+``` console
+$ helm repo add tailscale https://pkgs.tailscale.com/helmcharts && \
+  helm repo update
+"tailscale" has been added to your repositories
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "kubernetes-dashboard" chart repository
+...Successfully got an update from the "ingress-nginx" chart repository
+...Successfully got an update from the "tailscale" chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+$ kubectl create namespace tailscale
+namespace/tailscale created
+
+$ kubectl label namespace tailscale pod-security.kubernetes.io/enforce=privileged
+namespace/tailscale labeled
+
+$ helm upgrade \
+  --install \
+  tailscale-operator \
+  tailscale/tailscale-operator \
+  --namespace=tailscale \
+  --create-namespace \
+  --set-string oauth.clientId="_________________" \
+  --set-string oauth.clientSecret="tskey-client-_________________-__________________________________" \
+  --wait
+Release "tailscale-operator" does not exist. Installing it now.
+NAME: tailscale-operator
+LAST DEPLOYED: Sat Apr 26 20:15:26 2025
+NAMESPACE: tailscale
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+
+$ sudo tailscale cert octavo.royal-penny.ts.net
+Wrote public cert to octavo.royal-penny.ts.net.crt
+Wrote private key to octavo.royal-penny.ts.net.key
+```
+
+Using the Tailscale Ingress Controller, it is now possible to make the dashboard available at https://kubernetes-octavo.royal-penny.ts.net by adding a new `Ingress`
+(*with its own unique `metadata.name`*) in `octavo-ingress.yaml`:
+
+``` yaml title="dashboard/octavo-ingress.yaml" hl_lines="15 29 31-40"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kubernetes-octavo.very-very-dark-gray.top
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress-tailscale
+  namespace: kubernetes-dashboard
+spec:
+  defaultBackend:
+    service:
+      name: kubernetes-dashboard-kong-proxy
+      port:
+        number: 443
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - kubernetes-octavo
+```
+
+``` console
+$ kubectl apply -f dashboard/octavo-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged
+ingress.networking.k8s.io/kubernetes-dashboard-ingress-tailscale created
+
+$ kubectl get ingress -A
+NAMESPACE              NAME                                     CLASS       HOSTS                                       ADDRESS                                PORTS     AGE
+kubernetes-dashboard   kubernetes-dashboard-ingress             nginx       kubernetes-octavo.very-very-dark-gray.top   192.168.0.171                          80        39m
+kubernetes-dashboard   kubernetes-dashboard-ingress-tailscale   tailscale   *                                           kubernetes-octavo.royal-penny.ts.net   80, 443   31s
+```
+
+After *some time* the dashboard is available also at
+<https://kubernetes-octavo.royal-penny.ts.net/>.
+
+### HTTPS certificates
+
+The Kubernetes dashboard uses a self-signed certificate, and so does Nginx by default,
+which works in so far as encrypting traffic, but provides no guarantee that the traffic
+is coming from the actual servers and is just very annoying when browsers complain
+every time accessing the service. It is now time to get properly signed HTTPS
+certificates. *This is the way*.
+
+#### Install `cert-manager`
+
+[cert-manager](https://cert-manager.io/)
+is the native Kubernetes certificate management controller of choice to issue certificates from Let's Encrypt to
+[secure NGINX-ingress](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/).
+
+Having already installed Helm (3.17), deployed the NGINX
+[Ingress Controller](#ingress-controller),
+assigned `octavo.uu.am` to the router's external IP address, and deployed the
+[Kubernetes dashboard](#kubernets-dashboard)
+service, the system is ready for
+[Step 5 - Deploy cert-manager](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-5---deploy-cert-manager),
+starting with the
+[installation with Helm](https://cert-manager.io/docs/installation/helm/):
+
+``` console
+$ helm repo add jetstack https://charts.jetstack.io --force-update
+"jetstack" has been added to your repositories
+
+$ helm install \
+    cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --version v1.17.2 \
+    --set crds.enabled=true
+NAME: cert-manager
+LAST DEPLOYED: Sat Apr 26 21:05:57 2025
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+```
+
+The `helm install` command takes several seconds to come back with the above output,
+at which point the pods and services are all up and running:
+
+``` console
+$ kubectl get all -n cert-manager
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/cert-manager-7d67448f59-c2fgn              1/1     Running   0          102s
+pod/cert-manager-cainjector-666b8b6b66-fl6rp   1/1     Running   0          102s
+pod/cert-manager-webhook-78cb4cf989-wb4wz      1/1     Running   0          102s
+
+NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)            AGE
+service/cert-manager              ClusterIP   10.103.213.89   <none>        9402/TCP           102s
+service/cert-manager-cainjector   ClusterIP   10.108.222.22   <none>        9402/TCP           102s
+service/cert-manager-webhook      ClusterIP   10.108.56.97    <none>        443/TCP,9402/TCP   102s
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cert-manager              1/1     1            1           102s
+deployment.apps/cert-manager-cainjector   1/1     1            1           102s
+deployment.apps/cert-manager-webhook      1/1     1            1           102s
+
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/cert-manager-7d67448f59              1         1         1       102s
+replicaset.apps/cert-manager-cainjector-666b8b6b66   1         1         1       102s
+replicaset.apps/cert-manager-webhook-78cb4cf989      1         1         1       102s
+```
+
+#### Test `cert-manager`
+
+[Verify the installation](https://cert-manager.io/docs/installation/kubectl/#2-optional-end-to-end-verify-the-installation)
+by creating a simple self-signed certificate:
+
+??? k8s "Test certificate: `test-resources.yaml`"
+
+    ``` yaml title="test-resources.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: cert-manager-test
+    ---
+    apiVersion: cert-manager.io/v1
+    kind: Issuer
+    metadata:
+      name: test-selfsigned
+      namespace: cert-manager-test
+    spec:
+      selfSigned: {}
+    ---
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata:
+      name: selfsigned-cert
+      namespace: cert-manager-test
+    spec:
+      dnsNames:
+        - example.com
+      secretName: selfsigned-cert-tls
+      issuerRef:
+        name: test-selfsigned
+    ```
+
+Deploying this succeeds withing seconds, after which it can be cleaned up:
+
+??? terminal "`kubectl apply -f test-resources.yaml`"
+
+    ``` console hl_lines="42"
+    $ kubectl apply -f test-resources.yaml
+    namespace/cert-manager-test created
+    issuer.cert-manager.io/test-selfsigned created
+    certificate.cert-manager.io/selfsigned-cert created
+
+    $ kubectl describe certificate -n cert-manager-test
+    Name:         selfsigned-cert
+    Namespace:    cert-manager-test
+    Labels:       <none>
+    Annotations:  <none>
+    API Version:  cert-manager.io/v1
+    Kind:         Certificate
+    Metadata:
+      Creation Timestamp:  2025-04-26T19:11:05Z
+      Generation:          1
+      Resource Version:    21857
+      UID:                 e16b3f4e-494b-4866-b328-bb92759fd482
+    Spec:
+      Dns Names:
+        example.com
+      Issuer Ref:
+        Name:       test-selfsigned
+      Secret Name:  selfsigned-cert-tls
+    Status:
+      Conditions:
+        Last Transition Time:  2025-04-26T19:11:05Z
+        Message:               Certificate is up to date and has not expired
+        Observed Generation:   1
+        Reason:                Ready
+        Status:                True
+        Type:                  Ready
+      Not After:               2025-07-25T19:11:05Z
+      Not Before:              2025-04-26T19:11:05Z
+      Renewal Time:            2025-06-25T19:11:05Z
+      Revision:                1
+    Events:
+      Type    Reason     Age   From                                       Message
+      ----    ------     ----  ----                                       -------
+      Normal  Issuing    8s    cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+      Normal  Generated  8s    cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "selfsigned-cert-fzsgh"
+      Normal  Requested  8s    cert-manager-certificates-request-manager  Created new CertificateRequest resource "selfsigned-cert-1"
+      Normal  Issuing    8s    cert-manager-certificates-issuing          The certificate has been successfully issued
+    ```
+
+#### Configure Let's Encrypt
+
+[Step 6 - Configure a Let's Encrypt Issuer](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-6---configure-a-lets-encrypt-issuer)
+shows how to create an `Issuer`, but in this system with multiple services running in
+different namespaces, a `ClusterIssuer` is needed instead:
+
+``` yaml title="cert-manager-issuer.yaml"
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: stibbons@uu.am
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+```
+
+``` console
+$ kubectl create -f cert-manager-issuer.yaml
+clusterissuer.cert-manager.io/letsencrypt-prod created
+
+$ kubectl describe clusterissuer.cert-manager.io/letsencrypt-prod
+Name:         letsencrypt-prod
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         ClusterIssuer
+Metadata:
+  Creation Timestamp:  2025-04-26T19:18:14Z
+  Generation:          1
+  Resource Version:    22532
+  UID:                 c7063ffb-d530-4f72-8b0a-7f323b39c593
+Spec:
+  Acme:
+    Email:  stibbons@uu.am
+    Private Key Secret Ref:
+      Name:  letsencrypt-prod
+    Server:  https://acme-v02.api.letsencrypt.org/directory
+    Solvers:
+      http01:
+        Ingress:
+          Class:  nginx
+Status:
+  Acme:
+    Last Private Key Hash:  Qb3v8RLD0ixqgBLKVsI/tEgX16kauzYTQXAaC3pdqCE=
+    Last Registered Email:  stibbons@uu.am
+    Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/2364237637
+  Conditions:
+    Last Transition Time:  2025-04-26T19:18:15Z
+    Message:               The ACME account was registered with the ACME server
+    Observed Generation:   1
+    Reason:                ACMEAccountRegistered
+    Status:                True
+    Type:                  Ready
+Events:                    <none>
+```
+
+#### End-to-end test Let's Encrypt
+
+[Step 7 - Deploy a TLS Ingress Resource](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/#step-7---deploy-a-tls-ingress-resource)
+is the last step left to actually make pratical use of all the above. Based on the
+provided example, apply the equivalent changes to `dashboard/nginx-ingress.yaml`,
+using `cert-manager.io/cluster-issuer` instead of `cert-manager.io/issuer` and adding
+the `tls` section with just the relevant FQDN under `hosts`:
+
+``` yaml title="dashboard/nginx-ingress.yaml" hl_lines="7 26-29"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kubernetes-octavo.very-very-dark-gray.top
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+  tls:
+    - secretName: tls-secret-cloudflare
+      hosts:
+        - kubernetes-octavo.very-very-dark-gray.top
+```
+
+!!! note
+
+    The Tailscale `Ingress` is omitted here because it needs no change; there is
+    no way to obtain and renew Let's Encrypt certificates on Tailscale hostnames.
+
+Applying the changes to this `Ingress` triggers the request for a certificate signed by
+Let's Encrypt; there will be a pending order and challenge for a new certificate:
+
+``` console
+$ kubectl apply -f dashboard/octavo-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+ingress.networking.k8s.io/kubernetes-dashboard-ingress-tailscale unchanged
+
+$ kubectl get svc -A | grep acme
+kubernetes-dashboard   cm-acme-http-solver-pg4lj                         NodePort       10.105.119.248   <none>          8089:31654/TCP               40s
+```
+
+The pod behind the service is listening and the logs can be monitored in real time:
+
+``` console
+$ kubectl -n kubernetes-dashboard logs \
+  $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+I0426 19:51:06.525439       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="kubernetes-octavo.very-very-dark-gray.top" expected_token="A8NepZWnfMUnjHcB01FaBct-OtTlyevnybrzEu2d2lo" expected_key="A8NepZWnfMUnjHcB01FaBct-OtTlyevnybrzEu2d2lo.iqPqqTpFo6Xc2HKxELaaa6msFZd96MSHPdgrxtrPdwM" listen_port=8089
+```
+
+Now, instead of routing requests to the *different* `NodePort` assigned each time,
+it is more convinient to update route requests always to a fixed port **32080**,
+and then `patch` the ACME resolve service to
+[change the service's NodePort](https://stackoverflow.com/questions/65789509/kubernetes-how-to-change-service-ports-using-patch).
+
+The `patch` command is directed at the specific ACME resolver service in each namespace:
+
+``` console
+$ kubectl -n kubernetes-dashboard patch \
+    service cm-acme-http-solver-pg4lj \
+     -p '{"spec":{"ports": [{"port": 8089, "nodePort": 32080}]}}'
+service/cm-acme-http-solver-pg4lj patched
+
+$ kubectl get svc -A | grep acme
+kubernetes-dashboard   cm-acme-http-solver-pg4lj                         NodePort       10.105.119.248   <none>          8089:32080/TCP               2m47s
+```
+
+Once the service is patched, external connections can be *selectivel*y routed to this
+port by adding a **public hostname** to route *only* requests for paths under
+`/.well-known` to port **32080** over plain **HTTP**. Combined with the patching of
+the ACME solver above, this makes solvers for `HTTP01` challenges reachable, so
+certificates can be issued and renewed.
+
+![Public hostnames on Cloudflare tunnel](../media/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo/tunnel-kubernetes-octavo-public-hostnames.png){: style="height:230px;width:660px"}
+
+Very soon after making the ACME solver reachable, the challenge is resolved and a
+valid certificate is obtained and installed.
+
+At this point it is no longer necessary to have **No TLS Verify** enable under
+because Nginx is now using a certificate signed by Let's Encrypt. To complete the
+end-to-end test, disable **No TLS Verify** and set **Origin Server Name**
+to the FQDN (`kubernetes-octavo.very-very-dark-gray.top`) so that Cloudflare accepts
+the new certificate.
+
+Although this is not really necessary when accessing services through a
+[Cloudflare Tunnel](#cloudflare-tunnel), it does serve as a good end-to-end test
+and secures the communication between the Cloudflare connector and Nginx. Later,
+the same mechanism will make it possible to obtain and renew Let's Encrypt certificates
+for services exposed externally by means of forwarding the router's external port 443
+to the `LoadBalancer` IP address of Nginx on this server, so that services can be
+accessed directly, securely and **without bandwidth contraints** through a different
+domain, e.g. <https://k8s.octavo.uu.am>.
+
+#### Automatic renewal
+
+The above `patch` operation can be automated to update *each* ACME resolver service
+when it starts:
+
+``` bash title="cert-renewal-port-fwd.sh"
+#!/bin/bash
+#
+# Patch the nodePort of running cert-manager renewal challenge, to listen
+# on port 32080 which is the one the router is forwarding port 80 to.
+
+# Check if there is a LetsEncrypt challenge resolver (acme) running.
+export KUBECONFIG=/etc/kubernetes/admin.conf
+namespace=$(kubectl get svc -A | grep acme | awk '{print $1}' | head -1)
+service=$(kubectl get svc -A | grep acme | awk '{print $2}' | head -1)
+
+# Patch the service to listen on port 32080 (set up in router).
+if [ -n "${namespace}" ] && [ -n "${service}" ]; then
+    kubectl \
+      -n "${namespace}" patch service "${service}" \
+      -p '{"spec":{"ports": [{"port": 8089, "nodePort":32080}]}}'
+fi
+```
+
+Install this script in a convenient location and setup `crontab` to run it every minute:
+
+``` cron
+# Hourly patch montly cert renewal solvers.
+* * * * * /home/pi/cert-renewal-port-fwd.sh
+```
