@@ -4133,6 +4133,9 @@ required, including *Switching from dbus-daemon to dbus-broker* and
 After this, without reloading the Bluetooth integration, it was instantely
 fixed and ready to use.
 
+The same 3 steps were then to `alfred` so that Bluetooth setup works well when the
+onboarding is done.
+
 ### Protect critical plugs
 
 A few smart plugs must never be powered off, at least not accidentally.
