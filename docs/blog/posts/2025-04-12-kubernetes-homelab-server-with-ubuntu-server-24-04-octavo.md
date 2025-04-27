@@ -2329,6 +2329,26 @@ with Let’s Encrypt, including [automatic renewal](#automatic-renewal).
 for simple persistent storage in local file systems would seem unnecessary,
 based on experience with previous clusters.
 
+#### Logs reader helper
+
+Troubleshooting podcs and services often involves reading or *watching* the logs,
+which involves combining two `kubectl` commands to find the relevant pod/service
+and requesting the logs. To makes this easier, put the following in `~/bin/klogs`
+(and add `~/bin/` to your path if not there already):
+
+``` bash title="bin/klogs"
+#!/bin/bash
+#
+# Watch logs from Kubernetes pod/service.
+#
+# Usage: klogs <namespace> <pod/service>
+
+ns=$1
+pd=$2
+kubectl logs -n $ns \
+  $(kubectl get pods -n $ns | grep $pd | cut -f1 -d' ') -f
+```
+
 ### MetalLB Load Balancer
 
 A Load Balancer is going to be necessary for the [Dashboard](#kubernets-dashboard)
@@ -3176,8 +3196,7 @@ kubernetes-dashboard   cm-acme-http-solver-pg4lj                         NodePor
 The pod behind the service is listening and the logs can be monitored in real time:
 
 ``` console
-$ kubectl -n kubernetes-dashboard logs \
-  $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+$ klogs kubernetes-dashboard kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
 I0426 19:51:06.525439       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="kubernetes-octavo.very-very-dark-gray.top" expected_token="A8NepZWnfMUnjHcB01FaBct-OtTlyevnybrzEu2d2lo" expected_key="A8NepZWnfMUnjHcB01FaBct-OtTlyevnybrzEu2d2lo.iqPqqTpFo6Xc2HKxELaaa6msFZd96MSHPdgrxtrPdwM" listen_port=8089
 ```
 
@@ -3349,8 +3368,7 @@ ingress.networking.k8s.io/kubernetes-dashboard-ingress-tailscale unchanged
 $ kubectl get svc -A | grep acme
 kubernetes-dashboard   cm-acme-http-solver-wlk2b                         NodePort       10.102.244.182   <none>          8089:32562/TCP               0s
 
-$ kubectl -n kubernetes-dashboard logs \
-  $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+$ klogs kubernetes-dashboard kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
 I0427 06:42:50.918410       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="k8s.octavo.uu.am" expected_token="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" expected_key="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs.iqPqqTpFo6Xc2HKxELaaa6msFZd96MSHPdgrxtrPdwM" listen_port=8089
 I0427 06:43:09.789648       1 solver.go:89] "validating request" logger="cert-manager.acmesolver" host="k8s.octavo.uu.am" path="/.well-known/acme-challenge/NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" base_path="/.well-known/acme-challenge" token="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" headers={"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["cert-manager-challenges/v1.17.2 (linux/amd64) cert-manager/f3ffb86641f75d94d01e5a2606b9871ff89645ef"]}
 ...
@@ -3368,3 +3386,630 @@ $ curl 2>/dev/null \
 <!--
 Copyright 2017 The Kubernetes Authors.
 ```
+
+## Migration from Lexicon
+
+With the new cluster up and running, the next step is to migrate (most of) the
+[applications installed](../../projects/self-hosting.md#applications-installed)
+previously in `lexicon` over to `octavo`, while preserving their storage and status. 
+
+### Home Assistant
+
+[Home Assistant](https://www.home-assistant.io/)
+can be deployed in `octavo` in very much the same way it was on `lexicon`, using
+[the same base manifests](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#base-deployment)
+and a new `kustomization.yaml` file just to set different hostnames:
+
+``` yaml title="home-assistant/octavo/kustomization.yaml" linenums="1" hl_lines="19 22 29"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../base
+
+configMapGenerator:
+- name: home-assistant-config
+  behavior: replace
+  literals:
+  - TZ="Europe/Amsterdam"
+
+patches:
+  - target: #FQDN for Cloudflare Tunnel or port-forwarded
+      kind: Ingress
+      name: home-assistant-nginx
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: home-assistant-octavo.very-very-dark-gray.top
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-octavo.very-very-dark-gray.top
+  - target: # Hostname-only for Tailscale [Funnel]
+      kind: Ingress
+      name: home-assistant-tailscale
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-octavo
+```
+
+[Prepare remote access](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#prepare-remote-access) 
+first, then create `/home/k8s/home-assistant/` anew and apply the deployment.
+
+``` console
+$ sudo mkdir /home/k8s/home-assistant
+$ ls -lah /home/k8s/home-assistant
+total 0
+drwxr-xr-x 1 root root  0 Apr 27 14:03 .
+drwxr-xr-x 1 root root 28 Apr 27 14:03 ..
+
+$ kubectl apply -k octavo
+namespace/home-assistant created
+configmap/home-assistant-config-59kccc4bcd created
+configmap/home-assistant-configmap created
+service/home-assistant-svc created
+persistentvolume/home-assistant-pv-config created
+persistentvolumeclaim/home-assistant-config-root created
+deployment.apps/home-assistant created
+ingress.networking.k8s.io/home-assistant-nginx created
+ingress.networking.k8s.io/home-assistant-tailscale created
+
+$ kubectl get all -n home-assistant
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-ssftt         1/1     Running   0          54s
+pod/home-assistant-77bf44c47b-tqz2s   1/1     Running   0          59s
+
+NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/cm-acme-http-solver-f7jbv   NodePort    10.110.189.111   <none>        8089:31135/TCP   54s
+service/home-assistant-svc          ClusterIP   10.107.114.233   <none>        8123/TCP         59s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/home-assistant   1/1     1            1           59s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/home-assistant-77bf44c47b   1         1         1       59s
+
+$ sudo ls -lah /home/k8s/home-assistant
+total 916K
+drwxr-xr-x 1 root root  372 Apr 27 14:14 .
+drwxr-xr-x 1 root root   28 Apr 27 14:03 ..
+drwxr-xr-x 1 root root   32 Apr 27 14:14 blueprints
+drwxr-xr-x 1 root root    0 Apr 27 14:14 .cloud
+-rw-r--r-- 1 root root    0 Apr 27 14:14 configuration.yaml
+-rw-r--r-- 1 root root    8 Apr 27 14:14 .HA_VERSION
+-rw-r--r-- 1 root root    0 Apr 27 14:14 home-assistant.log
+-rw-r--r-- 1 root root    0 Apr 27 14:14 home-assistant.log.1
+-rw-r--r-- 1 root root    0 Apr 27 14:14 home-assistant.log.fault
+-rw-r--r-- 1 root root 4.0K Apr 27 14:14 home-assistant_v2.db
+-rw-r--r-- 1 root root  32K Apr 27 14:30 home-assistant_v2.db-shm
+-rw-r--r-- 1 root root 866K Apr 27 14:30 home-assistant_v2.db-wal
+drwxr-xr-x 1 root root  428 Apr 27 14:29 .storage
+drwxr-xr-x 1 root root    0 Apr 27 14:14 tts
+```
+
+After less than a minute, the ACME solver is patched to listen on port `32080`,
+and after just about another minute the solver is gone. At that point Home Assistant
+is available at both <https://home-assistant-octavo.royal-penny.ts.net/> and
+<https://home-assistant-octavo.very-very-dark-gray.top/> ready to start the
+onboarding process.
+
+#### Bluetooth setup
+
+[Bluetooth failed setup](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#bluetooth-failed-setup)
+in `lexicon` and the same is bound to repeat in `octavo` now; even though the base
+deployment manifests already mount `/run/dbus` it is also required to
+*switch from dbus-daemon to dbus-broker* and *install BlueZ*:
+
+``` console
+$ sudo apt install bluez dbus-broker -y
+
+$ sudo systemctl --global enable dbus-broker.service
+```
+
+#### Restore backup
+
+At this point a fresh backup from `lexicon` could be restored in `octavo` to
+initialize Home Assistant, including the tweaked `configuration.yaml` file,
+[Home Assistant Community Store](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#home-assistant-community-store)
+and all the cards and dashboards.
+
+However, restoring a backup **fails consistently** with an OS-level error that
+doesn't seem to make sense; the logs for the pod show that a process was unable
+to open the main `configuration.yaml` file, even though there was definitely
+nothing accessing it at the time:
+
+``` console hl_lines="42"
+$ klogs home-assistant home-assistant
+s6-rc: info: service s6rc-oneshot-runner: starting
+s6-rc: info: service s6rc-oneshot-runner successfully started
+s6-rc: info: service fix-attrs: starting
+s6-rc: info: service fix-attrs successfully started
+s6-rc: info: service legacy-cont-init: starting
+s6-rc: info: service legacy-cont-init successfully started
+s6-rc: info: service legacy-services: starting
+services-up: info: copying legacy longrun home-assistant (no readiness notification)
+s6-rc: info: service legacy-services successfully started
+
+
+[12:58:06] INFO: Home Assistant Core finish process exit code 100
+INFO:homeassistant.backup_restore:Restoring /config/backups/lexicon-last_2025-04-27_14.40_32799259.tar
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/usr/src/homeassistant/homeassistant/__main__.py", line 227, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/usr/src/homeassistant/homeassistant/__main__.py", line 186, in main
+    if restore_backup(config_dir):
+       ~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/src/homeassistant/homeassistant/backup_restore.py", line 197, in restore_backup
+    _extract_backup(
+    ~~~~~~~~~~~~~~~^
+        config_dir=config_dir,
+        ^^^^^^^^^^^^^^^^^^^^^^
+        restore_content=restore_content,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/src/homeassistant/homeassistant/backup_restore.py", line 143, in _extract_backup
+    _clear_configuration_directory(config_dir, keep)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/src/homeassistant/homeassistant/backup_restore.py", line 87, in _clear_configuration_directory
+    entrypath.unlink()
+    ~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/pathlib/_local.py", line 746, in unlink
+    os.unlink(self)
+    ~~~~~~~~~^^^^^^
+OSError: [Errno 16] Resource busy: '/config/configuration.yaml'
+[12:58:08] INFO: Home Assistant Core finish process exit code 1
+[12:58:08] INFO: Home Assistant Core service shutdown
+s6-rc: info: service legacy-services: stopping
+s6-rc: info: service legacy-services successfully stopped
+s6-rc: info: service legacy-cont-init: stopping
+s6-rc: info: service legacy-cont-init successfully stopped
+s6-rc: info: service fix-attrs: stopping
+s6-rc: info: service fix-attrs successfully stopped
+s6-rc: info: service s6rc-oneshot-runner: stopping
+s6-rc: info: service s6rc-oneshot-runner successfully stopped
+```
+
+The error persists after Home Assistant (pod) is restarted:
+
+``` console hl_lines="12"
+$ klogs home-assistant home-assistant
+s6-rc: info: service s6rc-oneshot-runner: starting
+s6-rc: info: service s6rc-oneshot-runner successfully started
+s6-rc: info: service fix-attrs: starting
+s6-rc: info: service fix-attrs successfully started
+s6-rc: info: service legacy-cont-init: starting
+s6-rc: info: service legacy-cont-init successfully started
+s6-rc: info: service legacy-services: starting
+services-up: info: copying legacy longrun home-assistant (no readiness notification)
+s6-rc: info: service legacy-services successfully started
+2025-04-27 14:58:16.784 WARNING (MainThread) [homeassistant.components.backup]
+  Backup restore failed with OSError: [Errno 16] Resource busy: '/config/configuration.yaml'
+```
+
+In the meantime, the Home Assistant onboarding page keeps *waiting* even though nothing
+is happening in the backend. Opening the same page on a new browser tab and selecting
+the option to restore the backup shows the same error:
+
+    The backup could not be restored. Please try again.
+
+    Error:  
+    [Errno 16] Resource busy: '/config/configuration.yaml'
+
+Trying again *consistently* leads to the same error time and again, even after stopping
+the pods, deleting the entire `/home/k8s/home-assistant` directory and starting anew
+with a fresh empty one.
+
+#### Hardcore migration
+
+The solution turned out to be to simply copy over the `/home/k8s/home-assistant`
+directory at the rigth time between stopping and starting the relevant services:
+
+1.  Stop Home Assistant **on both servers** by *scaling* the deployment to 0 replicas:
+
+    ``` console
+    $ kubectl scale -n home-assistant deployment home-assistant --replicas=0
+    ```
+
+1.  Copy `/home/k8s/home-assistant` over from `lexicon` to `octavo`:
+
+    ``` console
+    root@octavo ~ # rm -rf /home/k8s/home-assistant
+    root@octavo ~ # rsync -ua lexicon:/home/k8s/home-assistant /home/k8s/
+    root@octavo ~ # ls -hal /home/k8s/home-assistant
+    ```
+
+1.  Start Home Assistant **on `octavo` only** (*scaling* back to 1 replica):
+
+    ``` console
+    $ kubectl scale -n home-assistant deployment home-assistant --replicas=1
+    ```
+
+Now Home Assistant is available at <https://home-assistant-octavo.royal-penny.ts.net/>
+and <https://home-assistant-octavo.very-very-dark-gray.top/> and working flawlessly,
+with the same user credentails, except for just one little quirk:
+
+![Bluetooth devices found in Home Assistant (Octavo)](../media/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo/home-assistant-octavo-bluetooth-found.png){: style="height:325px;width:675px"}
+
+`DC:21:48:43:B7:C2` is the Bluetooth adapter in `lexicon`, so it can be removed, and
+`D0:65:78:A5:8B:E1` is the Bluetooth adapter in `octavo` so that's the one to add.
+
+#### Synology DSM
+
+Another little surprise from Home Assistant after moving to `octavo` is
+[Synology DSM](https://www.home-assistant.io/integrations/synology_dsm/) discovering the
+[Synology DS423+ (luggage)](./2025-04-18-synology-ds423-for-the-homelab-luggage.md).
+Create a new NAS user in the admin group but without access to any files, but with
+access to all services:
+
+![NAS user for Home Assistant (Octavo)](../media/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo/luggage-new-user-octavo.png){: style="height:380px;width:535px"}
+
+Then add this user's credentials to the Synology DSM integration and specify port
+**5001** to use HTTP**S**, **check** the option for *Uses an SSL certificate* but
+**uncheck** the one for *Verify SSL certificate*. After sumitting, Home Assistant
+creates devices for the NAS, each volume and each drive. This adds 5 devides and
+43 entities, to be used later to create a
+[cool dashboard](https://www.reddit.com/r/synology/comments/1gwpq15/home_assistant_synology_integration_dashboard/).
+
+### InfluxDB and Grafana
+
+[InfluxDB and Grafana](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md)
+running in `lexicon` collect data from all sources reporting through
+[Continuous Monitoring](../../projects/conmon.md) and serves the dashboards.
+This setup is about a year old and runing Grafana 10.4.2 and InfluxDB 1.8.
+Seems like time to update these:
+
+*   [*Upgrading InfluxDB from v1.8.10 to v1.11.7 is a large jump*](https://docs.influxdata.com/influxdb/v1/about_the_project/release-notes/#v1117)
+    and there is no reason to switch to v2 given
+    [the future of Flux](../../projects/conmon.md#the-future-of-flux)
+    (deprecated and not planned for InfluxDB v3).
+*   [Breaking changes in Grafana v11.0](https://grafana.com/docs/grafana/latest/breaking-changes/breaking-changes-v11-0/)
+    looks like it *should be fine* to update from 10.4.2, at least worth a try.
+
+At this time the latest versions available in Docker images are
+[InfluxDB 1.11.8](https://hub.docker.com/_/influxdb/tags) and
+[Grafana 11.6.1](https://hub.docker.com/r/grafana/grafana/tags).
+
+??? k8s "Combined deployment for InfluxDB and Grafana"
+
+    ``` yaml title="monitoring.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: monitoring
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: influxdb-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 30Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/influxdb
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: influxdb-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: influxdb-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 30Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: influxdb
+      name: influxdb
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: influxdb
+      template:
+        metadata:
+          labels:
+            app: influxdb
+        spec:
+          hostname: influxdb
+          containers:
+          - image: docker.io/influxdb:1.11.8
+            env:
+            - name: "INFLUXDB_HTTP_AUTH_ENABLED"
+              value: "true"
+            name: influxdb
+            volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: influxdb-data
+          securityContext:
+            runAsUser: 114
+            runAsGroup: 114
+          volumes:
+          - name: influxdb-data
+            persistentVolumeClaim:
+              claimName: influxdb-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: influxdb
+      name: influxdb-svc
+      namespace: monitoring
+    spec:
+      ports:
+      - port: 18086
+        protocol: TCP
+        targetPort: 8086
+        nodePort: 30086
+      selector:
+        app: influxdb
+      type: NodePort
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: grafana-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 3Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/grafana
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: grafana-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: grafana-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 3Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: grafana
+      name: grafana
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: grafana
+      template:
+        metadata:
+          labels:
+            app: grafana
+        spec:
+          containers:
+          - image: docker.io/grafana/grafana:11.6.1
+            env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: "GF_AUTH_ANONYMOUS_ENABLED"
+              value: "true"
+            - name: "GF_SECURITY_ADMIN_USER"
+              value: "admin"
+            - name: "GF_SECURITY_ADMIN_PASSWORD"
+              value: "__________________________"
+            name: grafana
+            volumeMounts:
+              - name: grafana-data
+                mountPath: /var/lib/grafana
+          securityContext:
+            runAsUser: 115
+            runAsGroup: 115
+            fsGroup: 115
+          volumes:
+          - name: grafana-data
+            persistentVolumeClaim:
+              claimName: grafana-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: grafana
+      name: grafana-svc
+      namespace: monitoring
+    spec:
+      ports:
+      - port: 13000
+        protocol: TCP
+        targetPort: 3000
+        nodePort: 30300
+      selector:
+        app: grafana
+      type: NodePort
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: grafana-ingress
+      namespace: monitoring
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: grafana.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: grafana-svc
+                    port:
+                      number: 3000
+      tls:
+        - secretName: tls-secret-grafana
+          hosts:
+            - grafana.very-very-dark-gray.top
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: influxdb-ingress
+      namespace: monitoring
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: influxdb.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: influxdb-svc
+                    port:
+                      number: 8086
+      tls:
+        - secretName: tls-secret-influxdb
+          hosts:
+            - influxdb.very-very-dark-gray.top
+    ```
+
+Before deploying the above, dedicated users and home directories must be created for
+`influxdb` and `grafana:
+
+``` console
+root@octavo ~ # groupadd influxdb -g 114
+root@octavo ~ # groupadd grafana  -g 115
+root@octavo ~ # useradd  influxdb -u 114 -g 114
+root@octavo ~ # useradd  grafana  -u 115 -g 115
+```
+
+Then files need to be copied over at the right time between stopping the services
+in `lexicon` and starting them again:
+
+1.  Stop Grafana and InfluxDB (in this **order) in `lexicon`**:
+
+    ``` console
+    $ kubectl scale -n monitoring deployment grafana  --replicas=0
+    $ kubectl scale -n monitoring deployment influxdb --replicas=0
+    ```
+
+1.  Copy data over from `lexicon` to `octavo`:
+
+    ``` console
+    root@octavo ~ # rsync -ua lexicon:/home/k8s/influxdb /home/k8s/
+    root@octavo ~ # rsync -ua lexicon:/home/k8s/grafana  /home/k8s/
+    root@octavo ~ # chown -R influxdb:influxdb /home/k8s/influxdb
+    root@octavo ~ # chown -R  grafana:grafana  /home/k8s/grafana
+    root@octavo ~ # ls -hal /home/k8s/influxdb /home/k8s/grafana
+    /home/k8s/grafana:
+    total 3.9M
+    drwxr-xr-x 1 grafana grafana   68 Apr 27 19:08 .
+    drwxr-xr-x 1 root    root      58 Apr 27 19:10 ..
+    drwxr-x--- 1 grafana grafana    2 Apr 20  2024 alerting
+    drwx------ 1 grafana grafana    0 Apr 20  2024 csv
+    -rw-r----- 1 grafana grafana 3.9M Apr 27 19:08 grafana.db
+    drwx------ 1 grafana grafana    0 Apr 20  2024 pdf
+    drwxr-xr-x 1 grafana grafana    0 Apr 20  2024 plugins
+    drwx------ 1 grafana grafana    0 Apr 20  2024 png
+
+    /home/k8s/influxdb:
+    total 0
+    drwxr-xr-x 1 influxdb influxdb 22 Apr 20  2024 .
+    drwxr-xr-x 1 root     root     58 Apr 27 19:10 ..
+    drwxr-xr-x 1 influxdb influxdb 90 Apr 26 08:20 data
+    drwxr-xr-x 1 influxdb influxdb 14 Apr 27 02:08 meta
+    drwx------ 1 influxdb influxdb 90 Apr 26 08:20 wal
+    ```
+
+1.  Start InfluxDB and Grafana (in this **order) in `lexicon`**:
+
+    ``` console
+    $ kubectl scale -n monitoring deployment influxdb --replicas=1
+    $ kubectl scale -n monitoring deployment grafana  --replicas=1
+    ```
+
+Finally, start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f monitoring.yaml
+namespace/monitoring created
+persistentvolume/influxdb-pv created
+persistentvolumeclaim/influxdb-pv-claim created
+deployment.apps/influxdb created
+service/influxdb-svc created
+persistentvolume/grafana-pv created
+persistentvolumeclaim/grafana-pv-claim created
+deployment.apps/grafana created
+service/grafana-svc created
+ingress.networking.k8s.io/grafana-ingress created
+ingress.networking.k8s.io/influxdb-ingress created
+
+$ kubectl get all -n monitoring
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-dkgn5   1/1     Running   0          59s
+pod/grafana-6fff9dbb6c-v22hg    1/1     Running   0          62s
+pod/influxdb-5974bf664f-8r5mf   1/1     Running   0          62s
+
+NAME                                TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+service/cm-acme-http-solver-n8l8h   NodePort   10.98.3.183     <none>        8089:30378/TCP    59s
+service/grafana-svc                 NodePort   10.110.29.239   <none>        13000:30300/TCP   62s
+service/influxdb-svc                NodePort   10.110.65.108   <none>        18086:30086/TCP   62s
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/grafana    1/1     1            1           62s
+deployment.apps/influxdb   1/1     1            1           62s
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/grafana-6fff9dbb6c    1         1         1       62s
+replicaset.apps/influxdb-5974bf664f   1         1         1       62s
+
+$ kubectl get svc -n monitoring
+NAME                        TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+cm-acme-http-solver-n8l8h   NodePort   10.98.3.183     <none>        8089:30378/TCP    63s
+grafana-svc                 NodePort   10.110.29.239   <none>        13000:30300/TCP   66s
+influxdb-svc                NodePort   10.110.65.108   <none>        18086:30086/TCP   66s
+
+$ kubectl get ingress -n monitoring
+NAME               CLASS   HOSTS                              ADDRESS         PORTS     AGE
+grafana-ingress    nginx   grafana.very-very-dark-gray.top    192.168.0.171   80, 443   69s
+influxdb-ingress   nginx   influxdb.very-very-dark-gray.top   192.168.0.171   80, 443   69s
+```
+
+This worked *surprisingly* well, both services became quickly available at their
+assigned URLs, with authentication working as intended and all dashboards working
+as before. The only other change needed was getting data flowing into the new InfluxDB
+server, by updating the `conmon` scripts in all the reporting systems.
