@@ -3254,3 +3254,117 @@ Install this script in a convenient location and setup `crontab` to run it every
 # Hourly patch montly cert renewal solvers.
 * * * * * /home/pi/cert-renewal-port-fwd.sh
 ```
+
+#### Test automatic renewal
+
+Expose the [Kubernetes dashboard](#kubernets-dashboard) at <https://k8s.octavo.uu.am>
+to test the automatic renewal of Let's Encrypt certificates end-to-end. More generally,
+this is the process to expose services directly without tunnels for high-bandwidth
+applications:
+
+1.  Add a DNS record to point `k8s.octavo.uu.am` to the router's external IP address.
+1.  Add a port forwarding rule to redirect port 80 to port 32080 on the server. 
+1.  Add a port forwarding rule to redirect port 443 to the IP address of Nginx.
+1.  In the `kubernetes-dashboard-ingress` (not a new one),
+    *  **duplicate** the `host` and `tls` objects,
+    *  replace the `.top` FQDN with the `k8s.octavo.uu.am` *and*
+    *  **rename** the new `tls.secretName` to avoid hitting Let's Encrypt rate limits.
+
+``` yaml title="dashboard/nginx-ingress.yaml" hl_lines="26-35 40-42"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "false"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 10.244.0.0/16
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "server: hide";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kubernetes-octavo.very-very-dark-gray.top
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+    - host: k8s.octavo.uu.am
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443
+  tls:
+    - secretName: tls-secret-cloudflare
+      hosts:
+        - kubernetes-octavo.very-very-dark-gray.top
+    - secretName: tls-secret-uu-am
+      hosts:
+        - k8s.octavo.uu.am
+```
+
+Once the DNS record has propagated and port 443 is redirected, the dashboard
+is reachable only by adding the `Host` and ignoring SSL verifycation (`-k`):
+
+``` console
+$ curl 2>/dev/null -k \
+  -H "Host: kubernetes-octavo.very-very-dark-gray.top"\
+  https://k8s.octavo.uu.am/ \
+  | head -2
+<!--
+Copyright 2017 The Kubernetes Authors.
+
+$ curl \
+  -H "Host: kubernetes-octavo.very-very-dark-gray.top"\
+  https://k8s.octavo.uu.am/
+curl: (60) SSL certificate problem: self-signed certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+```
+
+Applying the changes to the `Ingress` will trigger the requests for a new certifiate
+and the automatic patching of the service will get the process completed within a couple
+of minmutes (provided port 80 is correctly redirected):
+
+``` console
+$ kubectl apply -f dashboard/octavo-ingress.yaml
+ingress.networking.k8s.io/kubernetes-dashboard-ingress configured
+ingress.networking.k8s.io/kubernetes-dashboard-ingress-tailscale unchanged
+
+$ kubectl get svc -A | grep acme
+kubernetes-dashboard   cm-acme-http-solver-wlk2b                         NodePort       10.102.244.182   <none>          8089:32562/TCP               0s
+
+$ kubectl -n kubernetes-dashboard logs \
+  $(kubectl get pods -n kubernetes-dashboard | grep acme | cut -f1 -d' ') -f
+I0427 06:42:50.918410       1 solver.go:52] "starting listener" logger="cert-manager.acmesolver" expected_domain="k8s.octavo.uu.am" expected_token="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" expected_key="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs.iqPqqTpFo6Xc2HKxELaaa6msFZd96MSHPdgrxtrPdwM" listen_port=8089
+I0427 06:43:09.789648       1 solver.go:89] "validating request" logger="cert-manager.acmesolver" host="k8s.octavo.uu.am" path="/.well-known/acme-challenge/NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" base_path="/.well-known/acme-challenge" token="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" headers={"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["cert-manager-challenges/v1.17.2 (linux/amd64) cert-manager/f3ffb86641f75d94d01e5a2606b9871ff89645ef"]}
+...
+I0427 06:43:18.934689       1 solver.go:112] "got successful challenge request, writing key" logger="cert-manager.acmesolver" host="k8s.octavo.uu.am" path="/.well-known/acme-challenge/NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" base_path="/.well-known/acme-challenge" token="NtYo8LxQxMIGK78bsXvv65RwI4skIolgdtSrWNuLeRs" headers={"Accept":["*/*"],"Accept-Encoding":["gzip"],"Connection":["close"],"User-Agent":["Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)"]}
+E0427 06:43:20.531057       1 main.go:42] "error executing command" err="http: Server closed" logger="cert-manager"
+```
+
+With the new certificate installed, the dashboard is now reachable at 
+<https://k8s.octavo.uu.am/> without ignoring SSL verifycation (`-k`):
+
+``` console
+$ curl 2>/dev/null \
+  https://k8s.octavo.uu.am/ \
+| head -2
+<!--
+Copyright 2017 The Kubernetes Authors.
+```
