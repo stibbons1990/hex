@@ -3393,6 +3393,314 @@ With the new cluster up and running, the next step is to migrate (most of) the
 [applications installed](../../projects/self-hosting.md#applications-installed)
 previously in `lexicon` over to `octavo`, while preserving their storage and status. 
 
+### Audiobookshelf
+
+[Audiobookshelf](../../projects/self-hosting.md#audiobookshelf) has been *easily* my
+most used application for over a year, and already migrated it to `rapture` once as a
+[test](./2024-05-12-single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture.md#migration-from-lexicon),
+so the process here is essentially the same. The deployment is only different in the
+`securityContext` UID/GID and FQDN where the service will be available at:
+
+??? k8s "Kubernetes deployment: `audiobookshelf.yaml`"
+
+    ``` yaml linenums="1" title="audiobookshelf.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: audiobookshelf
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/config
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/metadata
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/nas/public/audio/Audiobooks
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/nas/public/audio/Podcasts
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-metadata
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-audiobooks
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-podcasts
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: audiobookshelf
+      name: audiobookshelf
+      namespace: audiobookshelf
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: audiobookshelf
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: audiobookshelf
+        spec:
+          containers:
+            - image: ghcr.io/advplyr/audiobookshelf:latest
+              imagePullPolicy: Always
+              name: audiobookshelf
+              env:
+              - name: PORT
+                value: "13378"
+              ports:
+              - containerPort: 13378
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: audiobookshelf-config
+              - mountPath: /metadata
+                name: audiobookshelf-metadata
+              - mountPath: /audiobooks
+                name: audiobookshelf-audiobooks
+              - mountPath: /podcasts
+                name: audiobookshelf-podcasts
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 117
+                runAsGroup: 117
+          restartPolicy: Always
+          volumes:
+          - name: audiobookshelf-config
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-config
+          - name: audiobookshelf-metadata
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-metadata
+          - name: audiobookshelf-audiobooks
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-audiobooks
+          - name: audiobookshelf-podcasts
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-podcasts
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: audiobookshelf-svc
+      namespace: audiobookshelf
+    spec:
+      type: NodePort
+      ports:
+      - port: 13388
+        nodePort: 31378
+        targetPort: 13378
+      selector:
+        app: audiobookshelf
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: audiobookshelf-ingress
+      namespace: audiobookshelf
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: audiobookshelf-svc
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: audiobookshelf.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: audiobookshelf-svc
+                    port:
+                      number: 13378
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - audiobookshelf.very-very-dark-gray.top
+    ```
+
+First, stop Audiobookshelf in `lexicon` (it won't be used moving forward):
+
+``` console
+$ kubectl scale -n audiobookshelf deployment audiobookshelf --replicas=0
+deployment.apps/audiobookshelf scaled
+```
+
+Then copy the `/config` and `/metadata` directories over from `lexicon` to `octavo`:
+
+``` console
+root@octavo ~ # groupadd audiobookshelf -g 117
+root@octavo ~ # useradd  audiobookshelf -u 117 -g 117 -s /usr/sbin/nologin
+root@octavo ~ # rsync -ua lexicon:/home/k8s/audiobookshelf /home/k8s/
+root@octavo ~ # chown -R audiobookshelf:audiobookshelf /home/k8s/audiobookshelf
+root@octavo ~ # ls -hal /home/k8s/audiobookshelf
+drwxr-xr-x 1 audiobookshelf audiobookshelf  28 Feb 27  2024 .
+drwxr-xr-x 1 root           root           104 Apr 28 22:22 ..
+drwxr-xr-x 1 audiobookshelf audiobookshelf 102 Apr 28 21:27 config
+drwxr-xr-x 1 audiobookshelf audiobookshelf 230 Jan 14 20:54 metadata
+```
+
+Finally, start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f audiobookshelf.yaml
+namespace/audiobookshelf created
+persistentvolume/audiobookshelf-pv-config created
+persistentvolume/audiobookshelf-pv-metadata created
+persistentvolume/audiobookshelf-pv-audiobooks created
+persistentvolume/audiobookshelf-pv-podcasts created
+persistentvolumeclaim/audiobookshelf-pvc-config created
+persistentvolumeclaim/audiobookshelf-pvc-metadata created
+persistentvolumeclaim/audiobookshelf-pvc-audiobooks created
+persistentvolumeclaim/audiobookshelf-pvc-podcasts created
+deployment.apps/audiobookshelf created
+service/audiobookshelf-svc created
+ingress.networking.k8s.io/audiobookshelf-ingress created
+
+$ kubectl get all -n audiobookshelf
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/audiobookshelf-5b486f64b4-8zd2g   1/1     Running   0          20s
+pod/cm-acme-http-solver-wd8rk         1/1     Running   0          16s
+
+NAME                                TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+service/audiobookshelf-svc          NodePort   10.108.231.47   <none>        13388:31378/TCP   20s
+service/cm-acme-http-solver-vblgl   NodePort   10.105.105.53   <none>        8089:31546/TCP    16s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/audiobookshelf   1/1     1            1           20s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/audiobookshelf-5b486f64b4   1         1         1       20s
+
+$ kubectl get svc -n audiobookshelf
+NAME                        TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+audiobookshelf-svc          NodePort   10.108.231.47   <none>        13388:31378/TCP   13s
+cm-acme-http-solver-vblgl   NodePort   10.105.105.53   <none>        8089:31546/TCP    9s
+
+$ kubectl get ingress -n audiobookshelf
+NAME                     CLASS   HOSTS                                    ADDRESS         PORTS     AGE
+audiobookshelf-ingress   nginx   audiobookshelf.very-very-dark-gray.top   192.168.0.171   80, 443   60s
+```
+
+After a couple for minutes Audiobookshelf is available at
+<https://audiobookshelf.very-very-dark-gray.top/> and works fine.
+
 ### Home Assistant
 
 [Home Assistant](https://www.home-assistant.io/)
@@ -3611,6 +3919,7 @@ directory at the rigth time between stopping and starting the relevant services:
 
     ``` console
     $ kubectl scale -n home-assistant deployment home-assistant --replicas=0
+    deployment.apps/home-assistant scaled
     ```
 
 1.  Copy `/home/k8s/home-assistant` over from `lexicon` to `octavo`:
@@ -3619,12 +3928,38 @@ directory at the rigth time between stopping and starting the relevant services:
     root@octavo ~ # rm -rf /home/k8s/home-assistant
     root@octavo ~ # rsync -ua lexicon:/home/k8s/home-assistant /home/k8s/
     root@octavo ~ # ls -hal /home/k8s/home-assistant
+    total 110M
+    drwxr-xr-x 1 root root  570 Apr 27 23:28 .
+    drwxr-xr-x 1 root root   76 Apr 28 21:14 ..
+    -rw-r--r-- 1 root root    0 Apr 25 22:39 automations.yaml
+    drwxr-xr-x 1 root root  484 Apr 28 05:37 backups
+    drwxr-xr-x 1 root root   48 Apr 25 22:42 blueprints
+    drwxr-xr-x 1 root root    0 Apr 21 11:13 .cloud
+    -rw-r--r-- 1 root root  670 Apr 27 19:37 configuration.yaml
+    drwxr-xr-x 1 root root   26 Apr 24 21:04 custom_components
+    drwxr-xr-x 1 root root    0 Apr 21 17:58 deps
+    -rw-r--r-- 1 root root    8 Apr 26 05:08 .HA_VERSION
+    -rw-r--r-- 1 root root 2.2M Apr 28 22:20 home-assistant.log
+    -rw-r--r-- 1 root root 5.8K Apr 27 23:28 home-assistant.log.1
+    -rw-r--r-- 1 root root    0 Apr 27 23:28 home-assistant.log.fault
+    -rw-r--r-- 1 root root 103M Apr 28 22:18 home-assistant_v2.db
+    -rw-r--r-- 1 root root  32K Apr 28 22:20 home-assistant_v2.db-shm
+    -rw-r--r-- 1 root root 4.4M Apr 28 22:20 home-assistant_v2.db-wal
+    drwxr-xr-x 1 root root  448 Apr 23 21:07 image
+    -rw-r--r-- 1 root root 4.9K Apr 22 22:59 install-hacs.sh
+    -rw-r--r-- 1 root root    0 Apr 25 22:39 scenes.yaml
+    -rw-r--r-- 1 root root    0 Apr 25 22:39 scripts.yaml
+    drwxr-xr-x 1 root root 1.3K Apr 28 22:13 .storage
+    drwxr-xr-x 1 root root   14 Apr 25 22:29 templates
+    drwxr-xr-x 1 root root    0 Apr 21 11:13 tts
+    drwxr-xr-x 1 root root   18 Apr 23 22:58 www
     ```
 
 1.  Start Home Assistant **on `octavo` only** (*scaling* back to 1 replica):
 
     ``` console
     $ kubectl scale -n home-assistant deployment home-assistant --replicas=1
+    deployment.apps/home-assistant scaled
     ```
 
 Now Home Assistant is available at <https://home-assistant-octavo.royal-penny.ts.net/>
@@ -3913,8 +4248,8 @@ Before deploying the above, dedicated users and home directories must be created
 ``` console
 root@octavo ~ # groupadd influxdb -g 114
 root@octavo ~ # groupadd grafana  -g 115
-root@octavo ~ # useradd  influxdb -u 114 -g 114
-root@octavo ~ # useradd  grafana  -u 115 -g 115
+root@octavo ~ # useradd  influxdb -u 114 -g 114 -s /usr/sbin/nologin
+root@octavo ~ # useradd  grafana  -u 115 -g 115 -s /usr/sbin/nologin
 ```
 
 Then files need to be copied over at the right time between stopping the services
@@ -3924,7 +4259,9 @@ in `lexicon` and starting them again:
 
     ``` console
     $ kubectl scale -n monitoring deployment grafana  --replicas=0
+    deployment.apps/grafana scaled
     $ kubectl scale -n monitoring deployment influxdb --replicas=0
+    deployment.apps/influxdb scaled
     ```
 
 1.  Copy data over from `lexicon` to `octavo`:
@@ -3959,7 +4296,9 @@ in `lexicon` and starting them again:
 
     ``` console
     $ kubectl scale -n monitoring deployment influxdb --replicas=1
+    deployment.apps/influxdb scaled
     $ kubectl scale -n monitoring deployment grafana  --replicas=1
+    deployment.apps/grafana scaled
     ```
 
 Finally, start the deployment in `octavo`:
@@ -4013,3 +4352,490 @@ This worked *surprisingly* well, both services became quickly available at their
 assigned URLs, with authentication working as intended and all dashboards working
 as before. The only other change needed was getting data flowing into the new InfluxDB
 server, by updating the `conmon` scripts in all the reporting systems.
+
+### Komga
+
+[Komga (eBook library)](./2024-05-26-self-hosted-ebook-library-with-komga.md)
+was very easy to migrate from `lexicon`, with only the minor quirk that its `/config`
+directory had been inadvertently placed *inside itself*; fixing this, and the location
+of eBooks, are the only changes in this deployment:
+
+??? k8s "Kubernetes deployment: `komga.yaml`"
+
+    ``` yaml linenums="1" title="komga.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: komga
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: komga-pv-config
+      namespace: komga
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/komga
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: komga-pv-books
+      namespace: komga
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/nas/public/ebooks
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: komga-pvc-config
+      namespace: komga
+    spec:
+      storageClassName: manual
+      volumeName: komga-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: komga-pvc-books
+      namespace: komga
+    spec:
+      storageClassName: manual
+      volumeName: komga-pv-books
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: komga
+      name: komga
+      namespace: komga
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: komga
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: komga
+        spec:
+          containers:
+            - image: gotson/komga
+              imagePullPolicy: Always
+              name: komga
+              args: ["user", "118:118"]
+              env:
+              - name: TZ
+                value: "Europe/Amsterdam"
+              ports:
+              - containerPort: 25600
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: komga-config
+              - mountPath: /data
+                name: komga-books
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 118
+                runAsGroup: 118
+          restartPolicy: Always
+          volumes:
+          - name: komga-config
+            persistentVolumeClaim:
+              claimName: komga-pvc-config
+          - name: komga-books
+            persistentVolumeClaim:
+              claimName: komga-pvc-books
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: komga-svc
+      namespace: komga
+    spec:
+      type: NodePort
+      ports:
+      - port: 25600
+        nodePort: 30600
+        targetPort: 25600
+      selector:
+        app: komga
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: komga-ingress
+      namespace: komga
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: komga-svc
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: komga.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: komga-svc
+                    port:
+                      number: 25600
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - komga.very-very-dark-gray.top
+    ```
+
+Then again, the trick is to copy the `/config` directory between stopping the service
+in `lexicon` and starting it in `octavo`.
+
+First, stop komga in `lexicon` (it won't be used moving forward):
+
+``` console
+$ kubectl scale -n komga deployment komga --replicas=0
+deployment.apps/komga scaled
+```
+
+Copy data over from `lexicon` to `octavo`, moving the `/config` directory one level up:
+
+``` console hl_lines="3"
+root@octavo ~ # groupadd komga -g 118
+root@octavo ~ # useradd  komga -u 118 -g 118 -s /usr/sbin/nologin
+root@octavo ~ # rsync -ua lexicon:/home/k8s/komga/config/ /home/k8s/komga
+root@octavo ~ # chown -R komga:komga /home/k8s/komga
+root@octavo ~ # ls -hal /home/k8s/komga
+total 14M
+drwxr-xr-x 1 komga komga   74 Apr 28 23:09 .
+drwxr-xr-x 1 root  root   114 Apr 28 23:26 ..
+-rw-r--r-- 1 komga komga  14M Apr 28 23:09 database.sqlite
+drwxr-xr-x 1 komga komga  368 Apr 28 05:05 logs
+drwxr-xr-x 1 komga komga  668 Mar 16 06:08 lucene
+-rw-r--r-- 1 komga komga 156K Apr 28 23:09 tasks.sqlite
+```
+
+!!! warning
+
+    The trailing `/` in `lexicon:/home/k8s/komga/config/` is **critical** to make
+    the destination directory `/home/k8s/komga` in `octavo` **be** that `data`
+    directory, instead of *containing* it.
+
+Finally, start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f komga.yaml
+namespace/komga created
+persistentvolume/komga-pv-config created
+persistentvolume/komga-pv-books created
+persistentvolumeclaim/komga-pvc-config created
+persistentvolumeclaim/komga-pvc-books created
+deployment.apps/komga created
+service/komga-svc created
+ingress.networking.k8s.io/komga-ingress created
+
+$ kubectl get all -n komga
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-v8rp6   1/1     Running   0          21s
+pod/komga-5cc699fdcd-xwqlh      1/1     Running   0          24s
+
+NAME                                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+service/cm-acme-http-solver-m625s   NodePort   10.108.18.62     <none>        8089:31587/TCP    21s
+service/komga-svc                   NodePort   10.105.251.174   <none>        25600:30600/TCP   24s
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/komga   1/1     1            1           24s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/komga-5cc699fdcd   1         1         1       24s
+
+$ kubectl get svc -n komga
+NAME        TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+komga-svc   NodePort   10.105.251.174   <none>        25600:30600/TCP   67s
+
+$ kubectl get ingress -n komga
+NAME            CLASS   HOSTS                           ADDRESS         PORTS     AGE
+komga-ingress   nginx   komga.very-very-dark-gray.top   192.168.0.171   80, 443   72s
+
+```
+
+After a couple for minutes Komga is available at
+<https://komga.very-very-dark-gray.top/> and everything works fine.
+
+### Navidrome
+
+[Navidrome (music streaming)](./2024-10-26-self-hosted-music-streaming-with-navidrome.md)
+was very easy to migrate from `lexicon`, with only the minor quirk that its `/data`
+directory had been inadvertently placed *inside itself*; fixing this, and the location
+of music files, are the only changes in this deployment:
+
+??? k8s "Kubernetes deployment: `navidrome.yaml`"
+
+    ``` yaml linenums="1" title="navidrome.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: navidrome
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: navidrome-pv-data
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/navidrome
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: navidrome-pv-music
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 100Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/nas/public/audio/Music
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: navidrome-pvc-data
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      volumeName: navidrome-pv-data
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: navidrome-pvc-music
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      volumeName: navidrome-pv-music
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: navidrome
+      name: navidrome
+      namespace: navidrome
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: navidrome
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: navidrome
+        spec:
+          containers:
+            - image: deluan/navidrome:latest
+              imagePullPolicy: Always
+              name: navidrome
+              env:
+              - name: ND_BASEURL
+                value: "https://navidrome.very-very-dark-gray.top/"
+              - name: ND_LOGLEVEL
+                value: "info"
+              - name: ND_SCANSCHEDULE
+                value: "1h"
+              - name: ND_SESSIONTIMEOUT
+                value: "24h"
+              ports:
+              - containerPort: 4533
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /data
+                name: navidrome-data
+              - mountPath: /music
+                name: navidrome-music
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 116
+                runAsGroup: 116
+          restartPolicy: Always
+          volumes:
+          - name: navidrome-data
+            persistentVolumeClaim:
+              claimName: navidrome-pvc-data
+          - name: navidrome-music
+            persistentVolumeClaim:
+              claimName: navidrome-pvc-music
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: navidrome-svc
+      namespace: navidrome
+    spec:
+      type: NodePort
+      ports:
+      - port: 4533
+        nodePort: 30533
+        targetPort: 4533
+      selector:
+        app: navidrome
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: navidrome-ingress
+      namespace: navidrome
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: navidrome-svc
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: navidrome.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: navidrome-svc
+                    port:
+                      number: 4533
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - navidrome.very-very-dark-gray.top
+    ```
+
+Then again, the trick is to copy the `/data` directory between stopping the service
+in `lexicon` and starting it in `octavo`.
+
+First, stop Navidrome in `lexicon` (it won't be used moving forward):
+
+``` console
+$ kubectl scale -n navidrome deployment navidrome --replicas=0
+deployment.apps/navidrome scaled
+```
+
+Copy data over from `lexicon` to `octavo`, moving the `/data` directory one level up:
+
+``` console hl_lines="3"
+root@octavo ~ # groupadd navidrome -g 116
+root@octavo ~ # useradd  navidrome -u 116 -g 116 -s /usr/sbin/nologin
+root@octavo ~ # rsync -ua lexicon:/home/k8s/navidrome/data/ /home/k8s/navidrome
+root@octavo ~ # chown -R navidrome:navidrome /home/k8s/navidrome
+root@octavo ~ # ls -hal /home/k8s/navidrome
+total 33M
+drwxr-xr-x 1 navidrome navidrome   98 Apr 28 21:22 .
+drwxr-xr-x 1 root      root        76 Apr 28 21:14 ..
+drwxr-xr-x 1 navidrome navidrome   56 Dec 23 06:09 cache
+-rw-r--r-- 1 navidrome navidrome  32M Apr 28 21:08 navidrome.db
+-rw-r--r-- 1 navidrome navidrome  32K Apr 28 22:18 navidrome.db-shm
+-rw-r--r-- 1 navidrome navidrome 620K Apr 28 22:18 navidrome.db-wal
+```
+
+!!! warning
+
+    The trailing `/` in `lexicon:/home/k8s/navidrome/data/` is **critical** to make
+    the destination directory `/home/k8s/navidrome` in `octavo` **be** that `data`
+    directory, instead of *containing* it.
+
+Finally, start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f navidrome.yaml
+NAME                             READY   STATUS              RESTARTS   AGE
+pod/cm-acme-http-solver-tq8wv    1/1     Running             0          6s
+pod/navidrome-588d4d77c7-pcxqm   0/1     ContainerCreating   0          9s
+
+NAME                                TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/cm-acme-http-solver-l9wp2   NodePort   10.97.50.141    <none>        8089:31185/TCP   6s
+service/navidrome-svc               NodePort   10.110.51.110   <none>        4533:30533/TCP   9s
+
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/navidrome   0/1     1            0           9s
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/navidrome-588d4d77c7   1         1         0       9s
+
+$ kubectl get svc -n navidrome 
+NAME                        TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+cm-acme-http-solver-l9wp2   NodePort   10.97.50.141    <none>        8089:31185/TCP   10s
+navidrome-svc               NodePort   10.110.51.110   <none>        4533:30533/TCP   13s
+
+$ kubectl get ingress -n navidrome 
+NAME                CLASS   HOSTS                               ADDRESS         PORTS     AGE
+navidrome-ingress   nginx   navidrome.very-very-dark-gray.top   192.168.0.171   80, 443   17
+```
+
+After a couple for minutes Navidrome is available at
+<https://navidrome.very-very-dark-gray.top/> and everything works fine.
