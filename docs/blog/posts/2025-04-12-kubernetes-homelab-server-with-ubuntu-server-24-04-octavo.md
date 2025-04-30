@@ -2806,7 +2806,7 @@ makes the dashboard available at that address.
 #### Tailscale Ingress
 
 To make the dashboard available over [Tailscale](#tailscale), start by installing the
-[Tailscale Kubernetes operator](./blog-2025-03-28-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator):
+[Tailscale Kubernetes operator](./2025-03-23-remote-access-options-for-self-hosted-services.md#tailscale-kubernetes-operator):
 
 ``` console
 $ helm repo add tailscale https://pkgs.tailscale.com/helmcharts && \
