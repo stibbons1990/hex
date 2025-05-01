@@ -187,6 +187,8 @@ because three physical volumes (and claims) are included:
               mountPath: /data/family-videos
             - name: videos
               mountPath: /data/videos
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             runAsNonRoot: false
             fsGroup: 1000
@@ -202,6 +204,9 @@ because three physical volumes (and claims) are included:
           - name: family-videos
             persistentVolumeClaim:
               claimName: ponder-video-pvc
+          - name: tmp
+            emptyDir:
+              medium: Memory
     ---
     apiVersion: v1
     kind: Service
@@ -291,6 +296,21 @@ jellyfin-ingress            nginx    jellyfin.very-very-dark-gray.top           
 
 After a couple of minutes Jellyfin is available (and ready to be setup) at
 <http://jellyfin.very-very-dark-gray.top>
+
+### Thumbnails for family videos
+
+For family videos and generally those that have no public metadata, there
+are no candidate images to show are their thubmnail / poster. Instead, the
+[solution](https://www.reddit.com/r/jellyfin/comments/13v0ne2/comment/jm4epor/)
+is to go to **Dashboard > Libraries** and, for each library with such
+videos, select **Manage library** and under **Image fetchers (Videos)**
+make sure the **Screen Grabber** is at the top of the priority list. When
+changing this after a library has been already scanned, it is also necessary
+to select **Refresh metadata** (for each library, in the **Home** screen)
+and set the option to **Replace all existing images**.
+
+If thumbnails fail to show up, refer to the section about troubleshooting
+[no thumbnails for family videos](#no-thumbnails-for-family-videos).
 
 ### AV1 CPU transcoding
 
@@ -812,6 +832,8 @@ render:x:993:
               mountPath: /data/family-videos
             - name: videos
               mountPath: /data/videos
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             runAsNonRoot: false
             fsGroup: 1000
@@ -834,6 +856,9 @@ render:x:993:
           - name: family-videos
             persistentVolumeClaim:
               claimName: ponder-video-pvc
+          - name: tmp
+            emptyDir:
+              medium: Memory
     ```
 
 Applying this change will reconfigure only `deployment.apps/jellyfin`:
@@ -861,6 +886,17 @@ transoding with **Video Acceleration API (VAAPI)** and enable the
 If video playback fails with client devices that require server-side transcoding,
 [test GPU access from inside the Jellyfin pod](#gpu-access-from-the-pod).
 
+Another way to check whether Jellyfin has successfully initialized the GPU is to
+check the logs for lines mentioning it:
+
+``` console
+$ klogs media-center jellyfin
+...
+[19:35:53] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: VAAPI device /dev/dri/renderD128 is Intel GPU (iHD)
+[19:35:53] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: VAAPI device /dev/dri/renderD128 supports Vulkan DRM modifier
+[19:35:53] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: VAAPI device /dev/dri/renderD128 supports Vulkan DRM interop
+```
+
 ### AV1 GPU transcoding
 
 With hardware acceleration enabled, playing the same AV1 video increases CPU load by
@@ -883,6 +919,74 @@ in Kubernetes, which may be better used by different applications.
 
 Such a deployment never works perfectly on the first try, so here are a few
 troubleshooting tips learned along the way.
+
+### No thumbnails for family videos
+
+If thumbnails are not generated, check the logs to see why their generation
+is failing. A common reason is that `/tmp` is a read-only file system:
+
+``` console hl_lines="5"
+$ klogs media-center jellyfin
+...
+[07:36:51] [INF] [144] Emby.Server.Implementations.Library.LibraryManager: Validating media library
+[07:36:51] [ERR] [144] MediaBrowser.Providers.Folders.FolderMetadataService: Error in Dynamic Image Provider
+System.IO.IOException: Read-only file system : '/tmp/jellyfin'
+   at System.IO.FileSystem.CreateDirectory(String fullPath, UnixFileMode unixCreateMode)
+   at System.IO.Directory.CreateDirectory(String path)
+   at Emby.Server.Implementations.Images.BaseDynamicImageProvider`1.FetchToFileInternal(BaseItem item, IReadOnlyList`1 itemsWithImages, ImageType imageType, CancellationToken cancellationToken)
+   at Emby.Server.Implementations.Images.BaseDynamicImageProvider`1.FetchAsync(T item, MetadataRefreshOptions options, CancellationToken cancellationToken)
+   at MediaBrowser.Providers.Manager.MetadataService`2.RunCustomProvider(ICustomMetadataProvider`1 provider, TItemType item, String logName, MetadataRefreshOptions options, RefreshResult refreshResult, CancellationToken cancellationToken)
+```
+
+This is avoided by mounting `/tmp` as an ramdisk, using the `emptyDir` volume as seen
+[in the above deployment](#jellyfin). With Jellyfin having write access to `/tmp`,
+generation of thumbnails generates lines indicating images being created:
+
+``` console hl_lines="3-4"
+$ klogs media-center jellyfin
+...
+[18:01:23] [INF] [10] Jellyfin.Drawing.ImageProcessor: Creating image collage and saving to /tmp/jellyfin/757e22dcd1454925bbefe3fcc2fc997f.png
+[18:01:23] [INF] [10] Jellyfin.Drawing.ImageProcessor: Completed creation of image collage and saved to /tmp/jellyfin/757e22dcd1454925bbefe3fcc2fc997f.png
+[18:01:24] [INF] [51] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Starting /usr/lib/jellyfin-ffmpeg/ffprobe with args -analyzeduration 200M -probesize 1G -i file:"/data/family-videos/Events/Switzerland/2013.mp4" -threads 0 -v warning -print_format json -show_streams -show_chapters -show_format
+```
+
+Thumbnail generation may still fail for very long videos, because there is a default
+timeout of **10 seconds**:
+
+``` console hl_lines="3"
+$ klogs media-center jellyfin
+...
+MediaBrowser.Common.FfmpegException: ffmpeg image extraction timed out for file:"/data/family-videos/Locations/2022-06-27.mp4" after 10000ms
+ ---> System.Threading.Tasks.TaskCanceledException: A task was canceled.
+   at System.Diagnostics.Process.WaitForExitAsync(CancellationToken cancellationToken)
+   at MediaBrowser.Common.Extensions.ProcessExtensions.WaitForExitAsync(Process process, TimeSpan timeout)
+   at MediaBrowser.MediaEncoding.Encoder.MediaEncoder.ExtractImageInternal(String inputPath, String container, MediaStream videoStream, Nullable`1 imageStreamIndex, Nullable`1 threedFormat, Nullable`1 offset, Boolean useIFrame, Nullable`1 targetFormat, Boolean isAudio, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+```
+
+Or possibly *not* fail, despite the timeout, since the videos that appeared to have
+been affected did have a thumbnail upon inspection in the library. In any case,
+this timeout can be adjusted in Jellyfin's `/config/system.xml` around line 180
+under `<TrickplayOptions>`:
+
+``` xml title="/config/system.xml" linenums="175" hl_lines="7"
+  <TrickplayOptions>
+    <EnableHwAcceleration>false</EnableHwAcceleration>
+    <EnableHwEncoding>false</EnableHwEncoding>
+    <EnableKeyFrameOnlyExtraction>false</EnableKeyFrameOnlyExtraction>
+    <ScanBehavior>NonBlocking</ScanBehavior>
+    <ProcessPriority>BelowNormal</ProcessPriority>
+    <Interval>100000</Interval>
+    <WidthResolutions>
+      <int>320</int>
+    </WidthResolutions>
+    <TileWidth>10</TileWidth>
+    <TileHeight>10</TileHeight>
+    <Qscale>4</Qscale>
+    <JpegQuality>90</JpegQuality>
+    <ProcessThreads>1</ProcessThreads>
+  </TrickplayOptions>
+```
 
 ### Missing `gpu.intel.com` labels
 
