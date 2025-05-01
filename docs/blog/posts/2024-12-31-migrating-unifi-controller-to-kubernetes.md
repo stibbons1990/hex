@@ -12,10 +12,11 @@ title: Migrating UniFi Controller to Kubernetes
 
 The old UniFi Controller and its required Mongo DB have been a bit
 of a hassle to keep updated while running directly on the host OS in
-[my little homelab server](2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
+[my little homelab server](./2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md),
 so the time has come to migrate this to the new
 [linuxserver.io/docker-unifi-network-application](https://docs.linuxserver.io/images/docker-unifi-network-application/)
-[on my little Kubernetes cluster](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md).
+[~~on my little Kubernetes cluster~~](./2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md)
+[on my *new* Kubernetes cluster](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md).
 
 !!! warning
 
@@ -39,21 +40,21 @@ The Unifi Network Application requires a Mongo DB backend
 and both will need writeable directories and a dedicated user:
 
 ``` console
-# useradd uni
-# mkdir -p /home/k8s/unifi/config
-# mkdir -p /home/k8s/unifi/mongodb
+# groupadd unifi -g 119
+# useradd  unifi -u 119 -g 119 -s /usr/sbin/nologin
+# mkdir -p /home/k8s/unifi/config /home/k8s/unifi/mongodb
 # vi /home/k8s/unifi/init-mongo.sh
-# chown -R uni.uni /home/k8s/unifi
-# # ls -lan /home/k8s/unifi
+# chown -R unifi:unifi /home/k8s/unifi
+# ls -lan /home/k8s/unifi
 total 4
-drwxr-xr-x 1 1009 1009    52 Oct 27 13:14 .
-drwxr-xr-x 1    0    0   382 Oct 27 13:11 ..
-drwxr-xr-x 1 1009 1009    16 Oct 27 13:47 config
--rw-r--r-- 1 1009 1009   424 Oct 27 13:11 init-mongo.sh
-drwxr-xr-x 1 1009 1009 23022 Dec 31 23:23 mongodb
+drwxr-xr-x 1 119 119  52 Dec 31 16:06 .
+drwxr-xr-x 1   0   0 264 Dec 31 16:05 ..
+drwxr-xr-x 1 119 119   0 Dec 31 16:05 config
+-rw-r--r-- 1 119 119 425 Dec 31 16:06 init-mongo.sh
+drwxr-xr-x 1 119 119   0 Dec 31 16:05 mongodb
 ```
 
-Note the UID/GID (**1009**) to be used later.
+Note the UID/GID (**119**) to be used later.
 
 Create the script `/home/k8s/unifi/init-mongo.sh` using the exact
 content from the 
@@ -100,9 +101,17 @@ and parts of previous Kubernetes deployments:
 *   [Kubernetes Dashboard](2023-03-25-single-node-kubernetes-cluster-on-ubuntu-server-lexicon.md#dashboard)
     enables HTTPS in the backend and disables TLS validation.
 
+In addition to deploying the right set of objects, there are very specific requirements
+in terms of which version of MongoDB can be used depending on the version of the UniFi
+Network Application that is deployed. Check the correct pairs of versions under the
+**Additional information** section of the latest release of UniFi Network Application in
+[the latest linuxserver/unifi-network-application release](https://hub.docker.com/r/linuxserver/unifi-network-application/tags);
+e.g. [9.0.114](https://community.ui.com/releases/UniFi-Network-Application-9-0-114/35b6e9ac-f63d-46c9-bbbe-74a4a61ac95f) specifies that
+*Version 9.0 and newer supports up to MongoDB 8.0* and those are the versions used here.
+
 ??? k8s "UniFi Network Application deployment."
 
-    ``` yaml linenums="1" title="unify.yaml"
+    ``` yaml linenums="1" title="unifi-network-app.yaml"
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -189,7 +198,7 @@ and parts of previous Kubernetes deployments:
             app: mongo
         spec:
           containers:
-          - image: docker.io/mongo:4.4
+          - image: docker.io/mongo:8.0.0
             imagePullPolicy: IfNotPresent
             name: mongo
             env:
@@ -213,8 +222,8 @@ and parts of previous Kubernetes deployments:
             - mountPath: /docker-entrypoint-initdb.d/init-mongo.sh
               name: mongo-init
           securityContext:
-            runAsUser: 1009
-            runAsGroup: 1009
+            runAsUser: 119
+            runAsGroup: 119
           volumes:
           - name: mongo-data
             persistentVolumeClaim:
@@ -292,14 +301,14 @@ and parts of previous Kubernetes deployments:
             app: unifi
         spec:
           containers:
-          - image: lscr.io/linuxserver/unifi-network-application:latest
+          - image: lscr.io/linuxserver/unifi-network-application:9.0.114
             imagePullPolicy: IfNotPresent
             name: unifi
             env:
             - name: "PUID"
-              value: "1009"
+              value: "119"
             - name: "PGID"
-              value: "1009"
+              value: "119"
             - name: TZ
               value: Europe/Amsterdam
             - name: "MONGO_AUTHSOURCE"
@@ -350,7 +359,7 @@ and parts of previous Kubernetes deployments:
         metallb.universe.tf/allow-shared-ip: unifi
     spec:
       type: LoadBalancer
-      loadBalancerIP: 192.168.0.123
+      loadBalancerIP: 192.168.0.173
       ports:
       - name: mob-speedtest
         protocol: TCP
@@ -376,7 +385,7 @@ and parts of previous Kubernetes deployments:
         metallb.universe.tf/allow-shared-ip: unifi
     spec:
       type: LoadBalancer
-      loadBalancerIP: 192.168.0.123
+      loadBalancerIP: 192.168.0.173
       ports:
         - name: stun
           protocol: UDP
@@ -522,8 +531,8 @@ that had to be sorted out along the way:
     GID/UID
     ───────────────────────────────────────
 
-    User UID:    1009
-    User GID:    1009
+    User UID:    119
+    User GID:    119
     ───────────────────────────────────────
     Linuxserver.io version: 8.6.9-ls73
     Build-date: 2024-12-24T17:37:56+00:00
@@ -588,8 +597,8 @@ that had to be sorted out along the way:
     GID/UID
     ───────────────────────────────────────
 
-    User UID:    1009
-    User GID:    1009
+    User UID:    119
+    User GID:    119
     ───────────────────────────────────────
     Linuxserver.io version: 8.6.9-ls73
     Build-date: 2024-12-24T17:37:56+00:00
@@ -691,7 +700,7 @@ that had to be sorted out along the way:
 Apply the deployment and wait a few minutes for services to start:
 
 ``` console
-$ kubectl apply -f unifi.yaml
+$ kubectl apply -f unifi-network-app.yaml
 namespace/unifi created
 persistentvolume/mongo-pv-data created
 persistentvolume/mongo-pv-init created
@@ -709,29 +718,27 @@ ingress.networking.k8s.io/unifi-ingress created
 
 ``` console
 $ kubectl get all -n unifi
-NAME                         READY   STATUS    RESTARTS   AGE
-pod/mongo-d6684c658-9vclf    1/1     Running   0          39m
-pod/unifi-668bc7d755-2xt9h   1/1     Running   0          4m9s
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-w26rm   1/1     Running   0          36s
+pod/mongo-564774d869-dfk7h      1/1     Running   0          36s
+pod/unifi-584f4847c7-vpthl      1/1     Running   0          36s
 
-NAME                TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                         AGE
-service/mongo-svc   NodePort       10.104.94.112   <none>          27017:32717/TCP                                 65d
-service/unifi-tcp   LoadBalancer   10.102.178.6    192.168.0.123   8443:30359/TCP,8080:30095/TCP,6789:30627/TCP    65d
-service/unifi-udp   LoadBalancer   10.104.17.91    192.168.0.123   3478:30876/UDP,10001:32211/UDP,1900:30162/UDP   65d
+NAME                TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                                         AGE
+service/mongo-svc   NodePort       10.103.150.110   <none>          27017:32717/TCP                                 37s
+service/unifi-tcp   LoadBalancer   10.105.232.48    192.168.0.173   6789:31231/TCP,8080:32034/TCP,8443:30909/TCP    37s
+service/unifi-udp   LoadBalancer   10.108.54.45     192.168.0.173   3478:31805/UDP,10001:32694/UDP,1900:30234/UDP   37s
 
 NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/mongo   1/1     1            1           65d
-deployment.apps/unifi   1/1     1            1           4m9s
+deployment.apps/mongo   1/1     1            1           37s
+deployment.apps/unifi   1/1     1            1           37s
 
 NAME                               DESIRED   CURRENT   READY   AGE
-replicaset.apps/mongo-5d4645f554   0         0         0       65d
-replicaset.apps/mongo-5f4976899    0         0         0       65d
-replicaset.apps/mongo-d6684c658    1         1         1       39m
-replicaset.apps/unifi-668bc7d755   1         1         1       4m9s
+replicaset.apps/mongo-564774d869   1         1         1       37s
+replicaset.apps/unifi-584f4847c7   1         1         1       37s
 ```
 
 *If all goes well*, there will be no errors in the logs *and* the
-web UI will be available at 
-[https://uni.ssl.uu.am/](https://uni.ssl.uu.am/)
+web UI will be available at <https://uni.ssl.uu.am/>
 
 ``` console
 [migrations] started
@@ -755,8 +762,8 @@ https://www.linuxserver.io/donate/
 GID/UID
 ───────────────────────────────────────
 
-User UID:    1009
-User GID:    1009
+User UID:    119
+User GID:    119
 ───────────────────────────────────────
 Linuxserver.io version: 8.6.9-ls73
 Build-date: 2024-12-24T17:37:56+00:00

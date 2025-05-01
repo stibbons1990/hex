@@ -5376,3 +5376,7 @@ previously available in `lexicon`:
 *   [Jellyfin](./2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md) to watch videos
     from anywhere, including hardware acceleration for transcoding AV1 videos using 
     the onboard Intel GPU Irix Xe Graphics.
+*   [Unifi Network Application](./2024-12-31-migrating-unifi-controller-to-kubernetes.md)
+    was never actually used in `lexicon`, so instead of migrating an
+    empty deployment this was deployed anew in `octavo` using a slightly updated
+    manifest to set newer versions of both images and updated UID/GID (119).
