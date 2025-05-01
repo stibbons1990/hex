@@ -684,3 +684,76 @@ so that the text, output or code is more easily readable.
     to a page, then grabbing the `<svg>` HTML element using browser inspection tools.
 
 !!! todo "Find a way to embed the `extra.css` file directly."
+
+## Custom domain
+
+### Setup in GitHub Pages
+
+[Custom domains for GitHub Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)
+are easy to setup but in my experience not so reliable; I was able to
+set this up to make this blog available at
+<https://hex.very-very-dark-gray.top/blog/>
+but then a few hours later the custom domain was removed, even though
+DNS challenge verification had been successful.
+
+### Setup in Cloudflare Pages
+
+DNS for `very-very-dark-gray.top` are managed in Cloudflare, because this
+domain was set up for experimenting with
+[Cloudflare Tunnels](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-tunnels),
+and while those don't get so much use it would make sense to use it for
+[Cloudflare Pages](https://developers.cloudflare.com/pages/) now.
+
+[Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
+connects the Cloudflare account with a GitHub account, and access can be
+restricted to the one specific repository to use for pages, and then
+[MkDocs](https://developers.cloudflare.com/pages/framework-guides/deploy-an-mkdocs-site/)
+is available as a support framework so the entire setup can be completed in
+one go. However, the first time running the `mkdocs build` command it fails
+because dependencies are missing.
+
+[Deploying MkDocs on Cloudflare Pages: Troubleshooting Build failures](https://harishnotes.com/posts/cloudflare-mkdocs/)
+explains how to address this; a `requirements.txt` in the root directory of
+the repository must be submitted (and pushed) to include all dependencies:
+
+``` yaml title="requirements.txt"
+mkdocs==1.5.3
+mkdocs-glightbox
+mkdocs-macros-plugin
+mkdocs-material
+mkdocs-material-extensions
+paginate
+```
+
+**Before** pushing this, the **build command** in the Cloudflare Pages
+settings must be updated to install requirements:
+
+```
+pip install -r requirements.txt && mkdocs build
+```
+
+Once this change is saved, push the `requirements.txt` to the remote origin
+in GitHub and start the site build. It should now succeed and the new site
+should be available at a new URL under `pages.dev` (e.g.
+`hex-brs.pages.dev`).
+
+!!! note
+
+    Select the `main` branch from the repository, not `gh-pages`.
+
+[Add a custom domain](https://developers.cloudflare.com/pages/configuration/custom-domains/)
+directly from Cloudflare Pages settings to redirect
+<https://hex.very-very-dark-gray.top/> to `hex-brs.pages.dev` and wait a bit
+for DNS to propagate. This shouldn't take long, it should be ready in a few
+minutes.
+
+#### Hide `pages.dev` subdomain
+
+For a more seamless experience, and to keep crawlers from (incorrectly)
+counting both URLs as different/duplicate sites, implement
+[this solution](https://community.cloudflare.com/t/disable-access-to-my-site-pages-dev-after-adding-a-custom-domain/515380/4)
+prevent direct access to `hex-brs.pages.dev` and only allow
+access through the custom domain. This is done by setting up
+[bulk redirects](https://developers.cloudflare.com/rules/url-forwarding/bulk-redirects/create-dashboard/#1-create-a-bulk-redirect-list), to redirect
+requests for **all** URLs to `hex-brs.pages.dev` to
+<https://hex.very-very-dark-gray.top/> (preserving all URL parameters).
