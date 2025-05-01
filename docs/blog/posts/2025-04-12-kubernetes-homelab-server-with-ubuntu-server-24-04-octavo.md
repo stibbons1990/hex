@@ -4353,6 +4353,25 @@ assigned URLs, with authentication working as intended and all dashboards workin
 as before. The only other change needed was getting data flowing into the new InfluxDB
 server, by updating the `conmon` scripts in all the reporting systems.
 
+#### Clean up `lexicon`
+
+Once InfluxDB is running in `octavo` there are a few additional monitoring scripts to
+relocate to `octavo` (because they've been running in `lexicon`), some of which require
+additional dependencies to be installed system-wide:
+
+1.  [`conmon-speedtest`](../../projects/conmon.md#conmon-speedtest) depens on
+    `speedtest-cli`
+1.  [`conmon-tapo.py`](../../projects/conmon.md#conmon-tapopy) has more complex
+    [Python dependencies](../../projects/conmon.md#python-dependencies).
+
+Once the scripts work, they need to run from `root`'s `crontab`:
+
+``` console
+# crontab -e
+*/3 * * * * /home/k8s/code-server/conmon/conmon-speedtest
+*/5 * * * * /home/k8s/code-server/conmon/conmon-tapo.py
+```
+
 ### Komga
 
 [Komga (eBook library)](./2024-05-26-self-hosted-ebook-library-with-komga.md)
@@ -4839,3 +4858,198 @@ navidrome-ingress   nginx   navidrome.very-very-dark-gray.top   192.168.0.171   
 
 After a couple for minutes Navidrome is available at
 <https://navidrome.very-very-dark-gray.top/> and everything works fine.
+
+### Visual Studio Code Server
+
+[Visual Studio Code Server](./2023-05-29-running-vs-code-server-on-kubernetes.md)
+has been running in `lexicon` for nearly 2 years and it is still sometimes
+preferable to using Visual Studio Code on the desktop, so this service is
+also migrated over to `octavo` in very much the same fashion.
+
+??? k8s "Kubernetes deployment: `code-server.yaml`"
+
+    ``` yaml linenums="1" title="code-server.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: code-server
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: code-server
+    namespace: code-server
+    spec:
+    ports:
+    - port: 80
+      targetPort: 8080
+    selector:
+      app: code-server
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: code-server-pv
+      labels:
+        type: local
+      namespace: code-server
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: "/home/k8s/code-server"
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: code-server-pv-claim
+      namespace: code-server
+    spec:
+      storageClassName: manual
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 3Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: code-server
+      name: code-server
+      namespace: code-server
+    spec:
+      selector:
+        matchLabels:
+          app: code-server
+      template:
+        metadata:
+          labels:
+            app: code-server
+        spec:
+          volumes:
+            - name: code-server-storage
+              persistentVolumeClaim:
+                claimName: code-server-pv-claim
+          containers:
+          - image: codercom/code-server
+            imagePullPolicy: IfNotPresent
+            name: code-server
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PASSWORD
+              value: "*************************"
+            volumeMounts:
+              - mountPath: "/home/coder"
+                name: code-server-storage
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: code-server-ingress
+      namespace: code-server
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: "code-server.very-very-dark-gray.top"
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: code-server
+                    port:
+                      number: 80
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - "code-server.very-very-dark-gray.top"
+    ```
+
+First, stop the service in `lexicon` (it won't be used moving forward):
+
+``` console
+$ kubectl scale -n code-server deployment code-server --replicas=0
+deployment.apps/code-server scaled
+```
+
+Copy data over from `lexicon` to `octavo` (keeping ownership to `ponder`):
+
+``` console hl_lines="3"
+root@octavo ~ # rsync -ua lexicon:/home/k8s/code-server /home/k8s/
+```
+
+Start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f code-server.yaml
+namespace/code-server created
+service/code-server created
+persistentvolume/code-server-pv created
+persistentvolumeclaim/code-server-pv-claim created
+deployment.apps/code-server created
+ingress.networking.k8s.io/code-server-ingress created
+
+$ kubectl get all -n code-server
+NAME                               READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-44r69      1/1     Running   0          16s
+pod/code-server-69d64cd9cd-llgqq   1/1     Running   0          18s
+
+NAME                                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/cm-acme-http-solver-x75d2   NodePort    10.106.2.52     <none>        8089:32080/TCP   16s
+service/code-server                 ClusterIP   10.103.60.210   <none>        80/TCP           18s
+
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/code-server   1/1     1            1           18s
+
+NAME                                     DESIRED   CURRENT   READY   AGE
+replicaset.apps/code-server-69d64cd9cd   1         1         1       18s
+
+$ kubectl get svc -n code-server
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+cm-acme-http-solver-x75d2   NodePort    10.106.2.52     <none>        8089:32080/TCP   5s
+code-server                 ClusterIP   10.103.60.210   <none>        80/TCP           7s
+
+$ kubectl get ingress -n code-server
+NAME                  CLASS   HOSTS                                   ADDRESS   PORTS     AGE
+code-server-ingress   nginx   code-server.very-very-dark-gray.top               80, 443   11s
+```
+
+After a couple for minutes Visual Studio Code is available at
+<https://code-server.very-very-dark-gray.top/> and everything works fine, although
+due to the new URL it needs to be re-authorized on the linked GitHub account.
+
+### Minecraft Server
+
+[Running Minecraft Java Server for Bedrock clients on Kubernetes](./2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
+was fun while the kids wanted to play Minecraft, but they don't seem to be so inclined
+since some time ago and have admitted they won't be using it any time soon. Since the
+server was taking up a sizeable **10GB** of RAM (to do essentially nothing with it),
+it has been scaled down to zero replicas and won't be setup in `octavo` until there is
+demand for it again. Maybe by then it can be added to a working
+[Pterodactyl®](../../projects/self-hosting.md#pterodactyl).
+
+``` console
+$ kubectl scale -n minecraft-server deployment minecraft-server --replicas=0
+deployment.apps/minecraft-server scaled
+```
+
+In the meantime, backups are kept in their configured paths for potential future use:
+
+``` console
+root@octavo ~ # rsync -ua lexicon:/home/k8s/minecraft-server /home/k8s/
+root@octavo ~ # time rsync -ua lexicon:/home/k8s/minecraft-server-backups /home/k8s/
+root@octavo ~ # du -sh /home/k8s/minecraft-server*
+1.8G    /home/k8s/minecraft-server
+40G     /home/k8s/minecraft-server-backups
+```
