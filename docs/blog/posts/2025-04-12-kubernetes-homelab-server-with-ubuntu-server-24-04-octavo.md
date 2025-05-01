@@ -5029,6 +5029,38 @@ After a couple for minutes Visual Studio Code is available at
 <https://code-server.very-very-dark-gray.top/> and everything works fine, although
 due to the new URL it needs to be re-authorized on the linked GitHub account.
 
+### Plex Media Server
+
+[Migrating my Plex Media Server to Kubernetes](./2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
+on `lexicon` was relatively involved and this Plex server has already been replaced by
+[Jellyfin](#new-services-post-migration), so it's not clear that this Plex server needs
+to be *migrated* in the same way as before.
+
+To make sure the service won't be missed, the deployment is now stopped:
+
+``` console
+$ kubectl scale -n plexserver deployment plexserver --replicas=0
+deployment.apps/plexserver scaled
+```
+
+For now, its database will be copied over to `octavo` so the "same" Plex
+server can be restored later in necessary, although it may make more time
+to instead set it up as a new Plex server with only a subset of the library.
+
+``` console
+root@octavo ~ # rsync -ua lexicon:/home/k8s/plexmediaserver /home/k8s/
+root@octavo ~ # ls -lan /home/k8s/plexmediaserver/
+total 0
+drwxr-xr-x 1 998 998  42 Sep 16  2023 .
+drwxr-xr-x 1   0   0 306 May  1 19:16 ..
+drwxr-xr-x 1 998 998  38 Jul  6  2022 Library
+drwxr-xr-x 1 998 998  38 Sep 15  2023 Library.backup
+```
+
+UID/GID 998 is already taken by `systemd-network` so the files would need to have their
+ownership changed *if and when* a dedicated `plex` user is created for a new Plex Media
+Server deployment.
+
 ### Minecraft Server
 
 [Running Minecraft Java Server for Bedrock clients on Kubernetes](./2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
@@ -5048,7 +5080,7 @@ In the meantime, backups are kept in their configured paths for potential future
 
 ``` console
 root@octavo ~ # rsync -ua lexicon:/home/k8s/minecraft-server /home/k8s/
-root@octavo ~ # time rsync -ua lexicon:/home/k8s/minecraft-server-backups /home/k8s/
+root@octavo ~ # rsync -ua lexicon:/home/k8s/minecraft-server-backups /home/k8s/
 root@octavo ~ # du -sh /home/k8s/minecraft-server*
 1.8G    /home/k8s/minecraft-server
 40G     /home/k8s/minecraft-server-backups
