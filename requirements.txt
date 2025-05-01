@@ -1,0 +1,6 @@
+mkdocs==1.5.3
+mkdocs-glightbox
+mkdocs-macros-plugin
+mkdocs-material
+mkdocs-material-extensions
+paginate
