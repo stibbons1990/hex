@@ -197,7 +197,7 @@ latest version of the script to all computers at once.
 #
 # Deplay conmon-st to Raspberry Pi hosts.
 
-for host in pi-f1 pi-z1 pi-z2 pi3a; do
+for host in alfred pi-f1 pi-z1 pi-z2 pi3a; do
   if nc 2>&1 -zv ${host} 22 | grep -q succeeded; then
     echo "Deploying to ${host} ..."
     scp 2>/dev/null \
@@ -239,7 +239,7 @@ done
 # InfluxDB target.
 DBNAME=monitoring
 TARGET_HTTP='' # Leave empty to skip.
-TARGET_HTTPS='http://lexicon:30086'
+TARGET_HTTPS='http://octavo:30086'
 
 # Default delay between each POST request to InfluxDB.
 DELAY_POST=4
@@ -310,7 +310,19 @@ report_top() {
   report_top_per_process "${ts}" "${ptop}" &
 }
 
-report_vcgencmd() {
+report_vcgencmd_clock() {
+  # Raspberry Pi CPU clock frequency.
+  # Depends on: vcgencmd.
+  vcgencmd=$(command -v vcgencmd)
+  if [ -z "${vcgencmd}" ] || [ ! -f "${vcgencmd}" ]; then
+    return
+  fi
+  ts=$(timestamp_ns)
+  cpu_clock=$(echo $(echo "scale=2; $(vcgencmd measure_clock arm | cut -d '=' -f 2) / 1000000" | bc))
+  store_line "vcgencmd,metric=clock,host=${host} value=${cpu_clock} ${ts}"
+}
+
+report_vcgencmd_temp() {
   # Raspberry Pi CPU temperature.
   # Depends on: vcgencmd.
   vcgencmd=$(command -v vcgencmd)
@@ -325,7 +337,6 @@ report_vcgencmd() {
     pmic_temp=$(${vcgencmd} measure_temp pmic | cut -f2 -d= | cut -f1 -d"'")
     store_line "vcgencmd,metric=temp_pmic,host=${host} value=${pmic_temp} ${ts}"
   fi
-  cat "${DATA}" | cut -f1 -d, | sort | uniq -c
 }
 
 report_sensors() {
@@ -360,9 +371,15 @@ report_intel_gpu_top() {
     return
   fi
   ts=$(timestamp_ns)
-  # TODO: try with -J and find the most meaningful metrics.
-  gpu_load=$(sudo ${intel_gpu_top} -o - | head -3 | tail -1 | awk '{print $2}')
-  store_line "intel_gpu,host=${host} value=${value} ${ts}"
+  # TODO: find out why this works only when running in a console.
+  timeout 1s sudo ${intel_gpu_top} -c | head -2 >${intel_gpu_csv}
+  for N in $(seq 18); do
+    metric=$(awk -v cn=$N -F',' '{print $cn}' ${intel_gpu_csv} | head -1)
+    value=$(awk -v cn=$N -F',' '{print $cn}' ${intel_gpu_csv} | tail -1)
+    if echo "$value" | egrep -q '^0\.0+$'; then continue; fi
+    echo "intel_gpu,host=${host},metric=${metric/ /_} value=${value} ${ts}"
+    store_line "intel_gpu,host=${host},metric=${metric/ /_} value=${value} ${ts}"
+  done
 }
 
 report_nvidia_smi() {
@@ -505,7 +522,8 @@ report_iotop() {
   # security issue (CVE-2011-2494) was found that allows leakage of sensitive
   # data across user boundaries. If you require the ability to run iotop as a
   # non-root user, please configure sudo to allow you to run iotop as root.
-  sudo $iotop -b -P -n 1 |
+  # WARNING: using -n 1 results in only zero values all the time.
+  sudo $iotop -b -P -n 2 |
     grep -Ev 'task_delayacct|locale|DISK READ|0.00 B/s    0.00 B/s' |
     tr -d '[' |
     tr -d ']' |
@@ -576,11 +594,11 @@ report_du() {
     return
   fi
   ts=$(timestamp_ns)
-  while read -r path </etc/conmon/du; do
+  while read -r path; do
     kbytes=$(sudo du -s "${path}" | awk '{print $1}')
     bytes=$((1024 * kbytes))
     store_line "du,host=${host},path=${path} value=${bytes} ${ts}"
-  done
+  done </etc/conmon/du
 }
 
 post_lines_to_influxdb() {
@@ -627,8 +645,10 @@ pause_depending_on_rpi_model() {
     ["Raspberry_Pi_Zero_W_Rev_1_1"]=1000         # 1x1000 MHz
     ["Raspberry_Pi_Zero_2_W_Rev_1_0"]=4000       # 4x1000 MHz
     ["Raspberry_Pi_3_Model_A_Plus_Rev_1_0"]=1400 # 1x1400 MHz
+    ["Raspberry_Pi_3_Model_B_Rev_1_2"]=4800      # 4x1200 MHz
     ["Raspberry_Pi_3_Model_B_Rev_1_3"]=4800      # 4x1200 MHz
     ["Raspberry_Pi_4_Model_B_Rev_1_4"]=6000      # 4x1500 MHz
+    ["Raspberry_Pi_5_Model_B_Rev_1_0"]=9600      # 4x2400 MHz
   )
   model=$(grep Model /proc/cpuinfo | sed 's/.*: //' | tr ' ' '_' | tr '.' '_')
   mhz=${cpu_mhz_per_model["${model}"]}
@@ -646,7 +666,8 @@ while true; do
   report_iotop
   report_sensors
   report_net_dev
-  report_vcgencmd
+  report_vcgencmd_clock
+  report_vcgencmd_temp
   report_diskstats
   report_nvidia_smi
   report_intel_gpu_top
@@ -676,7 +697,7 @@ deploy the latest version of the script to all computers.
 #
 # Deplay conmon-mt to PC hosts.
 
-for host in computer smart-computer lexicon rapture; do
+for host in octavo cubito super-tuna computer smart-computer lexicon rapture; do
   if nc 2>&1 -zv ${host} 22 | grep -q succeeded; then
     echo "Deploying to ${host} ..."
     scp 2>/dev/null \
@@ -718,7 +739,7 @@ done
 # InfluxDB target.
 DBNAME=monitoring
 TARGET_HTTP='' # Leave empty to skip.
-TARGET_HTTPS='http://lexicon:30086'
+TARGET_HTTPS='http://octavo:30086'
 
 # Default delay between each POST request to InfluxDB.
 DELAY_POST=4
@@ -773,6 +794,19 @@ report_top_per_process() {
   rm -f "${ptop}"
 }
 
+report_cpufreq() {
+  # CPU frequency.
+  # Depends on: bc.
+  while true; do
+    top="${DDIR}/cpufreq"
+    ts=$(timestamp_ns)
+    ncpus=$(grep -c 'cpu MHz' /proc/cpuinfo)
+    cpufreq=$(echo "($(grep 'cpu MHz' /proc/cpuinfo | sed 's/.*: //' | tr '\n' +)0)/$ncpus" | bc -ql)
+    store_line "cpufreq,host=${host} value=${cpufreq} ${ts}"
+    sleep ${DELAY_FAST}
+  done
+}
+
 report_top() {
   # Stats from top: CPU (overall and per process) and RAM (per process).
   # Depends on: top, free.
@@ -789,7 +823,8 @@ report_top() {
       sed 's/\/[^ ]*\///' | sed 's/\(bash\|sh\|python\|python3\) .*\///' |
       tr -d '[' |
       tr -d ']' |
-      awk '{print $1,$2,$3,$4}' >"${top}"
+      awk '{print $1,$2,$3,$4}' |
+      tr ',' '.' >"${top}"
     # Total CPU(%) usage.
     cpu_load=$(awk '{print $2}' ${top} | grep -v '^0\.0$' | tr '\n' '+' | sed 's/+$/\n/' | bc -ql)
     store_line "top,host=${host} value=${cpu_load} ${ts}"
@@ -858,9 +893,15 @@ report_intel_gpu_top() {
   fi
   while true; do
     ts=$(timestamp_ns)
-    # TODO: try with -J and find the most meaningful metrics.
-    gpu_load=$(sudo ${intel_gpu_top} -o - | head -3 | tail -1 | awk '{print $2}')
-    store_line "intel_gpu,host=${host} value=${value} ${ts}"
+    # TODO: find out why this works only when running in a console.
+    timeout 1s sudo ${intel_gpu_top} -c | head -2 >${intel_gpu_csv}
+    for N in $(seq 18); do
+      metric=$(awk -v cn=$N -F',' '{print $cn}' ${intel_gpu_csv} | head -1)
+      value=$(awk -v cn=$N -F',' '{print $cn}' ${intel_gpu_csv} | tail -1)
+      if echo "$value" | egrep -q '^0\.0+$'; then continue; fi
+      echo "intel_gpu,host=${host},metric=${metric/ /_} value=${value} ${ts}"
+      store_line "intel_gpu,host=${host},metric=${metric/ /_} value=${value} ${ts}"
+    done
     sleep ${DELAY_FAST}
   done
 }
@@ -1018,13 +1059,15 @@ report_iotop() {
     # security issue (CVE-2011-2494) was found that allows leakage of sensitive
     # data across user boundaries. If you require the ability to run iotop as a
     # non-root user, please configure sudo to allow you to run iotop as root.
-    sudo $iotop -b -P -n 1 |
+    # WARNING: using -n 1 results in only zero values all the time.
+    sudo $iotop -b -P -n 2 |
       grep -Ev 'task_delayacct|locale|DISK READ|0.00 B/s    0.00 B/s' |
       tr -d '[' |
       tr -d ']' |
+      sed 's/ %//g' |
       sed 's/kworker\///' |
       sed 's/u64:[0-9]\+-//' |
-      awk '{print $4,$5,$6,$7,$9}' \
+      awk '{print $4,$5,$6,$7,$10}' \
         >"${iotop_stats}"
     # Return if iotop could not be run successfully.
     # This is typically caused by 'Netlink error: Operation not permitted'.
@@ -1095,11 +1138,11 @@ report_du() {
   fi
   while true; do
     ts=$(timestamp_ns)
-    while read -r path </etc/conmon/du; do
+    while read -r path; do
       kbytes=$(sudo du -s "${path}" | awk '{print $1}')
       bytes=$((1024 * kbytes))
       store_line "du,host=${host},path=${path} value=${bytes} ${ts}"
-    done
+    done </etc/conmon/du
     sleep ${DELAY_SLOW}
   done
 }
@@ -1150,6 +1193,7 @@ report_du &
 report_top &
 report_free &
 report_iotop &
+report_cpufreq &
 report_sensors &
 report_net_dev &
 report_vcgencmd &
@@ -1173,7 +1217,7 @@ sleep 10000000000
 # InfluxDB target.
 DBNAME=monitoring
 TARGET_HTTP='' # Leave empty to skip.
-TARGET_HTTPS='http://lexicon:30086'
+TARGET_HTTPS='http://octavo:30086'
 
 host=$(hostname)
 
@@ -1204,7 +1248,7 @@ fi
 # found in /etc/conmon/influxdb-auth
 if [ -n "$TARGET_HTTPS" ]; then
     influxdb_auth=/etc/conmon/influxdb-auth
-    if [ -z $influxdb_auth ] || [ ! -f $influxdb_auth ]; then
+    if [ ! -f $influxdb_auth ]; then
         exit 1
     fi
     host_and_port=$(echo $TARGET_HTTPS | sed 's/.*\///' | tr : ' ')
@@ -1228,7 +1272,7 @@ rm -f "${DATA}"
 # InfluxDB target.
 DBNAME=monitoring
 TARGET_HTTP='' # Leave empty to skip.
-TARGET_HTTPS='http://lexicon:30086'
+TARGET_HTTPS='http://octavo:30086'
 
 # MyStrom switches.
 declare -A switches=(
