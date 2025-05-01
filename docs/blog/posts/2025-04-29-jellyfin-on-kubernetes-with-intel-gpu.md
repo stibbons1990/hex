@@ -861,6 +861,24 @@ transoding with **Video Acceleration API (VAAPI)** and enable the
 If video playback fails with client devices that require server-side transcoding,
 [test GPU access from inside the Jellyfin pod](#gpu-access-from-the-pod).
 
+### AV1 GPU transcoding
+
+With hardware acceleration enabled, playing the same AV1 video increases CPU load by
+a more steady 400% above the baseline, and raises core temperatures by 4-13 ºC:
+
+![CPU load and thermals while transcoding AV1 with Intel GPU hardware acceleration](../media/2025-04-29-jellyfin-on-kubernetes-with-intel-gpu/jellyfin-transcoding-vaapi-cpu-temps.png){: style="height:295px;width:635px"}
+
+Meanwhile the GPU load (as reported by `intel_gpu_top`) is most visible in the
+**IRQ/s** and **VCS %** (Video) metrics:
+
+![GPU Video load and IRQ/s transcoding AV1 with Intel GPU hardware acceleration](../media/2025-04-29-jellyfin-on-kubernetes-with-intel-gpu/jellyfin-transcoding-vaapi-video-load-irqs.png){: style="height:295px;width:635px"}
+
+## Conclusion
+
+While this has not been a very significant improvement by any of the metrics, it *has*
+been an interesting journey through the mechanisms to make Intel GPU available to pods
+in Kubernetes, which may be better used by different applications.
+
 ## Troubleshooting
 
 Such a deployment never works perfectly on the first try, so here are a few
