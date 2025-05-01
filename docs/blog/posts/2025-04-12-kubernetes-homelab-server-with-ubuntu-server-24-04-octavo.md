@@ -5053,3 +5053,326 @@ root@octavo ~ # du -sh /home/k8s/minecraft-server*
 1.8G    /home/k8s/minecraft-server
 40G     /home/k8s/minecraft-server-backups
 ```
+
+### Firefly III
+
+[Self-hosted accountancy with Firefly III](./2024-05-19-self-hosted-accountancy-with-firefly-iii.md)
+has not been used much; in all honesty keeping track of expenses and transactions is a
+lot less fun and a lot more grind than everything else going on. Even so, just in case
+this *will* be used in the future, it is worth migrating just to not throw it away.
+
+!!! warning
+
+    Do not bother trying to change what user these processes run as, these are
+    hard-coded in the images and (at least) the `mariadb` pod will fail to start
+    if it runs as a different user.
+
+??? k8s "Kubernetes deployment: `firefly-iii.yaml`"
+
+    ``` yaml linenums="1" title="firefly-iii.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: firefly-iii
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: firefly-iii-pv-mysql
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 20Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/firefly-iii/mysql
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: firefly-iii-pvc-mysql
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      volumeName: firefly-iii-pv-mysql
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 20Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: firefly-iii-mysql
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      selector:
+        matchLabels:
+          app: firefly-iii
+          tier: mysql
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: firefly-iii
+            tier: mysql
+        spec:
+          containers:
+          - image: yobasystems/alpine-mariadb:latest
+            imagePullPolicy: Always
+            name: mysql
+            env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "**************************"
+            ports:
+            - containerPort: 3306
+              name: mysql
+            volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          volumes:
+          - name: mysql-persistent-storage
+            persistentVolumeClaim:
+              claimName: firefly-iii-pvc-mysql
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: firefly-iii-mysql-svc
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      type: NodePort
+      ports:
+      - port: 3306
+        nodePort: 30306
+        targetPort: 3306
+      selector:
+        app: firefly-iii
+        tier: mysql
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: firefly-iii-pv-upload
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/firefly-iii/upload
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: firefly-iii-pvc-upload
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      storageClassName: manual
+      volumeName: firefly-iii-pv-upload
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 10Gi
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: firefly-iii-svc
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      type: NodePort
+      ports:
+      - port: 8080
+        nodePort: 30080
+        targetPort: 8080
+      selector:
+        app: firefly-iii
+        tier: frontend
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: firefly-iii
+      namespace: firefly-iii
+      labels:
+        app: firefly-iii
+    spec:
+      selector:
+        matchLabels:
+          app: firefly-iii
+          tier: frontend
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: firefly-iii
+            tier: frontend
+        spec:
+          containers:
+          - image: fireflyiii/core
+            imagePullPolicy: Always
+            name: firefly-iii
+            env:
+            - name: APP_ENV
+              value: "local"
+            - name: APP_KEY
+              value: "********************************"
+            - name: DB_HOST
+              value: firefly-iii-mysql-svc
+            - name: DB_CONNECTION
+              value: mysql
+            - name: DB_DATABASE
+              value: "fireflyiii"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              value: "**************************"
+            - name: TRUSTED_PROXIES
+              value: "**"
+            ports:
+            - containerPort: 8080
+              name: firefly-iii
+            volumeMounts:
+            - mountPath: "/var/www/html/storage/upload"
+              name: firefly-iii-upload 
+          volumes:
+            - name: firefly-iii-upload
+              persistentVolumeClaim:
+                claimName: firefly-iii-pvc-upload
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: firefly-iii-ingress
+      namespace: firefly-iii
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/websocket-services: firefly-iii-svc
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    spec:
+      ingressClassName: nginx
+      rules:
+      - host: firefly-iii.very-very-dark-gray.top
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: firefly-iii-svc
+                port:
+                  number: 8080
+      tls:
+        - secretName: tls-secret
+          hosts:
+            - firefly-iii.very-very-dark-gray.top
+    ```
+
+First, stop the service in `lexicon` (it won't be used moving forward):
+
+``` console
+$ kubectl scale -n firefly-iii deployment firefly-iii --replicas=0
+deployment.apps/firefly-iii scaled
+
+$ kubectl scale -n firefly-iii deployment firefly-iii-mysql --replicas=0
+deployment.apps/firefly-iii-mysql scaled
+```
+
+Copy data over from `lexicon` to `octavo`:
+
+``` console
+root@octavo ~ # rsync -ua lexicon:/home/k8s/firefly-iii /home/k8s/
+root@octavo ~ # ls -hal /home/k8s/firefly-iii
+drwxr-xr-x 1 root     root      22 May 19  2024 .
+drwxr-xr-x 1 root     root     254 May  1 15:20 ..
+drwxr-xr-x 1 dhcpcd   lxd      566 May  1 15:32 mysql
+drwxrwxr-x 1 www-data www-data   0 May 19  2024 upload
+```
+
+Start the deployment in `octavo`:
+
+``` console
+$ kubectl apply -f firefly-iii.yaml 
+namespace/firefly-iii created
+persistentvolume/firefly-iii-pv-mysql created
+persistentvolumeclaim/firefly-iii-pvc-mysql created
+service/firefly-iii-mysql-svc created
+persistentvolume/firefly-iii-pv-upload created
+persistentvolumeclaim/firefly-iii-pvc-upload created
+service/firefly-iii-svc created
+ingress.networking.k8s.io/firefly-iii-ingress created
+deployment.apps/firefly-iii created
+ingress.networking.k8s.io/firefly-iii-ingress configured
+
+$ kubectl get all -n firefly-iii
+NAME                                     READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-rhfrm            1/1     Running   0          15s
+pod/firefly-iii-7c6f8597c9-j7nlf         1/1     Running   0          3m27s
+pod/firefly-iii-mysql-859cd77d57-85pjp   1/1     Running   0          4m1s
+
+NAME                                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/cm-acme-http-solver-4dln6   NodePort   10.99.155.239    <none>        8089:32080/TCP   15s
+service/firefly-iii-mysql-svc       NodePort   10.105.106.204   <none>        3306:30306/TCP   10m
+service/firefly-iii-svc             NodePort   10.98.129.183    <none>        8080:30080/TCP   10m
+
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/firefly-iii         1/1     1            1           9m57s
+deployment.apps/firefly-iii-mysql   1/1     1            1           9m57s
+
+NAME                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/firefly-iii-7c6f8597c9         1         1         1       4m22s
+replicaset.apps/firefly-iii-mysql-859cd77d57   1         1         1       4m23s
+
+$ kubectl get svc -n firefly-iii
+NAME                        TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+cm-acme-http-solver-hgc27   NodePort   10.110.227.244   <none>        8089:32080/TCP   72s
+firefly-iii-mysql-svc       NodePort   10.105.106.204   <none>        3306:30306/TCP   76s
+firefly-iii-svc             NodePort   10.98.129.183    <none>        8080:30080/TCP   76s
+
+$ kubectl get ingress -n firefly-iii
+NAME                  CLASS   HOSTS                                 ADDRESS         PORTS     AGE
+
+firefly-iii-ingress   nginx   firefly-iii.very-very-dark-gray.top   192.168.0.171   80, 443   79s
+```
+
+After a couple of minutes Firefly III is available at
+<https://firefly-iii.very-very-dark-gray.top/> and ready to use with the migrated
+database and everything else.
+
+## New services (post migration)
+
+After all the above migrations, new services have been added to `octavo` that were not
+previously available in `lexicon`:
+
+*   [Jellyfin](./2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md) to watch videos
+    from anywhere, including hardware acceleration for transcoding AV1 videos using 
+    the onboard Intel GPU Irix Xe Graphics.
