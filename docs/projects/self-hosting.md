@@ -120,6 +120,13 @@ This has made its usefulness somewhat limited but not as much as
 how hard it really is to categorize and aggregate "activities"
 into groups to represent *real-life activities*.
 
+#### Home Assistant
+
+[Home Assistant on a Raspberry Pi 5 (`alfred`)](../blog/posts/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md)
+should become a good replacement for the
+[Continuous Monitoring for TP-Link Tapo devices](../blog/posts/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md),
+although that may yet take some more work.
+
 #### Kubernetes Dashboard
 
 [The built-in Kubernetes Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
@@ -129,31 +136,15 @@ and is a nice UI to see how the cluster is doing, although when it
 comes to root-causing problems for real it doesn't seem to provide
 quite enough details.
 
-#### Minecraft Server
+#### Jellyfin
 
-[Running Minecraft Java Server for Bedrock clients on Kubernetes](../blog/posts/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
-is a convenient method to keep the Minecraft Java Edition server up to
-date *and* make it available to multiple kids, including friends playing
-remotely.
+[Jellyfin on Kubernetes with Intel GPU](../blog/posts/2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md)
+turned out even better than expected, even though it required a fair bit of
+[troubleshooting](../blog/posts/2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md#troubleshooting) to get everything to work.
 
-Sometimes docker images are released several days later than the original
-server, which leads to a temporary version mismatch between the server
-and the clients, but when the server is lagging one version behind,
-(or, rarely, down) the kids will just use one of their own PCs as the
-secondary server and play on that one until the primary server is fixed.
-
-#### Plex Media Server
-
-[Migrating a Plex Media Server to Kubernetes](../blog/posts/2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
-was very convenient to let Kubernetes take care of updating the
-Plex Media Server itself. However, as popular as Plex is, it is
-barely used:
-
-*   [Audiobookshelf](#audiobookshelf) has already replaced it for
-    audiobooks and podcasts.
-*   [Navidrome](#navidrome) has already replaced it for music.
-*   [Jellyfin](#jellyfin) and [Immich](#immich) may replace it for
-    video lectures and family videos respectively.
+It handles private videos, such as family videos and purchased video lectures,
+none of which would be found in a public database like IMDB,
+better than the (retired) [Plex Media Server](#plex-media-server).
 
 ### Not Really Used
 
@@ -296,60 +287,36 @@ which seems more versatile than a applications-only dashboard like
 application dashboard that could be useful to have a *big picture* view
 of all services in one place, should there ever be too many of them.
 
-#### Home Assistant
-
-[Home Assistant](https://www.home-assistant.io/) may become a necessary upgrade from
-[Continuous Monitoring for TP-Link Tapo devices](../blog/posts/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md),
-especially for purposes of automating changes in around the house.
-
-There are quite a few ways to install and run Home Assistant, such as imaging a whole
-[Raspberry Pi](https://www.home-assistant.io/installation/raspberrypi)
-with its Home Assistant's own distribution, which seems a bit overkill, or with
-[docker-compose](https://www.home-assistant.io/installation/linux#docker-compose),
-which comes closer to fitting my preferred setup of running in Kubernetes.
-[abalage/home-assistant-k8s](https://github.com/abalage/home-assistant-k8s/tree/main?tab=readme-ov-file#home-assistant-k8s)
-implements exactly this and would probably be my preferred method, although it might need
-[a trick or two to make discovery work](https://www.reddit.com/r/homeassistant/comments/ygmcpg/anyone_running_it_in_kubernetes_and_if_yes_how/).
-
 #### Immich
 
 [Immich](https://immich.app/) is a *self-hosted photo and video
 management solution* that should make it easy to *browse, search and
 organize photos and videos with ease, without sacrificing privacy*.
 
-#### Jellyfin
-
-[Jellyfin](https://jellyfin.org/) *is the volunteer-built media solution
-that puts you in control of your media*. It has the appeal of being open
-source, unlike [Plex Media Server](#plex-media-server), but the features,
-navigation and even the UI look very similar. There is not much to see
-in the [live demo](https://demo.jellyfin.org/stable/web/#/home.html)
-so I would need to test it thorougly to determine whether it would make
-a good replacement for [Plex Media Server](#plex-media-server). 
-
-There is hope that Jellyfin will handles private videos, such as
-family videos and purchased video lectures, none of which would be
-found in a public database like IMDB,
-[better than others](https://forum.jellyfin.org/t-jellyfin-for-family-videos?pid=21889#pid21889).
-
-There is no offically documented Kubernetes deployment for Jellyfin
-([jellyfin/discussions/11180](https://github.com/jellyfin/jellyfin/discussions/11180))
-but there is a simple enough deployment
-[here](https://merox.dev/blog/kubernetes-media-server/#jellyfin-br)
-and a more detailed, albeit older one
-[here](https://www.debontonline.com/2021/11/kubernetes-part-16-deploy-jellyfin.html).
-
-#### Kendo Manager
-
-[Kendo Manager](https://www.kendomanager.com/)
-
-
-
 #### Leantime
 
 [Leantime](https://github.com/Leantime/leantime/?tab=readme-ov-file#leantime)
+*is an open source project management system for non-project managers.
+We combine strategy, planning and execution while making it easy for everyone
+on the team to use. Built with ADHD, dyslexia and autism in mind.* 🧠
 
+Sounds likely a better fit for me than [Kendo Manager](https://www.kendomanager.com/).
 
+#### Minecraft Server
+
+[Running Minecraft Java Server for Bedrock clients on Kubernetes](../blog/posts/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
+is a convenient method to keep the Minecraft Java Edition server up to date *and*
+make it available to multiple kids, including friends playing remotely.
+
+Sometimes docker images are released several days later than the original
+server, which leads to a temporary version mismatch between the server
+and the clients, but when the server is lagging one version behind,
+(or, rarely, down) the kids will just use one of their own PCs as the
+secondary server and play on that one until the primary server is fixed.
+
+Eventually the kids seem to have *grown out of it* and are no longer so interested
+in playing Minecraft, so the server has been
+[archived for potential future use](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#minecraft-server).
 
 #### Netdata
 
@@ -425,7 +392,29 @@ You can even install
 
 [Helm chart for OpenProject](https://www.openproject.org/docs/installation-and-operations/installation/helm-chart/)
 
+#### Pi-hole®
 
+[Pi-hole®](https://pi-hole.net/) is a renowned *Network-wide Ad Blocking*
+and is very simple to run. However, blocking ads is not the main concern,
+but instead blocking phishing and malware domains. This requires using
+[custom blocklists](https://marcelbootsman.nl/securing-my-home-network-why-i-use-pi-hole#:~:text=Customization)
+manually, like
+[tweedge/emerging-threats-pihole](https://github.com/tweedge/emerging-threats-pihole).
+
+#### Plex Media Server
+
+[Migrating a Plex Media Server to Kubernetes](../blog/posts/2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
+was very convenient to let Kubernetes take care of updating the
+Plex Media Server itself. However, as popular as Plex is, it is
+barely used:
+
+*   [Audiobookshelf](#audiobookshelf) has already replaced it for
+    audiobooks and podcasts.
+*   [Navidrome](#navidrome) has already replaced it for music.
+*   [Jellyfin](#jellyfin) has already replaced Plex for what little
+    watching is going on around here.
+*   [Immich](#immich) may yet prove itself better suited for family videos,
+    but so far Jellyfin seems good enough for what little use it gets.
 
 #### Pterodactyl®
 
@@ -439,15 +428,6 @@ The full list of supported games is split between
 [pelican-eggs/games-standalone](https://github.com/pelican-eggs/games-standalone)
 and
 [pelican-eggs/games-steamcmd](https://github.com/pelican-eggs/games-steamcmd).
-
-#### Pi-hole®
-
-[Pi-hole®](https://pi-hole.net/) is a renowned *Network-wide Ad Blocking*
-and is very simple to run. However, blocking ads is not the main concern,
-but instead blocking phishing and malware domains. This requires using
-[custom blocklists](https://marcelbootsman.nl/securing-my-home-network-why-i-use-pi-hole#:~:text=Customization)
-manually, like
-[tweedge/emerging-threats-pihole](https://github.com/tweedge/emerging-threats-pihole).
 
 #### Ryot
 
