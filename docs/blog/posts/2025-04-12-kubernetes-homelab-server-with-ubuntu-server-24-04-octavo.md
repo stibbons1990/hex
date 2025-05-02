@@ -3971,6 +3971,21 @@ with the same user credentails, except for just one little quirk:
 `DC:21:48:43:B7:C2` is the Bluetooth adapter in `lexicon`, so it can be removed, and
 `D0:65:78:A5:8B:E1` is the Bluetooth adapter in `octavo` so that's the one to add.
 
+#### InfluxDB
+
+[The InfluxDB integration](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#influxdb)
+stopped reporting metrics to `octavo` even though the configuration remained valid;
+the integration had gone missing and would no longer be found under
+**Settings > Devices & services**. To restore reporting it was found necessary to
+
+1.  Remove the `influxdb` section from Home Assistant's `configuration.yaml`.
+1.  Restart Home Assistant.
+1.  Add the `influxdb` section again to `configuration.yaml`.
+1.  Restart Home Assistant *again*.
+
+This persuaded Home Assistant to add the InfluxDB integration back, and after that
+the integration simply resumed sending all metrics again.
+
 #### Synology DSM
 
 Another little surprise from Home Assistant after moving to `octavo` is
