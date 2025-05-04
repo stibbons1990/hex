@@ -3828,11 +3828,12 @@ replicaset.apps/influxdb-5974bf664f   1         1         1       23s
 
 $ kubectl get ingress -n monitoring
 NAME                        CLASS       HOSTS                                     ADDRESS                              PORTS     AGE
-grafana-ingress             nginx       grafana-ingress.very-very-dark-gray.top   192.168.0.124                        80, 443   41h
-grafana-ingress-tailscale   tailscale   *                                         grafana-ingress.royal-penny.ts.net   80, 443   3m33s
+grafana-ingress             nginx       grafana-alfred.very-very-dark-gray.top    192.168.0.124                        80, 443   41h
+grafana-ingress-tailscale   tailscale   *                                         grafana-alfred.royal-penny.ts.net    80, 443   3m33s
 ```
 
 After a couple of minutes both services are running fine and Grafana is available at
+<https://grafana-alfred.royal-penny.ts.net> and
 <https://grafana-alfred.very-very-dark-gray.top> but it will be empty because before
 anything and report to InfluxDB, it must be initialized.
 
@@ -4880,6 +4881,650 @@ Grafana, after adding the new database as a new InfluxDB data source.
 
 [The InfluxDB `sensor`](https://www.home-assistant.io/integrations/influxdb/#sensor) *allows using values from a InfluxDB database to populate a sensor state. This can be used to present statistics as Home Assistant sensors, if used with the influxdb history integration. It can also be used with an external data source.* All this sound very
 interesting for potential future expansions!
+
+## Audiobookshelf
+
+[Audiobookshelf](../../projects/self-hosting.md#audiobookshelf) running on `octavo` is
+probably the first service I'd miss if it becomes unavailable or unusable, and since
+`alfred` has a *roomy* 2000 GB NVMe SSD, it can serve as a backup for the main
+service. This does not have to be a *complete* copy of
+[Audiobookshelf on `octavo`](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#audiobookshelf)
+but it does need to be kept in sync with it; and this sync must be *pausable* and
+*reversable* in the event of the main service *becoming the secondary* service for
+an extended period of time.
+
+To test the syncing strategy, Audiobookshelf on `alfred` will start entirely empty:
+
+``` console
+$ sudo groupadd audiobookshelf -g 117
+$ sudo useradd  audiobookshelf -u 117 -g 117 -s /usr/sbin/nologin
+$ sudo mkdir /home/k8s/audiobookshelf
+$ sudo chown -R audiobookshelf:audiobookshelf /home/k8s/audiobookshelf
+$ sudo ls -hal /home/k8s/audiobookshelf
+total 8.0K
+drwxr-xr-x 2 audiobookshelf audiobookshelf 4.0K May  4 18:25 .
+drwxr-xr-x 6 root           root           4.0K May  4 18:25 ..
+
+$ sudo mkdir /home/depot
+$ sudo chown pi:pi /home/depot
+$ mkdir -p /home/depot/audio/Audiobooks /home/depot/audio/Podcasts
+$ ls -hal /home/depot/audio/
+total 16K
+drwxr-xr-x 4 pi pi 4.0K May  4 18:32 .
+drwxr-xr-x 3 pi pi 4.0K May  4 18:32 ..
+drwxr-xr-x 2 pi pi 4.0K May  4 18:32 Audiobooks
+drwxr-xr-x 2 pi pi 4.0K May  4 18:32 Podcasts
+```
+
+Taking the deployment of
+[Audiobookshelf in `octavo`](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#audiobookshelf)
+as the starting point, the deployment for `alfred` changes only a few details:
+
+*   Change the mounting points for audio files to `/home/depot/audio` in the local
+    filesystem, because the NAS will be too far away from the final destination.
+*   Remove the `audiobookshelf-ingress` because this system will likely not be
+    directly reachable from outside its network on destination, and
+    [Cloudflare Tunnel](#cloudflare-tunnel) is not suitable for streaming audio.
+*   Add `audiobookshelf-ingress-tailscale` for access through [Tailscale](#tailscale).
+    *   Add the `nginx.ingress.kubernetes.io/websocket-services` annotation which is
+        required by Audiobookshelf.
+
+??? k8s "Audiobookshelf deployment on `alfred`"
+
+    ``` yaml title="alfred/audiobookshelf.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: audiobookshelf
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/config
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/audiobookshelf/metadata
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Audiobooks
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Podcasts
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: audiobookshelf-pv-depot-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Podcasts
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-config
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-config
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-metadata
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-metadata
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-audiobooks
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-audiobooks
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-podcasts
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: audiobookshelf-pvc-depot-podcasts
+      namespace: audiobookshelf
+    spec:
+      storageClassName: manual
+      volumeName: audiobookshelf-pv-depot-podcasts
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: audiobookshelf
+      name: audiobookshelf
+      namespace: audiobookshelf
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: audiobookshelf
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: audiobookshelf
+        spec:
+          containers:
+            - image: ghcr.io/advplyr/audiobookshelf:latest
+              imagePullPolicy: Always
+              name: audiobookshelf
+              env:
+              - name: PORT
+                value: "13378"
+              ports:
+              - containerPort: 13378
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /config
+                name: audiobookshelf-config
+              - mountPath: /metadata
+                name: audiobookshelf-metadata
+              - mountPath: /audiobooks
+                name: audiobookshelf-audiobooks
+              - mountPath: /podcasts
+                name: audiobookshelf-podcasts
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 117
+                runAsGroup: 117
+          restartPolicy: Always
+          volumes:
+          - name: audiobookshelf-config
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-config
+          - name: audiobookshelf-metadata
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-metadata
+          - name: audiobookshelf-audiobooks
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-audiobooks
+          - name: audiobookshelf-podcasts
+            persistentVolumeClaim:
+              claimName: audiobookshelf-pvc-depot-podcasts
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: audiobookshelf-svc
+      namespace: audiobookshelf
+    spec:
+      type: NodePort
+      ports:
+      - port: 13388
+        nodePort: 31378
+        targetPort: 13378
+      selector:
+        app: audiobookshelf
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: audiobookshelf-ingress-tailscale
+      namespace: audiobookshelf
+      annotations:
+        nginx.ingress.kubernetes.io/websocket-services: audiobookshelf-svc
+    spec:
+      ingressClassName: tailscale
+      defaultBackend:
+        service:
+          name: audiobookshelf-svc
+          port:
+            number: 13378
+      tls:
+        - hosts:
+            - audiobookshelf-alfred
+    ```
+
+The apply the new deployment to start InfluxDB and Grafana:
+
+``` console
+$ kubectl apply -f alfred/audiobookshelf.yaml
+namespace/audiobookshelf created
+persistentvolume/audiobookshelf-pv-config created
+persistentvolume/audiobookshelf-pv-metadata created
+persistentvolume/audiobookshelf-pv-audiobooks created
+persistentvolume/audiobookshelf-pv-podcasts created
+persistentvolume/audiobookshelf-pv-depot-podcasts created
+persistentvolumeclaim/audiobookshelf-pvc-config created
+persistentvolumeclaim/audiobookshelf-pvc-metadata created
+persistentvolumeclaim/audiobookshelf-pvc-audiobooks created
+persistentvolumeclaim/audiobookshelf-pvc-podcasts created
+persistentvolumeclaim/audiobookshelf-pvc-depot-podcasts created
+deployment.apps/audiobookshelf created
+service/audiobookshelf-svc created
+ingress.networking.k8s.io/audiobookshelf-ingress-tailscale created
+
+$ kubectl get all -n audiobookshelf
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/audiobookshelf-b49c49757-74rv5   1/1     Running   0          46s
+
+NAME                         TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE
+service/audiobookshelf-svc   NodePort   10.108.207.194   <none>        13388:31378/TCP   46s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/audiobookshelf   1/1     1            1           46s
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/audiobookshelf-b49c49757   1         1         1       46s
+
+$ kubectl get ingress -n audiobookshelf
+NAME                               CLASS       HOSTS   ADDRESS                                    PORTS     AGE
+audiobookshelf-ingress-tailscale   tailscale   *       audiobookshelf-alfred.royal-penny.ts.net   80, 443   52s
+```
+
+After nearly a minute the service is running, but the web UI is not yet available
+because somehow the process is having access denied to its own files:
+
+``` console
+$ klogs audiobookshelf audiobookshelf
+[2025-05-04 17:10:17.354] FATAL: [Server] Unhandled rejection: [Error: EACCES: permission denied, mkdir '/metadata/logs'] {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'mkdir',
+  path: '/metadata/logs'
+} 
+promise: Promise {
+  <rejected> [Error: EACCES: permission denied, mkdir '/metadata/logs'] {
+    errno: -13,
+    code: 'EACCES',
+    syscall: 'mkdir',
+    path: '/metadata/logs'
+  }
+}
+```
+
+This error repeats at a very high rate and the directory is indeed empty,
+because somehow the directories have been *claimed* by `root` and need to be
+*re-claimed* by `audiobookshelf`:
+
+``` console
+$ sudo ls -lad /home/k8s/audiobookshelf/*
+drwxr-xr-x  6 root root 4096 May  4 19:11 /home/k8s/audiobookshelf/config
+drwxr-xr-x  2 root root 4096 May  4 19:11 /home/k8s/audiobookshelf/metadata
+
+$ sudo chown -R audiobookshelf:audiobookshelf /home/k8s/audiobookshelf/
+$ sudo ls -lad /home/k8s/audiobookshelf/*
+drwxr-xr-x 3 audiobookshelf audiobookshelf 4096 May  4 19:11 /home/k8s/audiobookshelf/config
+drwxr-xr-x 6 audiobookshelf audiobookshelf 4096 May  4 19:11 /home/k8s/audiobookshelf/metadata
+```
+
+After some more time, because Tailscale DNS need time to propagate, it becomes
+available at <https://audiobookshelf-alfred.royal-penny.ts.net>, but it will be
+empty because it has not yet been *synced* with `octavo`.
+
+### Audiobookshelf sync scripts
+
+To keep alfred in sync with octavo, the trick is to copy `/home/k8s/audiobookshelf`
+over while the service is not running; so long as the `config/absdatabase.sqlite`
+database is copied over, Audiobookshelf on `alfred` will mirror exactly the status
+in `octavo`.
+
+??? code "Sync script: Audiobookshelf and audio from `octavo`"
+
+    ```bash
+    #!/bin/bash
+    #
+    # Sync specific directories from /home/nas (NAS) to /home/depot (NVMe).
+
+    # Audiobooks: active (authors).
+    for d in Andy.Weir Carl.Sagan Douglas.Adams James.S.A.Corey Terry.Pratchett; do
+      rsync -ua \
+        root@octavo.royal-penny.ts.net:/home/nas/public/audio/Audiobooks/$d \
+        /home/depot/audio/Audiobooks
+    done
+
+    # Podcasts: active.
+    for d in Linux.Matters Making.It Nextlander; do
+      rsync -ua \
+        root@octavo.royal-penny.ts.net:/home/depot/audio/Podcasts/$d \
+        /home/depot/audio/Podcasts/
+    done
+
+    # Audiobookshelf: stop, sync, start.
+    kubectl scale -n audiobookshelf deployment audiobookshelf --replicas=0
+    sleep 20
+    sudo rsync -ua --del \
+      root@octavo.royal-penny.ts.net:/home/k8s/audiobookshelf/* \
+      /home/k8s/audiobookshelf/
+    kubectl scale -n audiobookshelf deployment audiobookshelf --replicas=1
+    ```
+
+Running this hourly should provide a good mirror.
+
+## Navidrome
+
+[Navidrome](../../projects/self-hosting.md#navidrome) would be missed too, should it
+become unavailable. Following the same method as above, taking the deployment of
+[Navidrome in `octavo`](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#navidrome)
+as the starting point, the deployment for `alfred` changes about the same details
+as with [Audiobookshelf](#audiobookshelf):
+
+*   Change the mounting points for audio files to `/home/depot/audio` in the local
+    filesystem, because the NAS will be too far away from the final destination.
+*   Remove the `navidrome-ingress` because this system will likely not be
+    directly reachable from outside its network on destination, and
+    [Cloudflare Tunnel](#cloudflare-tunnel) is not suitable for streaming.
+*   Add `navidrome-ingress-tailscale` for access through [Tailscale](#tailscale).
+*   Modify the `ND_BASEURL` variable to reflect the expected FQND from Tailscale.
+
+??? k8s "Navidrome deployment on `alfred`"
+
+    ``` yaml title="alfred/navidrome.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: navidrome
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: navidrome-pv-data
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/navidrome
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: navidrome-pv-music
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 100Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/depot/audio/Music
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: navidrome-pvc-data
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      volumeName: navidrome-pv-data
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: navidrome-pvc-music
+      namespace: navidrome
+    spec:
+      storageClassName: manual
+      volumeName: navidrome-pv-music
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: navidrome
+      name: navidrome
+      namespace: navidrome
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: navidrome
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: navidrome
+        spec:
+          containers:
+            - image: deluan/navidrome:latest
+              imagePullPolicy: Always
+              name: navidrome
+              env:
+              - name: ND_BASEURL
+                value: "https://navidrome-alfred.royal-penny.ts.net/"
+              - name: ND_LOGLEVEL
+                value: "info"
+              - name: ND_SCANSCHEDULE
+                value: "1h"
+              - name: ND_SESSIONTIMEOUT
+                value: "24h"
+              ports:
+              - containerPort: 4533
+              resources: {}
+              stdin: true
+              tty: true
+              volumeMounts:
+              - mountPath: /data
+                name: navidrome-data
+              - mountPath: /music
+                name: navidrome-music
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 116
+                runAsGroup: 116
+          restartPolicy: Always
+          volumes:
+          - name: navidrome-data
+            persistentVolumeClaim:
+              claimName: navidrome-pvc-data
+          - name: navidrome-music
+            persistentVolumeClaim:
+              claimName: navidrome-pvc-music
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: navidrome-svc
+      namespace: navidrome
+    spec:
+      type: NodePort
+      ports:
+      - port: 4533
+        nodePort: 30533
+        targetPort: 4533
+      selector:
+        app: navidrome
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: navidrome-ingress-tailscale
+      namespace: navidrome
+    spec:
+      ingressClassName: tailscale
+      defaultBackend:
+        service:
+          name: navidrome-svc
+          port:
+            number: 4533
+      tls:
+        - hosts:
+            - navidrome-alfred
+    ```
+
+Before deploying Navidrome, it makes sense to also import its `/data` directory
+from `octavo`, at least once if not on a regular sync:
+
+``` console
+$ sudo groupadd navidrome -g 116
+$ sudo useradd  navidrome -u 116 -g 116 -s /usr/sbin/nologin
+$ sudo rsync -ua root@octavo.royal-penny.ts.net:/home/k8s/navidrome /home/k8s/
+$ sudo chown -R navidrome:navidrome /home/k8s/navidrome
+$ sudo ls -hal /home/k8s/navidrome
+total 32M
+drwxr-xr-x 3 navidrome navidrome 4.0K Apr 30 00:27 .
+drwxr-xr-x 7 root      root      4.0K May  4 22:37 ..
+drwxr-xr-x 5 navidrome navidrome 4.0K Dec 23 06:09 cache
+-rw-r--r-- 1 navidrome navidrome  32M Apr 30 00:25 navidrome.db
+-rw-r--r-- 1 navidrome navidrome  32K May  3 23:14 navidrome.db-shm
+-rw-r--r-- 1 navidrome navidrome 165K May  3 23:14 navidrome.db-wal
+```
+
+Then apply the deployment and allow time for Tailscale DNS to propagate.
+
+``` console
+$ kubectl apply -f alfred/navidrome.yaml
+namespace/navidrome created
+persistentvolume/navidrome-pv-data created
+persistentvolume/navidrome-pv-music created
+persistentvolumeclaim/navidrome-pvc-data created
+persistentvolumeclaim/navidrome-pvc-music created
+deployment.apps/navidrome created
+service/navidrome-svc created
+ingress.networking.k8s.io/navidrome-ingress-tailscale created
+
+$ kubectl get all -n navidrome
+NAME                             READY   STATUS    RESTARTS   AGE
+pod/navidrome-6f6bf7d87c-qrtz2   1/1     Running   0          25s
+
+NAME                    TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/navidrome-svc   NodePort   10.104.114.45   <none>        4533:30533/TCP   25s
+
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/navidrome   1/1     1            1           25s
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/navidrome-6f6bf7d87c   1         1         1       25s
+
+$ kubectl get ingress -n navidrome
+NAME                          CLASS       HOSTS   ADDRESS                                PORTS     AGE
+navidrome-ingress-tailscale   tailscale   *       navidrome-alfred.royal-penny.ts.net    80, 443   30s
+```
+
+Eventually the service is available at <https://navidrome-alfred.royal-penny.ts.net>
+and *everything works just fine*. Otherwise, consider removing the contents of
+`/home/k8s/navidrome` to let Navidrom initialize itself anew.
 
 ## Conclusion
 
