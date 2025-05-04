@@ -638,7 +638,7 @@ although that option remains available should it become necessary.
 
 ### Cloudflare Tunnel
 
-[Cloudflare Tunnels in Alfred](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
+[Cloudflare Tunnels in `alfred`](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#cloudflare-tunnel)
 proved to be a good solution for making web sites externally available but still
 [protected behind SSO with Zero Trust Web Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access).
 Since all that was already setup, and there are no services running in this server yet,
@@ -776,7 +776,7 @@ Additional setup will be needed later on, once services are running on Kubernete
 
 ## Kubernetes
 
-[Kubernetes on Raspberry Pi 5 (Alfred)](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#kubernetes)
+[Kubernetes on Raspberry Pi 5 (`alfred`)](./2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred.md#kubernetes)
 showed quite a few *new hurdles* caused by newer versions of Kubernetes (v1.32.2) and
 a few components; this most recent installation will be the main guide this time. On top
 of that, [Applications Installed](../../projects/self-hosting.md#applications-installed)
@@ -4258,7 +4258,7 @@ At this time the latest versions available in Docker images are
     ```
 
 Before deploying the above, dedicated users and home directories must be created for
-`influxdb` and `grafana:
+`influxdb` and `grafana`:
 
 ``` console
 root@octavo ~ # groupadd influxdb -g 114
@@ -4307,7 +4307,7 @@ in `lexicon` and starting them again:
     drwx------ 1 influxdb influxdb 90 Apr 26 08:20 wal
     ```
 
-1.  Start InfluxDB and Grafana (in this **order) in `lexicon`**:
+1.  Start InfluxDB and Grafana **(in this order)** in `lexicon`:
 
     ``` console
     $ kubectl scale -n monitoring deployment influxdb --replicas=1

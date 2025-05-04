@@ -147,11 +147,11 @@ not established, but it did work well after setting up by running
         valid_lft forever preferred_lft forever
     ```
 
-??? note "About IP address conflicts with Lexicon."    
+??? note "About IP address conflicts with `lexicon`."    
 
     Initically the Raspberry Pi had the `.122` IP address assigned to it, which
     caused a conflict with the `metallb` configuration in the Kubernetes
-    cluster in Lexicon, where this IP had been assigned to the `ingress-nginx`
+    cluster in `lexicon`, where this IP had been assigned to the `ingress-nginx`
     service, so as soon as the Raspberry Pi was assigned that IP address,
     **all** services behind Nginx became unreachable. The workaround was to
     configure the UPC router to assign those IP addresses used by the
@@ -659,8 +659,8 @@ $ sudo apt install -y bc git iotop-c netcat-openbsd rename speedtest-cli \
 [Continuous Monitoring](../../projects/conmon.md) on this system needs only the
 [`conmon-st`](../../projects/conmon.md#conmon-st) script to gather metrics,
 since it will be reporting metrics to the
-[InfluxDB and Grafana on Kubernetes](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md).
-already setup on Lexicon.
+[InfluxDB and Grafana on Kubernetes](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md)
+already setup on `lexicon`.
 
 After [installing the service file](../../projects/conmon.md#install-conmon),
 it is also necessary to add `User=pi` in the `[Service]` section.
@@ -2558,7 +2558,7 @@ It looks like no `LoadBalancer` or `NodePort` is reachable from other hosts and
 it looks like it may be a consequence of having initially omitted the steps to
 [let iptables see bridged traffic](https://v1-29.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic),
 thus leading to [Flannel problems](#troubleshooting-flannel). Comparing the
-output from `iptables` with that in Lexicon, many rules with source and
+output from `iptables` with that in `lexicon`, many rules with source and
 destination `br-*****` are missing:
 
 ??? terminal "`root@lexicon ~ # iptables -nvL`"
@@ -3528,6 +3528,382 @@ and several changes in `alfred`:
         necessary to obtain a token and Tailnet Funnel does not offer anything like
         [Cloudflare Access](./2025-03-23-remote-access-options-for-self-hosted-services.md#cloudflare-access)
         that could possibly take over authentication.
+
+## InfluxDB and Grafana
+
+With all the above in place, this system is now ready to run
+[InfluxDB and Grafana](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#influxdb-and-grafana)
+to collect metrics from [Continuous Monitoring](../../projects/conmon.md),
+[Home Assistant](#home-assistant) and any other systems in its final location.
+
+Taking the combined deployment in `octavo` for
+[InfluxDB and Grafana](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#influxdb-and-grafana)
+as the starting point, the deployment for `alfred` changes only a few details:
+
+*   Remove the `influxdb-ingress` (will not be receiving metrics remotely).
+*   Set a different FQDN for the `grafana-ingress` to access Grafana remotely.
+*   Add `grafana-ingress-tailscale` for access through [Tailscale](#tailscale).
+
+??? k8s "Combined deployment for InfluxDB and Grafana"
+
+    ``` yaml title="alfred/monitoring.yaml"
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: monitoring
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: influxdb-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 30Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/influxdb
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: influxdb-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: influxdb-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 30Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: influxdb
+      name: influxdb
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: influxdb
+      template:
+        metadata:
+          labels:
+            app: influxdb
+        spec:
+          hostname: influxdb
+          containers:
+          - image: docker.io/influxdb:1.11.8
+            env:
+            - name: "INFLUXDB_HTTP_AUTH_ENABLED"
+              value: "true"
+            name: influxdb
+            volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: influxdb-data
+          securityContext:
+            runAsUser: 114
+            runAsGroup: 114
+          volumes:
+          - name: influxdb-data
+            persistentVolumeClaim:
+              claimName: influxdb-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: influxdb
+      name: influxdb-svc
+      namespace: monitoring
+    spec:
+      ports:
+      - port: 18086
+        protocol: TCP
+        targetPort: 8086
+        nodePort: 30086
+      selector:
+        app: influxdb
+      type: NodePort
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: grafana-pv
+      labels:
+        type: local
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 3Gi
+      accessModes:
+        - ReadWriteOnce
+      hostPath:
+        path: /home/k8s/grafana
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: grafana-pv-claim
+      namespace: monitoring
+    spec:
+      storageClassName: manual
+      volumeName: grafana-pv
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 3Gi
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      namespace: monitoring
+      labels:
+        app: grafana
+      name: grafana
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: grafana
+      template:
+        metadata:
+          labels:
+            app: grafana
+        spec:
+          containers:
+          - image: docker.io/grafana/grafana:11.6.1
+            env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: "GF_AUTH_ANONYMOUS_ENABLED"
+              value: "true"
+            - name: "GF_SECURITY_ADMIN_USER"
+              value: "admin"
+            - name: "GF_SECURITY_ADMIN_PASSWORD"
+              value: "__________________________"
+            name: grafana
+            volumeMounts:
+              - name: grafana-data
+                mountPath: /var/lib/grafana
+          securityContext:
+            runAsUser: 115
+            runAsGroup: 115
+            fsGroup: 115
+          volumes:
+          - name: grafana-data
+            persistentVolumeClaim:
+              claimName: grafana-pv-claim
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: grafana
+      name: grafana-svc
+      namespace: monitoring
+    spec:
+      ports:
+      - port: 13000
+        protocol: TCP
+        targetPort: 3000
+        nodePort: 30300
+      selector:
+        app: grafana
+      type: NodePort
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: grafana-ingress
+      namespace: monitoring
+      annotations:
+        acme.cert-manager.io/http01-edit-in-place: "true"
+        cert-manager.io/issue-temporary-certificate: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: grafana-alfred.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: grafana-svc
+                    port:
+                      number: 3000
+      tls:
+        - secretName: tls-secret-grafana
+          hosts:
+            - grafana-alfred.very-very-dark-gray.top
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: grafana-ingress-tailscale
+      namespace: monitoring
+    spec:
+      ingressClassName: tailscale
+      defaultBackend:
+        service:
+          name: grafana-svc
+          port:
+            number: 3000
+      tls:
+        - hosts:
+            - grafana-alfred
+    ```
+
+Before deploying the above, dedicated users and home directories must be created for
+`influxdb` and `grafana`:
+
+``` console
+$ sudo groupadd influxdb -g 114
+$ sudo groupadd grafana  -g 115
+$ sudo useradd  influxdb -u 114 -g 114 -s /usr/sbin/nologin
+$ sudo useradd  grafana  -u 115 -g 115 -s /usr/sbin/nologin
+$ sudo mkdir /home/k8s/influxdb /home/k8s/grafana
+$ sudo chown -R influxdb:influxdb /home/k8s/influxdb
+$ sudo chown -R  grafana:grafana  /home/k8s/grafana
+$ sudo ls -hal /home/k8s/influxdb /home/k8s/grafana
+/home/k8s/grafana:
+total 8.0K
+drwxr-xr-x 2 grafana grafana 4.0K May  2 23:54 .
+drwxr-xr-x 5 root    root    4.0K May  2 23:54 ..
+
+/home/k8s/influxdb:
+total 8.0K
+drwxr-xr-x 2 influxdb influxdb 4.0K May  2 23:54 .
+drwxr-xr-x 5 root     root     4.0K May  2 23:54 ..
+```
+
+The apply the new deployment to start InfluxDB and Grafana:
+
+``` console
+$ kubectl apply -f alfred/monitoring.yaml
+namespace/monitoring created
+persistentvolume/influxdb-pv created
+persistentvolumeclaim/influxdb-pv-claim created
+deployment.apps/influxdb created
+service/influxdb-svc created
+persistentvolume/grafana-pv created
+persistentvolumeclaim/grafana-pv-claim created
+deployment.apps/grafana created
+service/grafana-svc created
+ingress.networking.k8s.io/grafana-ingress created
+ingress.networking.k8s.io/grafana-ingress-tailscale created
+
+$ kubectl get all -n monitoring
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/cm-acme-http-solver-4kh85   1/1     Running   0          18s
+pod/grafana-895c94879-j5dnr     1/1     Running   0          22s
+pod/influxdb-5974bf664f-zwwrx   1/1     Running   0          23s
+
+NAME                                TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)           AGE
+service/cm-acme-http-solver-p4cxg   NodePort   10.109.30.68   <none>        8089:32080/TCP    18s
+service/grafana-svc                 NodePort   10.111.30.81   <none>        13000:30300/TCP   22s
+service/influxdb-svc                NodePort   10.104.23.44   <none>        18086:30086/TCP   23s
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/grafana    1/1     1            1           22s
+deployment.apps/influxdb   1/1     1            1           23s
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/grafana-895c94879     1         1         1       22s
+replicaset.apps/influxdb-5974bf664f   1         1         1       23s
+
+$ kubectl get ingress -n monitoring
+NAME                        CLASS       HOSTS                                     ADDRESS                              PORTS     AGE
+grafana-ingress             nginx       grafana-ingress.very-very-dark-gray.top   192.168.0.124                        80, 443   41h
+grafana-ingress-tailscale   tailscale   *                                         grafana-ingress.royal-penny.ts.net   80, 443   3m33s
+```
+
+After a couple of minutes both services are running fine and Grafana is available at
+<https://grafana-alfred.very-very-dark-gray.top> but it will be empty because before
+anything and report to InfluxDB, it must be initialized.
+
+### Secure InfluxDB
+
+[Secure InfluxDB](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#secure-influxdb)
+by first creating an `admin` user with a password:
+
+``` console
+$ influx -host localhost -port 30086
+Connected to http://localhost:30086 version v1.11.8
+InfluxDB shell version: 1.6.7~rc0
+> CREATE USER admin WITH PASSWORD '**********' WITH ALL PRIVILEGES
+```
+
+After that, re-login with the password and create databases `monitoring` (for
+[Continuous Monitoring](#continuous-monitoring)) and `home_assistant` (for
+[Home Assistant](#home-assistant)). 
+
+``` console
+$ influx -host localhost -port 30086 -username admin -password '**********'
+Connected to http://localhost:30086 version v1.11.8
+InfluxDB shell version: 1.6.7~rc0
+
+> CREATE DATABASE monitoring
+> USE monitoring
+Using database monitoring
+
+> CREATE RETENTION POLICY "90_days" ON "monitoring" DURATION 30d REPLICATION 1
+> ALTER RETENTION POLICY "90_days" on "monitoring" DURATION 30d REPLICATION 1 DEFAULT
+
+> CREATE DATABASE home_assistant
+> USE home_assistant
+Using database home_assistant
+
+> CREATE RETENTION POLICY "800_days" ON "home_assistant" DURATION 30d REPLICATION 1
+> ALTER RETENTION POLICY "800_days" on "home_assistant" DURATION 30d REPLICATION 1 DEFAULT
+
+> CREATE USER conmon WITH password ''
+> GRANT READ ON "monitoring" TO "conmon"
+> GRANT WRITE ON "monitoring" TO "conmon"
+```
+
+[InfluxDB Authentication](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#influxdb-authentication)
+is enabled by the `INFLUXDB_HTTP_AUTH_ENABLED` setting in the above deployment.
+The user `conmon` with an empty password, granted read and write access to the
+`monitoring` database, is created to allow the `conmon` script to report to *both*
+this system (without authentication) and remotely to `octavo` (with authentication).
+The `conmon` user can then be used to both report metrics from the `conmon` script
+and read metrics from Grafana.
+
+``` bash title="/usr/local/bin/conmon" hl_lines="8"
+#!/bin/bash
+#
+# Export system monitoring metrics to influxdb.
+
+# InfluxDB target.
+# HTTP works only with a 'conmon' user with empty password.
+DBNAME=monitoring
+TARGET_HTTP='http://localhost:30086'
+TARGET_HTTPS='https://influxdb.very-very-dark-gray.top:443'
+```
+
+### Grafana Dashboards
+
+With the databases in place and `conmon` reporting metrics to the local InfluxDB,
+create **Data sources** for the above databases using the relevant credentails
+(or just use `admin` for all of them). Once Data Sources are successfully setup,
+the relevant dashboards can now be exported from Grafana in `octavo` using the
+**Export as JSON** functionality from each existing dashboard, with the option to
+**Export the dashboard to use in another instance** enabled.
 
 ## Home Assistant
 

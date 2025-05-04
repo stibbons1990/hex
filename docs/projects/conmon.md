@@ -65,10 +65,9 @@ then update the `DBNAME` variable in the `conmon` scripts).
 
 ## Install Conmon
 
-The monitoring script can be installed in any system to report metrics back to
-the InfluxDB server.
-
-A few common tools are required which are not always installed by default:
+The monitoring script can be installed in any system to report metrics back to the
+InfluxDB server. A few common tools are required which are not always installed by
+default:
 
 ``` console
 # apt install -y curl jq iotop-c lm-sensors 
