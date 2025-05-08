@@ -5524,7 +5524,7 @@ navidrome-ingress-tailscale   tailscale   *       navidrome-alfred.royal-penny.t
 
 Eventually the service is available at <https://navidrome-alfred.royal-penny.ts.net>
 and *everything works just fine*. Otherwise, consider removing the contents of
-`/home/k8s/navidrome` to let Navidrom initialize itself anew.
+`/home/k8s/navidrome` to let Navidrome initialize itself anew.
 
 ## Conclusion
 
