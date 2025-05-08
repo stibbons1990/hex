@@ -167,6 +167,22 @@ is only so much you can do with it. It will probably make
 more sense after establishing a criteria for *what goes in*,
 because it hardly makes sense to *try and get it all in*.
 
+#### Minecraft Server
+
+[Running Minecraft Java Server for Bedrock clients on Kubernetes](../blog/posts/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
+is a convenient method to keep the Minecraft Java Edition server up to date *and*
+make it available to multiple kids, including friends playing remotely.
+
+Sometimes docker images are released several days later than the original
+server, which leads to a temporary version mismatch between the server
+and the clients, but when the server is lagging one version behind,
+(or, rarely, down) the kids will just use one of their own PCs as the
+secondary server and play on that one until the primary server is fixed.
+
+Eventually the kids seem to have *grown out of it* and are no longer so interested
+in playing Minecraft, so the server has been
+[archived for potential future use](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#minecraft-server).
+
 ### Not Really Useful
 
 These applications turned out to be not really useful for the
@@ -301,22 +317,6 @@ We combine strategy, planning and execution while making it easy for everyone
 on the team to use. Built with ADHD, dyslexia and autism in mind.* 🧠
 
 Sounds likely a better fit for me than [Kendo Manager](https://www.kendomanager.com/).
-
-#### Minecraft Server
-
-[Running Minecraft Java Server for Bedrock clients on Kubernetes](../blog/posts/2023-08-10-running-minecraft-java-server-for-bedrock-clients-on-kubernetes.md)
-is a convenient method to keep the Minecraft Java Edition server up to date *and*
-make it available to multiple kids, including friends playing remotely.
-
-Sometimes docker images are released several days later than the original
-server, which leads to a temporary version mismatch between the server
-and the clients, but when the server is lagging one version behind,
-(or, rarely, down) the kids will just use one of their own PCs as the
-secondary server and play on that one until the primary server is fixed.
-
-Eventually the kids seem to have *grown out of it* and are no longer so interested
-in playing Minecraft, so the server has been
-[archived for potential future use](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#minecraft-server).
 
 #### Netdata
 
