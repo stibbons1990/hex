@@ -3873,8 +3873,7 @@ Using database home_assistant
 > ALTER RETENTION POLICY "800_days" on "home_assistant" DURATION 30d REPLICATION 1 DEFAULT
 
 > CREATE USER conmon WITH password ''
-> GRANT READ ON "monitoring" TO "conmon"
-> GRANT WRITE ON "monitoring" TO "conmon"
+> GRANT ALL PRIVILEGES ON "monitoring" TO "conmon"
 ```
 
 [InfluxDB Authentication](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#influxdb-authentication)
