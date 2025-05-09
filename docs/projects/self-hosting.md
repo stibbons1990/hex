@@ -309,6 +309,19 @@ of all services in one place, should there ever be too many of them.
 management solution* that should make it easy to *browse, search and
 organize photos and videos with ease, without sacrificing privacy*.
 
+[Immich Charts](https://github.com/immich-app/immich-charts?tab=readme-ov-file#immich-charts)
+should make the installation easy, although perhaps not so easy anymore since the
+[Deprecation of postgres subchart](https://github.com/immich-app/immich-charts/issues/149).
+It seems Immich will require a PostgresQL **with**
+[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs?tab=readme-ov-file#pgvectors)
+which does not come with
+[zalando/postgres-operator](https://github.com/zalando/postgres-operator),
+which requires [additional setup](https://github.com/immich-app/immich-charts/issues/149#issuecomment-2603283212),
+or [CloudNativePG](https://cloudnative-pg.io/), which would need
+[cnpgvecto.rs](https://github.com/tensorchord/cloudnative-pgvecto.rs?tab=readme-ov-file#cnpgvectors).
+There are also [examples](https://kubesearch.dev/#/immich) of how other people run
+Immich on Kubernetes, using the official chart or otherwise.
+
 #### Leantime
 
 [Leantime](https://github.com/Leantime/leantime/?tab=readme-ov-file#leantime)
