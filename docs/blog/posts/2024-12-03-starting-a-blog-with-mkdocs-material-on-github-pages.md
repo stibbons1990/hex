@@ -761,6 +761,4 @@ requests for **all** URLs to `hex-brs.pages.dev` to
 ## Comments
 
 [Giscus integration](https://squidfunk.github.io/mkdocs-material/tutorials/blogs/engage/#giscus-integration)
-is a very easy to setup way to enable comments on blog posts. In fact
-despite trying to restrict it to blog posts it seems to be enabled in other
-pages too that but that's okay.
+is a very easy to setup way to enable comments on blog posts.
