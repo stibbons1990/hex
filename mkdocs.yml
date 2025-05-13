@@ -44,6 +44,7 @@ site_name: Inadvisably Applied Magic
 site_url: https://stibbons1990.github.io/hex/
 theme:
   name: material
+  custom_dir: overrides
   features:
     - content.code.copy
     - navigation.expand
