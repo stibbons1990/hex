@@ -757,3 +757,10 @@ access through the custom domain. This is done by setting up
 [bulk redirects](https://developers.cloudflare.com/rules/url-forwarding/bulk-redirects/create-dashboard/#1-create-a-bulk-redirect-list), to redirect
 requests for **all** URLs to `hex-brs.pages.dev` to
 <https://hex.very-very-dark-gray.top/> (preserving all URL parameters).
+
+## Comments
+
+[Giscus integration](https://squidfunk.github.io/mkdocs-material/tutorials/blogs/engage/#giscus-integration)
+is a very easy to setup way to enable comments on blog posts. In fact
+despite trying to restrict it to blog posts it seems to be enabled in other
+pages too that but that's okay.
