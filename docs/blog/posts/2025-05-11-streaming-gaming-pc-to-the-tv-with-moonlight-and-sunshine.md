@@ -3,7 +3,10 @@ date: 2025-05-11
 categories:
  - linux
  - ubuntu
- - installation
+ - moonlight
+ - sunshine
+ - gaming
+ - streaming
  - setup
 title: Streaming gaming PC to the TV with Moonlight and Sunshine
 ---

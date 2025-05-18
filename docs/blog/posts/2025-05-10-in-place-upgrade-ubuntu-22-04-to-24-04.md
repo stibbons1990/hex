@@ -3,7 +3,7 @@ date: 2025-05-10
 categories:
  - linux
  - ubuntu
- - installation
+ - upgrade
  - setup
 title: In-place upgrade Ubuntu 22.04 to 24.04
 ---
