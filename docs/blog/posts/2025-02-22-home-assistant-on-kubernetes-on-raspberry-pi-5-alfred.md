@@ -4866,7 +4866,20 @@ influxdb:
   tags:
     instance: prod
     source: hass
+  component_config_glob:
+    sensor.*humidity*:
+      override_measurement: humidity
+    sensor.*temperature*:
+      override_measurement: temperature
 ```
+
+The `component_config_glob` is a workaround found in forum thread
+[InfluxDB to store data in intervals](https://community.home-assistant.io/t/influxdb-to-store-data-in-intervals/270896/17)
+to replace the default `measurement` names, set as the unit of each entity,
+(for example `°C` for temperature entities), with more sensible names. This is
+particularly useful for those measurements with `%` as their unit, since that
+unit is used for measurements of very different kinds such as humidity, battery level,
+cpu load and storage capacity used.
 
 !!! note
 
