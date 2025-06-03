@@ -354,6 +354,16 @@ a few seconds the new card shows as Connected with a glorious **2500 Mbps**:
 
 ![](../media/2025-04-18-synology-ds423-for-the-homelab-luggage/synology-network-interfaces.png)
 
+!!! warning
+
+    Even if the driver starts automatically when installing it, it is still necessary
+    to `enable` it so that it starts again after rebooting the NAS:
+
+    ```console
+    # synosystemctl enable pkgctl-r8152
+    # synosystemctl start pkgctl-r8152
+    ```
+
 Copying the 400GB collection of Audiobooks over NFS gets the 2.5Gbps NICs to work it out!
 
 ![](../media/2025-04-18-synology-ds423-for-the-homelab-luggage/rapture-network-speed.png)
