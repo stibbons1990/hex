@@ -343,7 +343,7 @@ e.g. [9.0.114](https://community.ui.com/releases/UniFi-Network-Application-9-0-1
               name: ap-discovery
               protocol: UDP
             volumeMounts:
-            - mountPath: /dataconfig
+            - mountPath: /config
               name: unifi-config
           volumes:
           - name: unifi-config
@@ -439,6 +439,15 @@ e.g. [9.0.114](https://community.ui.com/releases/UniFi-Network-Application-9-0-1
 Putting this deployment together was a bit of a process,
 so here are some notes and warnings about the troubles
 that had to be sorted out along the way:
+
+!!! warning
+
+    Double-check that the Unifi Application data directory is mounted
+    **exactly** on `/config`; otherwise the application will create an
+    ephemeral directory that will be discarded when restarting the pod.
+    Once this data is lost, the application has to be setup again, and
+    every access point adopted since the last backup has to be factory
+    reset to be readopted.
 
 ??? note "This Unifi image does not support running rootless."
 
