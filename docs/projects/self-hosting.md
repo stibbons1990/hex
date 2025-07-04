@@ -442,23 +442,6 @@ The full list of supported games is split between
 and
 [pelican-eggs/games-steamcmd](https://github.com/pelican-eggs/games-steamcmd).
 
-#### Ryot
-
-[Ryot](https://github.com/IgnisDa/ryot?tab=readme-ov-file#ryot)
-is *a self hosted platform for tracking various facets of your life - media, fitness, etc.* which seems to include everything that
-[Yamtrack](#yamtrack) and [MediaTracker](#mediatracker) can track,
-*plus* other activities outside of media; it is focused in fitness
-but it could be used for other activities like studying, music
-practice, workshop time, other hobbies, sleep, etc.
-
-It supports Integration with Jellyfin, Plex, **Audiobookshelf** and
-[many more](https://docs.ryot.io/importing.html),
-[OpenID Connect](https://docs.ryot.io/guides/authentication.html),
-sending notifications to Discord and Ntfy. However, it's not yet ready
-to [track everything](https://github.com/IgnisDa/ryot/issues/73),
-and without an open import format like [Yamtrack](#yamtrack),
-it may more sense to invest in the latter.
-
 #### Scrutiny
 
 [scrutiny](https://github.com/AnalogJ/scrutiny?tab=readme-ov-file#scrutiny)
@@ -505,30 +488,6 @@ or installed with a Kubernetes
 There is also an
 [Android app](https://play.google.com/store/apps/details?id=team.wekan.boards.twa).
 
-#### Yamtrack
-
-[Yamtrack](https://github.com/FuzzyGrim/Yamtrack?tab=readme-ov-file#yamtrack)
-*is a self hosted media tracker for movies, tv shows, anime and manga*
-but, more interestingly to me, also books and video games. It even has
-*integration with Jellyfin, to automatically track new media watched*,
-which is nice, but what I'd really love to see is integration with
-[Audiobookshelf](#audiobookshelf) and [Komga](#komga), for books,
-and [Steam](https://store.steampowered.com/) for games.
-
-There is perhaps enough information available about the
-[Yamtrack CSV import format](https://github.com/FuzzyGrim/Yamtrack/issues/246)
-that it may be not too hard to hack something together to import
-listening history and play time history using the available APIs:
-
-*   [Audiobookshelf API](https://api.audiobookshelf.org/#sessions)
-    exposes listening sessions and libraries.
-*   [Komga REST API](https://komga.org/docs/api/rest)
-    exposes progression and metadata for each book.
-*   [Steam Web API](https://developer.valvesoftware.com/wiki/Steam_Web_API)
-    exposes recent (2-weeks) and total (*forever*) play time,
-    and the list of owned games. These can be used to track
-    progress and purchases of games.
-
 ### Discarded
 
 These applications were evaluated based on their documentation and/or
@@ -539,7 +498,7 @@ live demos, and deemed not a good match for my intended purpose/s.
 [MediaTracker](https://github.com/bonukai/MediaTracker?tab=readme-ov-file#mediatracker--------)
 is a *self hosted platform for tracking movies, tv shows, video games,
 books* **and audiobooks**, which *would* make it more interesting
-than [Yamtrack](#yamtrack) *if only* it would allowe you to
+than [Yamtrack](#yamtrack) *if only* it would allow you to
 [add media manually](https://github.com/bonukai/MediaTracker/issues/652).
 
 #### Nginx Proxy Manager
@@ -569,3 +528,17 @@ filled the same role.
 It may still be an interesting learning exercise, to create a Kubernetes
 deployment based on their recommended method to self-host with
 [Docker Compose](https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t).
+
+#### Ryot
+
+[Ryot](../blog/posts/2025-05-18-tracking-progress-in-with-ryot.md)
+turned out work well only for [Audiobookshelf](#audiobookshelf); all other
+imports and integrations failed.
+
+#### Yamtrack
+
+[Yamtrack](../blog/posts/2025-05-18-tracking-progress-in-with-ryot.md#yamtrack)
+would add no more (useful to me) features compared to [Ryot](#ryot),
+it would seem easier (or, at least, a better idea) to implement
+*Generic JSON* imports and integrations than to try importing using
+[Yamtrack CSV import format](https://github.com/FuzzyGrim/Yamtrack/issues/246).
