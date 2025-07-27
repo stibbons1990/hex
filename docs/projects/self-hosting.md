@@ -290,6 +290,15 @@ and I could never figure out how to use it as the (only) remote
 repository when working from
 [Visual Studio Code Server](#visual-studio-code-server).
 
+#### Headless Steam
+
+[Headless Steam Service](https://github.com/Steam-Headless/docker-steam-headless/tree/master?tab=readme-ov-file#headless-steam-service)
+could be useful to play some of the oldest games in a browser while away no holidays.
+[GeForce NOW](https://play.geforcenow.com/mall/) looks great but it would only make sense
+for the more modern games and I'm still playing old games from 10-25 years ago. Having my
+own self-hosted service I can play old games from anywhere, possibly even from a mobile
+devices, might help me get through my [infinite backlog](https://infinitebacklog.net/).
+
 #### Heimdall
 
 [Heimdall Application Dashboard](https://heimdall.site/) is
