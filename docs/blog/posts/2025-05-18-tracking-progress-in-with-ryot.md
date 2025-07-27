@@ -306,7 +306,7 @@ e.g. those from [LibriVox](https://librivox.org/), won't be imported.
 
 This will only import media that are already finished, neither books in progress nor 
 those that have not been started yet. Those will be added later, as progress is made,
-via the [Audiobookshelf integration](audiobookshelf_1).
+via the [Audiobookshelf integration](#audiobookshelf_1).
 
 
 - *Select a source*: **Audiobookshelf**
