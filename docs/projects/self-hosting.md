@@ -468,6 +468,19 @@ could be useful keep track of projects, tasks and their depedencies,
 although it is not yet clear whether a Kanban dashboard is what would
 help organizing hobby projects.
 
+#### TP-Link Omada Controller
+
+[TP-Link Omada Hardware](https://www.tp-link.com/en/business-networking/all-omada/)
+works well enough with each access point managing its own wireless network, but the
+[TP-Link Omada Controller](https://www.tp-link.com/us/support/download/omada-software-controller/)
+may offer additiona (desirable) features to adjust their behavior and have the same
+wireless network/s across the building.
+
+[mbentley/docker-omada-controller](https://github.com/mbentley/docker-omada-controller?tab=readme-ov-file)
+includes a few examples files for Kubernetes deployments, and
+[TP-Link Omada Controller on Kubernetes](https://www.evilbox.ro/linux/tp-link-omada-controller-on-kubernetes/)
+contains a first-hand account of deploying the service in a small cluster.
+
 #### UniFi Poller
 
 [UniFi Poller](https://unpoller.com/) *allows you to collect data from
