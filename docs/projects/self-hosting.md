@@ -408,12 +408,6 @@ and a user-friendly self-hosted WebUI at
 You can even install
 [both Ollama and Open WebUI using Helm](https://github.com/open-webui/open-webui/blob/main/INSTALLATION.md#installing-both-ollama-and-open-webui-using-helm).
 
-#### OpenProject
-
-[OpenProject](https://www.openproject.org/)
-
-[Helm chart for OpenProject](https://www.openproject.org/docs/installation-and-operations/installation/helm-chart/)
-
 #### Pi-hole®
 
 [Pi-hole®](https://pi-hole.net/) is a renowned *Network-wide Ad Blocking*
@@ -422,21 +416,6 @@ but instead blocking phishing and malware domains. This requires using
 [custom blocklists](https://marcelbootsman.nl/securing-my-home-network-why-i-use-pi-hole#:~:text=Customization)
 manually, like
 [tweedge/emerging-threats-pihole](https://github.com/tweedge/emerging-threats-pihole).
-
-#### Plex Media Server
-
-[Migrating a Plex Media Server to Kubernetes](../blog/posts/2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
-was very convenient to let Kubernetes take care of updating the
-Plex Media Server itself. However, as popular as Plex is, it is
-barely used:
-
-*   [Audiobookshelf](#audiobookshelf) has already replaced it for
-    audiobooks and podcasts.
-*   [Navidrome](#navidrome) has already replaced it for music.
-*   [Jellyfin](#jellyfin) has already replaced Plex for what little
-    watching is going on around here.
-*   [Immich](#immich) may yet prove itself better suited for family videos,
-    but so far Jellyfin seems good enough for what little use it gets.
 
 #### Pterodactyl®
 
@@ -460,13 +439,6 @@ that can run on a
 [Hub & Spoke model, with multiple Hosts](https://github.com/AnalogJ/scrutiny?tab=readme-ov-file#hubspoke-deployment).
 The *Hub* host needs to run all 3 images, as illustrated in the example
 [`docker-compose.yml`](https://github.com/AnalogJ/scrutiny/blob/master/docker/example.hubspoke.docker-compose.yml).
-
-#### Taiga
-
-[Taiga](https://taiga.io/) *free and open-source project management tool*
-could be useful keep track of projects, tasks and their depedencies,
-although it is not yet clear whether a Kanban dashboard is what would
-help organizing hobby projects.
 
 #### TP-Link Omada Controller
 
@@ -498,17 +470,6 @@ Migrating [Continuous Monitoring](#continuous-monitoring),
 [VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics?tab=readme-ov-file#victoriametrics)
 *is a fast, cost-saving, and scalable solution for monitoring and
 managing time series data*.
-
-#### WeKan
-
-[WeKan](https://github.com/wekan/wekan?tab=readme-ov-file#wekan----open-source-kanban)
-is a collaborative kanban board application.
-Can be run with 
-[docker-compose](https://github.com/wekan/wekan/blob/main/docker-compose.yml)
-or installed with a Kubernetes
-[Helm chart](https://artifacthub.io/packages/helm/wekan/wekan).
-There is also an
-[Android app](https://play.google.com/store/apps/details?id=team.wekan.boards.twa).
 
 ### Discarded
 
@@ -550,6 +511,32 @@ filled the same role.
 It may still be an interesting learning exercise, to create a Kubernetes
 deployment based on their recommended method to self-host with
 [Docker Compose](https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t).
+
+#### Plex Media Server
+
+[Plex Media Server](../blog/posts/2023-09-16-migrating-a-plex-media-server-to-kubernetes.md)
+*was* very convenient to let Kubernetes take care of updating the software and it
+served me well for a few years, while I enjoyed catching up with old (sometimes
+*very* old) podcasts. Since then, I've moved entirely to
+[Audiobookshelf](#audiobookshelf) has already replaced it for audiobooks and
+podcasts (and found a way to catch up with old ones).
+
+[Immich](#immich) is yet to be tested, but even without it the need for a Plex
+server has not been felt since the migration of services to the new NUC server
+([octavo](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md-server)).
+Since then, [Jellyfin](#jellyfin) has replaced Plex for watching videos and
+[Navidrome](#navidrome) has replaced it for music.
+
+#### Project Management
+
+[OpenProject](https://www.openproject.org/)
+([Helm chart](https://www.openproject.org/docs/installation-and-operations/installation/helm-chart/)),
+[Taiga](https://taiga.io/) and
+[WeKan](https://github.com/wekan/wekan?tab=readme-ov-file#wekan----open-source-kanban)
+([Helm chart](https://artifacthub.io/packages/helm/wekan/wekan)) all seem very
+promising applications for task and project management, but it the prospects of
+having any time to manage are not all that promising; a handful of post-its
+already reflects the *very limited* success so far in 2025.
 
 #### Ryot
 
