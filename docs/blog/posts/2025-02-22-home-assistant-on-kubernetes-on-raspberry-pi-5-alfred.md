@@ -4120,10 +4120,10 @@ leads to Home Assistant failing to parse the config and going into *recovery mod
 
 !!! warning
 
-    Avoid use of `!include` in the `ConfigMap` or else Home Assistan will fail to
-    parse it, go into *recovery mode* and start without allowing requests coming in
-    through the reverse proxy. The following `ConfigMap` omits such lines to address
-    the [Caveat on reverse proxies](#caveat-on-reverse-proxies).
+    Sometimes the use of `!include` in the `ConfigMap` or else Home Assistant will
+    fail to parse it, go into *recovery mode* and start without allowing requests
+    coming in through the reverse proxy. The following `ConfigMap` omits such
+    lines to address the [Caveat on reverse proxies](#caveat-on-reverse-proxies).
 
 ??? k8s "`base/configmap.yaml`"
 
@@ -5007,6 +5007,61 @@ Grafana, after adding the new database as a new InfluxDB data source.
 
 [The InfluxDB `sensor`](https://www.home-assistant.io/integrations/influxdb/#sensor) *allows using values from a InfluxDB database to populate a sensor state. This can be used to present statistics as Home Assistant sensors, if used with the influxdb history integration. It can also be used with an external data source.* All this sound very
 interesting for potential future expansions!
+
+#### Persist configuration in `ConfigMap`
+
+For months after deploying the above monitoring, it was observed that Home
+Assistant would regularly lose the configuration and revert to its default,
+leading to both the `sensor.all_power` entity not being available (indefinitely)
+and InfluxDB no longer receiving any metrics (also indefinitely). For a long time,
+The only workaround found was to revert `configuration.yaml` to the default,
+restart Home Assistant from the web admin UI (not rebooting the node, not
+restarting the deployment), then restore the configuration and restart again.
+
+After much thinking about it (and not finding anyone anywhere ever having had the
+same problem), it occurred to me that what was happening is that *somehow* Home
+Assistant was reloading the default configuration from the `ConfigMap`, so the
+solution was to add the configuration to *that* in `alfred/kustomization.yaml`:
+
+``` yaml title="alfred/kustomization.yaml" linenums="23" hl_lines="8-38"
+  - target: # Hostname-only for Tailscale [Funnel]
+      kind: Ingress
+      name: home-assistant-tailscale
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-alfred
+  - target: # Home Assistant config
+      kind: ConfigMap
+      name: home-assistant-configmap
+    patch: |-
+      - op: replace
+        path: /data/configuration.yaml
+        value: |-
+          default_config:
+          http:
+            use_x_forwarded_for: true
+            trusted_proxies:
+              - 10.244.0.0/16
+          template:
+            - sensor: !include_dir_merge_list  templates/sensors/
+          influxdb:
+            host: 192.168.0.6
+            port: 30086
+            database: home_assistant
+            username: admin
+            password: MY_PASSWORD
+            max_retries: 3
+            default_measurement: state
+            tags:
+              instance: prod
+              source: hass
+            component_config_glob:
+              sensor.*humidity*:
+                override_measurement: humidity
+              sensor.*temperature*:
+                override_measurement: temperature
+```
 
 ## Audiobookshelf
 
