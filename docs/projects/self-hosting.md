@@ -96,6 +96,23 @@ means no longer having to manually update the
 self-hosting are pricey, starting at $15/month or $29/month depending
 on the provider.
 
+##### UniFi UXG-Fiber
+
+Routing static IPv6 to NGinx?
+
+- [Seeking Advice: Hosting Services on Kubernetes with an IPv6 Router](https://www.reddit.com/r/kubernetes/comments/1bnhant/seeking_advice_hosting_services_on_kubernetes/)
+- [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/)
+- [Is anyone using Kubernetes with IPv6?](https://www.reddit.com/r/ipv6/comments/17hpvjx/is_anyone_using_kubernetes_with_ipv6/)
+- [Can I Self Host Using ipv6?](https://www.reddit.com/r/selfhosted/comments/143hkpn/can_i_self_host_using_ipv6/)
+- [UniFi Gateway - Port Forwarding](https://help.ui.com/hc/en-us/articles/235723207-UniFi-Gateway-Port-Forwarding)
+- [Externally Accessible IPV6 Address](https://community.ui.com/questions/Externally-Accessible-IPV6-Address/3a5ee5f3-1440-4cae-aebd-065288a9c824)
+- [Unifi and ipv6](https://www.reddit.com/r/init7/comments/1j36pr9/unifi_and_ipv6/)
+
+Routing through VPS?
+
+- [Netcup worth it in 2023?](https://www.reddit.com/r/selfhosted/comments/175mw87/netcup_worth_it_in_2023/)
+- [Virtual servers (VPS)](https://www.netcup.com/en/server/vps)
+
 #### Visual Studio Code Server
 
 [Running Visual Studio Code Server on Kubernetes](../blog/posts/2023-05-29-running-vs-code-server-on-kubernetes.md)
@@ -259,6 +276,14 @@ and/or some users experiencing broken websites, while these issues
 do not seem to occur with Blocky. There is no frontend, but the
 configuration lives in a single YAML file which is easy to track.
 
+#### DDNS Updater
+
+Lightweight universal DDNS Updater program
+
+https://github.com/qdm12/ddns-updater?tab=readme-ov-file#lightweight-universal-ddns-updater-program
+
+https://hub.docker.com/r/qmcgaw/ddns-updater/
+
 #### Fail2Ban
 
 [Fail2Ban](https://github.com/fail2ban/fail2ban?tab=readme-ov-file#fail2ban-ban-hosts-that-cause-multiple-authentication-errors)
@@ -270,6 +295,14 @@ SSH service, which is has
 [password authentication disabled](../blog/posts/2022-07-03-low-effort-homelab-server-with-ubuntu-server-on-intel-nuc.md#disable-ssh-password-authentication).
 The next step would be to set it up to ban IPs that fail to
 authenticate through [Authentik](#authentik).
+
+#### Forgejo
+
+- [Forgejo](https://forgejo.org/)
+- [releases](https://forgejo.org/releases/)
+- [Forgejo Helm Chart](https://artifacthub.io/packages/helm/forgejo-helm/forgejo)
+- [Integrating Forgejo Actions on my Self-Hosted Instance](https://jastorey.me/blog/integrating-forgejo-actions/#fnref:1)
+- [Delightful Forgejo](https://codeberg.org/forgejo-contrib/delightful-forgejo)
 
 #### Gatus
 
@@ -441,6 +474,12 @@ The full list of supported games is split between
 [pelican-eggs/games-standalone](https://github.com/pelican-eggs/games-standalone)
 and
 [pelican-eggs/games-steamcmd](https://github.com/pelican-eggs/games-steamcmd).
+
+- [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD#Ubuntu)
+- Sven Co-op : [Running a server](https://wiki.svencoop.com/Running_a_server#Dedicated_server)
+- [How to start a Sven Coop server?](https://www.reddit.com/r/HalfLife/comments/o08dus/how_to_start_a_sven_coop_server/)
+- [Sven Co-op server hosting](https://www.reddit.com/r/HalfLife/comments/cj19oy/sven_coop_server_hosting/)
+- Sven Co-op: [How do I turn off Survival Mode?](https://steamcommunity.com/app/225840/discussions/0/4638240322751615066/)
 
 #### Scrutiny
 

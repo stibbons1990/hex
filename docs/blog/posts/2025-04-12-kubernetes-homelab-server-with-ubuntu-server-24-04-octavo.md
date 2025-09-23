@@ -5427,3 +5427,150 @@ previously available in `lexicon`:
     was never actually used in `lexicon`, so instead of migrating an
     empty deployment this was deployed anew in `octavo` using a slightly updated
     manifest to set newer versions of both images and updated UID/GID (119).
+
+## Migration to new ISP
+
+Replacing the router with a UniFi Gateway Fiber (UXG-FIBER) required
+first adopting the router, by connecting it to the LAN on both sides:
+
+- Ethernet uplink port to get an IP on the current LAN to communicate
+  both with the Internet (old router) and LAN (to the UniFi Network app).
+  The IP range on the LAN is 192.168.**0**.0/24 as set by the old router,
+  this being its default settings.
+- Ethernet downlink port sets its own static IP range, seemingly choosing
+  the 192.168.**1**.0/24 range automatically, it being the next available
+  `/24` network available.
+
+### Take 1: Unifi Network Application on new LAN
+
+The [Unifi Network Application](./2024-12-31-migrating-unifi-controller-to-kubernetes.md)
+being only available on the **0**.0/24 network, it would not be reachable by
+the router once the old router is disconnected from the LAN. To make the
+Unifi Network Application reachable on the new router's LAN side, it needs
+an IP address on the **1**.0/24 network, 
+
+Kubernetes services can be exposed on a new LAN by adding a suitable range
+to the pool of IP addresses for [MetalLB Load Balancer](#metallb-load-balancer)
+and adding a new `Service` using one of those IP addresses:
+
+``` yaml hl_lines="9" title="metallb/ipaddress-pool-octavo.yaml"
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: production
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.0.171-192.168.0.180
+    - 192.168.1.171-192.168.1.220
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advert
+  namespace: metallb-system
+```
+
+``` console
+$ kubectl apply -f metallb/ipaddress-pool-octavo.yaml
+ipaddresspool.metallb.io/production configured
+l2advertisement.metallb.io/l2-advert unchanged
+
+$ kubectl get ipaddresspool.metallb.io -n metallb-system
+NAME         AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
+production   true          false             ["192.168.0.171-192.168.0.180","192.168.1.201-192.168.1.220"]
+```
+
+``` yaml linenums="237" hl_lines="28-52" title="unifi-network-app.yaml"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: unifi-tcp
+  namespace: unifi
+  annotations:
+    metallb.universe.tf/allow-shared-ip: unifi
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.0.173
+  ports:
+  - name: mob-speedtest
+    protocol: TCP
+    port: 6789
+    targetPort: 6789
+  - name: device-inform
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: web-ui
+    protocol: TCP
+    port: 8443
+    targetPort: 8443
+  selector:
+    app: unifi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: unifi-tcp-1
+  namespace: unifi
+  annotations:
+    metallb.universe.tf/allow-shared-ip: unifi
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.220
+  ports:
+  - name: mob-speedtest
+    protocol: TCP
+    port: 6789
+    targetPort: 6789
+  - name: device-inform
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: web-ui
+    protocol: TCP
+    port: 8443
+    targetPort: 8443
+  selector:
+    app: unifi
+---
+```
+
+``` console hl_lines="13 20"
+$ kubectl apply -f unifi-network-app.yaml
+namespace/unifi unchanged
+persistentvolume/mongo-pv-data unchanged
+persistentvolume/mongo-pv-init unchanged
+persistentvolumeclaim/mongo-pvc-data unchanged
+persistentvolumeclaim/mongo-pvc-init unchanged
+deployment.apps/mongo unchanged
+service/mongo-svc unchanged
+persistentvolume/unifi-pv-config unchanged
+persistentvolumeclaim/unifi-pvc-config unchanged
+deployment.apps/unifi unchanged
+service/unifi-tcp unchanged
+service/unifi-tcp-1 created
+service/unifi-udp unchanged
+ingress.networking.k8s.io/unifi-ingress unchanged
+
+$ kubectl get services -A | grep '192.168.'
+ingress-nginx              ingress-nginx-controller                                LoadBalancer   10.99.252.250    192.168.0.171   80:30278/TCP,443:30974/TCP                      150d
+unifi                      unifi-tcp                                               LoadBalancer   10.105.232.48    192.168.0.173   6789:31231/TCP,8080:32034/TCP,8443:30909/TCP    145d
+unifi                      unifi-tcp-1                                             LoadBalancer   10.109.194.34    192.168.1.220   6789:30860/TCP,8080:31627/TCP,8443:30889/TCP    6d1h
+unifi                      unifi-udp                                               LoadBalancer   10.108.54.45     192.168.0.173   3478:31805/UDP,10001:32694/UDP,1900:30234/UDP   145d
+```
+
+### Take 2: Old router on new LAN
+
+Turns out the UniFi router, once adopted, would never reporr to the
+Unifi Network Application on 192.168.**1.220**, even though the application
+is available on https://192.168.1.220:8443 just as well as on
+https://192.168.0.173:8443 because, unlike access points, the router has no
+usable SSH connection to `set-inform https://192.168.0.220:8080`.
+
+Eventually the solution was to set the old router to be leasing addresses
+(as DHCP server) on the **1**.0/24 network, which let the UniFi router to
+re-configure its LAN ports to adopt the **0**.0/24 network. After *this*
+change, the router was able again to reach the Unifi Network Application
+on 192.168.**0.173** and *everything was well once again*.
