@@ -3990,3 +3990,83 @@ The bluetooth controller is detected and shows up in `dmesg`:
 
 Given the above, it may be possible to use the
 [PlayStation Dual Shock 4 controller](2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more.md#playstation-dual-shock-4-controller).
+
+## Troubleshooting
+
+The following issue arose several months after the initial install.
+
+### Active State Power Management on PCIe
+
+On July 27, 2025 at 10:45, after the system had been in used for nearly a week,
+updated and rebooted multiple times, and was last powered off at 01:18, `dmesg`
+started showing the following message once or twice every 5-10 minutes:
+
+``` dmesg
+[ 8633.714962] pcieport 0000:00:01.3: AER: Multiple Correctable error message received from 0000:26:00.0
+[ 8633.715004] pcieport 0000:20:05.0: PCIe Bus Error: severity=Correctable, type=Physical Layer, (Receiver ID)
+[ 8633.715006] pcieport 0000:20:05.0:   device [1022:43c7] error status/mask=00000041/00002000
+[ 8633.715009] pcieport 0000:20:05.0:    [ 0] RxErr                  (First)
+[ 8633.715012] pcieport 0000:20:05.0:    [ 6] BadTLP                
+[ 8633.715020] iwlwifi 0000:26:00.0: PCIe Bus Error: severity=Correctable, type=Physical Layer, (Receiver ID)
+[ 8633.715023] iwlwifi 0000:26:00.0:   device [8086:24fb] error status/mask=00000001/00002000
+[ 8633.715025] iwlwifi 0000:26:00.0:    [ 0] RxErr                  (First)
+[ 8633.715028] iwlwifi 0000:26:00.0: AER:   Error of this Agent is reported first
+```
+
+The same message had been logged a couple of times a few days earlier (on July 22),
+as found in `/var/log/kern.log.1`
+
+``` log
+pcieport 0000:00:01.3: AER: Multiple Correctable error message received from 0000:26:00.0
+pcieport 0000:20:05.0: PCIe Bus Error: severity=Correctable, type=Physical Layer, (Receiver ID)
+pcieport 0000:20:05.0:   device [1022:43c7] error status/mask=00000041/00002000
+pcieport 0000:20:05.0:    [ 0] RxErr                  (First)
+pcieport 0000:20:05.0:    [ 6] BadTLP                
+iwlwifi 0000:26:00.0: PCIe Bus Error: severity=Correctable, type=Physical Layer, (Receiver ID)
+iwlwifi 0000:26:00.0:   device [8086:24fb] error status/mask=00000001/00002000
+iwlwifi 0000:26:00.0:    [ 0] RxErr                  (First)
+iwlwifi 0000:26:00.0: AER:   Error of this Agent is reported first
+wlp38s0: deauthenticated from 62:22:54:ed:bb:f2 (Reason: 6=CLASS2_FRAME_FROM_NONAUTH_STA)
+wlp38s0: authenticate with 62:22:54:ed:bb:f2 (local address=d4:3b:04:e3:ae:9a)
+wlp38s0: send auth to 62:22:54:ed:bb:f2 (try 1/3)
+pcieport 0000:00:01.3: AER: Multiple Correctable error message received from 0000:26:00.0
+iwlwifi 0000:26:00.0: PCIe Bus Error: severity=Correctable, type=Physical Layer, (Transmitter ID)
+iwlwifi 0000:26:00.0:   device [8086:24fb] error status/mask=00001041/00002000
+iwlwifi 0000:26:00.0:    [ 0] RxErr                  (First)
+iwlwifi 0000:26:00.0:    [ 6] BadTLP                
+iwlwifi 0000:26:00.0:    [12] Timeout               
+wlp38s0: deauthenticated from 62:22:54:ed:bb:f2 (Reason: 6=CLASS2_FRAME_FROM_NONAUTH_STA)
+wlp38s0: authenticate with 62:22:54:ed:bb:f2 (local address=d4:3b:04:e3:ae:9a)
+wlp38s0: send auth to 62:22:54:ed:bb:f2 (try 1/3)
+wlp38s0: authenticated
+wlp38s0: associate with 62:22:54:ed:bb:f2 (try 1/3)
+wlp38s0: RX AssocResp from 62:22:54:ed:bb:f2 (capab=0x131 status=0 aid=5)
+```
+
+PCIe device `0000:26` is the on-board WiFi controller, which would explain those de/auth
+events that follow immediately after the AER error messages:
+
+```
+$ lspci | grep '2[06]:0'
+20:00.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+20:01.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+20:04.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+20:05.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+20:06.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+20:07.0 PCI bridge: Advanced Micro Devices, Inc. [AMD] 400 Series Chipset PCIe Port (rev 01)
+26:00.0 Network controller: Intel Corporation Dual Band Wireless-AC 3168NGW [Stone Peak] (rev 10)
+```
+
+While there appears to be no (findable) recorded history of
+`AER: Multiple Correctable error message received` happening on an
+`Intel Corporation Dual Band Wireless-AC 3168NGW`, there was a very similar one in
+[*[SOLVED] AER: Correctable error message received*](https://forum.proxmox.com/threads/aer-correctable-error-message-received.156497/)
+forum thread from Oct 26, 2024. The solution proposed there
+did seem to work: update `/etc/default/grub` to add `pcie_aspm=off`
+to the `GRUB_CMDLINE_LINUX_DEFAULT` variable:
+
+``` conf
+GRUB_CMDLINE_LINUX_DEFAULT="noquiet nosplash pcie_aspm=off"
+```
+
+After rebooting the system with `pcie_aspm=off` the above errors have not shown up again.

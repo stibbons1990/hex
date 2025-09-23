@@ -177,6 +177,120 @@ WiFi connections is to
 
 This can be done in advance of replacing WiFi access points, etc.
 
+#### Retrospective on IP address assignment
+
+!!! warning
+
+    When setting up a Kubernetes cluster to be relocated to a different LAN,
+    make sure to assign a **static** IP address that will be available in the
+    destination LAN. Otherwise, the cluster will become non-operational because
+    the required certificates are signed for the initial IP address and are not
+    trivial to replace without losing deployments and data.
+
+??? note "Ask me how I know..."
+
+    After relocating `alfred` to a its destination LAN a having a new IP address
+    assigned from the local DCHP server (ISP router), the `kubelet` service is no
+    longer accessible at the old (or new) IP address.
+
+    On the old IP address, nothing is listening:
+
+    ``` console
+    $ kubectl get all -A
+    E0723 20:15:48.259515   23554 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"http://localhost:8080/api?timeout=32s\": dial tcp [::1]:8080: connect: connection refused"
+    E0723 20:15:48.261327   23554 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"http://localhost:8080/api?timeout=32s\": dial tcp [::1]:8080: connect: connection refused"
+    E0723 20:15:48.263000   23554 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"http://localhost:8080/api?timeout=32s\": dial tcp [::1]:8080: connect: connection refused"
+    E0723 20:15:48.264590   23554 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"http://localhost:8080/api?timeout=32s\": dial tcp [::1]:8080: connect: connection refused"
+    E0723 20:15:48.266104   23554 memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"http://localhost:8080/api?timeout=32s\": dial tcp [::1]:8080: connect: connection refused"
+    The connection to the server localhost:8080 was refused - did you specify the right host or port?
+    ```
+
+    The server is unable to connect to `etcd` on `192.168.0.124:6443`
+
+    ``` console
+    $ systemctl status kubelet.service
+    ...
+    1323 pod_workers.go:1301] "Error syncing pod, skipping" err="failed to \"StartContainer\" for \"kube-apiserver\" with CrashLoopBackOff: \"back-off 5m0s restarting failed container=kube-apiserver pod=kube-apiserver-alfred_kube-system(b254715d65c91745b90>
+    1323 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"alfred\" not found" node="alfred"
+    1323 scope.go:117] "RemoveContainer" containerID="7a63e157dfff240e6122e2677a690bcfbc25828b9e70b15f3183c0b5bd37b5d4"
+    1323 pod_workers.go:1301] "Error syncing pod, skipping" err="failed to \"StartContainer\" for \"etcd\" with CrashLoopBackOff: \"back-off 5m0s restarting failed container=etcd pod=etcd-alfred_kube-system(bd8b1f1f7ec248fb91965a18bb2161c3)\"" pod="kube-sy>
+    1323 controller.go:145] "Failed to ensure lease exists, will retry" err="Get \"https://192.168.0.124:6443/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/alfred?timeout=10s\": dial tcp 192.168.0.124:6443: connect: no route to host" interv>
+    1323 kubelet_node_status.go:107] "Unable to register node with API server" err="Post \"https://192.168.0.124:6443/api/v1/nodes\": dial tcp 192.168.0.124:6443: connect: no route to host" node="alfred"
+    1323 event.go:368] "Unable to write event (may retry after sleeping)" err="Patch \"https://192.168.0.124:6443/api/v1/namespaces/default/events/alfred.1854f3b436893b1b\": dial tcp 192.168.0.124:6443: connect: no route to host" event="&Event{ObjectMeta:{>
+    1323 kubelet.go:3190] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \"alfred\" not found" node="alfred"
+    ```
+
+    Because the service is now listening on the new IP address:
+
+    ``` console
+    $ netstat -na | grep 6443
+    tcp        0      1 192.168.0.50:54216      192.168.0.124:6443      SYN_SENT 
+
+    $ ip a
+    ...
+    2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+        link/ether 2c:cf:67:83:6f:3b brd ff:ff:ff:ff:ff:ff
+        inet 192.168.0.50/24 brd 192.168.0.255 scope global dynamic noprefixroute eth0
+          valid_lft 602389sec preferred_lft 602389sec
+        inet6 fe80::5269:183f:fa1a:d1e5/64 scope link noprefixroute 
+          valid_lft forever preferred_lft forever
+    ```
+
+    The old IP address is promptly found in several files that would need to be updated:
+
+    ```
+    /etc/hosts
+    /etc/kubernetes/kubelet.conf
+    /etc/kubernetes/admin.conf
+    ~/.kube/config
+    ```
+
+    But there are quite a few more files that would need to be updated
+    (in multiple lines):
+
+    ```
+    $ sudo grep -rin 124 /etc/kubernetes/*
+    /etc/kubernetes/controller-manager.conf:5:    server: https://192.168.0.124:6443
+    /etc/kubernetes/manifests/etcd.yaml:5:    kubeadm.kubernetes.io/etcd.advertise-client-urls: https://192.168.0.124:2379
+    /etc/kubernetes/manifests/etcd.yaml:16:    - --advertise-client-urls=https://192.168.0.124:2379
+    /etc/kubernetes/manifests/etcd.yaml:22:    - --initial-advertise-peer-urls=https://192.168.0.124:2380
+    /etc/kubernetes/manifests/etcd.yaml:23:    - --initial-cluster=alfred=https://192.168.0.124:2380
+    /etc/kubernetes/manifests/etcd.yaml:25:    - --listen-client-urls=https://127.0.0.1:2379,https://192.168.0.124:2379
+    /etc/kubernetes/manifests/etcd.yaml:27:    - --listen-peer-urls=https://192.168.0.124:2380
+    /etc/kubernetes/manifests/kube-apiserver.yaml:5:    kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint: 192.168.0.124:6443
+    /etc/kubernetes/manifests/kube-apiserver.yaml:16:    - --advertise-address=192.168.0.124
+    /etc/kubernetes/manifests/kube-apiserver.yaml:48:        host: 192.168.0.124
+    /etc/kubernetes/manifests/kube-apiserver.yaml:59:        host: 192.168.0.124
+    /etc/kubernetes/manifests/kube-apiserver.yaml:71:        host: 192.168.0.124
+    /etc/kubernetes/scheduler.conf:5:    server: https://192.168.0.124:6443
+    /etc/kubernetes/super-admin.conf:5:    server: https://192.168.0.124:6443
+    ```
+
+    It would be best if the kubelet service updated all these from a single,
+    centralized parameter. Based on https://stackoverflow.com/a/68391387,
+    although `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf` does not exist,
+    this should be possible by setting `KUBELET_EXTRA_ARGS=--node-ip 192.168.0.50`
+    in `/etc/default/kubelet` (then reloading and restarting the service):
+
+    ```
+    # systemctl daemon-reload
+    # systemctl restart kubelet.service
+    # systemctl status kubelet.service
+    142316 reflector.go:569] k8s.io/client-go/informers/factory.go:160: failed to list *v1.Node: Get "https://192.168.0.50:6443/api/v1/nodes?fieldSelector=metadata.name%3Dalfred&limit=500&resourceVersion=0": net/http: TLS handshake timeout
+    142316 reflector.go:166] "Unhandled Error" err="k8s.io/client-go/informers/factory.go:160: Failed to watch *v1.Node: failed to list *v1.Node: Get \"https://192.168.0.50:6443/api/v1/nodes?fieldSelector=metadata.name%3Dalfred&limit=500&resourceVersion=0\>
+    ```
+
+    Now the issue is that the **TLS handshake** fails, because certificates were created
+    for the IP address 192.168.0.124 **but not 192.168.0.50**; this has been reported as
+    [`kudeamd` issue #338: Changing master IP address](https://github.com/kubernetes/kubeadm/issues/338)
+    [and the workaround is quite involved](https://github.com/kubernetes/kubeadm/issues/338#issuecomment-1835645768).    
+
+    So the solution is, for now, to add 124 as a
+    [Static IP Address Using the Network Manager CLI](https://pimylifeup.com/raspberry-pi-static-ip-address/#static-ip-address-using-network-manager-cli).    
+
+    However, 124 is in the middle of the router's DHCP pool and there is no option to assign IPs to MACs,
+    so just in case add also .5 and perhaps later rebuild the cluster on that address.
+
 ### Fix locales
 
 The above looks like rpi-imager took my PC’s locale settings:
@@ -4006,10 +4120,10 @@ leads to Home Assistant failing to parse the config and going into *recovery mod
 
 !!! warning
 
-    Avoid use of `!include` in the `ConfigMap` or else Home Assistan will fail to
-    parse it, go into *recovery mode* and start without allowing requests coming in
-    through the reverse proxy. The following `ConfigMap` omits such lines to address
-    the [Caveat on reverse proxies](#caveat-on-reverse-proxies).
+    Sometimes the use of `!include` in the `ConfigMap` or else Home Assistant will
+    fail to parse it, go into *recovery mode* and start without allowing requests
+    coming in through the reverse proxy. The following `ConfigMap` omits such
+    lines to address the [Caveat on reverse proxies](#caveat-on-reverse-proxies).
 
 ??? k8s "`base/configmap.yaml`"
 
@@ -4893,6 +5007,61 @@ Grafana, after adding the new database as a new InfluxDB data source.
 
 [The InfluxDB `sensor`](https://www.home-assistant.io/integrations/influxdb/#sensor) *allows using values from a InfluxDB database to populate a sensor state. This can be used to present statistics as Home Assistant sensors, if used with the influxdb history integration. It can also be used with an external data source.* All this sound very
 interesting for potential future expansions!
+
+#### Persist configuration in `ConfigMap`
+
+For months after deploying the above monitoring, it was observed that Home
+Assistant would regularly lose the configuration and revert to its default,
+leading to both the `sensor.all_power` entity not being available (indefinitely)
+and InfluxDB no longer receiving any metrics (also indefinitely). For a long time,
+The only workaround found was to revert `configuration.yaml` to the default,
+restart Home Assistant from the web admin UI (not rebooting the node, not
+restarting the deployment), then restore the configuration and restart again.
+
+After much thinking about it (and not finding anyone anywhere ever having had the
+same problem), it occurred to me that what was happening is that *somehow* Home
+Assistant was reloading the default configuration from the `ConfigMap`, so the
+solution was to add the configuration to *that* in `alfred/kustomization.yaml`:
+
+``` yaml title="alfred/kustomization.yaml" linenums="23" hl_lines="8-38"
+  - target: # Hostname-only for Tailscale [Funnel]
+      kind: Ingress
+      name: home-assistant-tailscale
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: home-assistant-alfred
+  - target: # Home Assistant config
+      kind: ConfigMap
+      name: home-assistant-configmap
+    patch: |-
+      - op: replace
+        path: /data/configuration.yaml
+        value: |-
+          default_config:
+          http:
+            use_x_forwarded_for: true
+            trusted_proxies:
+              - 10.244.0.0/16
+          template:
+            - sensor: !include_dir_merge_list  templates/sensors/
+          influxdb:
+            host: 192.168.0.6
+            port: 30086
+            database: home_assistant
+            username: admin
+            password: MY_PASSWORD
+            max_retries: 3
+            default_measurement: state
+            tags:
+              instance: prod
+              source: hass
+            component_config_glob:
+              sensor.*humidity*:
+                override_measurement: humidity
+              sensor.*temperature*:
+                override_measurement: temperature
+```
 
 ## Audiobookshelf
 

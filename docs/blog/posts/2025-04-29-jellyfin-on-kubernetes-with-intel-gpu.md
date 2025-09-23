@@ -355,9 +355,13 @@ there a GPU in the server...
 
 This server is an
 [ASUS NUC 13 Pro Tall PC Kit RNUC13ANHI700000I w/ Intel Core i7-1360P](https://webshop.asus.com/de/Mini-PCs/ASUS-NUC-13-Pro-Tall-PC-Kit-RNUC13ANHI700000I/90AR00C1-M000F0)
-with an **13th** generation Intel Core i7 CPU and Intel **Iris Xe** GPU:
+with an **13th** generation Intel Core i7 CPU and
+[Intel Raptor Lake-P [**UHD** Graphics]](https://linux-hardware.org/?id=pci:8086-a720-1043-28dd) (`8086:a720`) GPU:
 
 ``` console
+# lspci -vnn | grep -E 'VGA|3D'
+00:02.0 VGA compatible controller [0300]: Intel Corporation Raptor Lake-P [UHD Graphics] [8086:a720] (rev 04) (prog-if 00 [VGA controller])
+
 # cat /proc/cpuinfo 
 processor       : 0
 vendor_id       : GenuineIntel
