@@ -537,7 +537,7 @@ podcasts (and found a way to catch up with old ones).
 
 [Immich](#immich) is yet to be tested, but even without it the need for a Plex
 server has not been felt since the migration of services to the new NUC server
-([octavo](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md-server)).
+([octavo](../blog/posts/2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md)).
 Since then, [Jellyfin](#jellyfin) has replaced Plex for watching videos and
 [Navidrome](#navidrome) has replaced it for music.
 
