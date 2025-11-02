@@ -326,18 +326,32 @@ of all services in one place, should there ever be too many of them.
 management solution* that should make it easy to *browse, search and
 organize photos and videos with ease, without sacrificing privacy*.
 
-[Immich Charts](https://github.com/immich-app/immich-charts?tab=readme-ov-file#immich-charts)
-should make the installation easy, although perhaps not so easy anymore since the
-[Deprecation of postgres subchart](https://github.com/immich-app/immich-charts/issues/149).
-It seems Immich will require a PostgresQL **with**
-[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs?tab=readme-ov-file#pgvectors)
-which does not come with
-[zalando/postgres-operator](https://github.com/zalando/postgres-operator),
-which requires [additional setup](https://github.com/immich-app/immich-charts/issues/149#issuecomment-2603283212),
-or [CloudNativePG](https://cloudnative-pg.io/), which would need
-[cnpgvecto.rs](https://github.com/tensorchord/cloudnative-pgvecto.rs?tab=readme-ov-file#cnpgvectors).
+Immich can be deployed on Kubernetes using the
+[official Helm charts](https://github.com/immich-app/immich-charts?tab=readme-ov-file#immich-charts),
+which requires a *suitable postgres instance with the vectorchord extension*.
+It is recommended to use [cloudnative-pg](https://cloudnative-pg.io/) with the
+[tensorchord/cloudnative-vectorchord](https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord)
+container image. An example cluster manifest can be found
+[here](https://github.com/immich-app/immich-charts/blob/main/local/cloudnative-pg.yaml).
 There are also [examples](https://kubesearch.dev/#/immich) of how other people run
 Immich on Kubernetes, using the official chart or otherwise.
+
+Besides deployment, leveraging Immich for a rich multi-user experience will require much
+fine-tuning of multiple features:
+
+- [External Libraries](https://docs.immich.app/features/libraries/) to track assets
+  stored in the filesystem outside of Immich, since there are multiple personal
+  libraries with >100,000 photos going back >20 years.
+- [Folder View](https://docs.immich.app/features/folder-view/) to navigate through the
+  folders and files in those external librarires, which are already organized.
+- [Storage Template](https://docs.immich.app/administration/storage-template/) to set
+  the uploaded filename patterns for each user.
+- [User Management](https://docs.immich.app/administration/user-management/) because
+  each familiy member should have their own library.
+- [Partner Sharing](https://docs.immich.app/features/partner-sharing/) for each user to
+  let other see *all* their photos.
+- [Immich Folder Album Creator](https://github.com/Salvoxia/immich-folder-album-creator?tab=readme-ov-file#immich-folder-album-creator)
+  to automatically create albums from (some) directories.
 
 #### Leantime
 
