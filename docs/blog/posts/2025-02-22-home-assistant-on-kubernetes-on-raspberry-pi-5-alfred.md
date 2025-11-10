@@ -336,7 +336,7 @@ Swap:             0B          0B          0
 
 ### SSH Server
 
-As a general good practices, even if this system won't have its SSH port open to
+As a general good practice, even if this system won't have its SSH port open to
 the Internet, add the relevant public keys to `/home/pi/.ssh/authorized_keys`
 and disable password authentication by setting `PasswordAuthentication no` in
 `/etc/ssh/sshd_config`.
@@ -373,6 +373,8 @@ The instructions in page 13 of the
 to install the scripts for FAN control seem simple enough:
 
 ![Page 13 of Argon ONE V3 NVMe case manual](../media/2025-02-22-home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/argon-one-v3-nvme-manual-p13.png){: style="height:550px;width:764px"}
+
+#### Failed Argon installation
 
 However, these scripts were problematic for users with this hardware setup
 [as of early 2024](https://forum.argon40.com/t/argon-one-v3-power-button-and-fan-scripts-issue/2276/32)
@@ -458,6 +460,8 @@ total 6248
 -rw-r--r-- 1 root root  102992 Feb 18 10:42 recovery.bin
 ```
 
+#### Update EEPROM
+
 [Using raspi-config to update the bootloader](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspi-config)
 and set it to `Latest` (**without** resetting config) worked just fine.
 After the required reboot, the `argon-eeprom.sh` script also run fine:
@@ -486,6 +490,8 @@ After the required reboot, the `argon-eeprom.sh` script also run fine:
                 Use raspi-config to change the release.
     EEPROM settings up to date
     ```
+
+#### Successful Argon installation
 
 Then after another required reboot, the `argon1.sh` script worked fine too:
 
