@@ -138,23 +138,23 @@ Create the local directory with the appropriate permissions:
 
 ``` console
 # mkdir -p /home/k8s/pomerium/data
-# chown -R 65532 /home/k8s/pomerium/
+# chown -R 65532:65532 /home/k8s/pomerium/
 # chmod -R 750 /home/k8s/pomerium/
 # ls -laR /home/k8s/pomerium/
-/home/k8s/pomerium/:
+/home/k8s/pomerium:
 total 0
-drwxr-x--- 1 65532 root   8 Dec 18 23:06 .
-drwxr-xr-x 1 root  root 478 Dec 18 23:06 ..
-drwxr-x--- 1 65532 root   0 Dec 18 23:06 data
+drwxr-x--- 1 65532 root    8 Dec 18 23:06 .
+drwxr-xr-x 1 root  root  478 Dec 18 23:06 ..
+drwxr-x--- 1 65532 65532   0 Dec 18 23:06 data
 
 /home/k8s/pomerium/data:
 total 0
-drwxr-x--- 1 65532 root 0 Dec 18 23:06 .
-drwxr-x--- 1 65532 root 8 Dec 18 23:06 ..
+drwxr-x--- 1 65532 65532 0 Dec 18 23:06 .
+drwxr-x--- 1 65532 root  8 Dec 18 23:06 ..
 ```
 
 Create the Local Storage manifests and `kustomization.yaml` in a new `pomerium-overlay`
-directory and patch the Deployment to mount the volume.
+directory and patch the Deployment to mount the volume:
 
 ???+ k8s "`pomerium-overlay/pomerium-storage.yaml`"
 
@@ -190,7 +190,7 @@ directory and patch the Deployment to mount the volume.
 
 ???+ k8s "`pomerium-overlay/kustomization.yaml`"
 
-    ``` yaml linenums="1" hl_lines="5"
+    ``` yaml linenums="1" hl_lines="5 14-17 19-23 25-27 29-34"
     apiVersion: kustomize.config.k8s.io/v1beta1
     kind: Kustomization
 
@@ -204,21 +204,37 @@ directory and patch the Deployment to mount the volume.
           name: pomerium
         patch: |-
           - op: add
-            path: /spec/template/spec/containers/0/env/-
-            value: { name: DATABROKER_STORAGE_TYPE, value: "file" }
-          - op: add
-            path: /spec/template/spec/containers/0/env/-
-            value: { name: DATABROKER_STORAGE_CONNECTION_STRING, value: "file:///data/databroker" }
-          - op: add
             path: /spec/template/spec/containers/0/volumeMounts/-
-            value: { name: pomerium-data, mountPath: /data }
+            value:
+              name: pomerium-data
+              mountPath: /data
           - op: add
             path: /spec/template/spec/volumes/-
             value: 
               name: pomerium-data
               persistentVolumeClaim:
                 claimName: pomerium-pvc-data
+          - op: replace
+            path: /spec/strategy
+            value:
+              type: Recreate  # Terminates old pods before starting new ones
+          - op: add
+            path: /spec/template/spec/containers/0/lifecycle
+            value:
+              preStop:
+                exec:
+                  # Gives the process 5 seconds to flush Pebble logs and release locks
+                  command: ["/bin/sh", "-c", "sleep 5"]
     ```
+
+    To avoid file lock conflicts in the Pebble database across pods, lines 25-27 set the
+    `Recreate` strategy so that the running pod are shut down before starting a new one.
+    Otherwise, Kubernetes defaults to a `RollingUpdate` strategy which starts a new pod
+    before the old one is terminated, leading to a deadlock situation where the old pod
+    still has the lock on the database, which keeps the new pod stuck as  `ContainersNotReady`.
+    
+    Lines 29-34 force graceful shutdown to let the old pod flush Pebble logs
+    and release locks.
 
 There are two different checks to make before applying this deployment:
 
@@ -260,14 +276,15 @@ ingressclass.networking.k8s.io/pomerium unchanged
 
 ### Pomerium CRD
 
-Define the global settings in `pomerium-settings.yaml`, with `spec.authenticate.url`
+Define the global settings in `pomerium-settings.yaml`, with `spec.storage.file.path`
+pointing to storage defined above (`/data/databroker`) and `spec.authenticate.url`
 pointing to the cluster's real domain to use the self-hosted identity-aware proxy,
-instead of the domain https://authenticate.pomerium.app which is the endpoint for
-Pomerium Zero (the managed/hosted SaaS control plane):
+instead of the domain <https://authenticate.pomerium.app> which is the endpoint for
+[Pomerium Zero](https://www.pomerium.com/zero) (their SaaS control plane):
 
 ???+ k8s "`pomerium-settings.yaml`"
 
-    ``` yaml linenums="1" hl_lines="9"
+    ``` yaml linenums="1" hl_lines="9 12"
     apiVersion: ingress.pomerium.io/v1
     kind: Pomerium
     metadata:
@@ -277,6 +294,9 @@ Pomerium Zero (the managed/hosted SaaS control plane):
       secrets: pomerium/bootstrap
       authenticate:
         url: https://authenticate.very-very-dark-gray.top:8443
+      storage:
+        file:
+          path: /data/databroker
     ```
 
 !!! note "Using a non-standard port like 8443 mostly works, if port 443 is taken."
@@ -312,22 +332,18 @@ Spec:
   Authenticate:
     URL:    https://authenticate.very-very-dark-gray.top
   Secrets:  pomerium/bootstrap
+  Storage:
+    File:
+      Path:  /data/databroker
 Status:
   Settings Status:
     Observed At:          2025-12-18T23:53:06Z
     Observed Generation:  1
     Reconciled:           true
-    Warnings:
-      storage: please specify a persistent storage backend, please see https://www.pomerium.com/docs/internals/data-storage
 Events:
   Type     Reason      Age   From                                     Message
   ----     ------      ----  ----                                     -------
   Normal   Updated     17s   bootstrap pod/pomerium-58bdd56668-6p5q5  config updated
-  Normal   Updated     17s   bootstrap pod/pomerium-75d45cf7f8-c9tlx  config updated
-  Warning  Validation  16s   pomerium-crd                             storage: please specify a persistent storage backend, please see https://www.pomerium.com/docs/internals/data-storage
-  Normal   Updated     16s   pomerium-crd                             config updated
-  Warning  Validation  16s   pomerium-crd                             storage: please specify a persistent storage backend, please see https://www.pomerium.com/docs/internals/data-storage
-  Normal   Updated     16s   pomerium-crd                             config updated
 ```
 
 The `connection refused` on port **28080** errors are still present in the `Events`
@@ -347,17 +363,6 @@ Events:
   Normal   Killing    11m (x2 over 33m)    kubelet            Container pomerium failed startup probe, will be restarted
   Warning  Unhealthy   6m (x102 over 43m)  kubelet            Startup probe failed: Get "http://10.244.0.169:28080/startupz": dial tcp 10.244.0.169:28080: connect: connection refused
 ```
-
-??? note "The warning requesting a persistent storage backend can be safely ignored."
-
-    Pomerium initializes the Pebble database lazily, the databroker directory is not
-    created until the first identity record or session needs to be persisted. On a fresh
-    start with zero traffic, the Pomerium pod will be running with no persistent storage
-    (the directory remains empty) until a user actually logs in.
-    
-    The warning in `kubectl describe` output is a Validation Warning from the CRD
-    controller. It is warning you that the Pomerium CRD spec does not define storage,
-    even though the pod environment does. This can be safely ignored the file is created.
 
 ### Certifiate for the auth endpoint
 
@@ -411,6 +416,9 @@ link the Certificate to Pomerium Settings by updating the Pomerium CRD to refere
         url: https://authenticate.very-very-dark-gray.top:8443
       certificates:
         - pomerium/pomerium-auth-tls
+      storage:
+        file:
+          path: /data/databroker
     ```
 
 And apply the updated settings: 
@@ -469,6 +477,9 @@ Configure Pomerium to recognize Google as the provider:
       identityProvider:
         provider: google
         secret: pomerium/idp-secret
+      storage:
+        file:
+          path: /data/databroker
     ```
 
 Apply the above in this order, so the secret is available for Pomerium:
@@ -586,10 +597,10 @@ address that ends with `@gmail.com` the application grants access, although it s
 
 ![Pomerium "Identity verified" page](../media/2025-12-18-replacing-ingress-nginx-with-pomerium/pomerium-identity-verified.png)
 
-??? note
+??? note "about **Identity verification failed** error page."
 
     When accessing Pomerium through a non-standard HTTPS port (e.g. 8443), this page
-    shows an  "Identity verification failed" error:
+    shows an "Identity verification failed" error:
 
     ![Pomerium "Identity verification failed" page](../media/2025-12-18-replacing-ingress-nginx-with-pomerium/pomerium-identity-verification-failed.png)
 
@@ -1154,8 +1165,8 @@ ingress.networking.k8s.io/ddns-updater-pomerium-ingress created
 By having both the global policy and the overrides in the `patches` list, Kustomize
 applies them sequentially, so that each application-specific patch overrides the global 
 policy in the first patch. This is more reliable and easier to work with than
-`commonAnnotations` which is a "global transformer" that is notoriously difficult to
-override because it applies to everything in the final build.
+`commonAnnotations` which is a "global transformer" and rather difficult to override
+because it applies to everything in the final build.
 
 ## Final Traffic Migration
 
@@ -1202,4 +1213,4 @@ edge; users must first authenticate against a specialized "gatekeeper" service.
     2FA.
 
 [Pomerium Ingress Controller](https://www.pomerium.com/docs/deploy/k8s/ingress)
-was chosing because it can entirely replace Ingress-NGINX.
+was chosen because it can entirely replace Ingress-NGINX.
