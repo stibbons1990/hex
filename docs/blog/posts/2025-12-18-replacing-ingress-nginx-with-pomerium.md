@@ -458,17 +458,20 @@ obtain the client ID and secret from and store them in `google-idp-secret.yaml`:
     **Publish app** in the Console, although this is only necessary when requesting
     [sensitive scopes beyond name, email address, and user profile](https://support.google.com/cloud/answer/15549945#publishing-status-testing&zippy=%2Ctesting%2Cin-production%2Cexternal%2Cinternal).    
 
-Configure Pomerium to recognize Google as the provider:
+Configure Pomerium to recognize Google as the provider and set a generous 30-day
+expiration for sessions:
 
 ???+ k8s "`pomerium-settings.yaml`"
 
-    ``` yaml linenums="1" hl_lines="12-14"
+    ``` yaml linenums="1" hl_lines="7-8 14-16"
     apiVersion: ingress.pomerium.io/v1
     kind: Pomerium
     metadata:
       name: global
       namespace: pomerium
     spec:
+      cookie:
+        expire: 720h
       secrets: pomerium/bootstrap
       authenticate:
         url: https://authenticate.very-very-dark-gray.top:8443
@@ -666,7 +669,7 @@ and relies instead on the API's own authentication.
 To keep the Web UI locked by Pomerium while allowing traffic from mobile apps in, allow
 API paths to bypass authentication; the Audiobookshelf API uses a few path prefixes:
 
-``` yaml hl_lines="5-12"
+``` yaml hl_lines="5-20"
 metadata:
   annotations:
     ...
@@ -676,7 +679,15 @@ metadata:
             - http_path:
                 starts_with: "/api"
             - http_path:
+                starts_with: "/audiobookshelf/socket.io"
+            - http_path:
+                starts_with: "/hls"
+            - http_path:
                 starts_with: "/login"
+            - http_path:
+                starts_with: "/public"
+            - http_path:
+                starts_with: "/socket.io"
             - http_path:
                 starts_with: "/status"
       - allow:
