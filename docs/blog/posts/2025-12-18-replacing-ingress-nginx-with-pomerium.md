@@ -662,14 +662,43 @@ metadata:
 
 Each service that exposes an API, authenticated or not, needs an additional `allow`
 policy to allow traffic directed to the API, so that it bypasses Pomerium authentication
-and relies instead on the API's own authentication.
+and relies instead on the API's own authentication. This policy should match **only**
+requests to the APIs used by applications other than web frontends, to keep Web frontends
+protected by Pomerium while allowing traffic to the APIs from mobile apps, etc.
+
+Finding the required `path` prefixes for each service is best done by consulting their
+API reference. In cases where that turns out to be not enough, Pomerium logs can be
+filtered for specific lines to find URL paths for those requests that are not allowed:
+
+``` bash
+#!/bin/bash
+# Extrat URL paths for requests going through Pomerium
+
+pod=$(kubectl get pods -n pomerium | grep "^pomerium-.*Running" | awk '{print $1}')
+echo $pod
+
+kubectl get ingress -A | awk 'NR > 1 {print $1, $2, $3, $4}' | \
+while IFS=$' ' read -r namespace name class host; do
+  if [[ "$class" != "pomerium" ]]; then continue; fi
+  echo  "requests to ${host} via ${name}: "
+  kubectl logs "${pod}" -n pomerium \
+  | grep "authority.*${host}" \
+  | grep -v '"response-code":200' \
+  | grep -oE '"path":"[^"]+"' \
+  | cut -f4 -d'"' \
+  | grep -oE '^/[^/]+' \
+  | sort -u
+done
+```
 
 #### Audiobookshelf
 
-To keep the Web UI locked by Pomerium while allowing traffic from mobile apps in, allow
-API paths to bypass authentication; the Audiobookshelf API uses a few path prefixes:
+The [Audiobookshelf API reference](https://api.audiobookshelf.org/) turned out not so
+convenient to find all the URL paths needed for the 
+[Audiobookshelf Android app](https://play.google.com/store/apps/details?id=com.audiobookshelf.app&hl=en),
+the above method of filtering Pomerium logs was needed to find the following prefixes:
 
-``` yaml hl_lines="5-20"
+``` yaml hl_lines="5-22"
 metadata:
   annotations:
     ...
@@ -678,6 +707,8 @@ metadata:
           or:
             - http_path:
                 starts_with: "/api"
+            - http_path:
+                starts_with: "/auth/refresh"
             - http_path:
                 starts_with: "/audiobookshelf/socket.io"
             - http_path:
@@ -698,20 +729,40 @@ metadata:
                 is: "bob@gmail.com"
 ```
 
+#### Firefly III
+
+[Firefly III](./2024-05-19-self-hosted-accountancy-with-firefly-iii.md) includes a
+[REST-based JSON API](https://docs.firefly-iii.org/how-to/firefly-iii/features/api/)
+all under a single `/v1` prefix (full reference at <https://api-docs.firefly-iii.org/>).
+The application itself is not actually in use, but that single prefix is all that would
+be necessary to `allow` if it was to be used, e.g. from
+[a Home Assistant integration](https://community.home-assistant.io/t/anyone-doing-anything-with-the-firefly-iii-api/433491/10).
+
+#### Grafana
+
+[Grafana HTTP API reference](https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/)
+suggests the entire API is under `/api`, including authentication.
+
 #### InfluxDB
 
 [InfluxDB Authentication](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md#influxdb-authentication)
 being enabled for all exposed endpoints, similar rules are added to bypass Pomerium
-authentication for the relevant API paths. There is no policy to allow human users because
-this API is not meant to be accessed directly by users from browsers.
+authentication for the relevant API paths. There is no policy to allow human users
+because this API is not meant to be accessed directly by users from browsers.
 
-``` yaml hl_lines="5-12"
+All the legacy
+[InfluxDB 1.x HTTP endpoints](https://docs.influxdata.com/influxdb/v1/tools/api/#influxdb-1x-http-endpoints)
+are under the following prefixes:
+
+``` yaml hl_lines="5-14"
 metadata:
   annotations:
     ...
     ingress.pomerium.io/policy: |
       - allow:
           or:
+            - http_path:
+                starts_with: "/debug"
             - http_path:
                 starts_with: "/ping"
             - http_path:
@@ -720,10 +771,62 @@ metadata:
                 starts_with: "/write"
 ```
 
+#### Home Assistant
+
+Home Assistant hosts a
+[WebSocket API at `/api/websocket`](https://developers.home-assistant.io/docs/api/websocket)
+and a [RESTful API at `/api`](https://developers.home-assistant.io/docs/api/rest),
+which needs to be allowed for the Home Assistant mobile app. In addition to that,
+Home Assistant [Authentication API](https://developers.home-assistant.io/docs/auth_api)
+also needs to be allowed for the Home Assistant mobile app to be able to directly
+authenticate against the service.
+
+``` yaml hl_lines="5-10"
+metadata:
+  annotations:
+    ...
+    ingress.pomerium.io/policy: |
+      - allow:
+          or:
+            - http_path:
+                starts_with: "/api"
+            - http_path:
+                starts_with: "/auth"
+      - allow:
+          or:
+            - email:
+                is: "alice@gmail.com"
+            - email:
+                is: "bob@gmail.com"
+```
+
 #### Jellyfin
 
 To keep the Web UI locked by Pomerium while allowing traffic from mobile apps in, allow
 API paths to bypass authentication; the Jellyfin API uses a few path prefixes:
+
+Jellyfin API reference can be downloaded from <https://api.jellyfin.org/> as a
+[JSON file](https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json) and
+API `path` prefixes can be extracted from the keys in its `paths[]` object. This way,
+the full list of request path prefixes can be extracted easily:
+
+``` bash
+#!/bin/bash
+# Extrat request path prefixes from the Jellyfin API reference.
+json=$1
+
+jq -r '.paths | keys[]' ${json} \
+| grep -oE '^/[^/]+' \
+| sort -u \
+| while read dir; do
+cat << ___EOF___
+                - http_path:
+                    starts_with: "${dir}"
+___EOF___
+done
+```
+
+The list of prefixes may need to be updated when the API changes.
 
 ``` yaml hl_lines="5-12"
 metadata:
@@ -748,8 +851,11 @@ metadata:
 
 #### Navidrome
 
-To keep the Web UI locked by Pomerium while allowing traffic from mobile apps in, allow
-API paths to bypass authentication; the Subsonic API uses a few path prefixes:
+To keep [Navidrome](./2024-10-26-self-hosted-music-streaming-with-navidrome.md) Web UI
+behind Pomerium while allowing traffic from mobile apps (e.g. my favorite one,
+[Ultrasonic](https://play.google.com/store/apps/details?id=org.moire.ultrasonic)),
+allow [Subsonic API](https://www.subsonic.org/pages/api.jsp#updatePlaylist) requests
+to bypass authentication; this requires a single path prefix:
 
 ``` yaml hl_lines="5-8"
 metadata:
