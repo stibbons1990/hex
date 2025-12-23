@@ -46,7 +46,8 @@ applications look promising and worth a try: [Ryot](#ryot) and [Yamtrack](#yamtr
 ## Ryot
 
 [Ryot](https://github.com/IgnisDa/ryot?tab=readme-ov-file#ryot)
-is *a self hosted platform for tracking various facets of your life - media, fitness, etc.* which seems to include everything that [Yamtrack](#yamtrack) can track, *plus*
+is *a self hosted platform for tracking various facets of your life - media, fitness,
+etc.* which seems to include everything that [Yamtrack](#yamtrack) can track, *plus*
 other activities outside of media; it is focused in fitness but it could be used for
 other activities like studying, music practice, workshop time, other hobbies, sleep, etc.
 
@@ -63,12 +64,18 @@ generated from any non-supported systems (e.g. Steam API).
 
 ### Ryot deployment
 
+!!! note
+
+    This deployment has been updated to **version 10** of Ryot; migration from v8 to v9
+    failed persistently. Version 10 requires the `MOVIES_AND_SHOWS_TMDB_ACCESS_TOKEN` to
+    be a personal *API Read Access Token* from <https://www.themoviedb.org/settings/api>
+
 Ryot documentation starts off with an [Installation](https://docs.ryot.io/) based on
 `docker-compose`, on which the following basic deployment is based:
 
 ??? k8s "Basic Ryot deployment: `ryot.yaml`"
 
-    ``` yaml title="ryot.yaml"
+    ``` yaml linenums="1" hl_lines="107-108"
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -126,7 +133,7 @@ Ryot documentation starts off with an [Installation](https://docs.ryot.io/) base
           - image: postgres:16-alpine
             env:
             - name: "POSTGRES_PASSWORD"
-              value: "____________________"
+              value: "28___________________________________ba"
             name: postgres
             volumeMounts:
             - mountPath: /var/lib/postgresql/data
@@ -171,14 +178,16 @@ Ryot documentation starts off with an [Installation](https://docs.ryot.io/) base
             app: ryot
         spec:
           containers:
-          - image: ghcr.io/ignisda/ryot:v8
+          - image: ghcr.io/ignisda/ryot:v10
             env:
+            - name: "DATABASE_URL"
+              value: "postgres://postgres:28___________________________________ba0@postgres-svc:5432/postgres"
+            - name: "MOVIES_AND_SHOWS_TMDB_ACCESS_TOKEN"
+              value: "ey_________________________________________________________________V4"
+            - name: "SERVER_ADMIN_ACCESS_TOKEN"
+              value: "28____________________________________a0"
             - name: "TZ"
               value: "Europe/Amsterdam"
-            - name: "SERVER_ADMIN_ACCESS_TOKEN"
-              value: "___________________"
-            - name: "DATABASE_URL"
-              value: "postgres://postgres:___________________@postgres-svc:5432/postgres"
             name: ryot
     ---
     apiVersion: v1
@@ -224,6 +233,18 @@ Ryot documentation starts off with an [Installation](https://docs.ryot.io/) base
         - secretName: tls-secret-cloudflare
           hosts:
             - ryot.very-very-dark-gray.top
+    ```
+
+??? tip "Ryot can be deployed with debug logs and full backtrace when needed."
+
+    To enable debug log with full backtrace, re-deploy with these environment variables:
+
+    ``` yaml linenums="104" hl_lines="2-5"
+            env:
+            - name: "RUST_BACKTRACE"
+              value: "full"
+            - name: "RUST_LOG"
+              value: "ryot=debug"
     ```
 
 Before deploying the application, create a dedicated system user to own the local
@@ -308,101 +329,80 @@ This will only import media that are already finished, neither books in progress
 those that have not been started yet. Those will be added later, as progress is made,
 via the [Audiobookshelf integration](#audiobookshelf_1).
 
-
 - *Select a source*: **Audiobookshelf**
 - *Instance URL*: <https://audiobookshelf.very-very-dark-gray.top> or whatever the
   ingress is for [Audiobookshelf](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#audiobookshelf)
-- *API Key*: the API token for the user, as described in the Audiobookshelf
-  [authentication](https://api.audiobookshelf.org/#authentication) docs
+- *API Key*: [Create an API Key](https://www.audiobookshelf.org/guides/api-keys/#steps-to-create-an-api-key)
+  to act on behalf of the user to track progress for. This is no longer the same as
+  the API token for the user, as described in the Audiobookshelf
+  [authentication](https://api.audiobookshelf.org/#authentication) docs, which is now
+  used only in the [Audiobookshelf Integration](#audiobookshelf_1).
 
 The import will take a little while; in my case it took about 7 minutes to import
 212 books.
 
 ![](../media/2025-05-18-tracking-progress-in-with-ryot/ryot-audiobooks-imported.png)
 
+Ryot will not import audiobooks that don't have ISBN or ASIN, a list of such titles can
+be found checking the result from the importer:
+
+![](../media/2025-05-18-tracking-progress-in-with-ryot/ryot-audiobookshelf-import-results.png)
+
+This can be mitigated by adding ISBN or ASIN to those titles in Audiobookshelf, e.g.
+[libro.fm](https://libro.fm/search?q=Jane+Austen+Children%27s+Stories+%28Easy+Classics%29&searchby=series&sortby=series_asc)
+and other stores may list ISBN and/or ASIN for audiobooks purchased offline. Audiobooks
+from [librivox.org](https://librivox.org/) appear to have no ISBN or ASIN.
+
 ##### Jellyfin
 
 The [Jellyfin importer](https://docs.ryot.io/importing/jellyfin.html)
-can import watched movies and shows from Jellyfin and it seems very simple to setup:
+can import **watched** (i.e. *not the entire*) *Movies* and *Shows* libraries from
+Jellyfin, and it's very simple to setup:
 
 - *Select a source*: **Jellyfin**
-- *Instance URL*: <https://jellyfin.very-very-dark-gray.top/> or whatever the
-  ingress is for [Jellyfin](./2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md)
+- *Instance URL*: <https://jellyfin.very-very-dark-gray.top> (**without** trailing `/`)
+  - or whatever the ingress is for
+    [Jellyfin](./2025-04-29-jellyfin-on-kubernetes-with-intel-gpu.md)
 - *Username*: the user to import progress for
 - *Password*: their password
 
-However, the import always fails immediately and seems to stay in the *still running*
-state, so the UI won't allow even looking at the logs. Inspecing the pod's logs in
-Kubernetes doesn't add much:
+![](../media/2025-05-18-tracking-progress-in-with-ryot/ryot-jellyfin-import-results.png)
 
-``` console
-$ klogs ryot ryot
-[frontend] POST /settings/imports-and-exports.data?intent=deployImport 200 - - 14.458 ms
-[frontend] GET /settings/imports-and-exports.data 200 - - 36.602 ms
-[backend] 
-[backend] thread 'main' panicked at /home/runner/work/ryot/ryot/crates/utils/external/src/lib.rs:93:14:
-[backend] called `Result::unwrap()` on an `Err` value: reqwest::Error { kind: Decode, source: Error("EOF while parsing a value", line: 1, column: 0) }
-```
+??? warning "**Do not** add a trailing `/` to the *Instance URL*."
 
-??? note "Deployed with debug logs and full backtrace, still found nothing."
+    Doing so, the import always fails immediately and seems to stay in the
+    *still running* state, so the UI won't allow even looking at the logs.
+    Inspecing the pod's logs in Kubernetes won't show much:
 
-    To enable debug log with full backtrace, re-deploy with these environment variables:
-
-    ``` yaml linenums="101" hl_lines="5-8"
-        spec:
-          containers:
-          - image: ghcr.io/ignisda/ryot:v8
-            env:
-            - name: "RUST_BACKTRACE"
-              value: "full"
-            - name: "RUST_LOG"
-              value: "ryot=debug"
-    ```
-
-    Even with this, the full backtrace only shows the panic happened during
-    user authentication:
-
-    ``` log hl_lines="4 20"
-    [backend] 2025-06-20T19:33:31.890311Z DEBUG ryot: Deployed import job
-    [backend] 2025-06-20T19:33:31.897664Z DEBUG ryot: Started import job with id imp_LvSHrV0UsANo
-    [frontend] POST /settings/imports-and-exports.data?intent=deployImport 200 - - 23.617 ms
-    [backend] 2025-06-20T19:33:31.902374Z DEBUG ryot: Authentication request: RequestBuilder { method: POST, url: Url { scheme: "https", cannot_be_a_base: false, username: "", password: None, host: Some(Domain("jellyfin.very-very-dark-gray.top")), port: None, path: "//Users/AuthenticateByName", query: None, fragment: None }, headers: {"authorization": "MediaBrowser , Client=\"other\", Device=\"script\", DeviceId=\"script\", Version=\"0.0.0\"", "content-type": "application/json"} }
+    ``` console
+    $ klogs ryot ryot
+    [frontend] POST /settings/imports-and-exports.data?intent=deployImport 200 - - 14.458 ms
+    [frontend] GET /settings/imports-and-exports.data 200 - - 36.602 ms
     [backend] 
     [backend] thread 'main' panicked at /home/runner/work/ryot/ryot/crates/utils/external/src/lib.rs:93:14:
     [backend] called `Result::unwrap()` on an `Err` value: reqwest::Error { kind: Decode, source: Error("EOF while parsing a value", line: 1, column: 0) }
-    [backend] stack backtrace:
-    [backend]    0:     0x57740e0313b9 - <std::sys::backtrace::BacktraceLock::print::DisplayBacktrace as core::fmt::Display>::fmt::he089f96442833f67
-    [backend]    1:     0x57740d020783 - core::fmt::write::h2f210ed4c94745cb
-    [backend]    2:     0x57740e030c42 - std::io::Write::write_fmt::h7de08171ab770fb2
-    [backend]    3:     0x57740e031213 - std::sys::backtrace::BacktraceLock::print::h810fbd31421329e6
-    [backend]    4:     0x57740e030a66 - std::panicking::rust_panic_with_hook::ha9131beeb2ddc506
-    [backend]    5:     0x57740e06c3a8 - std::panicking::begin_panic_handler::{{closure}}::h1bba0eaeb6da506f
-    [backend]    6:     0x57740e06c309 - std::sys::backtrace::__rust_end_short_backtrace::h1d1ca3eade483f4c
-    [backend]    7:     0x57740e06c8ec - rust_begin_unwind
-    [backend]    8:     0x57740b75047f - core::panicking::panic_fmt::h896a0727a1a943f9
-    [backend]    9:     0x57740b7507b5 - core::result::unwrap_failed::h1b5ed8541c7bebd6
-    [backend]   10:     0x57740c8ee80b - external_utils::jellyfin::get_authenticated_client::{{closure}}::h7ebb0283c0bf16fb
-    [backend]   11:     0x57740c8dabee - importer_service::jellyfin::import::{{closure}}::h049974b7245d3458
-    [backend]   12:     0x57740c787c7f - importer_service::ImporterService::perform_import::{{closure}}::h18f02c43074026d7
-    [backend]   13:     0x57740c76fdfd - backend::job::perform_mp_application_job::{{closure}}::h03b73e257a7cc114
-    [backend]   14:     0x57740cd2ea24 - <apalis_core::worker::call_all::CallAllUnordered<Svc,S> as futures_core::stream::Stream>::poll_next::h797c80ebe682728c
-    [backend]   15:     0x57740cb920fa - <futures_util::stream::stream::map::Map<St,F> as futures_core::stream::Stream>::poll_next::h6ef911d9c3578db2
-    [backend]   16:     0x57740bb77a9d - <futures_util::future::select::Select<A,B> as core::future::future::Future>::poll::h99325282f343d4f9
-    [backend]   17:     0x57740bb7912e - <apalis_core::worker::Runnable as core::future::future::Future>::poll::h6b1a144e4fe197f8
-    [backend]   18:     0x57740c40f365 - <core::future::poll_fn::PollFn<F> as core::future::future::Future>::poll::hf686955acb0d887a
-    [backend]   19:     0x57740cb6dfc4 - backend::main::{{closure}}::hc65b9eef1642855f.51389
-    [backend]   20:     0x57740c43858b - backend::main::he4a8daadc1a11119
-    [backend]   21:     0x57740c9a4a43 - std::sys::backtrace::__rust_begin_short_backtrace::hf7af6e2575e20db0
-    [backend]   22:     0x57740c437b61 - main
-    [backend]   23:     0x7ba286c4424a - <unknown>
-    [backend]   24:     0x7ba286c44305 - __libc_start_main
-    [backend]   25:     0x57740b7826de - _start
-    [backend]   26:                0x0 - <unknown>
-    [frontend] GET /settings/imports-and-exports.data 200 - - 42.700 ms
     ```
 
-    Kubernetes logs for the Jellyfin pod don't show any activity at all when the import
-    is started, suggesting authentication is somehow not being even *attempted*.
+??? note "The Jellyfin API does allow fetching entirely libraries."
+
+    The Jellyfin API is actually reachable and does return 611 items, of which ~90% do have `ProviderIds`, which are required by Ryot in order to import items:
+
+    ``` console
+    $ kubectl exec -it ryot-59cdcdc56d-k7bvn -n ryot -- \
+      curl -H "X-Emby-Token: a7____________________________ee" \
+      "http://jellyfin.very-very-dark-gray.top/Items?IncludeItemTypes=Movie,Series&Recursive=true&Fields=ProviderIds" \
+      > /tmp/items.json
+
+    $ jq -r ".TotalRecordCount" /tmp/items.json 
+    611
+
+    $ jq -r ".Items[].ProviderIds | length" /tmp/items.json | sort | uniq -c
+        60 0
+          6 1
+        196 2
+        306 3
+        43 4
+    ```
 
 ##### Plex
 
@@ -429,6 +429,37 @@ progress made on audiobooks. The setup is essentially the same as for the
 - *API Key*: the API token for the user, as described in the Audiobookshelf
   [authentication](https://api.audiobookshelf.org/#authentication) docs
 
+##### Jellyfin
+
+The [Jellyfin Sink](https://docs.ryot.io/integrations/jellyfin-sink.html) integration
+automatically adds Jellyfin movies and shows (when they are played in Jellyfin). It
+only works for media that has a valid TMDb ID attached to their metadata. Create the
+integration and click on its eye icon to reveal its URL; this will be used when creating
+the webhook in Jellyfin.
+
+This integration requires the *unofficial webhook plugin* to be installed and active in
+Jellyfin, whiich a few steps in Jellyfin:
+
+1.  Under **Dashboard > Plugins** go to **Manage Repositories**
+1.  Use the **+ New Repository** button to add a new repository pointing to
+    <https://raw.githubusercontent.com/shemanaev/jellyfin-plugin-repo/master/manifest.json>
+1.  Go back to **Plugins** and select the **Available** filter, then Search for `web`
+1.  Install the *unofficial* **Webhooks** plugin (**not** the official **Webhook**)
+1.  Restart Jellyfin by restarting the deployment:
+    ``` console
+    $ kubectl scale -n media-center deployment jellyfin --replicas=0
+    $ kubectl scale -n media-center deployment jellyfin --replicas=1
+    ```
+1.  **Enable** the **Webhooks** plugin once Jellyfin has restarted.
+1.  Go to the newly available section **Dashboard > Webhooks** and click on **Add**,
+    use the URL created by Ryot for the Jellyfin Sink integration and set the other 
+    values as explained [here](https://docs.ryot.io/integrations/jellyfin-sink.html)
+
+The [Jellyfin Push](https://docs.ryot.io/integrations/jellyfin-push.html) integration
+does not seem as interested, since it only marks items as watched in Jellyfin after they
+are marked as watched in Ryot, but the import won't import items that have not been 
+watched in Jellyfin in the first place.
+
 ##### Komga
 
 There is no [importer](#import) option for
@@ -441,9 +472,8 @@ There is no [importer](#import) option for
 - *Password*: their password
 - *Provider*: Anlist
 
-Unfortunately this integration does not seem to do anything visible. The integration
-shows (under **Settings > Integrations**) as working correctly, logs show no errors,
-but activity in Komga is not reflected anywhere in Ryot.
+This integration will not have anything visible effect until books are interacted with
+in Komga; only then will the integration add these under **Book**.
 
 #### Generic JSON
 
@@ -939,6 +969,13 @@ After a couple of minutes the application will be available at
     ```
 
 ## Videogame progress trackers
+
+Importing and tracking progress in video games can only be done manually, even though
+some gaming platforms provide APIs that some Home Assistant integrations use.
+[\[FEATURE REQUEST\] track video games process on game platforms](https://github.com/IgnisDa/ryot/issues/870)
+mentions of a few of those, and there is also the
+[Steam API](https://steamcommunity.com/dev) that can used to import libraries and
+track progress.
 
 There doesn't seem to be any self-hosted option to keep track of multi-platform video
 game libraries and game progress. The closest thing to it is the open-source project
