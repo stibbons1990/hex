@@ -1490,3 +1490,525 @@ This issue repeated after reinstalling, lasting for up to 90 minutes:
 
 ![cupsd stays at 200% CPU for 90 minutes](../media/2024-11-15-ubuntu-studio-24-04-on-super-tuna-nuc-pc/super-tuna-cupsd-cpu-200.png)
 
+## December 2025 Follow-up
+
+Over time not only needs the system a daily reboot to flush the memory leak, but also the
+whole system feels laggy and sluggish and specially playing videos on YouTube and
+switching to/from full-screen. There are two main routes to try: the newer `xe` driver,
+or if that leads to worse problems, updating BIOS and kernel to much newer versions.
+
+### Tweak Google Chrome
+
+The following adjustments to Google Chrome are recommended independently of which driver
+is used (`i915` or `xe`).
+
+#### Disable GPU override
+
+Google Chrome tends to avoid GPUs that are not deemed stable or mature enough, even though
+oftentime they actually are quite good enough. To disable this behavior:
+
+*   Check `chrome://gpu` and see if **Canvas** is reported as
+    *Software only, hardware acceleration unavailable*, which usually means Chrome has
+    blocklisted the GPU.
+*   Go to `chrome://flags` and set the flat for **Override software rendering list**
+    to **Enabled**; restart Chrome.
+
+#### Install the `h264ify` extension
+
+After installing the [h264ify extension](https://chromewebstore.google.com/detail/h264ify/aleakchihdccplidncghkekgioiakgal?hl=en&pli=1)
+in Chrome, YouTube "Stats for nerds" shows the codecs used are **avc** and **mp4a**. This
+does seem to make playback smoother than previously with codecs **av01** and  **opus**.
+
+### Switching to the `xe` driver
+
+The above behavior with system-wide a steady climb in kernel dynamic memory—strongly
+suggested a kernel-level memory leak associated with the Intel graphics driver.
+In Ubuntu 24.04 (Noble Numbat), 13th Generation Intel CPUs (i5-1340P) can use either the
+legacy `i915` driver or the newer, modern `xe` driver. The `lsmod` output shows both are
+loaded, but `i915` has 60 active references while `xe` has 0, confirming the system is
+relying on the older driver.
+
+The `xe` driver was designed from the ground up for modern Intel hardware (Tiger Lake and
+newer) and is increasingly the focus for performance and stability fixes in 2025.
+Switching the driver should help resolve the memory leak.
+
+Identify the PCI ID of the GPU:
+
+``` console
+$ lspci -nn | grep VGA
+00:02.0 VGA compatible controller [0300]: Intel Corporation Raptor Lake-P [UHD Graphics] [8086:a720] (rev 04)
+```
+
+The ID is the second part of the hex code in brackets: `a720`.
+
+Update `/etc/default/grub` to add the options to `GRUB_CMDLINE_LINUX_DEFAULT` to force the
+`xe` driver to detect the GPU instead of the `i915` driver:
+
+``` ini
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash i915.force_probe=!a720 xe.force_probe=a720"
+```
+
+Update GRUB and reboot:
+
+``` console
+# update-grub
+# shutdowh -r now 
+```
+
+After rebooting, `lsmod` shows the `xe` driver is now the one with active usage, while
+`i915` has **0**:
+
+``` console hl_lines="2 8"
+# lsmod | grep -E 'i915|xe'
+xe                   2732032  47
+drm_gpuvm              45056  1 xe
+drm_exec               12288  2 drm_gpuvm,xe
+gpu_sched              61440  1 xe
+drm_suballoc_helper    16384  1 xe
+drm_ttm_helper         12288  1 xe
+i915                 4300800  0
+drm_buddy              20480  2 xe,i915
+ttm                   110592  3 drm_ttm_helper,xe,i915
+drm_display_helper    237568  2 xe,i915
+cec                    94208  3 drm_display_helper,xe,i915
+i2c_algo_bit           16384  2 xe,i915
+video                  77824  4 asus_wmi,asus_nb_wmi,xe,i915
+```
+
+#### GPU monitoring
+
+After switching to the `xe` driver `intel_gpu_top` no longer works:
+
+``` console
+# intel_gpu_top 
+No device filter specified and no discrete/integrated i915 devices found
+```
+
+The `intel_gpu_top` utility is hard-coded to work with the legacy `i915` driver and does
+not natively support the newer `xe` driver. Instead, `nvtop` (Neat Videocard TOP) can be
+used as the most effective replacement for monitoring your GPU while using the `xe`
+driver. However, even `nvtop` needs to be pretty recent to detect this GPU, so it must
+be installed from `snap` rather than the Ubuntu repository.
+
+By default `nvtop` shows a nice UI with charts, but it can also be used to export data
+in JSON format:
+
+``` console
+# nvtop -s
+[
+  {
+   "device_name": "Raptor Lake-P (UHD Graphics)",
+   "gpu_clock": "333MHz",
+   "mem_clock": null,
+   "temp": null,
+   "fan_speed": "CPU Fan",
+   "power_draw": null,
+   "gpu_util": null,
+   "mem_util": "3%"
+  }
+]
+```
+
+The only useful metric available are `gpu_clock` and `mem_util`; the `fan_speed` seems to
+merely refer to the fact that there is no separate fan for the GPU and the other metrics
+are not available.
+
+Unlike `nvtop`, `vainfo` remains unable to find this GPU:
+
+``` console
+# export LIBVA_DRIVER_NAME=iHD
+# vainfo --display drm --device /dev/dri/renderD128
+libva info: VA-API version 1.20.0
+libva info: User environment variable requested driver 'iHD'
+libva info: Trying to open /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so
+libva info: Found init function __vaDriverInit_1_20
+libva error: /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so init failed
+libva info: va_openDriver() returns 18
+vaInitialize failed with error code 18 (invalid parameter),exit
+```
+
+### Install VA driver non-free
+
+There is a lot of lagging in the browser, because the system is currently using
+Software Rendering (CPU-only) to decode and display video. Even though the `xe` kernel
+driver is loaded, the userspace software (Chrome, `vainfo`, `nvtop`) cannot access the
+GPU's hardware acceleration features because the driver interface is not correctly
+initialized, and this was because Ubuntu did not install the `non-free` driver.
+
+Install the `intel-media-va-driver-non-free` driver **and reboot**:
+
+``` console
+# apt install intel-media-va-driver-non-free -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following packages will be REMOVED:
+  intel-media-va-driver
+The following NEW packages will be installed:
+  intel-media-va-driver-non-free
+0 upgraded, 1 newly installed, 1 to remove and 0 not upgraded.
+Need to get 0 B/8,784 kB of archives.
+After this operation, 22.5 MB of additional disk space will be used.
+dpkg: intel-media-va-driver:amd64: dependency problems, but removing anyway as you requested:
+ va-driver-all:amd64 depends on intel-media-va-driver | intel-media-va-driver-non-free; however:
+  Package intel-media-va-driver:amd64 is to be removed.
+  Package intel-media-va-driver-non-free is not installed.
+
+(Reading database ... 470408 files and directories currently installed.)
+Removing intel-media-va-driver:amd64 (24.1.0+dfsg1-1ubuntu0.1) ...
+Selecting previously unselected package intel-media-va-driver-non-free:amd64.
+(Reading database ... 470404 files and directories currently installed.)
+Preparing to unpack .../intel-media-va-driver-non-free_24.1.0+ds1-1_amd64.deb ...
+Unpacking intel-media-va-driver-non-free:amd64 (24.1.0+ds1-1) ...
+Setting up intel-media-va-driver-non-free:amd64 (24.1.0+ds1-1) ...
+```
+
+!!! note
+
+    "Non-free" in this context refers to licensing, not cost or security risk. This
+    package includes proprietary binary blobs (media kernels) required to fully unlock
+    hardware acceleration for modern Intel features like AV1 and improved H.264/HEVC
+    performance on 13th Gen chips. Standard Ubuntu/Debian repositories provide the "free"
+    version by default, which often lacks the firmware or features needed to initialize
+    the iHD driver correctly on newer Xe-based hardware. 
+
+### Reinstall `linux-firmware`
+
+Ensure firmware is current, the `xe` driver depends on specific GUC/HUC firmware blobs:
+
+``` console
+# apt install --reinstall linux-firmware.
+```
+
+### Grant access to /dev/dri
+
+Confirm Driver Ownership: Run ls -l /dev/dri. Ensure your user is part of the video and render groups: sudo usermod -aG video,render $USER (re-log after this).
+
+``` console
+# ls -l /dev/dri
+total 0
+drwxr-xr-x  2 root root         80 Dec 23 14:02 by-path
+crw-rw----+ 1 root video  226,   1 Dec 23 14:02 card1
+crw-rw----+ 1 root render 226, 128 Dec 23 14:02 renderD128
+
+# usermod -aG video,render $USER
+```
+
+### Graphical glitches
+
+Unfortunately, once the XE driver was finally in full effect, it lead to a terrible issue
+with flickering colors and a reduced palette. It started relativel subtle but then became
+a lot more prominent and started affecting even the geometry of windows borders.
+
+The issue started happening after adding the user to the `video,render` groups and
+reinstalling `linux-firmware`, both followed by a single reboot. While Chrome appeared to
+be working better, with several features using GPU acceleration, the graphical glitches
+rendered the system essentiall unusable.
+
+#### Disable Panel Self Refresh
+
+Panel Self Refresh (PSR) is a common cause of flickering on Intel Xe/UHD graphics.
+This can be disabled by adding `xe.enable_psr=0` to the kernel parameters in
+`/etc/default/grub`:
+
+``` ini
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash i915.force_probe=!a720 xe.force_probe=a720 xe.enable_psr=0"
+```
+
+After updating GRUB (`update-grub`) and rebooting, the issue was only partially
+mitigated; it stopped the worst color flickering, which was happening on the login
+screen, but when playing YouTube videos it showed washed out colors with some contour
+lines and subtle gradients being replaced with very saturated colors.
+
+#### Toggle IOMMU for Graphics
+
+Some users have reported that disabling IOMMU specifically for the integrated graphics
+solves persistent flickering in Ubuntu 24.04. This can be done by adding 
+`intel_iommu=igfx_off` to the kernel parameters in `/etc/default/grub`:
+
+``` ini
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash i915.force_probe=!a720 xe.force_probe=a720 xe.enable_psr=0 intel_iommu=igfx_off"
+```
+
+After updating GRUB (`update-grub`) and rebooting, the issue of color flickering seemed
+to have been fully mitited. However, the output from `xrandr --prop` showed the display
+(`DP-1`) was using an **Automatic Broadcast RGB** setting. On many monitors, especially
+portable ones like the connected to the USB-C/DisplayPort (a Verbatim M14), "Automatic"
+defaults to **Limited range (16-235)** and this causes the washed-out colors and banding.
+
+??? terminal "Output from `xrandr --prop` for `DP-1`"
+
+    ``` console
+    $ xrandr --prop
+    Screen 0: minimum 320 x 200, current 1920 x 1080, maximum 16384 x 16384
+    ...
+    DP-1 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 230mm x 270mm
+            _KDE_SCREEN_INDEX: 1 
+            EDID: 
+                    00ffffffffffff004a8b010001000000
+                    08210104b5171b783bee91a3544c9926
+                    0f5054210800d1c08180a9c0d1c00101
+                    010101010101023a801871382d40582c
+                    2500e60e0100001e000000ff0064656d
+                    6f7365742d310a202020000000fc0056
+                    6572626174696d204d31340a000000fd
+                    00283d545411010a202020202020011f
+                    02031ff2440104021023097f07830100
+                    00e305c000e200c0e606050162622802
+                    3a801871382d40582c4500e60e010000
+                    1e000000000000000000000000000000
+                    00000000000000000000000000000000
+                    00000000000000000000000000000000
+                    00000000000000000000000000000000
+                    0000000000000000000000000000006b
+            HDCP Content Type: HDCP Type0 
+                    supported: HDCP Type0, HDCP Type1
+            Content Protection: Undesired 
+                    supported: Undesired, Desired, Enabled
+            vrr_capable: 0 
+                    range: (0, 1)
+            Colorspace: Default 
+                    supported: Default, BT709_YCC, XVYCC_601, XVYCC_709, SYCC_601, opYCC_601, opRGB, BT2020_CYCC, BT2020_RGB, BT2020_YCC, DCI-P3_RGB_D65, RGB_WIDE_FIXED, RGB_WIDE_FLOAT, BT601_YCC
+            max bpc: 12 
+                    range: (6, 12)
+            Broadcast RGB: Automatic 
+                    supported: Automatic, Full, Limited 16:235
+            audio: auto 
+                    supported: force-dvi, off, auto, on
+            subconnector: Native 
+                    supported: Unknown, VGA, DVI-D, HDMI, DP, Wireless, Native
+            link-status: Good 
+                    supported: Good, Bad
+            CTM: 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 
+                    0 1 
+            CONNECTOR_ID: 250 
+                    supported: 250
+            non-desktop: 0 
+                    range: (0, 1)
+      1920x1080     60.00*+  60.00    59.94  
+      1600x900      60.00  
+      1280x1024     60.02  
+      1280x720      60.00    59.94  
+      1024x768      60.00  
+      800x600       60.32  
+      720x480       60.00    59.94  
+      640x480       60.00    59.94  
+    ...
+    ```
+
+
+These issues should be mitigated immediately with the following commands:
+
+``` console
+$ xrandr --output DP-1 --set "Broadcast RGB" "Full"
+$ xrandr --output DP-1 --set "max bpc" 8
+```
+
+To make the changes permanent, create `/etc/X11/xorg.conf.d/20-intel.conf` with:
+
+``` ini
+Section "Device"
+    Identifier  "Intel Graphics"
+    Driver      "intel"
+    Option      "AccelMethod"  "sna"
+    Option      "BroadcastRGB" "Full"
+EndSection
+```
+
+After this change colors finally looked okay, but it came at the cost of a huge drop in
+performance; it was now absolutely terrible when playing videos on YouTube, the UI was
+sluggish again, and CPU usage was a lot higher while GPU usage seemed to be zero.
+
+### Roolback to `i915`
+
+Having run out of workarounds to make the `xe` driver work well, it was time to revert
+back to the `i915` driver, by updating the kernel command line to:
+
+``` ini
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash i915.force_probe=a720 intel_iommu=igfx_off"
+```
+
+After updating GRUB and rebooting, there are still more changes to make, to ensure the
+correct kernel and Xorg drivers are used at all times.
+
+To ensure the `xe` driver does not intefer by traing to claim harware elements, prevent
+it from loading by creating `/etc/modprobe.d/blacklist-xe.conf` with
+
+```
+blacklist xe
+```
+
+This change requires first running `update-initramfs` before rebooting.
+
+To always use the correct `iHD` driver, add the following to `/etc/environment`:
+
+``` ini
+LIBVA_DRIVER_NAME=iHD
+```
+
+After reverting to the `i915` driver, the system falls back to software rendering
+(`llvmpipe` as reported by `glxinfo | grep "OpenGL renderer"`) instead of the standard
+hardware-accelerated `i915` driver.
+
+Because the system has been switching drivers, the compiled shader cache for `llvmpipe`
+or `xe` might be interfering with the `i915` driver initialization. To avoid this,
+clear the Mesa Cache:
+
+``` console
+rm -rf ~/.cache/mesa_shader_cache
+```
+
+Remove the Manual X11 Config previosly added:
+
+``` console
+rm -rf /etc/X11/xorg.conf.d/20-intel.conf
+```
+
+After all the above changes are in effect, `glxinfo | grep "OpenGL renderer"` shows
+again the intel driver is used for hardware-accelerated rendering. Google Chrome feels a
+lot snappier too, no longer constantly sluggish. AS a plus, `intel_gpu_top` works again.
+
+#### Summary of changes
+
+At this point it seems only the following changes remain in effect:
+
+1.  Kernel command line includes the `intel_iommu=igfx_off` parameter (via GRUB config).
+1.  The `intel-media-va-driver-non-free` driver is installed and in use.
+1.  The `xe` kernel driver is not loaded at all.
+1.  Chrome is no longer blocklisting the GPU.
+1.  The **h264ify** extension is installed in Google Chrome.
+1.  The user belongs to the `video` and `render` groups.
+
+Back to the original problem (memory leak in the i915 driver), would now be the time to disable GUC/HUC? (adding i915.enable_guc=0 to GRUB)
+
+### Future Plans
+
+Having restored performance with the `i915` driver, it is not recommended time to disable
+GuC/HuC (with the `i915.enable_guc=0` kernel parameter) unless the memory leak returns.
+
+On 13th Gen Intel i5-1340P (Raptor Lake), the GuC (Graphics MicroController) is 
+responsible for critical power management and scheduling. Disabling it may re-introduce
+the sluggishness or high CPU usage, by shifting tasks from the GPU back to the CPU.
+
+If the memory leak is no longer observed, one explanation may be that those "leak-like"
+symptoms were actually DMA/IOMMU memory fragmentation issues. These would then have been
+resolved by loading the kernel with the `intel_iommu=igfx_off` parameter.
+
+In contrast, disabling the GuC/HuC (with `enable_guc=0`) is, on Raptor Lake and newer
+CPUS, "legacy" troubleshooting that may cause the system to lose hardware-accelerated
+video decoding (VA-API) in Chrome, even if the driver is loaded.
+
+#### Disable Panel Self Refresh
+    
+If the leak persists, adding `i915.enable_psr=0` to the kernel command line in GRUB to
+disable PSR, while leaving GuC enabled, may be a better workaround. Panel Self Refresh is
+a more frequent cause of "ghost" memory usage than GuC on 13th Gen hardware.
+
+#### Update BIOS & Microcode
+
+For 13th Gen NUCs, the most critical fix for "unusual" driver behavior and stability
+is the `0x12F` microcode update (or newer). Updating the BIOS to the latest version
+should mitigate hardware-level voltage instability that can mimic driver memory leaks.
+
+[Product Support For NUC 13 Pro Mini PC](https://www.asus.com/supportonly/nuc13anhi7/helpdesk_bios/)
+shows the latest BIOS Version release is **v0039** from September 4, 2025.
+The current BIOS Version release is **v0033** from August 7, 2024:
+
+``` console
+# dmidecode -s bios-version
+ANRPL357.0033.2024.0716.1113
+```
+
+To update the firmware, all it takes is a USB stick and a few minutes:
+
+1.  Download the file from <https://www.asus.com/supportonly/nuc13anhi7/helpdesk_bios/>
+1.  Extract the `ANRPL357.0039.CAP` file and write it to a FAT32-formatted USB drive.
+1.  Restart the NUC and press **F7** screen to enter the **Flash Update tool**.
+1.  Select the file and confirm. **Do not power off** during the 2–5 minute process.
+
+The latest Microcode for Raptor Lake is `0x4129` and that is the one already in the
+system:
+
+``` console
+# dmesg | grep -i microcode
+[    1.810277] microcode: Current revision: 0x00004129
+[    1.810278] microcode: Updated early from: 0x00004121
+```
+
+The `0x4129` revision is a recent release addressing high-severity security
+vulnerabilities documented in
+[Intel-SA-01249/01313](https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-01249.html).
+
+#### Update Linux kernel
+
+Ubuntu 24.04 defaults to a very old kernel (6.8.0) but at this time the system could and
+should be running kernel 6.8.12 or newer, as several memory management fixes for Raptor
+Lake were backported to this series. To update the kernel on a NUC, where secure boot
+cannot be disabled, thus requiring the kernel to be signed, there are two easy options
+and a hard one:
+
+1.  **Use the Official HWE Kernel (Easiest & Safest).**  
+    The Hardware Enablement (HWE) stack provides newer kernels that are fully signed and officially supported by Canonical. Currently the HWE stack for Ubuntu 24.04 has
+    advanced to Linux the **6.14** branch (`6.14.0-37.37~24.04.1`):
+
+    ```bash
+    # apt install --install-recommends linux-generic-hwe-24.04
+    ```
+
+    This kernel is automatically signed by Ubuntu, meaning it will boot immediately with
+    Secure Boot active. 
+
+1.  **Use the OEM Kernel (For NUC Stability).**  
+    NUC hardware often qualifies for the "OEM" track, which carries earlier access to
+    drivers and hardware-specific fixes. These are also fully signed by Canonical.
+    Currently the OEM track for Ubuntu 24.04 offers slighly newer patches in the
+    **6.14** branch (`6.14.0-1018.18`):
+
+    ```bash
+    # apt install linux-oem-24.04
+    ```
+
+1.  **Manual Signing of Mainline Kernels (Advanced).**  
+    If a vanilla kernel like 6.8.12 or a bleeding-edge version not yet in HWE is needed,
+    this must be done using a tool like `mainline` and then manually signing it so the
+    UEFI firmware trusts it.
+
+    1.  **Install the Mainline Tool:**
+    
+        ```bash
+        # add-apt-repository ppa:cappelikan/ppa
+        # apt update && sudo apt install mainline
+        ```
+
+    1.  **Generate a Signing Key (MOK):**
+    
+        ```bash
+        # openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Your Name/"
+        # mokutil --import MOK.der
+        ```
+
+        This will prompt for a password. After rebooting, this must be selected via
+        **Enroll MOK** in the blue **MOKManager** screen and enter the password.
+
+    1.  **Install and Sign the Kernel:**
+
+        After installing a kernel via the `mainline` app, sign the `vmlinuz` binary:
+    
+        Convert key to PEM for `sbsign`
+
+        ```bash
+        # openssl x509 -in MOK.der -inform DER -outform PEM -out MOK.pem
+        ```
+
+        Sign the kernel (**replace `[VERSION]`**)
+
+        ```bash
+        # sbsign --key MOK.priv --cert MOK.pem /boot/vmlinuz-[VERSION]-generic --output /boot/vmlinuz-[VERSION]-generic.signed
+        ```
+
+        Overwrite the original kernel with the signed version
+
+        ```bash
+        # mv /boot/vmlinuz-[VERSION]-generic.signed /boot/vmlinuz-[VERSION]-generic
+        # update-grub
+        ```
