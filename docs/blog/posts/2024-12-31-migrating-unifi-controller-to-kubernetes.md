@@ -791,3 +791,77 @@ From this point on, follow the documentation for
 [UniFi - Backups and Migration](https://help.ui.com/hc/en-us/articles/360008976393-UniFi-Backups-and-Migration)
 to migrate the current site from the old controller to the new
 UniFi Network Application.
+
+## December 2024 Update to v10
+
+Updating ther UniFi Network application across minor versions was a simple operation,
+performed twice (from 9.0.114 to 9.3.45 and then to 9.4.19 only two days later) when
+[Migration to new ISP](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#migration-to-new-isp),
+without it beeing deemed worth documenting the process.
+
+Updating the UniFi Network application from 9.4.19 to the v10.x branch is a much more
+significant platform shift, thus worth documenting in more detail. As of late December
+2025, version **10.0.160** is the established stable release for this branch. A direct
+upgrade from version 9.4.19 to 10.0.162 is supported, no intermediate updates are
+required for the application itself. 
+
+While v10.0.160 is considered stable for general release. The newer release **v10.0.162**
+reached stable status on December 9 and is highly recommended as it contains critical bug
+fixes for WiFi blackout schedules and WAN monitoring. The v10.x branch fully supports the
+current MongoDB 8.0.0 and Java 17/21 setup, so those component need not be updated.
+
+What is recommended, when updating across major versions of the UniFi Network application,
+is to make full backups of the local storage of both Mongo and UniFi Network:
+
+1.  In the UniFi Network application, go to **Settings > System > Backups** and download
+    a **Settings Only** backup file (`.unf`).
+    *   If this takes too long, just check that the newest automatic backup under
+        `/home/k8s/unifi/config/data/backup/autobackup` is not too old.
+
+1.  Stop the UniFi Network deployment, then the Mondo deployment.
+
+    ``` console
+    $ kubectl scale -n unifi deployment unifi --replicas=0
+    $ kubectl scale -n unifi deployment mongo --replicas=0
+    ```
+
+1.  Make a full backup of both deployments local storage (under `/home/k8s`)
+
+    ``` console
+    $ cp -a /home/k8s/unifi /home/k8s/unifi.backup-2025-12-23.unify-9.4.19
+    ```
+
+1.  Update the UniFi Network deployment manifest to version **v10.0.162** and apply it.
+
+1.  Restart the Mongo deployment.
+
+    ``` console
+    $ kubectl scale -n unifi deployment mongo --replicas=1
+    ```
+
+1.  After a minute, restart the UniFi Network deployment.
+
+    ``` console
+    $ kubectl scale -n unifi deployment unifi --replicas=1
+    ```
+
+If some of the access point show up as **Offline**, this may be incorrect. Check whether
+they are accessible via SSH, that their configuration (`cfg/mgmt`) points to the correct
+IP address (the `LoadBalancer` IP for the `unifi-svc` service) and that they report
+themselves as `Connected` when running `info` in their shell:
+
+``` console
+U7Lite:~# info
+
+Model:       U7-Lite
+Version:     8.3.2.18064
+MAC Address: 84:78:48:86:4a:ac
+IP Address:  192.168.0.138
+Hostname:    U7Lite
+Uptime:      113831 seconds
+NTP:         Synchronized
+
+Status:      Connected (http://192.168.0.173:8080/inform)
+```
+
+All access points should show up as **Connected** after a few minutes.
