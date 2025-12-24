@@ -1300,6 +1300,86 @@ port 8443, move traffic on port 443 over to the new Pomerium `Ingress`:
     IP of Pomerium, and 8443 to Nginx, i.e. the opposite as the current setup.
 1.  Remove `:8443` from the `authenticate.url` in `pomerium-settings.yaml` (and `apply`).
 
+## Clean-up retired Nginx Ingress
+
+Once all the traffic has been migrated and there is no need for Nginx ingresses, they
+can be deleted with this script:
+
+``` bash title="delete-nginx-ingress.sh"
+#!/bin/bash
+# Find and delete Nginx Ingress
+
+kubectl get ingress -A | awk 'NR > 1 {print $1, $2, $3}' | \
+while IFS=$' ' read -r namespace name class; do
+  if [[ "$class" != "nginx" ]]; then continue; fi
+  echo -e "\nRemoving ${name} from ${namespace}: "
+  kubectl get ingress "${name}" -n "${namespace}"
+  kubectl delete ingress "${name}" -n "${namespace}"
+done
+```
+
+??? terminal "Result from running `delete-nginx-ingress.sh`."
+
+    ``` console
+    $ delete-nginx-ingress
+
+    Removing audiobookshelf-ingress from audiobookshelf: 
+    NAME                     CLASS   HOSTS                     ADDRESS         PORTS     AGE
+    audiobookshelf-ingress   nginx   audiobookshelf.very-very-dark-gray.top   192.168.0.171   80, 443   239d
+    ingress.networking.k8s.io "audiobookshelf-ingress" deleted
+
+    Removing code-server-ingress from code-server: 
+    NAME                  CLASS   HOSTS                            ADDRESS         PORTS     AGE
+    code-server-ingress   nginx   code.very-very-dark-gray.top   192.168.0.171   80, 443   237d
+    ingress.networking.k8s.io "code-server-ingress" deleted
+
+    Removing firefly-iii-ingress from firefly-iii: 
+    NAME                  CLASS   HOSTS                           ADDRESS         PORTS     AGE
+    firefly-iii-ingress   nginx   firefly.very-very-dark-gray.top   192.168.0.171   80, 443   237d
+    ingress.networking.k8s.io "firefly-iii-ingress" deleted
+
+    Removing komga-ingress from komga: 
+    NAME            CLASS   HOSTS                  ADDRESS         PORTS     AGE
+    komga-ingress   nginx   komga.very-very-dark-gray.top   192.168.0.171   80, 443   239d
+    ingress.networking.k8s.io "komga-ingress" deleted
+
+    Removing jellyfin-ingress from media-center: 
+    NAME               CLASS   HOSTS                          ADDRESS         PORTS     AGE
+    jellyfin-ingress   nginx   jellyfin.very-very-dark-gray.top   192.168.0.171   80, 443   238d
+    ingress.networking.k8s.io "jellyfin-ingress" deleted
+
+    Removing grafana-ingress from monitoring: 
+    NAME              CLASS   HOSTS                   ADDRESS         PORTS     AGE
+    grafana-ingress   nginx   grafana.very-very-dark-gray.top   192.168.0.171   80, 443   240d
+    ingress.networking.k8s.io "grafana-ingress" deleted
+
+    Removing influxdb-ingress from monitoring: 
+    NAME               CLASS   HOSTS                         ADDRESS         PORTS     AGE
+    influxdb-ingress   nginx   influxdb.very-very-dark-gray.top   192.168.0.171   80, 443   240d
+    ingress.networking.k8s.io "influxdb-ingress" deleted
+
+    Removing navidrome-ingress from navidrome: 
+    NAME                CLASS   HOSTS                              ADDRESS         PORTS     AGE
+    navidrome-ingress   nginx   navidrome.very-very-dark-gray.top   192.168.0.171   80, 443   239d
+    ingress.networking.k8s.io "navidrome-ingress" deleted
+
+    Removing ryot-ingress from ryot: 
+    NAME           CLASS   HOSTS                          ADDRESS         PORTS     AGE
+    ryot-ingress   nginx   ryot.very-very-dark-gray.top   192.168.0.171   80, 443   187d
+    ingress.networking.k8s.io "ryot-ingress" deleted
+
+    Removing steam-headless-ingress from steam-headless: 
+    NAME                     CLASS   HOSTS                          ADDRESS         PORTS     AGE
+    steam-headless-ingress   nginx   steam.very-very-dark-gray.top   192.168.0.171   80, 443   149d
+    ingress.networking.k8s.io "steam-headless-ingress" deleted
+
+    Removing unifi-ingress from unifi: 
+    NAME            CLASS   HOSTS                       ADDRESS         PORTS     AGE
+    unifi-ingress   nginx   unifi.very-very-dark-gray.top   192.168.0.171   80, 443   236d
+    ingress.networking.k8s.io "unifi-ingress" deleted
+
+    ```
+
 ## Appendix: streaming support
 
 Cloudflare Tunnels does not support or allow audio streaming on its Free plan, as it
