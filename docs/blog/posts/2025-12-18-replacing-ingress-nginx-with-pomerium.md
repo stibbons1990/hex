@@ -724,9 +724,6 @@ metadata:
       - allow:
           or:
             - email:
-                is: "alice@gmail.com"
-            - email:
-                is: "bob@gmail.com"
 ```
 
 #### Firefly III
@@ -771,6 +768,33 @@ metadata:
                 starts_with: "/write"
 ```
 
+#### Komga
+
+The [Komga eBook library](./2024-05-26-self-hosted-ebook-library-with-komga.md) exposes
+several API endpoints to make books
+[accessible to eReaders](./2024-05-26-self-hosted-ebook-library-with-komga.md#ereaders)
+and these all need to be allowed without enforcing the Gmail-based authentication:
+
+``` yaml hl_lines="5-14"
+metadata:
+  annotations:
+    ...
+    ingress.pomerium.io/policy: |
+      - allow:
+          or:
+            - http_path:
+                starts_with: "/api"
+            - http_path:
+                starts_with: "/kobo"
+            - http_path:
+                starts_with: "/opds"
+            - http_path:
+                starts_with: "//sse"
+      - allow:
+          or:
+            - email:
+```
+
 #### Home Assistant
 
 Home Assistant hosts a
@@ -795,9 +819,6 @@ metadata:
       - allow:
           or:
             - email:
-                is: "alice@gmail.com"
-            - email:
-                is: "bob@gmail.com"
 ```
 
 #### Jellyfin
@@ -844,9 +865,6 @@ metadata:
       - allow:
           or:
             - email:
-                is: "alice@gmail.com"
-            - email:
-                is: "bob@gmail.com"
 ```
 
 #### Navidrome
@@ -869,9 +887,6 @@ metadata:
       - allow:
           or:
             - email:
-                is: "alice@gmail.com"
-            - email:
-                is: "bob@gmail.com"
 ```
 
 ### HTTPS backends
