@@ -792,12 +792,12 @@ From this point on, follow the documentation for
 to migrate the current site from the old controller to the new
 UniFi Network Application.
 
-## December 2024 Update to v10
+## December 2025 Update to v10
 
 Updating ther UniFi Network application across minor versions was a simple operation,
 performed twice (from 9.0.114 to 9.3.45 and then to 9.4.19 only two days later) when
 [Migration to new ISP](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#migration-to-new-isp),
-without it beeing deemed worth documenting the process.
+without it being deemed worth documenting the process.
 
 Updating the UniFi Network application from 9.4.19 to the v10.x branch is a much more
 significant platform shift, thus worth documenting in more detail. As of late December
