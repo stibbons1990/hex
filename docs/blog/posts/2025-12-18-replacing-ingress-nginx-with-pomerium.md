@@ -1395,6 +1395,15 @@ done
 
     ```
 
+### Tailscale
+
+[Custom domains with Kubernetes Gateway API and Tailscale](https://tailscale.com/kb/1620/kubernetes-operator-byod-gateway-api)
+should be a good way to replace the remaining Nginx-based Ingress, however it requires
+[Envoy Gateway (Helm)](https://gateway.envoyproxy.io/docs/install/install-helm/) and
+[ExternalDNS](https://github.com/kubernetes-sigs/external-dns?tab=readme-ov-file#externaldns)
+to be installed first, plus a few more requirement that seem less straight-forward.
+**To be revisited**.
+
 ## Appendix: streaming support
 
 Cloudflare Tunnels does not support or allow audio streaming on its Free plan, as it
