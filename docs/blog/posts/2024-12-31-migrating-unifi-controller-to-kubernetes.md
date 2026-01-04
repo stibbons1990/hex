@@ -845,7 +845,7 @@ is to make full backups of the local storage of both Mongo and UniFi Network:
     $ kubectl scale -n unifi deployment unifi --replicas=1
     ```
 
-If some of the access point show up as **Offline**, this may be incorrect. Check whether
+If some of the access points show up as **Offline**, this may be incorrect. Check whether
 they are accessible via SSH, that their configuration (`cfg/mgmt`) points to the correct
 IP address (the `LoadBalancer` IP for the `unifi-svc` service) and that they report
 themselves as `Connected` when running `info` in their shell:
