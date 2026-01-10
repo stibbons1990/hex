@@ -1,0 +1,1340 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2025/04/18/synology-ds423-for-the-homelab-luggage/">
+      
+      
+        <link rel="prev" href="../../12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/">
+      
+      
+        <link rel="next" href="../../29/jellyfin-on-kubernetes-with-intel-gpu/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Synology DS423+ for the homelab (luggage) - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hardware" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Synology DS423+ for the homelab (luggage)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardware">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory expansion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-transcoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware transcoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-of-hard-drive-compatiblity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future of hard-drive compatiblity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storage-pool-and-volume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Pool and Volume
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nfs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NFS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rsync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote access
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Remote access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Tunnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup SSH
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-25g-nic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup 2.5G NIC
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-wtf-nfs-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: WTF NFS Permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: WTF NFS Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map-root-to-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Map root to admin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map-root-to-guest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Map root to guest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map-all-users-to-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Map all users to admin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map-all-users-to-guest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Map all users to guest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2025-04-18 00:00:00+00:00" class="md-ellipsis">April 18, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/hardware/">Hardware</a>, 
+                              <a href="../../../../category/btrfs/">Btrfs</a>, 
+                              <a href="../../../../category/synology/">Synology</a>, 
+                              <a href="../../../../category/nas/">NAS</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              13 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Synology DS423+ for the homelab (luggage)</h1>
+
+<p><em>SPAAAAACE!!! I like Space.</em></p>
+<p>Despite all my efforts, hard drives keep filling up. Producing videos
+definitely does not help keeping drives from filling up and these days it's
+rather hard not to produce videos even accidentally. Besides that, having a
+single <strong>large</strong> storage unit allows making all the backups to a single place,
+at least once. Important data is already replicated in multiple disks and/or
+machines, having an additional large storage allows replacing one of those
+copies and thus alleviating disk pressure.</p>
+<!-- more -->
+
+<h2 id="hardware">Hardware</h2>
+<p>The machine of choice has been a
+<a href="https://www.synology.com/en-global/products/DS423+#specs">Synology DiskStation DS423+</a>
+with, for now, just <strong>3x 12TB</strong>
+<a href="https://www.westerndigital.com/products/internal-drives/wd-red-plus-sata-3-5-hdd?sku=WD120EFBX">WD Red Plus Internal NAS HDD 3.5"</a>
+in a RAID 5 configuration, which provides ~20 TB of usable space.
+This is about <em>tripple</em> the amount of space needed <em>right now</em>, but those
+disks were on offer and, according to
+<a href="https://documents.westerndigital.com/content/dam/doc-library/en_us/assets/public/western-digital/product/internal-drives/wd-red-plus-hdd/product-brief-western-digital-wd-red-plus-hdd.pdf">WD's product brief</a>
+they should be <em>mostly quiet</em>.</p>
+<h3 id="memory-expansion">Memory expansion</h3>
+<p>Performance of this NAS may be improved by 
+<a href="https://www.reddit.com/r/synology/comments/1404xap/third_party_memory_in_ds423/">adding third-party memory</a>
+like the <a href="https://www.crucial.com/memory/ddr4/ct4g4sfs8266">CT4G4SFS8266</a>,
+although based on the
+<a href="https://docs.google.com/spreadsheets/d/13pJDfDot_7CmSWeo1jjbegM82QwQNIW0gFQ9o_4xhXA/edit?gid=1974572930#gid=1974572930">community database</a>
+from the
+<a href="https://www.reddit.com/r/synology/comments/zxcy8m/the_synology_ram_megathread/">Synology RAM Megathread</a>
+it may be problematic, a better option reportedly being
+<a href="https://semiconductor.samsung.com/dram/module/sodimm/m471a5244cb0-ctd/">M471A5244CB0-CTD</a>
+although this one seems harder to find. For now, this seems unnecessary.</p>
+<h3 id="hardware-transcoding">Hardware transcoding</h3>
+<p>Hardware transcoding should be possible
+<a href="https://www.reddit.com/r/synology/comments/17j7u6d/synology_docker_jellyfin_how_to_enable_hardware/">with Jellyfin on Docker</a>
+as well as with Plex Media Server. Then again, this will likely not be necessary,
+since there is a much more capable server to run these services on.</p>
+<h3 id="future-of-hard-drive-compatiblity">Future of hard-drive compatiblity</h3>
+<p><a href="https://www.tomshardware.com/pc-components/nas/synology-requires-self-branded-drives-for-some-consumer-nas-systems-drops-full-functionality-and-support-for-third-party-hdds">As reported by Tom's Hardware</a>
+just two days ago:</p>
+<div class="admonition quote">
+<p class="admonition-title">Quote</p>
+<p>Synology's new Plus Series NAS systems, designed for small and medium enterprises
+and advanced home users, can no longer use non-Synology or non-certified hard drives
+and get the full feature set of their device. Instead, Synology customers will have
+to use the company's self-branded hard drives. While you can still use non-supported
+drives for storage, Hardwareluxx [machine translated] reports that you’ll lose
+several critical functions, including estimated hard drive health reports,
+volume-wide deduplication, lifespan analyses, and automatic firmware updates.
+The company also restricts storage pools and provides limited or zero support for
+third-party drives.</p>
+</div>
+<p>This sounds pretty bad, but the situation is not so dire <em>just yet</em>,
+<a href="https://nascompares.com/2025/04/16/synology-2025-nas-hard-drive-and-ssd-lock-in-confirmed-bye-bye-seagate-and-wd/">as reported by NAS Compares</a>:</p>
+<div class="admonition quote">
+<p class="admonition-title">Quote</p>
+<p>There will be <strong>no changes for Plus models released up to and including 2024</strong>
+(excluding the XS Plus series and rack models). Furthermore, <strong>migrating hard drives
+from existing Synology NAS to a new Plus model will continue to be possible without
+restrictions</strong>. The use of compatible and unlisted hard drives will be subject to
+certain restrictions in the future, such as pool creation and support for issues and
+failures caused by the use of incompatible storage media. Volume-wide deduplication,
+lifespan analysis, and automatic hard drive firmware updates will only be available
+for Synology hard drives in the future. Tight integration of Synology NAS systems
+and hard drives reduces compatibility issues and increases system reliability and
+performance. At the same time, firmware updates and security patches can be deployed
+more efficiently, ensuring a high level of data security and more efficient support
+for Synology customers.</p>
+</div>
+<p>It would seems building a NAS setup right now is just about the best time, as it would
+soon become no longer possible or supported, but by the time the current disks start
+failing it should be possible to <strong>replace</strong> them with the same brand of disks (not
+creating new volumes) and it should still be possible to even migrate them to a new NAS.</p>
+<p>However, given the increasing degree of vendor lock-in going on with Synology, the next
+NAS may well be a custom-built <a href="https://www.truenas.com/freenas/">FreeNAS</a> or, possibly
+better, <a href="https://www.openmediavault.org/">openmediavault</a>, which might as well run on
+the Kubernetes servers in the meantime.</p>
+<h2 id="basic-setup">Basic Setup</h2>
+<p>Find the IP address assigned to the NAS and add it in <code>/etc/hosts</code> with a fun
+name, then open its port <strong>5000</strong> over <em>plain</em> HTTP, e.g.
+<a href="https://luggage:5001/">https://luggage:5001/</a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/ds423-device-info.png" data-desc-position="bottom"><img alt="" src="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/ds423-device-info.png"></a></p>
+<p>After checking Device Info, the first (apparently not optional) step is to
+upgrade the DSM software to the latest version, which as of now is
+<a href="https://www.synology.com/en-global/releaseNote/DSM?model=DS423%2B#7_2">Version: 7.2.2-72806 Update 3</a>
+from 2025-02-04. The update process takes <em>up to</em> 10 minutes to complete,
+in fact it finished in less than 5.</p>
+<p>Setup an admin account with a non-obvious admin name and a very long and
+strong passwword, then select the option to be notified about DSM updates,
+to retain control over which updates are installed and when.</p>
+<p>Skip the options to create a Synology Account and install Synology apps,
+these can be revisited later. Skip also all the options to enable 2FA and MFA
+for now; this NAS will not be exposed externally.</p>
+<h3 id="storage-pool-and-volume">Storage Pool and Volume</h3>
+<p>Create a <strong>RAID 5</strong> volume with the 3 disks available; they show up with only
+10.9TB of <em>usage</em> capacity, so the volume would have 21.8TB of capacity.
+Set the volume capacity to the <strong>Max</strong> value (22331 GB) and formated as Btrfs.</p>
+<p>Leave the volume unencrypted, there is no need here to compromise performance,
+but above all this should allow recovering data by moving these disks to another NAS
+or even a PC, as it was the case years ago with the previous Synology NAS that died
+with 4x 1TB disks in it (about 15 years ago).</p>
+<p>The volume is now healthy, with a background job <em>Optimizing in the background</em> 
+that initially estimates about 21 hours but then updates it's ETA to <strong>11 days</strong>
+once the volume has about 1 TB in it.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/synology-storage-manager-volume-1.png" data-desc-position="bottom"><img alt="" src="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/synology-storage-manager-volume-1.png"></a></p>
+<h2 id="advanced-setup">Advanced Setup</h2>
+<h3 id="file-services">File Services</h3>
+<p><a href="https://kb.synology.com/en-me/DSM/help/DSM/AdminCenter/file_winmacnfs_desc?version=7">SMB Service</a>
+is enabled by default. Although this may be useful, there are no plans to use it.
+At the very least, one should change the workgroup name. The services that would
+be more useful in this homelab environment would be <a href="#nfs">NFS</a> and <a href="#rsync">Rsync</a>.</p>
+<h4 id="nfs">NFS</h4>
+<p><a href="https://kb.synology.com/en-me/DSM/help/DSM/AdminCenter/file_winmacnfs_nfs?version=7">Enable NFS service</a>
+under <strong>File Services</strong> in the Control Panel. Then,
+<a href="https://kb.synology.com/en-br/DSM/tutorial/I_cannot_mount_shared_folders_via_NFS_what_should_I_do#x_anchor_idefeb417a7d">add NFS permissions</a>
+to actually allow access, to either specific IPs or all (<code>*</code>), to mount NFS volumes.
+Install <code>nfs-common</code> and mount the <strong>shared folder</strong> (e.g. <code>NetBackup</code>)
+rather than the entire volume (which has no NFS permissions):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nfs-common
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp">$ </span>sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>luggage:/volume1/<span class="w"> </span>/mnt/
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="go">mount.nfs: access denied by server while mounting luggage:/volume1/</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="gp">$ </span>sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>luggage:/volume1/NetBackup<span class="w"> </span>/mnt/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gp">$ </span>sudo<span class="w"> </span>ls<span class="w"> </span>/mnt/<span class="w"> </span>-lah
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="go">total 4.0K</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="go">drwxr-xr-x 1 root   root    22 Apr 18 17:05 .</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="go">drwxr-xr-x 1 root   root   132 Apr 18 16:13 ..</span>
+</span></code></pre></div>
+<p>To mount the NAS after each restart, add a line in <code>/etc/fstab</code> with the default options:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>luggage:/volume1/NetBackup /home/nas nfs defaults 0 0
+</span></code></pre></div>
+<p>Create the mount point and mount it to check access is granted:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp"># </span>mkdir<span class="w"> </span>/home/nas<span class="w"> </span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="gp"># </span>mount<span class="w"> </span>/home/nas<span class="w"> </span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="gp"># </span>df<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nas
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="go">luggage:/volume1/NetBackup   21T  1.3T   20T   6% /home/nas</span>
+</span></code></pre></div>
+<p>When mounting for the first time, <code>dmesg</code> should NFS <strong>v4.1</strong> could be used:</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="m">[37905.532214] </span><span class="k">FS-Cache:</span> Loaded
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="m">[37905.544295] </span><span class="k">RPC:</span> Registered named UNIX socket transport module.
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="m">[37905.544298] </span><span class="k">RPC:</span> Registered udp transport module.
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="m">[37905.544299] </span><span class="k">RPC:</span> Registered tcp transport module.
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="m">[37905.544299] </span><span class="k">RPC:</span> Registered tcp NFSv4.1 backchannel transport module.
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="m">[37905.562189] </span><span class="k">FS-Cache:</span> Netfs 'nfs' registered for caching
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="m">[37937.422623] </span><span class="k">NFS:</span> Registering the id_resolver key type
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="m">[37937.422635] </span>Key type id_resolver registered
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="m">[37937.422636] </span>Key type id_legacy registered
+</span></code></pre></div>
+<h4 id="rsync">Rsync</h4>
+<p><a href="https://kb.synology.com/en-me/DSM/help/DSM/AdminCenter/file_rsync?version=7">Enable Rsync</a>
+as an alternative service, to incrementally upload files without mounting entire
+NFS volumes (shared folders).</p>
+<p>Create a separate user account with a long password <strong>without</strong> special
+characters (<code>!</code>, <code>$</code>, etc.), so it can be
+<a href="https://community.synology.com/enu/forum/1/post/162316?reply=501445">used with <code>sshpass</code></a>
+without the shell misinterpreting the password.</p>
+<p>Then enable the Rsync service, change the port and enable this accounts.
+Do not apply a speed limit.</p>
+<p>Install <code>sshpass</code> and store the password in <code>~/.ssh/nas-secret</code> (and <code>chmod 600</code> it),
+this way <code>rsync</code> can connect without a password promt. Files can be transfered only
+to/from a <strong>shared folder</strong> (e.g. <code>NetBackup</code>) rather than the entire volume:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp">$ </span><span class="nv">SECRET</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>~/.ssh/nas-secret<span class="k">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="gp">$ </span>rsync<span class="w"> </span>-ahv<span class="w"> </span>--rsh<span class="o">=</span><span class="s2">"sshpass -p </span><span class="nv">$SECRET</span><span class="s2"> ssh -p 2222"</span><span class="w"> </span>Music<span class="w"> </span>luggage:/volume1/NetBackup/
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">Could not chdir to home directory /var/services/homes/ponder: No such file or directory</span>
+</span></code></pre></div>
+<h3 id="remote-access">Remote access</h3>
+<h4 id="cloudflare-tunnel">Cloudflare Tunnel</h4>
+<p><a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#cloudflare-tunnel">Cloudflare Tunnels in Alfred</a>
+proved to be a good solution for making web sites externally available but
+still protected behind SSO with <strong>Zero Trust Web Access</strong>.
+Instead of installing and running <code>cloudflared</code> in the NAS (which
+<a href="https://community.cloudflare.com/t/access-synology-nas-portal-via-cloudflared/497798/3">should be possible</a>),
+simply create a tunnel using the connector already running in the new
+<a href="../../12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/">Kubernetes homelab server (octavo)</a>.</p>
+<p>Directly create a public hostname for this tunnel, to point
+<a href="https://luggage.very-very-dark-gray.top/">https://luggage.very-very-dark-gray.top/</a> to the HTTP<strong>S</strong> endpoint on
+port <strong>5001</strong> using the static IP address. Make sure to <strong>enable</strong> the
+<strong>TLS</strong> option <strong>No TLS Verify</strong>, so the tunnel can be used <strong>without</strong>
+HTTPS certificates, because setting that up in the NAS isn't necessary.</p>
+<p>Then setup <a href="../../../03/28/remote-access-options-for-self-hosted-services/#cloudflare-access">Cloudflare Access</a>
+by adding a new application for the new public hostname, protected by
+a single identity provider (e.g. Google account). While not strictly
+necessary, this means only a few trusted users can even reach the login
+page of the NAS, after passing the identity check through Cloudflare,
+before having a chance to try to log in.</p>
+<h4 id="setup-ssh">Setup SSH</h4>
+<p><a href="https://mariushosting.com/how-to-ssh-into-a-synology-nas/">To SSH into a Synology NAS</a>
+go to <strong>Terminal &amp; SNMP</strong> under the Control Panel and <strong>Enable SSH service</strong>. Once
+enabled, login is available <strong>only to users in the admin group</strong>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>ssh<span class="w"> </span>-l<span class="w"> </span>rincewind<span class="w"> </span>luggage
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">The authenticity of host 'luggage (192.168.0.55)' can't be established.</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">ED25519 key fingerprint is SHA256:atWMDkF65MUI0hieTZdRChhwEVclgIaYaL491X2gGyc.</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="go">This host key is known by the following other names/addresses:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="go">    ~/.ssh/known_hosts:140: [hashed name]</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="go">    ~/.ssh/known_hosts:141: [hashed name]</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="go">Are you sure you want to continue connecting (yes/no/[fingerprint])? yes</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="go">Warning: Permanently added 'luggage' (ED25519) to the list of known hosts.</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="go">rincewind@luggage's password: </span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="go">Using terminal commands to modify system configs, execute external binary</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="go">files, add files, or install unauthorized third-party apps may lead to system</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="go">damages or unexpected behavior, or cause data loss. Make sure you are aware of</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="go">the consequences of each command and proceed at your own risk.</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="go">Warning: Data should only be stored in shared folders. Data stored elsewhere</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="go">may be deleted when the system is updated/restarted.</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="go">Could not chdir to home directory /var/services/homes/rincewind: No such file or directory</span>
+</span></code></pre></div>
+<p>This user has <code>sudo</code> access, which of course comes with warnings:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp">rincewind@luggage:/$ </span>sudo<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>/volume1/
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="go">We trust you have received the usual lecture from the local System</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="go">Administrator. It usually boils down to these three things:</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="gp">    #</span><span class="m">1</span><span class="o">)</span><span class="w"> </span>Respect<span class="w"> </span>the<span class="w"> </span>privacy<span class="w"> </span>of<span class="w"> </span>others.
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="gp">    #</span><span class="m">2</span><span class="o">)</span><span class="w"> </span>Think<span class="w"> </span>before<span class="w"> </span>you<span class="w"> </span>type.
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="gp">    #</span><span class="m">3</span><span class="o">)</span><span class="w"> </span>With<span class="w"> </span>great<span class="w"> </span>power<span class="w"> </span>comes<span class="w"> </span>great<span class="w"> </span>responsibility.
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="go">Password: </span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="go">total 0</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="go">drwxr-xr-x  1 root       root       120 Apr 18 10:42 @database</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="go">drwxrwxrwx+ 1 root       root        56 Apr 18 10:57 @eaDir</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="go">d---------+ 1 root       root        22 Apr 18 12:48 NetBackup</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="go">drwxr-xr-x  1 root       root        88 Apr 18 10:42 @S2S</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="go">drwxr-xr-x  1 SynoFinder SynoFinder  26 Apr 18 10:42 @SynoFinder-etc-volume</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="go">drwxr-xr-x  1 SynoFinder SynoFinder  84 Apr 18 10:42 @SynoFinder-log</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="go">drwxrwxrwt  1 root       root        40 Apr 18 10:57 @tmp</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="go">drwxr-xr-x  1 root       root        94 Apr 18 10:42 @userpreference</span>
+</span></code></pre></div>
+<p>The warning seen above from <code>rsync</code> about home directory <code>/var/services/homes/ponder</code>
+not existing is due to <code>/var/services/homes</code> being a symlink to a non-existing file:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp">rincewind@luggage:/$ </span>ls<span class="w"> </span>-l<span class="w"> </span>/var/services/homes<span class="w"> </span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">lrwxrwxrwx 1 root root 24 Apr 18 10:20 /var/services/homes -&gt; /volume1/@fake_home_link</span>
+</span></code></pre></div>
+<p>It might be possibly to change this, but the more intersting use of SSH access is to
+run commands as <code>root</code>. To do this more efficiently (without having to enter a very
+long password twice), it is actually possible to add SSH public keys for <code>root</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp">rincewind@luggage:/$ </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJC+vAO4ee18xVgXIp1l4upf0UJeigD1nd4uruntVcFNfgrYo3UK0QsybYvQ+G+88Yr8GQ+oIdRUe8hz5CVMBxhf5QwQ/wdnJS+gcLNGvTqK/fq80aarRkmY+MP8XCEogVjUdTiSNY/cl7Ox7tqCLITacav94JKaMMM4oKf6pLe9rayg5wM8ycW0k0aurA2GIjCJm6eRDRhhjoiOFrBtg7hinMAfCz3Gv9UyMIhPopba2YkG4ojG9S19f8bF6kGEH7QC8C2CADatfc53lm3a+rQxbI/z5OvtYyqlJnei7DrpS0WmQF/R6jdqmVYcUIQM7gknF8YleJyhglE3FUSCA7 ponder@rapture'</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/root/.ssh/authorized_keys
+</span></code></pre></div>
+<p>Once the key is in place, <code>ponder</code> can <em>just</em> SSH in:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">[ponder@rapture ~]$ </span>ssh<span class="w"> </span>root@luggage
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">Using terminal commands to modify system configs, execute external binary</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="go">files, add files, or install unauthorized third-party apps may lead to system</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">damages or unexpected behavior, or cause data loss. Make sure you are aware of</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">the consequences of each command and proceed at your own risk.</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">Warning: Data should only be stored in shared folders. Data stored elsewhere</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">may be deleted when the system is updated/restarted.</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="gp">root@luggage:~# </span>
+</span></code></pre></div>
+<h3 id="setup-25g-nic">Setup 2.5G NIC</h3>
+<p><a href="https://github.com/bb-qq/r8152?tab=readme-ov-file#how-to-install">Follow these instructions</a>,
+which require <a href="#setup-ssh">SSH access</a>, download the latest 7.2 release
+for <code>geminilake</code> from <a href="https://github.com/bb-qq/r8152/releases">the releases page</a>
+and install via the Synology <strong>Package Center</strong>.</p>
+<p>The trick is to <strong>Manual Install</strong> the drivers <em>twice</em>, running these commands via SSH
+between the first (failed) attempt and the second (which then succeeds):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp">root@luggage:~# </span>install<span class="w"> </span>-m<span class="w"> </span><span class="m">4755</span><span class="w"> </span>-o<span class="w"> </span>root<span class="w"> </span>-D<span class="w"> </span>/var/packages/r8152/target/r8152/spk_su<span class="w"> </span>/opt/sbin/spk_su
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="gp">root@luggage:~# </span>chmod<span class="w"> </span>a+rx<span class="w"> </span>/opt<span class="w"> </span>/opt/sbin
+</span></code></pre></div>
+<p>Rebooting the NAS was not possible because the recently created volume is still in
+the process of being optimized, but in any case the new RTL8152/RTL8153 driver is
+already running so we can already setup a static IP address on the new NIC under
+<strong>Network Interfaces</strong> in the Control panel, then switch the network cable to the
+new card (and update the PC's /etc/hosts to the static IP, if different), and after
+a few seconds the new card shows as Connected with a glorious <strong>2500 Mbps</strong>:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/synology-network-interfaces.png" data-desc-position="bottom"><img alt="" src="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/synology-network-interfaces.png"></a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Even if the driver starts automatically when installing it, it is still necessary
+to <code>enable</code> it so that it starts again after rebooting the NAS:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp"># </span>synosystemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>pkgctl-r8152
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="gp"># </span>synosystemctl<span class="w"> </span>start<span class="w"> </span>pkgctl-r8152
+</span></code></pre></div>
+</div>
+<p>Copying the 400GB collection of Audiobooks over NFS gets the 2.5Gbps NICs to work it out!</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/rapture-network-speed.png" data-desc-position="bottom"><img alt="" src="../../../../media/2025-04-18-synology-ds423-for-the-homelab-luggage/rapture-network-speed.png"></a></p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The installation was easy enough, even setting up the 2.5Gbps NIC was not too painful.
+The worst part of this whole affair was dealing with <a href="#nfs-permissions">NFS permissions</a>
+not working properly at all for the first few hours.</p>
+<p>While it is possibly to run many other applications in containers, having at least one
+server with much more CPU (and GPU) and RAM available already makes this point moot;
+better to run services in the server/s and let the NAS <em>just be the NAS</em>.</p>
+<h2 id="appendix-wtf-nfs-permissions">Appendix: WTF NFS Permissions</h2>
+<p>NFS was problematic for the first few hours, specially around permissions. It seemed
+there was <strong>no way</strong> to have the correct level of access to the NFS share for all users:</p>
+<ul>
+<li><code>root</code> user able to create and write files, and set ownership and permissions.</li>
+<li>Other users (<code>ponder</code> and <code>pi</code>) able to <em>at least</em> read files.</li>
+<li>Ideally, <strong>all</strong> users able to create and write files, and set ownership and permissions.</li>
+</ul>
+<p>This all eventually started working correctly, after a few hours of trying every
+value of <strong>Squash</strong> from two separate systems.</p>
+<p>By default, the filesystem is owned by <code>root</code> by default, but directories can be created
+owned by other users:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>ls<span class="w"> </span>/mnt/<span class="w"> </span>-lah
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="go">total 4.0K</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="go">drwxrwxrwx  1 root   root     24 Apr 18 11:44 .</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="go">drwxr-xr-x 24 root   root   4.0K Nov  4 00:04 ..</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="go">drwxrwxrwx  1 ponder ponder    0 Apr 18 11:44 ponder</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="gp">$ </span>sudo<span class="w"> </span>ls<span class="w"> </span>/mnt/<span class="w"> </span>-lahn
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="go">total 4.0K</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="go">drwxrwxrwx  1    0    0   24 Apr 18 11:44 .</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="go">drwxr-xr-x 24    0    0 4.0K Nov  4 00:04 ..</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="go">drwxrwxrwx  1 1000 1000    0 Apr 18 11:44 ponder</span>
+</span></code></pre></div>
+<p>However, any users other than <code>root</code> cannot even <em>see</em> what is in the mounted volume,
+even if files show as owned by them:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>ls<span class="w"> </span>-l<span class="w"> </span>/home/nas
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">ls: cannot open directory '/home/nas': Permission denied</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="gp">$ </span>ls<span class="w"> </span>-ld<span class="w"> </span>/home/nas
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="go">drwxrwxrwx 1 root root 22 Apr 18 16:16 /home/nas</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="gp"># </span>ls<span class="w"> </span>-l<span class="w"> </span>/home/nas/
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">total 0</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="go">drwxr-xr-x 1 ponder ponder  5902 Apr  2 19:58 Music</span>
+</span></code></pre></div>
+<p>For <code>ponder</code> and other users to actually have access to NFS mounted shares, one can
+<a href="https://kb.synology.com/en-global/DSM/tutorial/What_can_I_do_to_access_mounted_folders_NFS#x_anchor_id3">allow access to all users</a>, by 
+<a href="https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/file_share_privilege_nfs?version=7">setting the <strong>Squash</strong> option</a>
+(for each <strong>client host</strong>) to one of the following values:</p>
+<ul>
+<li><strong>No mapping</strong>: <ul>
+<li><strong>Only</strong> <code>root</code> has access (read <em>and</em> write).</li>
+<li>File ownership and permissions are visible on existing files.</li>
+<li>File ownership and permissions <strong>can</strong> be set on new files.</li>
+</ul>
+</li>
+<li><strong>Map root to admin</strong>:<ul>
+<li><strong>Only</strong> <code>root</code> has access.</li>
+<li>File ownership and permissions are visible on existing files.</li>
+<li>File ownership and permissions <strong>cannot</strong> be set on new files.</li>
+</ul>
+</li>
+<li><strong>Map root to guest</strong>:<ul>
+<li><strong>Nobody</strong> (not even <code>root</code>) gets <strong>read</strong> access!</li>
+</ul>
+</li>
+<li><strong>Map all users to admin</strong>:<ul>
+<li><strong>All</strong> users get <strong>read</strong> access.</li>
+<li>File ownership and permissions <strong>are</strong> visible on existing files.</li>
+<li><strong>Nobody</strong> (not even <code>root</code>) gets <strong>write</strong> access!</li>
+</ul>
+</li>
+<li><strong>Map all users to guest</strong>:<ul>
+<li><strong>Nobody</strong> (not even <code>root</code>) gets <strong>read</strong> access!</li>
+</ul>
+</li>
+</ul>
+<p>In short:</p>
+<ul>
+<li><strong>No mapping</strong> is the only option that allows <strong>write</strong> access; for <code>root</code> only.</li>
+<li><strong>Map all users to admin</strong>: is the only option that allows access to all users;
+    <strong>read only</strong>.</li>
+</ul>
+<p>The following sections include more detailed testing.</p>
+<h3 id="no-mapping">No mapping</h3>
+<p>This is the default option. As seen above:</p>
+<ul>
+<li><strong>only</strong> <code>root</code> has access,</li>
+<li><code>root</code> can set file ownership and permissons,</li>
+<li>nobody else can see anything.</li>
+</ul>
+<p>However, <em>at least once</em>, this option did actually allow non-root users to <strong>write</strong>
+new files and create directories, and even kept file ownership and permissions!</p>
+<h3 id="map-root-to-admin">Map root to admin</h3>
+<p>This does not grant access to any users other than <code>root</code> and it prevent <code>root</code> from
+setting file ownership or permissions:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="gp"># </span>chown<span class="w"> </span><span class="m">1000</span><span class="w"> </span>/home/nas/audio/test/
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="go">chown: changing ownership of '/home/nas/audio/test/': Operation not permitted</span>
+</span></code></pre></div>
+<h3 id="map-root-to-guest">Map root to guest</h3>
+<p>This prevents even <code>root</code> from seeing anything inside the shared folder:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp"># </span>ls<span class="w"> </span>-l<span class="w"> </span>/home/nas/audio
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">ls: cannot access '/home/nas/audio': Permission denied</span>
+</span></code></pre></div>
+<h3 id="map-all-users-to-admin">Map all users to admin</h3>
+<p>This enable all users to read <strong>and write</strong> files in the shared folder, but permissions
+are set based on the <code>admin</code> user in the NAS (UID 1024):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gp">$ </span>ls<span class="w"> </span>-l<span class="w"> </span>/home/nas/
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="go">total 0</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="go">drwxr-xr-x 1 ponder ponder  5902 Apr  2 19:58 Music</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="gp">$ </span>mkdir<span class="w"> </span>/home/nas/test
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="gp">$ </span>ls<span class="w"> </span>-l<span class="w"> </span>/home/nas/
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="go">total 0</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="go">drwxr-xr-x 1 ponder ponder  5902 Apr  2 19:58 Music</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="go">drwxrwxrwx 1   1024 users      0 Apr 18 16:35 test</span>
+</span></code></pre></div>
+<p>This also prevents <em>even <code>root</code></em> from setting permissions on files and directories,
+just as with <a href="#map-root-to-admin">Map root to admin</a>.</p>
+<p>This doesn't prevent users from copying files into the NAS, but it does make it
+impossible to make a <em>proper</em> backup preserving file permissions and ownership:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="gp">$ </span>rsync<span class="w"> </span>-uva<span class="w"> </span>Music<span class="w"> </span>/mnt/ponder/
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="go">sending incremental file list</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="go">rsync: [generator] failed to set permissions on "/mnt/ponder/.": Operation not permitted (1)</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="go">./</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="go">...</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="gp">$ </span>sudo<span class="w"> </span>cp<span class="w"> </span>-av<span class="w"> </span>Music/<span class="w"> </span>/mnt/ponder/
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="go">cp: failed to preserve ownership for '/mnt/ponder/Music/60.Christmas.Carols.for.Kids/01 Frosty the Snowman.mp3': Operation not permitted</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="go">...</span>
+</span></code></pre></div>
+<p>Changing ownership of files seems to be out of the question, at least when allowing
+access to all users. Going back to <a href="#no-mapping">No mapping</a> only allows <code>root</code> to
+<strong>write</strong> files with, albeit the correct permissions, but the setting is enforced
+<strong>per host</strong> so there is no way to have a separate NAS user can be used for
+<strong>read-only</strong> access.</p>
+<h3 id="map-all-users-to-guest">Map all users to guest</h3>
+<p>Just as useless as <a href="#map-root-to-guest">Map root to guest</a>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Kubernetes homelab server with Ubuntu Server 24.04 (octavo)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Kubernetes homelab server with Ubuntu Server 24.04 (octavo)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../29/jellyfin-on-kubernetes-with-intel-gpu/" class="md-footer__link md-footer__link--next" aria-label="Next: Jellyfin on Kubernetes with Intel GPU">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Jellyfin on Kubernetes with Intel GPU
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
