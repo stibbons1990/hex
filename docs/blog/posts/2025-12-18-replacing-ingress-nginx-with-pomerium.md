@@ -1397,12 +1397,98 @@ done
 
 ### Tailscale
 
+The Tailscale Kubernetes operator does not depend on the NGINX Ingress Controller.
+
+Creating an Ingress with `ingressClassName: tailscale`, the operator provisions its own
+dedicated Tailscale proxy pods. Traffic from the tailnet goes directly to these
+Tailscale proxy pods, which then route it to the backend services. It does not pass
+through an NGINX ingress unless manually configured a "funnel" to do so.
+The Tailscale operator handles its own TLS certificate management (via Let's Encrypt
+and MagicDNS), independent of NGINX or cert-manager.
+
 [Custom domains with Kubernetes Gateway API and Tailscale](https://tailscale.com/kb/1620/kubernetes-operator-byod-gateway-api)
-should be a good way to replace the remaining Nginx-based Ingress, however it requires
+may be desirable in the future, but it requires
 [Envoy Gateway (Helm)](https://gateway.envoyproxy.io/docs/install/install-helm/) and
 [ExternalDNS](https://github.com/kubernetes-sigs/external-dns?tab=readme-ov-file#externaldns)
 to be installed first, plus a few more requirement that seem less straight-forward.
 **To be revisited**.
+
+## Uninstall Ingress-NGINX
+
+After all the above migrations and consideration, the time finally comes to remove
+Ingress-NGINX entirely:
+
+``` console
+$ helm uninstall ingress-nginx -n ingress-nginx 
+release "ingress-nginx" uninstalled
+
+$ kubectl get all -n ingress-nginx
+NAME                                           READY   STATUS        RESTARTS       AGE
+pod/ingress-nginx-controller-b49d9c7b9-w26hb   1/1     Terminating   20 (17h ago)   258d
+```
+
+After a minute or so, there should be nothing left in the `ingress-nginx` namespace,
+and the `ingress-nginx-admission` should be no longer found as one of the active
+`validatingwebhookconfiguration`:
+
+``` console
+$ kubectl get all -n ingress-nginx
+No resources found in ingress-nginx namespace.
+```
+
+``` console
+$ kubectl get validatingwebhookconfigurations 
+NAME                                                  WEBHOOKS   AGE
+cert-manager-webhook                                  1          258d
+inteldeviceplugins-validating-webhook-configuration   7          255d
+metallb-webhook-configuration                         6          258d
+prom-kube-prometheus-stack-admission                  2          19d
+```
+
+There are actually a few resources left in the namespace:
+
+``` console
+$ kubectl get \
+  -n ingress-nginx \
+  $(kubectl api-resources --namespaced=true --verbs=list -o name | tr '\n' ',' | sed 's/,$//')
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      258d
+
+NAME                             TYPE     DATA   AGE
+secret/ingress-nginx-admission   Opaque   3      258d
+
+NAME                     SECRETS   AGE
+serviceaccount/default   0         258d
+
+NAME                                             HOLDER                                     AGE
+lease.coordination.k8s.io/ingress-nginx-leader   ingress-nginx-controller-b49d9c7b9-w26hb   258d
+```
+
+These are all safe to remove:
+
+*   `configmap/kube-root-ca.crt` is a standard Kubernetes resource automatically
+    injected into every namespace. it contains the public certificate for the cluster's
+    Certificate Authority (CA) so pods can verify the API server.
+*   `secret/ingress-nginx-admission` is a certificate used by the Validating Admission
+    Webhook. It secured the communication that allowed the API server to ask NGINX
+    "Is this new Ingress rule valid?" before saving it. Since the webhook configuration
+    itself is gone, this certificate is orphaned and useless.
+*   `serviceaccount/default` is the default identity for pods in this namespace.
+*   `lease.coordination.k8s.io/ingress-nginx-leader` is a lock used by NGINX-ingress
+    for "leader election". It ensures that when running multiple replicas of the ingress
+    controller, only one acts as the "leader" to handle tasks like updating status
+    fields on Ingress objects. It is a small, lightweight object that has no purpose
+    without the NGINX pods. Helm often fails to delete these because they are created
+    dynamically by the application at runtime rather than being part of the manifest.
+
+Since all these resources are either orphaned (lease, secret) or boilerplate
+(configmap, serviceaccount), the cleanest and most efficient action is to delete the
+entire namespace:
+
+``` console
+$ kubectl delete namespace ingress-nginx
+namespace "ingress-nginx" deleted
+```
 
 ## Appendix: streaming support
 
