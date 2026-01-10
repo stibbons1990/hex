@@ -65,13 +65,14 @@ persistance) the repository can be cloned locally and pinned to the
 ``` console
 $ cd ~/src
 $ git clone https://github.com/pomerium/ingress-controller.git
+$ cd ingress-controller/
 $ git checkout v0.31.3
 ```
 
 Deploy Pomerium using its default configuration to start with:
 
 ``` console
-$ cd config/default/ingress-controller
+$ cd config/default/
 $ kubectl apply -k .
 # Warning: 'commonLabels' is deprecated. Please use 'labels' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
 namespace/pomerium created
@@ -1484,6 +1485,156 @@ These are all safe to remove:
 Since all these resources are either orphaned (lease, secret) or boilerplate
 (configmap, serviceaccount), the cleanest and most efficient action is to delete the
 entire namespace:
+
+``` console
+$ kubectl delete namespace ingress-nginx
+namespace "ingress-nginx" deleted
+```
+
+## Appendix: `alfred` migration
+
+Same setup can be applied to `alfred`, which has all services behind either Tailscale
+or CloudFlare, with the following changes.
+
+### Alfred Pomerium CRD
+
+While `octavo` was moved to a different domain, configured with
+[ddns-updater](./2025-09-25-ddns-updater-on-kubernetes.md) to route external traffic
+directly through the router to Pomerium, `alfred` is behind a router that does not
+allow routing external traffic via port forwarding. This means, while Pomerium in
+`octavo` has `authenticate.url` pointing to that other domain, `alfred` needs
+[Pomerium CRD](#pomerium-crd) to have `authenticate.url` pointing to the domain that is
+setup with CloudFlare.
+
+``` console
+$ kubectl apply -f pomerium-settings-alfred.yaml 
+pomerium.ingress.pomerium.io/global configured
+```
+
+### Alfred Certifiate for the auth endpoint
+
+Similarly, a dedicated certificate for the `authenticate.very-very-dark-gray.top`
+domain must be created, with the domain setup behind CloudFlare:
+
+``` console
+$ kubectl apply -f auth-certificate-alfred.yaml 
+certificate.cert-manager.io/pomerium-auth-cert created
+```
+
+### Alfred CloudFlare hostnames
+
+Because `alfred` is only reachable through the CloudFlare tunnel, additional hostnames
+have to be added in CloudFlare to make the `authenticate.very-very-dark-gray.top` route
+
+*   HTTP (port 80) requests to `/.well-known` to the `cm-acme-http-solver` service port,
+    typically http://localhost:32080
+*   HTTP (port 80) requests to the IP `LoadBalancer` IP address given to the
+    `pomerium-proxy` service.
+
+``` console
+$ kubectl get svc -n pomerium
+NAME                        TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                                    AGE
+cm-acme-http-solver-t6zdh   NodePort       10.101.209.98    <none>          8089:32080/TCP                             13m
+pomerium-metrics            ClusterIP      10.104.197.212   <none>          9090/TCP                                   25m
+pomerium-proxy              LoadBalancer   10.105.126.132   192.168.0.154   443:31936/TCP,443:31936/UDP,80:31514/TCP   25m
+```
+
+Without the route to port 80, the `pomerium-auth-tls` certificate won't become `READY`.
+
+``` console
+$ kubectl get certificate -n pomerium
+NAME                 READY   SECRET              AGE
+pomerium-auth-cert   False   pomerium-auth-tls   7m25s
+```
+
+Once the setup is ready in CloudFlare, it may take some time for `alfred` to pick up the
+new DNS records.
+
+### Alfred Identity Provider (IdP)
+
+Again, `alfred` needs its own credentials for Google to authenticate @gmail.com users;
+[create an OAuth 2.0 Client ID for Web Server Applications](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred),
+obtain the client ID and secret from and store them in `google-idp-secret-alfred.yaml`:
+
+``` console
+$ kubectl apply -f google-idp-secret-alfred.yaml 
+secret/idp-secret created
+```
+
+### Alfred test with Verify
+
+At this point Pomerium *should* be ready to [test with Verify](#test-with-verify),
+but first additional [CloudFlare hostnames](#alfred-cloudflare-hostnames) must be setup
+to route requests to the `verify.` subdomain on ports 80 and 443. Once those are ready,
+and the new certificate is `READY` too, applying the same `verify-service.yaml`
+manifest get the application ready at <https://verify.very-very-dark-gray.top>.
+
+### Alfred Additional Settings
+
+[Additional Settings](#additional-settings) can be copied directly for those services
+running in `alfred` based on their counterparts in `octavo`, simply copying the
+`pomerium-ingress` to [Kustomize per-service ACLs](#kustomize-per-service-acls) as
+a new directory (e.g. `alfred-ingress`); removing the files for services not running,
+updating the FQDN for the services running in `alfred` behind CloudFlare tunnels,
+and applying the directory:
+
+``` console
+$ kubectl apply -k alfred-ingress
+ingress.networking.k8s.io/audiobookshelf-pomerium-ingress created
+ingress.networking.k8s.io/home-assistant-pomerium-ingress created
+ingress.networking.k8s.io/dashboard-pomerium-ingress created
+ingress.networking.k8s.io/grafana-pomerium-ingress created
+
+$ kubectl get ingress -A | grep pomerium
+audiobookshelf         audiobookshelf-pomerium-ingress          pomerium         arkham-library.very-very-dark-gray.top          192.168.0.154                               80, 443   62s
+home-assistant         home-assistant-pomerium-ingress          pomerium         home-assistant-alfred.very-very-dark-gray.top   192.168.0.154                               80, 443   22s
+kubernetes-dashboard   dashboard-pomerium-ingress               pomerium         kubernetes-alfred.very-very-dark-gray.top       192.168.0.154                               80, 443   62s
+monitoring             grafana-pomerium-ingress                 pomerium         bat-signal.very-very-dark-gray.top              192.168.0.154                               80, 443   62s
+```
+
+At this point the hostnames in CloudFlare can be updated to route requests to the
+LoadBalancer IP of the Pomerium service and that should complete the migration.
+
+### Alfred clean-up
+
+Ingress-NGINX was installed in `alfred` using the `nginx-baremetal.yaml` manifest from
+[kubernetes/ingress-nginx](https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0/deploy/static/provider/baremetal/deploy.yaml)
+so the recommended method to uninstall it is to `delete` all those resources, since a
+few of them will not be deleted when deleting the `ingress-nginx` namespace:
+
+``` console
+$ kubectl delete -f nginx-baremetal.yaml
+namespace "ingress-nginx" deleted
+serviceaccount "ingress-nginx" deleted
+serviceaccount "ingress-nginx-admission" deleted
+role.rbac.authorization.k8s.io "ingress-nginx" deleted
+role.rbac.authorization.k8s.io "ingress-nginx-admission" deleted
+clusterrole.rbac.authorization.k8s.io "ingress-nginx" deleted
+clusterrole.rbac.authorization.k8s.io "ingress-nginx-admission" deleted
+rolebinding.rbac.authorization.k8s.io "ingress-nginx" deleted
+rolebinding.rbac.authorization.k8s.io "ingress-nginx-admission" deleted
+clusterrolebinding.rbac.authorization.k8s.io "ingress-nginx" deleted
+clusterrolebinding.rbac.authorization.k8s.io "ingress-nginx-admission" deleted
+configmap "ingress-nginx-controller" deleted
+service "ingress-nginx-controller" deleted
+service "ingress-nginx-controller-admission" deleted
+deployment.apps "ingress-nginx-controller" deleted
+job.batch "ingress-nginx-admission-create" deleted
+job.batch "ingress-nginx-admission-patch" deleted
+ingressclass.networking.k8s.io "nginx" deleted
+validatingwebhookconfiguration.admissionregistration.k8s.io "ingress-nginx-admission" deleted
+```
+
+This takes a few minutes, after which the following test should find nothing left:
+
+``` console
+$ kubectl get \
+  -n ingress-nginx \
+  $(kubectl api-resources --namespaced=true --verbs=list -o name | tr '\n' ',' | sed 's/,$//')
+No resources found in ingress-nginx namespace.
+```
+
+Finally, the `ingress-nginx` namespace can be deleted:
 
 ``` console
 $ kubectl delete namespace ingress-nginx
