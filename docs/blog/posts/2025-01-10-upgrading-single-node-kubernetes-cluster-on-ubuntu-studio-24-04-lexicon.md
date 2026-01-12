@@ -79,7 +79,7 @@ total 0
 }
 ```
 
-Thus, lets drain the code:
+Thus, lets drain the node:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
@@ -1053,7 +1053,7 @@ deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io
    kubeadm | 1.28.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.28/deb  Packages
 ```
 
-Now, **before** updating `kubeadm`, drain the code again:
+Now, **before** updating `kubeadm`, drain the node again:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
@@ -1500,7 +1500,7 @@ deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io
    kubeadm | 1.29.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.29/deb  Packages
 ```
 
-Now, **before** updating `kubeadm`, drain the code again:
+Now, **before** updating `kubeadm`, drain the node again:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
@@ -1943,7 +1943,7 @@ deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io
    kubeadm | 1.30.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.30/deb  Packages
 ```
 
-Now, **before** updating `kubeadm`, drain the code again:
+Now, **before** updating `kubeadm`, drain the node again:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
@@ -2372,7 +2372,7 @@ deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io
    kubeadm | 1.31.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.31/deb  Packages
 ```
 
-Now, **before** updating `kubeadm`, drain the code again:
+Now, **before** updating `kubeadm`, drain the node again:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
@@ -2925,7 +2925,7 @@ makes a strong recommendation to
 
 #### For later (1.32.3)
 
-Now, **before** updating `kubeadm`, drain the code again:
+Now, **before** updating `kubeadm`, drain the node again:
 
 ??? terminal "`# kubectl drain --ignore-daemonsets --delete-emptydir-data lexicon`"
 
