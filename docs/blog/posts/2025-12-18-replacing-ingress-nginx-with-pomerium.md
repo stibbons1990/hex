@@ -1861,6 +1861,45 @@ monitoring             grafana-pomerium-ingress                 pomerium        
 At this point the hostnames in CloudFlare can be updated to route requests to the
 LoadBalancer IP of the Pomerium service and that should complete the migration.
 
+### Alfred Let's Encrypt solvers
+
+Alfred `cert-manager` also must [switch to DNS-01 solvers](#switch-to-dns-01-solvers)
+before uninstalling Ingress-NGINX. Since the setup is exactly the same as in Octavo,
+the same manifests can be applied without any changes.
+
+``` console
+$ helm repo add cert-manager-webhook-porkbun \
+  https://talinx.github.io/cert-manager-webhook-porkbun
+"cert-manager-webhook-porkbun" has been added to your repositories
+
+$ helm install cert-manager-webhook-porkbun \
+  cert-manager-webhook-porkbun/cert-manager-webhook-porkbun \
+  -n cert-manager \
+  --set groupName=uu.am
+NAME: cert-manager-webhook-porkbun
+LAST DEPLOYED: Sat Jan 17 21:27:45 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+NOTES:
+Porkbun cert-manager Webhook
+Create an issuer and a certificate to issue a certificate for a domain.
+
+$ kubectl apply -f cert-manager-issuer-dns-secrets.yaml 
+secret/porkbun-secret created
+secret/cloudflare-secret created
+
+$ kubectl apply -f cert-manager-issuer-rbac.yaml 
+Warning: resource clusterroles/cert-manager-webhook-porkbun:domain-solver is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+clusterrole.rbac.authorization.k8s.io/cert-manager-webhook-porkbun:domain-solver configured
+Warning: resource clusterrolebindings/cert-manager-webhook-porkbun:domain-solver is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-webhook-porkbun:domain-solver configured
+
+$ kubectl apply -f cert-manager-issuer.yaml 
+Warning: resource clusterissuers/letsencrypt-prod is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+clusterissuer.cert-manager.io/letsencrypt-prod configured
+```
+
 ### Alfred clean-up
 
 Ingress-NGINX was installed in `alfred` using the `nginx-baremetal.yaml` manifest from
