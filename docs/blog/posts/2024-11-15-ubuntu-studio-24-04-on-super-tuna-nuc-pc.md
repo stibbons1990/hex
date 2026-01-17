@@ -1939,76 +1939,133 @@ The `0x4129` revision is a recent release addressing high-severity security
 vulnerabilities documented in
 [Intel-SA-01249/01313](https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-01249.html).
 
-#### Update Linux kernel
+#### 2026 Update: Linux kernel 6.14
 
-Ubuntu 24.04 defaults to a very old kernel (6.8.0) but at this time the system could and
-should be running kernel 6.8.12 or newer, as several memory management fixes for Raptor
-Lake were backported to this series. To update the kernel on a NUC, where secure boot
-cannot be disabled, thus requiring the kernel to be signed, there are two easy options
-and a hard one:
+In the end, the solution was a lot simpler than all the above, after enough time passed.
 
-1.  **Use the Official HWE Kernel (Easiest & Safest).**  
-    The Hardware Enablement (HWE) stack provides newer kernels that are fully signed and officially supported by Canonical. Currently the HWE stack for Ubuntu 24.04 has
-    advanced to Linux the **6.14** branch (`6.14.0-37.37~24.04.1`):
+Ubuntu 24.04 defaults to a very old kernel (6.8.0) but at this time, nearly a year
+later, the system can be upgraded to the much newer kernel 6.14 which had several
+memory management fixes for Raptor Lake backported.
 
-    ```bash
-    # apt install --install-recommends linux-generic-hwe-24.04
-    ```
+??? note "3 methods to update the kernel on a NUC."
 
-    This kernel is automatically signed by Ubuntu, meaning it will boot immediately with
-    Secure Boot active. 
+    To update the kernel on a NUC, where secure boot cannot be disabled, thus requiring
+    the kernel to be signed, there are two easy options and a hard one:
 
-1.  **Use the OEM Kernel (For NUC Stability).**  
-    NUC hardware often qualifies for the "OEM" track, which carries earlier access to
-    drivers and hardware-specific fixes. These are also fully signed by Canonical.
-    Currently the OEM track for Ubuntu 24.04 offers slighly newer patches in the
-    **6.14** branch (`6.14.0-1018.18`):
-
-    ```bash
-    # apt install linux-oem-24.04
-    ```
-
-1.  **Manual Signing of Mainline Kernels (Advanced).**  
-    If a vanilla kernel like 6.8.12 or a bleeding-edge version not yet in HWE is needed,
-    this must be done using a tool like `mainline` and then manually signing it so the
-    UEFI firmware trusts it.
-
-    1.  **Install the Mainline Tool:**
-    
-        ```bash
-        # add-apt-repository ppa:cappelikan/ppa
-        # apt update && sudo apt install mainline
-        ```
-
-    1.  **Generate a Signing Key (MOK):**
-    
-        ```bash
-        # openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Your Name/"
-        # mokutil --import MOK.der
-        ```
-
-        This will prompt for a password. After rebooting, this must be selected via
-        **Enroll MOK** in the blue **MOKManager** screen and enter the password.
-
-    1.  **Install and Sign the Kernel:**
-
-        After installing a kernel via the `mainline` app, sign the `vmlinuz` binary:
-    
-        Convert key to PEM for `sbsign`
+    1.  **Use the Official HWE Kernel (Easiest & Safest).**  
+        The Hardware Enablement (HWE) stack provides newer kernels that are fully signed and officially supported by Canonical. Currently the HWE stack for Ubuntu 24.04 has
+        advanced to Linux the **6.14** branch (`6.14.0-37.37~24.04.1`):
 
         ```bash
-        # openssl x509 -in MOK.der -inform DER -outform PEM -out MOK.pem
+        # apt install --install-recommends linux-generic-hwe-24.04
         ```
 
-        Sign the kernel (**replace `[VERSION]`**)
+        This kernel is automatically signed by Ubuntu, meaning it will boot immediately
+        with Secure Boot active. 
+
+    1.  **Use the OEM Kernel (For NUC Stability).**  
+        NUC hardware often qualifies for the "OEM" track, which carries earlier access
+        to drivers and hardware-specific fixes. These are also fully signed by
+        Canonical. Currently the OEM track for Ubuntu 24.04 offers slighly newer
+        patches in the **6.14** branch (`6.14.0-1018.18`):
 
         ```bash
-        # sbsign --key MOK.priv --cert MOK.pem /boot/vmlinuz-[VERSION]-generic --output /boot/vmlinuz-[VERSION]-generic.signed
+        # apt install linux-oem-24.04
         ```
 
-        Overwrite the original kernel with the signed version
+    1.  **Manual Signing of Mainline Kernels (Advanced).**  
+        If a vanilla kernel like 6.8.12 or a bleeding-edge version not yet in HWE is
+        needed, this must be done using a tool like `mainline` and then manually
+        signing it so the UEFI firmware trusts it.
 
-        ```bash
-        # mv /boot/vmlinuz-[VERSION]-generic.signed /boot/vmlinuz-[VERSION]-generic
-        # update-grub
-        ```
+        1.  **Install the Mainline Tool:**
+        
+            ```bash
+            # add-apt-repository ppa:cappelikan/ppa
+            # apt update && sudo apt install mainline
+            ```
+
+        1.  **Generate a Signing Key (MOK):**
+        
+            ```bash
+            # openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Your Name/"
+            # mokutil --import MOK.der
+            ```
+
+            This will prompt for a password. After rebooting, this must be selected via
+            **Enroll MOK** in the blue **MOKManager** screen and enter the password.
+
+        1.  **Install and Sign the Kernel:**
+
+            After installing a kernel via the `mainline` app, sign the `vmlinuz` binary:
+        
+            Convert key to PEM for `sbsign`
+
+            ```bash
+            # openssl x509 -in MOK.der -inform DER -outform PEM -out MOK.pem
+            ```
+
+            Sign the kernel (**replace `[VERSION]`**)
+
+            ```bash
+            # sbsign --key MOK.priv --cert MOK.pem /boot/vmlinuz-[VERSION]-generic --output /boot/vmlinuz-[VERSION]-generic.signed
+            ```
+
+            Overwrite the original kernel with the signed version
+
+            ```bash
+            # mv /boot/vmlinuz-[VERSION]-generic.signed /boot/vmlinuz-[VERSION]-generic
+            # update-grub
+            ```
+
+The easiest method turned out to be a good solution; install the HWE kernel:
+
+``` console
+# apt install linux-generic-hwe-24.04 -y
+```
+
+In case the new kernel does not become the new default, adjust `/etc/default/grub` so
+that it will show the menu to allow choosing a specific kernel and then remember that
+choice as the default for subsequent reboots:
+
+``` ini title="/etc/default/grub"
+GRUB_DEFAULT=saved
+GRUB_SAVEDEFAULT=true
+GRUB_TIMEOUT_STYLE=menu
+GRUB_TIMEOUT=10
+GRUB_DISTRIBUTOR=`( . /etc/os-release; echo ${NAME:-Ubuntu} ) 2>/dev/null || echo Ubuntu`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash i915.force_probe=a720 intel_iommu=igfx_off"
+GRUB_CMDLINE_LINUX=""
+```
+
+Update GRUB and restart, then choose the new kernel.
+
+``` console
+# vi /etc/default/grub
+# update-grub
+Sourcing file `/etc/default/grub'
+Sourcing file `/etc/default/grub.d/trace.cfg'
+Sourcing file `/etc/default/grub.d/ubuntustudio.cfg'
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-6.8.0-90-lowlatency
+Found initrd image: /boot/initrd.img-6.8.0-90-lowlatency
+Found linux image: /boot/vmlinuz-6.14.0-37-generic
+Found initrd image: /boot/initrd.img-6.14.0-37-generic
+Found memtest86+ 64bit EFI image: /boot/memtest86+x64.efi
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
+Adding boot menu entry for UEFI Firmware Settings ...
+done
+```
+
+To make the new kernel the all-time default, set `GRUB_DEFAULT` to the index number
+of the desired option as obtained from `/boot/grub/grub.cfg`
+
+``` console
+# awk -F"'" '/menuentry / && /with Linux/ {print i++ " : " $2}' /boot/grub/grub.cfg
+0 : Ubuntu, with Linux 6.8.0-90-lowlatency
+1 : Ubuntu, with Linux 6.8.0-90-lowlatency (recovery mode)
+2 : Ubuntu, with Linux 6.14.0-37-generic
+3 : Ubuntu, with Linux 6.14.0-37-generic (recovery mode)
+```
