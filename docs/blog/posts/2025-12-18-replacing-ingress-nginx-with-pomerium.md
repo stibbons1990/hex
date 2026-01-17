@@ -1414,6 +1414,272 @@ may be desirable in the future, but it requires
 to be installed first, plus a few more requirement that seem less straight-forward.
 **To be revisited**.
 
+## Migrate Let's Encrypt solvers
+
+Another use of the Ingress class `nginx` is made by the 
+[Let's Encrypt HTTP-01 solvers](./2025-04-12-kubernetes-homelab-server-with-ubuntu-server-24-04-octavo.md#configure-lets-encrypt)
+to obtain and renew HTTPS certificates.
+
+Activating HTTP-01 solvers at this point will still use Ingress-NGINX, because
+`cert-manager` was originally setup to use its ingress class `nginx`:
+
+!!! k8s "`cert-manager-issuer.yaml`"
+
+    ``` yaml hl_lines="13"
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        solvers:
+          - http01:
+              ingress:
+                class: nginx
+    ```
+
+If Ingress-NGINX is uninstalled at this point, new HTTP-01 solvers will fail,
+because they'll attempt to create a temporary Ingress with the `class: nginx`
+annotation, which no longer has an active controller to fulfill it.
+
+In other environments it may be possible to transition certificate renewals to
+Pomerium, but Pomerium running in Kubernetes is not able to route requests to port
+80 to the HTTP-01 solvers, it can only redirect to port 443 instead.
+
+### Switch to DNS-01 solvers
+
+The better alternative is to switch `cert-manager` to DNS-01 solvers, which do not
+require external requests to reach internal services, so it can be used to obtain
+certificates even for internal-only services that are not externally reachable.
+
+While CloudFlare DNS are supported by a native `cert-manager` driver, Porkbun is
+supported for DNS-01 challenges only via webhook solvers, so one must install an
+external webhook to bridge the Porkbun API with `cert-manager`. One such option is
+[Porkbun Webhook for cert-manager](https://github.com/Talinx/cert-manager-webhook-porkbun?tab=readme-ov-file#porkbun-webhook-for-cert-manager);
+install this via Helm into the `cert-manager` namespace:
+
+``` console
+$ helm repo add cert-manager-webhook-porkbun \
+  https://talinx.github.io/cert-manager-webhook-porkbun
+"cert-manager-webhook-porkbun" has been added to your repositories
+
+$ helm install cert-manager-webhook-porkbun \
+  cert-manager-webhook-porkbun/cert-manager-webhook-porkbun \
+  -n cert-manager \
+  --set groupName=uu.am
+NAME: cert-manager-webhook-porkbun
+LAST DEPLOYED: Fri Jan 16 23:30:55 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+NOTES:
+Porkbun cert-manager Webhook
+Create an issuer and a certificate to issue a certificate for a domain.
+
+$ helm get values cert-manager-webhook-porkbun -n cert-manager
+USER-SUPPLIED VALUES:
+groupName: uu.am
+```
+
+Create a `ClusterRole` and `ClusterRoleBinding` to allow the `cert-manager` controller
+to access the Porkbun webhook's API:
+
+!!! k8s "`cert-manager-issuer-rbac.yaml`"
+
+    ``` yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: cert-manager-webhook-porkbun:domain-solver
+    rules:
+      - apiGroups:
+          - uu.am          # must match webhook's groupName
+        resources:
+          - porkbun        # must match webhook's solverName
+        verbs:
+          - create
+          - get
+          - list
+          - watch
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: cert-manager-webhook-porkbun:domain-solver
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cert-manager-webhook-porkbun:domain-solver
+    subjects:
+      - kind: ServiceAccount
+        name: cert-manager
+        namespace: cert-manager
+    ```
+
+``` console
+$ kubectl apply -f cert-manager-issuer-rbac.yaml 
+Warning: resource clusterroles/cert-manager-webhook-porkbun:domain-solver is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+clusterrole.rbac.authorization.k8s.io/cert-manager-webhook-porkbun:domain-solver configured
+Warning: resource clusterrolebindings/cert-manager-webhook-porkbun:domain-solver is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-webhook-porkbun:domain-solver configured
+```
+
+While HTTP-01 solvers work independently of domain name, DNS-01 solvers are specific to
+each domain name if they are managed by different DNS providers. In this case, one
+domain is managed by Porkbun while another is managed by Cloudflare.
+
+For CloudFlare, to allow `cert-manager` to perform DNS-01 challenges, create a scoped
+API token in the Cloudflare Dashboard: 
+
+1.  Navigate to **My Profile** (top right corner) and select **API Tokens**.
+1.  Click **Create Token**.
+1.  Select the **Edit zone DNS** template.
+1.  Configure the following Permissions:
+    *  **Zone > DNS > Edit**
+    *  **Zone > Zone > Read**
+1.  Under **Zone Resources**, select **Include** and choose the specific zones this
+    token should manage (e.g., `very-very-dark-gray.top`).
+1.  Click **Continue to summary**, then **Create Toke**n.
+1.  **Copy the token immediately**; it will only be displayed once. 
+
+Create also [a porkbun API key](https://kb.porkbun.com/article/190-getting-started-with-the-porkbun-api),
+or re-use the one already created for
+[`ddns-updater`](./2025-09-25-ddns-updater-on-kubernetes.md),
+and store all the above in two Kubernetes secrets within the `cert-manager` namespace:
+
+!!! k8s "`cert-manager-issuer-dns-secrets.yaml`"
+
+    ``` yaml
+    apiVersion: v1
+    stringData:
+      PORKBUN_API_KEY: PORKBUN_API_KEY
+      PORKBUN_SECRET_API_KEY: PORKBUN_SECRET_API_KEY
+    kind: Secret
+    metadata:
+      name: porkbun-secret
+      namespace: cert-manager
+    type: Opaque
+    ---
+    apiVersion: v1
+    stringData:
+      CLOUDFLARE_API_TOKEN: CLOUDFLARE_API_TOKEN
+    kind: Secret
+    metadata:
+      name: cloudflare-secret
+      namespace: cert-manager
+    type: Opaque
+    ```
+
+``` console
+$ kubectl apply -f cert-manager-issuer-dns-secrets.yaml 
+secret/porkbun-secret created
+secret/cloudflare-secret created
+```
+
+Update `ClusterIssuer` to use the native CloudFlare and the Porkbun webhook solvers;
+these replaces the `http01` section completely (thus bypassing Pomerium redirects).
+The `ClusterIssuer` configuration needs two separate `dns01` solvers, one for each
+DNS provider:
+
+!!! k8s "`cert-manager-issuer-dns-secrets.yaml`"
+
+    ``` yaml
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: root@uu.am
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        solvers:
+          - selector:
+              dnsZones:
+                - uu.am
+            dns01:
+              webhook:
+                groupName: uu.am
+                solverName: porkbun
+                config:
+                  apiKey:
+                    key: PORKBUN_API_KEY
+                    name: porkbun-secret
+                  secretApiKey:
+                    key: PORKBUN_SECRET_API_KEY
+                    name: porkbun-secret
+          - selector:
+              dnsZones:
+                - very-very-dark-gray.top
+            dns01:
+              cloudflare:
+                apiTokenSecretRef:
+                  name: cloudflare-secret
+                  key: CLOUDFLARE_API_TOKEN
+    ```
+
+``` console
+$ kubectl apply -f cert-manager-issuer.yaml 
+clusterissuer.cert-manager.io/letsencrypt-prod configured
+```
+
+To test the new DNS solvers, add an `Ingress` under each domain for a simple service
+(e.g. `ddns-updater`) to trigger the creation of a certificate under each one:
+
+!!! k8s "`pomerium/pomerium-ingress/ddns-updater.yaml`"
+
+    ``` yaml
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: ddns-updater-pomerium-ingress
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      ingressClassName: pomerium
+      rules:
+        - host: ddns-updater.uu.am
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: ddns-updater-svc
+                  port:
+                    name: "http"
+        - host: ddns-updater.very-very-dark-gray.top
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: ddns-updater-svc
+                  port:
+                    name: "http"
+      tls:
+        - hosts:
+            - ddns-updater.uu.am
+          secretName: tls-secret-uu-am
+        - hosts:
+            - ddns-updater.very-very-dark-gray.top
+          secretName: tls-secret-cloudflare
+    ```
+
+A few minutes after applying these to Pomerium, both certificates should be `READY`:
+
+``` console
+$ kubectl get certificate
+NAME                    READY   SECRET                  AGE
+tls-secret-cloudflare   True    tls-secret-cloudflare   14m
+tls-secret-uu-am        True    tls-secret-uu-am        14m
+```
+
 ## Uninstall Ingress-NGINX
 
 After all the above migrations and consideration, the time finally comes to remove
