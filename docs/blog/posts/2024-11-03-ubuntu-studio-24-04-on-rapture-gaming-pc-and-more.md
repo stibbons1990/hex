@@ -3971,3 +3971,440 @@ shows very different disk I/O and
 ![Disk I/O chart show btrfs scrub](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/rapture-2x-nvme-btrfs-diskio.png)
 
 ![SSD temperatures chart show btrfs scrub](../media/2024-11-03-ubuntu-studio-24-04-on-rapture-gaming-pc-and-more/rapture-2x-nvme-btrfs-temps.png)
+
+### 10Gbps NIC
+
+When the Internet connexion was upgraded to 10Gbps fiber and, once the migration was
+finished, a Ethernet 10Gbps port turned out to be available in the router and very
+close to Rapture, it seemd like a great idea to upgrade Rapture by installing an
+[Intel X550-T2](https://www.intel.com/content/www/us/en/products/sku/88209/intel-ethernet-converged-network-adapter-x550t2/specifications.html)
+10Gbps Ethernet card and connect it directly to the 10Gbps port on the router.
+
+It works well, when it works, but it also constantly drops the link and spams `dmesg`
+with:
+
+``` dmesg
+[24546.650824] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Down
+[24561.169494] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+[24721.246550] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Down
+[24731.241700] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+[24731.772858] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Down
+[24741.361649] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+```
+
+Installing a Noctua 80mm 5V did lower the NIC's temperature from around 50°C to 42°C,
+which would seem enough to stabilize the link, but the issue persists.
+
+#### Disable PCIe ASPM
+
+PCIe Power Management (ASPM) attempts to save power by putting PCIe links into a
+low-power state when idle. High-performance cards like the X550-T2 can trigger
+aggressive power-saving on the entire PCIe bus, which often causes the `igc` (2.5G)
+or `ixgbe` (10G) drivers to lose the link during state transitions.
+
+Update `/etc/default/grub` to add the following parameters:
+
+*   `pcie_aspm=off` tells the kernel not to manage the power states of individual PCIe
+    devices.
+*   `pcie_port_pm=off` disables power management for the PCIe Root Ports (the
+    motherboard controllers that manage the slots themselves). 
+
+``` ini
+GRUB_CMDLINE_LINUX_DEFAULT="noquiet nosplash pcie_aspm=off pcie_port_pm=off"
+```
+
+Then run `update-grubp` and reboot.
+
+#### Bonding NICs
+
+Disabling ASPM alone does not seem to significantly alleviated the issue, if not fixed
+it entirely. To add redundancy, the old 2.5Gbps NIC can be added to as
+a backup interface. This keeps the system using the 10G NIC for as long as the link
+is Up, and only switches traffic to the old 2.5G NIC when the link is down on the 10G.
+
+In addition to Netplan, the `ifenslave` package is necessary to support bonding:
+
+??? terminal "`# apt install ifenslave -y`"
+
+    ``` console
+    # apt install ifenslave -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      ifupdown
+    Suggested packages:
+      rdnssd
+    The following NEW packages will be installed:
+      ifenslave ifupdown
+    0 upgraded, 2 newly installed, 0 to remove and 1 not upgraded.
+    Need to get 79.1 kB of archives.
+    After this operation, 261 kB of additional disk space will be used.
+    Get:1 http://archive.ubuntu.com/ubuntu noble/universe amd64 ifupdown amd64 0.8.41ubuntu1 [65.9 kB]
+    Get:2 http://archive.ubuntu.com/ubuntu noble/universe amd64 ifenslave all 2.10ubuntu3 [13.3 kB]
+    Fetched 79.1 kB in 0s (482 kB/s)     
+    Selecting previously unselected package ifupdown.
+    (Reading database ... 511358 files and directories currently installed.)
+    Preparing to unpack .../ifupdown_0.8.41ubuntu1_amd64.deb ...
+    Unpacking ifupdown (0.8.41ubuntu1) ...
+    Selecting previously unselected package ifenslave.
+    Preparing to unpack .../ifenslave_2.10ubuntu3_all.deb ...
+    Unpacking ifenslave (2.10ubuntu3) ...
+    Setting up ifupdown (0.8.41ubuntu1) ...
+    Creating /etc/network/interfaces.
+    Created symlink /etc/systemd/system/multi-user.target.wants/networking.service → /usr/lib/systemd/system/networking.service.
+    Created symlink /etc/systemd/system/network-online.target.wants/networking.service → /usr/lib/systemd/system/networking.service.
+    Setting up ifenslave (2.10ubuntu3) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    ```
+
+In this system, the old 2.5Gbps NIC is `enp6s0` and the new 10Gbps NIC has two ports,
+each of them showing up as a separate NIC, and the one currently connected to the
+router is `enp5s0f0`. The following Netplan config bonds these together:
+
+!!! code "`/etc/netplan/01-network-manager-all.yaml`"
+
+    ``` yaml hl_lines="9-17"
+    # Dual static IP on LAN, nothing else.
+    network:
+      version: 2
+      renderer: networkd  # Use 'networkd' for system-level bonding
+      ethernets:
+        enp6s0: {}
+        enp5s0f0: {}
+      bonds:
+        bond0:
+          interfaces:
+            - enp5s0f0
+            - enp6s0
+          parameters:
+            mode: active-backup        # Stay on the 10G NIC while it's UP.
+            primary: enp5s0f0          # Use the 10G NIC as primary.
+            mii-monitor-interval: 250  # Increased to help with flapping.
+          optional: true               # Prevents 2-minute boot hang if one NIC is down.
+          dhcp4: no
+          dhcp6: no
+          # Ser IP address & subnet mask
+          addresses: [ 10.0.0.2/24, 192.168.0.2/24 ]
+          # Set default gateway
+          routes:
+          - to: default
+            via: 192.168.0.1
+          # Set DNS name servers
+          nameservers:
+            addresses: [ 77.109.128.2, 213.144.129.20 ]
+    ```
+
+This bonding configuration uses the `active-backup` mode so that *only one interface in
+the bond is active at a time. A different interface becomes active if, and only if, the
+active interface fails. The bond’s MAC address is externally visible on only one port
+(network adapter) to avoid confusing the switch*.
+
+For other available modes, see the
+[Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html#bonding-driver-options).
+
+Apply the changes and check that the bond is active:
+
+``` console hl_lines="6-10"
+# netplan apply
+
+# cat /proc/net/bonding/bond0
+Ethernet Channel Bonding Driver: v6.8.0-90-lowlatency
+
+Bonding Mode: fault-tolerance (active-backup)
+Primary Slave: enp5s0f0 (primary_reselect always)
+Currently Active Slave: enp5s0f0
+MII Status: up
+MII Polling Interval (ms): 250
+Up Delay (ms): 0
+Down Delay (ms): 0
+Peer Notification Delay (ms): 0
+
+Slave Interface: enp6s0
+MII Status: up
+Speed: 2500 Mbps
+Duplex: full
+Link Failure Count: 0
+Permanent HW addr: 04:42:1a:97:4e:47
+Slave queue ID: 0
+
+Slave Interface: enp5s0f0
+MII Status: up
+Speed: 10000 Mbps
+Duplex: full
+Link Failure Count: 0
+Permanent HW addr: ec:e7:a7:19:54:a8
+Slave queue ID: 0
+```
+
+When this bonding configuration is applied, the following shows in `dmesg` logs:
+
+``` dmesg
+[ 8022.642137] bond0: (slave enp6s0): Enslaving as a backup interface with a down link
+[ 8022.652079] ixgbe 0000:05:00.0: removed PHC on enp5s0f0
+[ 8023.077888] ixgbe 0000:05:00.0: registered PHC device on enp5s0f0
+[ 8023.200826] bond0: (slave enp5s0f0): Enslaving as a backup interface with a down link
+[ 8027.912118] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+[ 8028.063109] bond0: (slave enp5s0f0): link status definitely up, 10000 Mbps full duplex
+[ 8028.063119] bond0: (slave enp5s0f0): making interface the new active one
+[ 8028.065169] bond0: active interface up!
+```
+
+Now the IP address is assigned to the `bond0` interface:
+
+``` console hl_lines="21-28"
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp6s0: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc mq master bond0 state UP group default qlen 1000
+    link/ether 3e:ad:61:e4:20:8e brd ff:ff:ff:ff:ff:ff permaddr 04:42:1a:97:4e:47
+3: enp5s0f0: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc mq master bond0 state UP group default qlen 1000
+    link/ether 3e:ad:61:e4:20:8e brd ff:ff:ff:ff:ff:ff permaddr ec:e7:a7:19:54:a8
+4: enp5s0f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    link/ether ec:e7:a7:19:54:a9 brd ff:ff:ff:ff:ff:ff
+6: tailscale0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
+    link/none 
+    inet 100.97.190.45/32 scope global tailscale0
+       valid_lft forever preferred_lft forever
+    inet6 fd7a:115c:a1e0::d601:be2e/128 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ce6a:5ca:4f73:134e/64 scope link stable-privacy 
+       valid_lft forever preferred_lft forever
+7: bond0: <BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 3e:ad:61:e4:20:8e brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.2/24 brd 10.0.0.255 scope global bond0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.2/24 brd 192.168.0.255 scope global bond0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::3cad:61ff:fee4:208e/64 scope link 
+       valid_lft forever preferred_lft forever
+8: fake0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/ether ce:56:b8:58:f8:32 brd ff:ff:ff:ff:ff:ff
+    inet 1.2.3.4/24 brd 1.2.3.255 scope global noprefixroute fake0
+       valid_lft forever preferred_lft forever
+```
+
+#### DO NOT update to HWE kernel 6.14
+
+Updating to 6.14 was once recommended to resolve the PCIe link flapping, as it contains
+significantly improved Intel 10G/2.5G driver stability and better power state 
+management. However, the 6.14 kernel made the desktop feel a log more "laggy" with UIs
+and mouse pointer freezing for quite a perceptible time, sometimes more than a second,
+and playing audio via USB devices suffers a lot when transferring large files.
+Eventually reverting to the 6.8 kernel resolved those issues immediately.
+
+For the record, this is how the kernel 6.14 was tested; first install it:
+
+??? terminal "`# apt install --install-recommends linux-generic-hwe-24.04 -y`"
+
+    ``` console
+    # apt install --install-recommends linux-generic-hwe-24.04 -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following additional packages will be installed:
+      amd64-microcode linux-headers-6.14.0-37-generic linux-headers-generic-hwe-24.04
+      linux-hwe-6.14-headers-6.14.0-37 linux-hwe-6.14-tools-6.14.0-37 linux-image-6.14.0-37-generic
+      linux-image-generic-hwe-24.04 linux-modules-6.14.0-37-generic linux-modules-extra-6.14.0-37-generic
+      linux-tools-6.14.0-37-generic
+    Suggested packages:
+      linux-hwe-6.14-tools
+    The following NEW packages will be installed:
+      amd64-microcode linux-generic-hwe-24.04 linux-headers-6.14.0-37-generic linux-headers-generic-hwe-24.04
+      linux-hwe-6.14-headers-6.14.0-37 linux-hwe-6.14-tools-6.14.0-37 linux-image-6.14.0-37-generic
+      linux-image-generic-hwe-24.04 linux-modules-6.14.0-37-generic linux-modules-extra-6.14.0-37-generic
+      linux-tools-6.14.0-37-generic
+    0 upgraded, 11 newly installed, 0 to remove and 1 not upgraded.
+    Need to get 0 B/199 MB of archives.
+    After this operation, 320 MB of additional disk space will be used.
+    Selecting previously unselected package linux-modules-6.14.0-37-generic.
+    (Reading database ... 511408 files and directories currently installed.)
+    Preparing to unpack .../00-linux-modules-6.14.0-37-generic_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-modules-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-image-6.14.0-37-generic.
+    Preparing to unpack .../01-linux-image-6.14.0-37-generic_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-image-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-modules-extra-6.14.0-37-generic.
+    Preparing to unpack .../02-linux-modules-extra-6.14.0-37-generic_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-modules-extra-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package amd64-microcode.
+    Preparing to unpack .../03-amd64-microcode_3.20250311.1ubuntu0.24.04.1_amd64.deb ...
+    Unpacking amd64-microcode (3.20250311.1ubuntu0.24.04.1) ...
+    Selecting previously unselected package linux-image-generic-hwe-24.04.
+    Preparing to unpack .../04-linux-image-generic-hwe-24.04_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-image-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-hwe-6.14-headers-6.14.0-37.
+    Preparing to unpack .../05-linux-hwe-6.14-headers-6.14.0-37_6.14.0-37.37~24.04.1_all.deb ...
+    Unpacking linux-hwe-6.14-headers-6.14.0-37 (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-headers-6.14.0-37-generic.
+    Preparing to unpack .../06-linux-headers-6.14.0-37-generic_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-headers-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-headers-generic-hwe-24.04.
+    Preparing to unpack .../07-linux-headers-generic-hwe-24.04_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-headers-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-generic-hwe-24.04.
+    Preparing to unpack .../08-linux-generic-hwe-24.04_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-hwe-6.14-tools-6.14.0-37.
+    Preparing to unpack .../09-linux-hwe-6.14-tools-6.14.0-37_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-hwe-6.14-tools-6.14.0-37 (6.14.0-37.37~24.04.1) ...
+    Selecting previously unselected package linux-tools-6.14.0-37-generic.
+    Preparing to unpack .../10-linux-tools-6.14.0-37-generic_6.14.0-37.37~24.04.1_amd64.deb ...
+    Unpacking linux-tools-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Setting up amd64-microcode (3.20250311.1ubuntu0.24.04.1) ...
+    update-initramfs: deferring update (trigger activated)
+    amd64-microcode: microcode will be updated at next boot
+    Setting up linux-hwe-6.14-headers-6.14.0-37 (6.14.0-37.37~24.04.1) ...
+    Setting up linux-modules-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Setting up linux-hwe-6.14-tools-6.14.0-37 (6.14.0-37.37~24.04.1) ...
+    Setting up linux-headers-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    /etc/kernel/header_postinst.d/dkms:
+    * dkms: running auto installation service for kernel 6.14.0-37-generic
+    Sign command: /usr/bin/kmodsign
+    Signing key: /var/lib/shim-signed/mok/MOK.priv
+    Public certificate (MOK): /var/lib/shim-signed/mok/MOK.der
+
+    Building module:
+    Cleaning build area...
+    unset ARCH; [ ! -h /usr/bin/cc ] && export CC=/usr/bin/gcc; env NV_VERBOSE=1 'make' -j16 NV_EXCLUDE_BUILD_MODULES='' KERNEL_UNAME=6.14.0-37-generic IGNORE_XEN_PRESENCE=1 IGNORE_CC_MISMATCH=1 SYSSRC=/lib/modules/6.14.0-37-generic/build LD=/usr/bin/ld.bfd CONFIG_X86_KERNEL_IBT= modules...........
+    Signing module /var/lib/dkms/nvidia/580.95.05/build/nvidia.ko
+    Signing module /var/lib/dkms/nvidia/580.95.05/build/nvidia-modeset.ko
+    Signing module /var/lib/dkms/nvidia/580.95.05/build/nvidia-drm.ko
+    Signing module /var/lib/dkms/nvidia/580.95.05/build/nvidia-uvm.ko
+    Signing module /var/lib/dkms/nvidia/580.95.05/build/nvidia-peermem.ko
+    Cleaning build area...
+
+    nvidia.ko.zst:
+    Running module version sanity check.
+    - Original module
+      - No original module exists within this kernel
+    - Installation
+      - Installing to /lib/modules/6.14.0-37-generic/updates/dkms/
+
+    nvidia-modeset.ko.zst:
+    Running module version sanity check.
+    - Original module
+      - No original module exists within this kernel
+    - Installation
+      - Installing to /lib/modules/6.14.0-37-generic/updates/dkms/
+
+    nvidia-drm.ko.zst:
+    Running module version sanity check.
+    - Original module
+      - No original module exists within this kernel
+    - Installation
+      - Installing to /lib/modules/6.14.0-37-generic/updates/dkms/
+
+    nvidia-uvm.ko.zst:
+    Running module version sanity check.
+    - Original module
+      - No original module exists within this kernel
+    - Installation
+      - Installing to /lib/modules/6.14.0-37-generic/updates/dkms/
+
+    nvidia-peermem.ko.zst:
+    Running module version sanity check.
+    - Original module
+      - No original module exists within this kernel
+    - Installation
+      - Installing to /lib/modules/6.14.0-37-generic/updates/dkms/
+    depmod...
+    dkms autoinstall on 6.14.0-37-generic/x86_64 succeeded for nvidia
+    * dkms: autoinstall for kernel 6.14.0-37-generic
+      ...done.
+    Setting up linux-image-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    I: /boot/vmlinuz.old is now a symlink to vmlinuz-6.8.0-90-lowlatency
+    I: /boot/initrd.img.old is now a symlink to initrd.img-6.8.0-90-lowlatency
+    I: /boot/vmlinuz is now a symlink to vmlinuz-6.14.0-37-generic
+    I: /boot/initrd.img is now a symlink to initrd.img-6.14.0-37-generic
+    Setting up linux-modules-extra-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Setting up linux-tools-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    Setting up linux-headers-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Setting up linux-image-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Setting up linux-generic-hwe-24.04 (6.14.0-37.37~24.04.1) ...
+    Processing triggers for initramfs-tools (0.142ubuntu25.5) ...
+    update-initramfs: Generating /boot/initrd.img-6.8.0-90-lowlatency
+    Processing triggers for linux-image-6.14.0-37-generic (6.14.0-37.37~24.04.1) ...
+    /etc/kernel/postinst.d/dkms:
+    * dkms: running auto installation service for kernel 6.14.0-37-generic
+    * dkms: autoinstall for kernel 6.14.0-37-generic
+      ...done.
+    /etc/kernel/postinst.d/initramfs-tools:
+    update-initramfs: Generating /boot/initrd.img-6.14.0-37-generic
+    /etc/kernel/postinst.d/zz-update-grub:
+    Sourcing file `/etc/default/grub'
+    Sourcing file `/etc/default/grub.d/ubuntustudio.cfg'
+    Generating grub configuration file ...
+    Found linux image: /boot/vmlinuz-6.8.0-90-lowlatency
+    Found initrd image: /boot/initrd.img-6.8.0-90-lowlatency
+    Found linux image: /boot/vmlinuz-6.8.0-88-lowlatency
+    Found initrd image: /boot/initrd.img-6.8.0-88-lowlatency
+    Found linux image: /boot/vmlinuz-6.14.0-37-generic
+    Found initrd image: /boot/initrd.img-6.14.0-37-generic
+    Found memtest86+ 64bit EFI image: /boot/memtest86+x64.efi
+    Warning: os-prober will be executed to detect other bootable partitions.
+    Its output will be used to detect bootable binaries on them and create new boot entries.
+    Found Ubuntu 22.04.5 LTS (22.04) on /dev/nvme1n1p2
+    Adding boot menu entry for UEFI Firmware Settings ...
+    done
+    ```
+
+In case the new kernel does not become the new default, adjust `/etc/default/grub` so
+that it will show the menu to allow choosing a specific kernel and then remember that
+choice as the default for subsequent reboots:
+
+``` ini title="/etc/default/grub"
+# Use these options to pick a specific kernel.
+GRUB_DEFAULT=saved
+GRUB_TIMEOUT=10
+GRUB_TIMEOUT_STYLE=menu
+GRUB_SAVEDEFAULT=true
+
+# Use these options to directly boot the first kernel.
+#GRUB_DEFAULT=0
+#GRUB_TIMEOUT=0
+#GRUB_TIMEOUT_STYLE=hidden
+```
+
+Update GRUB and restart, then choose the new kernel.
+
+``` console
+Sourcing file `/etc/default/grub'
+Sourcing file `/etc/default/grub.d/ubuntustudio.cfg'
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-6.8.0-90-lowlatency
+Found initrd image: /boot/initrd.img-6.8.0-90-lowlatency
+Found linux image: /boot/vmlinuz-6.8.0-88-lowlatency
+Found initrd image: /boot/initrd.img-6.8.0-88-lowlatency
+Found linux image: /boot/vmlinuz-6.14.0-37-generic
+Found initrd image: /boot/initrd.img-6.14.0-37-generic
+Found memtest86+ 64bit EFI image: /boot/memtest86+x64.efi
+Warning: os-prober will be executed to detect other bootable partitions.
+Its output will be used to detect bootable binaries on them and create new boot entries.
+Found Ubuntu 22.04.5 LTS (22.04) on /dev/nvme1n1p2
+Adding boot menu entry for UEFI Firmware Settings ...
+done
+```
+
+To make the new kernel the all-time default, it should be possible to set
+`GRUB_DEFAULT` to the index number of the desired option as obtained from
+`/boot/grub/grub.cfg`; e.g. `0` for the old 6.8 kernel or `4` for the 6.14 kernel.
+
+``` console
+$ sudo awk -F"'" '/menuentry / && /with Linux/ {print i++ " : " $2}' /boot/grub/grub.cfg
+0 : Ubuntu, with Linux 6.8.0-90-lowlatency
+1 : Ubuntu, with Linux 6.8.0-90-lowlatency (recovery mode)
+2 : Ubuntu, with Linux 6.8.0-88-lowlatency
+3 : Ubuntu, with Linux 6.8.0-88-lowlatency (recovery mode)
+4 : Ubuntu, with Linux 6.14.0-37-generic
+5 : Ubuntu, with Linux 6.14.0-37-generic (recovery mode)
+6 : Ubuntu, with Linux 5.15.0-124-lowlatency (on /dev/nvme1n1p2)
+7 : Ubuntu, with Linux 5.15.0-124-lowlatency (recovery mode) (on /dev/nvme1n1p2)
+8 : Ubuntu, with Linux 5.15.0-122-lowlatency (on /dev/nvme1n1p2)
+9 : Ubuntu, with Linux 5.15.0-122-lowlatency (recovery mode) (on /dev/nvme1n1p2)
+10 : Ubuntu, with Linux 5.15.0-60-lowlatency (on /dev/nvme1n1p2)
+11 : Ubuntu, with Linux 5.15.0-60-lowlatency (recovery mode) (on /dev/nvme1n1p2)
+```
