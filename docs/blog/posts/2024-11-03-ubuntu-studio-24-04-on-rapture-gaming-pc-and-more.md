@@ -4187,6 +4187,17 @@ Now the IP address is assigned to the `bond0` interface:
        valid_lft forever preferred_lft forever
 ```
 
+Now, when the 10G NIC link goes down, the 2.5G NIC takes over until the 10G is back up:
+
+``` dmesg
+[13135.476859] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Down
+[13135.481044] bond0: (slave enp5s0f0): link status definitely down, disabling slave
+[13135.481049] bond0: (slave enp6s0): making interface the new active one
+[13140.125754] ixgbe 0000:05:00.0 enp5s0f0: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+[13140.344048] bond0: (slave enp5s0f0): link status definitely up, 10000 Mbps full duplex
+[13140.344061] bond0: (slave enp5s0f0): making interface the new active one
+```
+
 #### DO NOT update to HWE kernel 6.14
 
 Updating to 6.14 was once recommended to resolve the PCIe link flapping, as it contains
