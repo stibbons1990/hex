@@ -158,6 +158,15 @@ works well and feels agile enough to use, yet the most important
 ingredient to keep using such an application is *perseverance*;
 that's what I don't have.
 
+#### Headless Steam
+
+[Headless Steam Service](https://github.com/Steam-Headless/docker-steam-headless/tree/master?tab=readme-ov-file#headless-steam-service)
+was installed and proved *somewhat useful* to casually
+[play Steam games in the browser](../blog/posts/2025-07-27-playing-steam-games-in-the-browser-with-self-hosted-steam-headless-service.md)
+but is not really used for two reasons: 1. there is only one GPU in the cluster and
+[Jellyfin](#jellyfin) needs it (and uses it); 2. games audio is not available outside of
+the LAN, which for me pretty much defeats the purpose of the whole thing.
+
 #### Homebox
 
 [Self-hosted inventory with Homebox](../blog/posts/2024-07-10-self-hosted-inventory-with-homebox.md)
@@ -166,6 +175,14 @@ good motivation to invest the *hours* to fill it in, there
 is only so much you can do with it. It will probably make
 more sense after establishing a criteria for *what goes in*,
 because it hardly makes sense to *try and get it all in*.
+
+#### Homepage
+
+[Homepage](https://gethomepage.dev/) is a modern, highly customizable
+application dashboard that could be useful to have a *big picture* view
+of all services in one place, should there ever be too many of them.
+It was easy enough to install and setup in a couple of days during holidays,
+time will yet have to tell howmucho this get actually used.
 
 #### Minecraft Server
 
@@ -237,19 +254,6 @@ in a Kubernetes cluster, a deployment including AFFiNE and its
 dependencies can be created from their example
 [`compose.yaml`](https://github.com/toeverything/AFFiNE/blob/canary/.github/deployment/self-host/compose.yaml).
 
-#### Authentik
-
-[Authentik](https://goauthentik.io/) allows restricting access to a
-specific set of users based on their email addresses, so that each
-applications can only be accessed by their legit users and their
-authentication is enforced by their respective identity providers.
-
-In particular, it is clearly documented that the rather popular
-`@gmail.com` addresses are supported by the
-[Google](https://docs.goauthentik.io/docs/users-sources/sources/social-logins/google/)
-identity provider (see also 
-[authentik/discussions/1776](https://github.com/goauthentik/authentik/discussions/1776)).
-
 #### Blocky
 
 [Blocky](https://0xerr0r.github.io/blocky/latest/) may be a better
@@ -271,6 +275,13 @@ SSH service, which is has
 The next step would be to set it up to ban IPs that fail to
 authenticate through [Authentik](#authentik).
 
+#### FreshRSS
+
+[FreshRSS](https://github.com/FreshRSS/FreshRSS?tab=readme-ov-file#freshrss)
+is a self-hosted RSS feed aggregator, much like
+[NewsBlur](#newsblur), but perhaps the plus of having integration with
+[Homepage](#homepage).
+
 #### Forgejo
 
 [Forgejo](https://forgejo.org/) is a self-hosted lightweight software forge.
@@ -288,6 +299,11 @@ e.g. via
 [Ntfy alerts](https://github.com/TwiN/gatus?tab=readme-ov-file#configuring-ntfy-alerts)
 to push notifications to your phone via [ntfy](https://ntfy.sh/).
 
+#### Ghostfolio
+
+[Ghostfolio](https://github.com/ghostfolio/ghostfolio?tab=readme-ov-file#ghostfolio)
+is an open source wealth management software built with web technology. The application empowers busy people to keep track of stocks, ETFs or cryptocurrencies and make solid, data-driven investment decisions. The software is designed for personal use in continuous operation.
+
 #### Gitea
 
 [Gitea](https://about.gitea.com/products/gitea/) is a
@@ -298,27 +314,12 @@ and I could never figure out how to use it as the (only) remote
 repository when working from
 [Visual Studio Code Server](#visual-studio-code-server).
 
-#### Headless Steam
-
-[Headless Steam Service](https://github.com/Steam-Headless/docker-steam-headless/tree/master?tab=readme-ov-file#headless-steam-service)
-could be useful to play some of the oldest games in a browser while away on holidays.
-[GeForce NOW](https://play.geforcenow.com/mall/) looks great but it would only make sense
-for the more modern games and I'm still playing old games from 10-25 years ago. Having my
-own self-hosted service I can play old games from anywhere, possibly even from a mobile
-devices, might help me get through my [infinite backlog](https://infinitebacklog.net/).
-
 #### Heimdall
 
 [Heimdall Application Dashboard](https://heimdall.site/) is
 *a dashboard for all your web applications and links to anything else*
 which seems more versatile than a applications-only dashboard like
 [Homepage](#homepage).
-
-#### Homepage
-
-[Homepage](https://gethomepage.dev/) is a modern, highly customizable
-application dashboard that could be useful to have a *big picture* view
-of all services in one place, should there ever be too many of them.
 
 #### Immich
 
@@ -352,6 +353,11 @@ fine-tuning of multiple features:
   let other see *all* their photos.
 - [Immich Folder Album Creator](https://github.com/Salvoxia/immich-folder-album-creator?tab=readme-ov-file#immich-folder-album-creator)
   to automatically create albums from (some) directories.
+
+#### Jellystat
+
+[Jellystat](https://github.com/CyferShepard/Jellystat?tab=readme-ov-file#current-features)
+is a free and open source Statistics App for Jellyfin.
 
 #### Leantime
 
@@ -499,10 +505,32 @@ Migrating [Continuous Monitoring](#continuous-monitoring),
 *is a fast, cost-saving, and scalable solution for monitoring and
 managing time series data*.
 
+#### Vikunja
+
+[Vikunja](https://vikunja.io/features/) is a TODO app, like a
+notebook where you can have all your things to keep track of.
+
 ### Discarded
 
 These applications were evaluated based on their documentation and/or
 live demos, and deemed not a good match for my intended purpose/s.
+
+#### Authentik
+
+[Authentik](https://goauthentik.io/) allows restricting access to a
+specific set of users based on their email addresses, so that each
+applications can only be accessed by their legit users and their
+authentication is enforced by their respective identity providers.
+
+In particular, it is clearly documented that the rather popular
+`@gmail.com` addresses are supported by the
+[Google](https://docs.goauthentik.io/docs/users-sources/sources/social-logins/google/)
+identity provider (see also 
+[authentik/discussions/1776](https://github.com/goauthentik/authentik/discussions/1776)).
+
+[replacing Ingress-NGINX with Pomerium](../blog/posts/2025-12-18-replacing-ingress-nginx-with-pomerium.md)
+superseded Authentik because Pomerium natively supports restricting access to a
+specific set of users based on their email addresses, *just* `@gmail.com` addresses.
 
 #### MediaTracker
 
