@@ -1757,6 +1757,83 @@ $ kubectl delete namespace ingress-nginx
 namespace "ingress-nginx" deleted
 ```
 
+## Appendix: updating Pomerium
+
+To update Pomerium, check the official documentation to
+[Install Pomerium](https://www.pomerium.com/docs/deploy/k8s/quickstart#install-pomerium)
+for the URL it recommends to deploy from, e.g.
+
+``` console
+$ kubectl apply -k github.com/pomerium/ingress-controller/config/default\?ref=v0.32.0
+```
+
+Go back to the local copy of the `pomerium/ingress-controller` repository, pull updates
+and check that branch out:
+
+``` console hl_lines="15"
+$ git status
+HEAD detached at v0.31.3
+nothing to commit, working tree clean
+
+$ git pull
+remote: Enumerating objects: 70, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (11/11), done.
+remote: Total 70 (delta 14), reused 13 (delta 13), pack-reused 46 (from 1)
+Unpacking objects: 100% (70/70), 151.32 KiB | 968.00 KiB/s, done.
+From https://github.com/pomerium/ingress-controller
+ * [new branch]      0-32-0                -> origin/0-32-0
+ * [new branch]      cagocs/release-script -> origin/cagocs/release-script
+   a93102d..338ba7f  main                  -> origin/main
+ * [new tag]         v0.32.0               -> v0.32.0
+You are not currently on a branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details.
+
+    git pull <remote> <branch>
+
+$ git checkout v0.32.0
+Previous HEAD position was 14de0a0 prepare for v0.31.3 release (#1286)
+HEAD is now at d9e3e06 Customize ingress controller v0.32.0
+```
+
+Now go back to the `pomerium-overlay` directory created to deploy
+[Pebble storage](#pebble-storage) and apply it again; check first with
+`kubectl kustomize` that the new image will be pulled:
+
+``` console
+$ kubectl kustomize pomerium-overlay | grep 'image:'
+# Warning: 'commonLabels' is deprecated. Please use 'labels' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+        image: pomerium/ingress-controller:v0.32.0
+        image: pomerium/ingress-controller:main
+```
+
+After applying the change, Pomerium will be running the new version:
+
+``` console hl_lines="5 16 21"
+$ kubectl apply -k pomerium-overlay 
+# Warning: 'commonLabels' is deprecated. Please use 'labels' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+namespace/pomerium unchanged
+customresourcedefinition.apiextensions.k8s.io/policyfilters.gateway.pomerium.io unchanged
+customresourcedefinition.apiextensions.k8s.io/pomerium.ingress.pomerium.io configured
+serviceaccount/pomerium-controller unchanged
+serviceaccount/pomerium-gen-secrets unchanged
+clusterrole.rbac.authorization.k8s.io/pomerium-controller unchanged
+clusterrole.rbac.authorization.k8s.io/pomerium-gen-secrets unchanged
+clusterrolebinding.rbac.authorization.k8s.io/pomerium-controller unchanged
+clusterrolebinding.rbac.authorization.k8s.io/pomerium-gen-secrets unchanged
+service/pomerium-metrics unchanged
+service/pomerium-proxy unchanged
+persistentvolume/pomerium-pv-data unchanged
+persistentvolumeclaim/pomerium-pvc-data unchanged
+deployment.apps/pomerium configured
+job.batch/pomerium-gen-secrets unchanged
+ingressclass.networking.k8s.io/pomerium unchanged
+
+$ kubectl -n pomerium describe pod | grep 'Image:'
+    Image:         pomerium/ingress-controller:v0.32.0
+```
+
 ## Appendix: `alfred` migration
 
 Same setup can be applied to `alfred`, which has all services behind either Tailscale
