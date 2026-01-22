@@ -263,30 +263,28 @@ Servers are better setup with static IP addresses in a know range, and for this 
 the `.8 `addresses have been reserved and can be setup in the Netplan configuration:
 
 ``` yaml title="/etc/netplan/50-cloud-init.yaml" hl_lines="4 8 16 20"
+# Dual static IP on LAN, nothing else.
 network:
   version: 2
+  renderer: networkd
   ethernets:
+    enp86s0:
+      dhcp4: no
+      dhcp6: no
+      # Ser IP address & subnet mask
+      addresses: [ 10.0.0.8/24, 192.168.0.8/24 ]
     enx5c857e3e1129:
       dhcp4: no
       dhcp6: no
       # Ser IP address & subnet mask
-      addresses: [ 10.0.0.7/24, 192.168.0.7/24 ]
+      addresses: [ 10.0.0.9/24, 192.168.0.9/24 ]
       # Set default gateway
       routes:
        - to: default
          via: 192.168.0.1
       # Set DNS name servers
       nameservers:
-        addresses: [62.2.24.158, 62.2.17.61]
-    enp86s0:
-      dhcp4: no
-      dhcp6: no
-      # Ser IP address & subnet mask
-      addresses: [ 10.0.0.8/24, 192.168.0.8/24 ]
-      # Set default gateway
-      # Set DNS name servers
-      nameservers:
-        addresses: [62.2.24.158, 62.2.17.61]
+        addresses: [ 77.109.128.2, 213.144.129.20 ]
 ```
 
 !!! note
@@ -349,14 +347,11 @@ To re-enable the server's access to the Internet, move the `routes` to the `enp8
 interface and `netplan apply` once again:
 
 ``` yaml title="/etc/netplan/50-cloud-init.yaml"
+# Dual static IP on LAN, nothing else.
 network:
   version: 2
+  renderer: networkd
   ethernets:
-    enx5c857e3e1129:
-      dhcp4: no
-      dhcp6: no
-      # Ser IP address & subnet mask
-      addresses: [ 10.0.0.7/24, 192.168.0.7/24 ]
     enp86s0:
       dhcp4: no
       dhcp6: no
@@ -368,7 +363,12 @@ network:
          via: 192.168.0.1
       # Set DNS name servers
       nameservers:
-        addresses: [62.2.24.158, 62.2.17.61]
+        addresses: [ 77.109.128.2, 213.144.129.20 ]
+    enx5c857e3e1129:
+      dhcp4: no
+      dhcp6: no
+      # Ser IP address & subnet mask
+      addresses: [ 10.0.0.9/24, 192.168.0.9/24 ]
 ```
 
 At this point the network configuration is finalized.
@@ -5574,3 +5574,657 @@ Eventually the solution was to set the old router to be leasing addresses
 re-configure its LAN ports to adopt the **0**.0/24 network. After *this*
 change, the router was able again to reach the Unifi Network Application
 on 192.168.**0.173** and *everything was well once again*.
+
+## Bridging wireless
+
+This new server has a Wi-Fi 6E interface that is not needed, but can be used to improve
+the Wi-Fi coverage in the room it occupies. In this environment the Wireless network in
+is provided by a number of UniFi access points, none of which offer good coverage in
+the room where the NUC is.
+
+To provide bridged access point using the server's Wi-Fi interface, create a software
+bridge (`br0`) that unite the Ethernet and Wi-Fi interfaces into a single Layer 2
+network, allowing the NUC to extend the existing UniFi network.
+
+### Prerequisites
+
+Most Intel wireless chips (using the `iwlWi-Fi` driver) support AP mode. To check against
+this limitation, run `iw list` and confirm `Supported interface modes` includes `AP`:
+
+``` console
+# iw list
+Wiphy phy0
+        ...
+        Supported interface modes:
+                 * IBSS
+                 * managed
+                 * AP
+                 * AP/VLAN
+                 * monitor
+                 * P2P-client
+                 * P2P-GO
+                 * P2P-device
+```
+
+Install `hostapd` for the access point and `bridge-utils` for bridging support:
+
+??? terminal "`# apt install hostapd bridge-utils`"
+
+    ``` console
+    # apt install hostapd bridge-utils
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    Suggested packages:
+      ifupdown
+    The following NEW packages will be installed:
+      bridge-utils hostapd
+    0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.
+    Need to get 933 kB of archives.
+    After this operation, 2,437 kB of additional disk space will be used.
+    Get:1 http://ch.archive.ubuntu.com/ubuntu noble-updates/universe amd64 hostapd amd64 2:2.10-21ubuntu0.3 [899 kB]
+    Get:2 http://ch.archive.ubuntu.com/ubuntu noble/main amd64 bridge-utils amd64 1.7.1-1ubuntu2 [33.9 kB]
+    Fetched 933 kB in 0s (32.6 MB/s)        
+    Selecting previously unselected package hostapd.
+    (Reading database ... 169804 files and directories currently installed.)
+    Preparing to unpack .../hostapd_2%3a2.10-21ubuntu0.3_amd64.deb ...
+    Unpacking hostapd (2:2.10-21ubuntu0.3) ...
+    Selecting previously unselected package bridge-utils.
+    Preparing to unpack .../bridge-utils_1.7.1-1ubuntu2_amd64.deb ...
+    Unpacking bridge-utils (1.7.1-1ubuntu2) ...
+    Setting up hostapd (2:2.10-21ubuntu0.3) ...
+    Created symlink /etc/systemd/system/multi-user.target.wants/hostapd.service → /usr/lib/systemd/system/hostapd.service.
+    Created symlink /etc/systemd/system/hostapd.service → /dev/null.
+    Setting up bridge-utils (1.7.1-1ubuntu2) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Scanning processes...                                                                                            
+    Scanning candidates...                                                                                           
+    Scanning processor microcode...                                                                                  
+    Scanning linux images...                                                                                         
+
+    Running kernel seems to be up-to-date.
+
+    The processor microcode seems to be up-to-date.
+
+    Restarting services...
+
+    Service restarts being deferred:
+    systemctl restart bluetooth.service
+    systemctl restart unattended-upgrades.service
+
+    No containers need to be restarted.
+
+    No user sessions are running outdated binaries.
+
+    No VM guests are running outdated hypervisor (qemu) binaries on this host.
+    ```
+
+### Bridge
+
+Define a bridge in Netplan that includes the Ethernet interface (`enp86s0`) and
+assigns the static IP. The Wi-Fi interface (`wlo1`) will be added to the bridge by
+`hostapd` automatically once it is started later:
+
+!!! code "`/etc/netplan/50-cloud-init.yaml`"
+
+    ``` yaml hl_lines="12-16"
+    # Dual static IP on LAN, nothing else.
+    network:
+      version: 2
+      renderer: networkd
+      ethernets:
+        enp86s0:
+          dhcp4: no
+          dhcp6: no
+        wlo1:
+          dhcp4: no
+          dhcp6: no
+      bridges:
+        br0:
+          interfaces: [enp86s0]
+          parameters:
+            stp: false  # Disable Spanning Tree Protocol for home setups
+          # Ser IP address & subnet mask
+          addresses: [ 10.0.0.8/24, 192.168.0.8/24 ]
+          # Set default gateway
+          routes:
+          - to: default
+            via: 192.168.0.1  # UniFi router gateway
+          # Set DNS name servers
+          nameservers:
+            addresses: [ 77.109.128.2, 213.144.129.20 ]
+    ```
+
+!!! note
+
+    The Wi-Fi `wlo1` is under the `ethernets` section, and not under `Wi-Fis`, so that
+    Netplan brings the physical interface up but perform no Layer 3 configuration (no
+    IP/DHCP), allowing `hostapd` to take control of it and attach it to the bridge.
+
+!!! warning
+
+    If using an SSH session, it may disconnect. Be prepared to connect with a physical
+    keyboard/monitor immediately if things go wrong. Normally changes can tested with
+    `netplan try` but not in this case because a bridge is involved:
+
+    ``` console
+    # netplan try
+    br0: reverting custom parameters for bridges and bonds is not supported
+
+    Please carefully review the configuration and use 'netplan apply' directly.
+    ```
+
+
+Applying Netplan config should create the bridge, without the Wi-Fi for now, and assign
+the IP addresses to the bridge:
+
+``` console
+# netplan apply
+
+# brctl show br0
+bridge name     bridge id               STP enabled     interfaces
+br0             8000.ae6c4282ecc1       no              enp86s0
+
+# ip addr show br0
+491: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether ae:6c:42:82:ec:c1 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.8/24 brd 10.0.0.255 scope global br0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.8/24 brd 192.168.0.255 scope global br0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ac6c:42ff:fe82:ecc1/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+### 2GHz AP (works)
+
+Create the hostapd configuration file to define the SSID and bridge connection:
+
+!!! code "`/etc/hostapd/hostapd.conf`"
+
+    ``` ini
+    bridge=br0
+    country_code=CH
+    driver=nl80211
+    interface=wlo1
+
+    # 'g' for 2.4GHz or 'a' for 5GHz.
+    hw_mode=g
+    # Non-overlapping channel allowed by region CH
+    channel=1
+    # High Throughput (HT) mode (Wi-Fi 4)
+    ieee80211n=1
+
+    # SSID and Security settings
+    ssid=Discworld_IoT
+    wpa=2
+    wpa_passphrase=************
+    wpa_key_mgmt=WPA-PSK
+    wpa_pairwise=CCMP
+    rsn_pairwise=CCMP
+    ```
+
+With `hw_mode=g` (2.4GHz) it is possible to use `ieee80211n=1` (enable Wi-Fi 4), but
+all the other `ieee80211...` flags will be ignored as they don't support 2.4GHz. 
+
+The UniFi access points are on channels 6 and 11, as reported by the
+[UniFi Network](./2024-12-31-migrating-unifi-controller-to-kubernetes.md)
+application. This leaves only **Channel 1** as completely non-overlapping with them.
+When marking channel 1 as Excluded at 40MHz in UniFi (under **Settings > WiFi**) it
+disables all channels up to 7, leaving only channel 11 in use by UniFi, and since UniFi
+is not using any channels at 40MHz, it is not recommended to enable the faster 40MHz
+channel width (with `ht_capab=[HT40+]`).
+
+**Mark channel 1 in UniFi to mark it as Excluded at 20 MHz.**
+
+In any case, modern smartphones and laptops are programmed to automatically drop down
+to 20MHz in the 2.4GHz band whenever they detect any other nearby Wi-Fi networks to
+prevent interference; even faster 40MHz channel width was forced, clients would likely
+refuse to use it. Sticking to the 20MHz channel width makes also roaming smoother, when
+a client moves from a UniFi AP to the NUC, the transition is smoother if the channel
+widths are consistent.
+
+Unmask and enable the `hostapd` service so it starts on boot:
+
+``` console
+# systemctl unmask hostapd
+Removed "/etc/systemd/system/hostapd.service".
+
+# systemctl enable hostapd
+Synchronizing state of hostapd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable hostapd
+
+# systemctl start hostapd
+Job for hostapd.service failed because the control process exited with error code.
+See "systemctl status hostapd.service" and "journalctl -xeu hostapd.service" for details.
+
+# systemctl status hostapd
+● hostapd.service - Access point and authentication server for Wi-Fi and Ethernet
+     Loaded: loaded (/usr/lib/systemd/system/hostapd.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-01-22 07:26:28 CET; 2min 10s ago
+       Docs: man:hostapd(8)
+    Process: 1874042 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid $DAEMON_OPTS ${DAEMON_CONF} (code=exited, status=0/SUCCESS)
+   Main PID: 1874338 (hostapd)
+      Tasks: 1 (limit: 37734)
+     Memory: 1.0M (peak: 1.5M)
+        CPU: 64ms
+     CGroup: /system.slice/hostapd.service
+             └─1874338 /usr/sbin/hostapd -B -P /run/hostapd.pid /etc/hostapd/hostapd.conf
+
+Jan 22 07:26:28 octavo systemd[1]: Starting hostapd.service - Access point and authentication server for Wi-Fi and Ethernet...
+Jan 22 07:26:28 octavo (hostapd)[1874042]: hostapd.service: Referenced but unset environment variable evaluates to an empty string: DAEMON_OPTS
+Jan 22 07:26:28 octavo hostapd[1874042]: wlo1: interface state UNINITIALIZED->COUNTRY_UPDATE
+Jan 22 07:26:28 octavo hostapd[1874042]: wlo1: interface state COUNTRY_UPDATE->ENABLED
+Jan 22 07:26:28 octavo hostapd[1874042]: wlo1: AP-ENABLED
+Jan 22 07:26:28 octavo systemd[1]: Started hostapd.service - Access point and authentication server for Wi-Fi and Ethernet.
+```
+
+Once the hostapd service is running, the interface should be correctly bridged:
+
+``` console
+# brctl show br0
+bridge name     bridge id               STP enabled     interfaces
+br0             8000.ae6c4282ecc1       no              enp86s0
+                                                        wlo1
+```
+
+Now both the Ethernet interface (`enp86s0`) and the Wi-Fi interface (`wlo1`)
+listed under the `interfaces` column for `br0`. This confirms that any client
+connecting to the NUC Wi-Fi will be Layer-2 bridged directly to the UniFi network.
+
+### 5GHz AP (does not work)
+
+Unfortunately the above setup would not work on the 5HGz band.
+
+Many Intel cards have **Location Aware Regulatory (LAR)** firmware that often prevents
+5GHz AP mode in Linux because the card cannot "see" its regulatory domain without being
+a client first.
+
+The first step is to make sure the regulatory domain is set, by running `iw reg get`
+with the appropriate country code:
+
+``` console
+# iw reg set FR
+
+# iw reg get
+global
+country 00: DFS-UNSET
+        (755 - 928 @ 2), (N/A, 20), (N/A), PASSIVE-SCAN
+        (2402 - 2472 @ 40), (N/A, 20), (N/A)
+        (2457 - 2482 @ 20), (N/A, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+        (2474 - 2494 @ 20), (N/A, 20), (N/A), NO-OFDM, PASSIVE-SCAN
+        (5170 - 5250 @ 80), (N/A, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+        (5250 - 5330 @ 80), (N/A, 20), (0 ms), DFS, AUTO-BW, PASSIVE-SCAN
+        (5490 - 5730 @ 160), (N/A, 20), (0 ms), DFS, PASSIVE-SCAN
+        (5735 - 5835 @ 80), (N/A, 20), (N/A), PASSIVE-SCAN
+        (57240 - 63720 @ 2160), (N/A, 0), (N/A)
+
+phy#0 (self-managed)
+country 00: DFS-UNSET
+        (2402 - 2437 @ 40), (6, 22), (N/A), AUTO-BW, NO-HT40MINUS, NO-80MHZ, NO-160MHZ
+        (2422 - 2462 @ 40), (6, 22), (N/A), AUTO-BW, NO-80MHZ, NO-160MHZ
+        (2447 - 2482 @ 40), (6, 22), (N/A), AUTO-BW, NO-HT40PLUS, NO-80MHZ, NO-160MHZ
+        (5170 - 5190 @ 160), (6, 22), (N/A), NO-OUTDOOR, AUTO-BW, IR-CONCURRENT, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5190 - 5210 @ 160), (6, 22), (N/A), NO-OUTDOOR, AUTO-BW, IR-CONCURRENT, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5210 - 5230 @ 160), (6, 22), (N/A), NO-OUTDOOR, AUTO-BW, IR-CONCURRENT, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5230 - 5250 @ 160), (6, 22), (N/A), NO-OUTDOOR, AUTO-BW, IR-CONCURRENT, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5250 - 5270 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5270 - 5290 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5290 - 5310 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5310 - 5330 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5490 - 5510 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5510 - 5530 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5530 - 5550 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5550 - 5570 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5570 - 5590 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5590 - 5610 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5610 - 5630 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-320MHZ, PASSIVE-SCAN
+        (5630 - 5650 @ 160), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-320MHZ, PASSIVE-SCAN
+        (5650 - 5670 @ 80), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5670 - 5690 @ 80), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5690 - 5710 @ 80), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40MINUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5710 - 5730 @ 80), (6, 22), (0 ms), DFS, AUTO-BW, NO-HT40PLUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5735 - 5755 @ 80), (6, 22), (N/A), AUTO-BW, IR-CONCURRENT, NO-HT40MINUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5755 - 5775 @ 80), (6, 22), (N/A), AUTO-BW, IR-CONCURRENT, NO-HT40PLUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5775 - 5795 @ 80), (6, 22), (N/A), AUTO-BW, IR-CONCURRENT, NO-HT40MINUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5795 - 5815 @ 80), (6, 22), (N/A), AUTO-BW, IR-CONCURRENT, NO-HT40PLUS, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+        (5815 - 5835 @ 40), (6, 22), (N/A), AUTO-BW, IR-CONCURRENT, NO-HT40MINUS, NO-80MHZ, NO-160MHZ, NO-320MHZ, PASSIVE-SCAN
+```
+
+Since `iw reg get` still says `country 00` the setting has not been effective. This
+shows a common Intel hardware limitation: the Wi-Fi card is "self-managed" and is
+ignoring the system's FR (France) regulatory setting, defaulting instead to a
+restrictive `00 (World)` domain. Also, almost every 5GHz frequency is marked with
+`PASSIVE-SCAN` or `IR-CONCURRENT`. In the Linux wireless stack, this is effectively
+the same as `no-IR`.
+
+Using the `iw` tool to check for list all the Wi-Fi channels with shows that everything
+except `Band 1` (2.4GHz) has either `No IR` (No Initial Radiation) or `(disabled)`,
+including all frequencies in the 5260–5700 MHz range (channels 52–140):
+
+??? terminal "`iw phy phy0 channels`"
+
+    ``` console
+    # iw phy phy0 channels
+    Band 1:
+            * 2412 MHz [1] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40+
+            * 2417 MHz [2] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40+
+            * 2422 MHz [3] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40+
+            * 2427 MHz [4] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40+
+            * 2432 MHz [5] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40- HT40+
+            * 2437 MHz [6] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40- HT40+
+            * 2442 MHz [7] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40- HT40+
+            * 2447 MHz [8] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40- HT40+
+            * 2452 MHz [9] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40- HT40+
+            * 2457 MHz [10] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40-
+            * 2462 MHz [11] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40-
+            * 2467 MHz [12] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40-
+            * 2472 MHz [13] 
+              Maximum TX power: 22.0 dBm
+              Channel widths: 20MHz HT40-
+            * 2484 MHz [14] (disabled)
+    Band 2:
+            * 5180 MHz [36] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+            * 5200 MHz [40] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40- VHT80 VHT160
+            * 5220 MHz [44] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+            * 5240 MHz [48] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40- VHT80 VHT160
+            * 5260 MHz [52] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5280 MHz [56] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5300 MHz [60] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5320 MHz [64] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5340 MHz [68] (disabled)
+            * 5360 MHz [72] (disabled)
+            * 5380 MHz [76] (disabled)
+            * 5400 MHz [80] (disabled)
+            * 5420 MHz [84] (disabled)
+            * 5440 MHz [88] (disabled)
+            * 5460 MHz [92] (disabled)
+            * 5480 MHz [96] (disabled)
+            * 5500 MHz [100] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5520 MHz [104] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5540 MHz [108] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5560 MHz [112] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5580 MHz [116] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5600 MHz [120] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5620 MHz [124] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5640 MHz [128] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80 VHT160
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5660 MHz [132] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5680 MHz [136] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5700 MHz [140] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40+ VHT80
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5720 MHz [144] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Radar detection
+              Channel widths: 20MHz HT40- VHT80
+              DFS state: usable (for 42089 sec)
+              DFS CAC time: 60000 ms
+            * 5745 MHz [149] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40+ VHT80
+            * 5765 MHz [153] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40- VHT80
+            * 5785 MHz [157] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40+ VHT80
+            * 5805 MHz [161] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz HT40- VHT80
+            * 5825 MHz [165] 
+              Maximum TX power: 22.0 dBm
+              No IR
+              Channel widths: 20MHz
+            * 5845 MHz [169] (disabled)
+            * 5865 MHz [173] (disabled)
+            * 5885 MHz [177] (disabled)
+            * 5905 MHz [181] (disabled)
+    Band 4:
+            * 5955 MHz [1] (disabled)
+            * 5975 MHz [5] (disabled)
+            * 5995 MHz [9] (disabled)
+            * 6015 MHz [13] (disabled)
+            * 6035 MHz [17] (disabled)
+            * 6055 MHz [21] (disabled)
+            * 6075 MHz [25] (disabled)
+            * 6095 MHz [29] (disabled)
+            * 6115 MHz [33] (disabled)
+            * 6135 MHz [37] (disabled)
+            * 6155 MHz [41] (disabled)
+            * 6175 MHz [45] (disabled)
+            * 6195 MHz [49] (disabled)
+            * 6215 MHz [53] (disabled)
+            * 6235 MHz [57] (disabled)
+            * 6255 MHz [61] (disabled)
+            * 6275 MHz [65] (disabled)
+            * 6295 MHz [69] (disabled)
+            * 6315 MHz [73] (disabled)
+            * 6335 MHz [77] (disabled)
+            * 6355 MHz [81] (disabled)
+            * 6375 MHz [85] (disabled)
+            * 6395 MHz [89] (disabled)
+            * 6415 MHz [93] (disabled)
+            * 6435 MHz [97] (disabled)
+            * 6455 MHz [101] (disabled)
+            * 6475 MHz [105] (disabled)
+            * 6495 MHz [109] (disabled)
+            * 6515 MHz [113] (disabled)
+            * 6535 MHz [117] (disabled)
+            * 6555 MHz [121] (disabled)
+            * 6575 MHz [125] (disabled)
+            * 6595 MHz [129] (disabled)
+            * 6615 MHz [133] (disabled)
+            * 6635 MHz [137] (disabled)
+            * 6655 MHz [141] (disabled)
+            * 6675 MHz [145] (disabled)
+            * 6695 MHz [149] (disabled)
+            * 6715 MHz [153] (disabled)
+            * 6735 MHz [157] (disabled)
+            * 6755 MHz [161] (disabled)
+            * 6775 MHz [165] (disabled)
+            * 6795 MHz [169] (disabled)
+            * 6815 MHz [173] (disabled)
+            * 6835 MHz [177] (disabled)
+            * 6855 MHz [181] (disabled)
+            * 6875 MHz [185] (disabled)
+            * 6895 MHz [189] (disabled)
+            * 6915 MHz [193] (disabled)
+            * 6935 MHz [197] (disabled)
+            * 6955 MHz [201] (disabled)
+            * 6975 MHz [205] (disabled)
+            * 6995 MHz [209] (disabled)
+            * 7015 MHz [213] (disabled)
+            * 7035 MHz [217] (disabled)
+            * 7055 MHz [221] (disabled)
+            * 7075 MHz [225] (disabled)
+            * 7095 MHz [229] (disabled)
+            * 7115 MHz [233] (disabled)
+    ```
+
+This means the card is prohibited from being the "master" (Access Point) on these
+channels because it doesn't have regulatory permission to broadcast until it first
+hears an existing authorized AP on that frequency. In contrast, the output for 2.4GHz
+(2402-2437 MHz) does not have the `No IR` or `PASSIVE-SCAN` restriction, meaning it is
+guaranteed to work in AP mode.
+
+#### Confimed failed attempt
+
+Because of the `PASSIVE-SCAN` flags, it was foreseeable that `hostapd` might refuse to
+start. An attempt was made to force it by adding the `ieee80211d=1` (Country Code
+broadcasting) and `ieee80211h=1` (DFS support) flags.
+
+UniFi is using channels 38 and 44 at 40MHz and channels 140, 149 and 157 are marked as
+"Not available in your region". At 80MHz only channel 42 is in use, while channels 132
+and 149 are marked as "Not available in your region". This leaves only a small window
+available: the "DFS" Option, channels 52 through 140 are available but require **DFS**
+(Dynamic Frequency Selection). The card shows these as DFS and `PASSIVE-SCAN`. Channel
+52 is the only one outside the range of UniFi APs and is generally supported by most
+devices.
+
+The attempt failed due to the foreseen hardware limitations; after trying to start
+the `hostapd` service it failed with `DFS start_dfs_cac() failed`:
+
+``` console hl_lines="22"
+# systemctl status hostapd.service
+● hostapd.service - Access point and authentication server for Wi-Fi and Ethernet
+     Loaded: loaded (/usr/lib/systemd/system/hostapd.service; enabled; preset: enabled)
+     Active: activating (auto-restart) (Result: exit-code) since Thu 2026-01-22 07:01:57 CET; 1s ago
+       Docs: man:hostapd(8)
+    Process: 1166743 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid $DAEMON_OPTS ${DAEMON_CONF} (code=exited, status=1/FAILURE)
+        CPU: 4ms
+
+Jan 22 07:02:00 octavo systemd[1]: Starting hostapd.service - Access point and authentication server for Wi-Fi and Ethernet...
+Jan 22 07:02:00 octavo (hostapd)[1167941]: hostapd.service: Referenced but unset environment variable evaluates to an empty string: DAEMON_OPTS
+Jan 22 07:02:00 octavo hostapd[1167941]: Failed to set up interface with /etc/hostapd/hostapd.conf
+Jan 22 07:02:00 octavo hostapd[1167941]: Failed to initialize interface
+Jan 22 07:02:00 octavo systemd[1]: hostapd.service: Control process exited, code=exited, status=1/FAILURE
+Jan 22 07:02:00 octavo systemd[1]: hostapd.service: Failed with result 'exit-code'.
+Jan 22 07:02:00 octavo systemd[1]: Failed to start hostapd.service - Access point and authentication server for Wi-Fi and Ethernet.
+
+# journalctl -xeu hostapd.service
+Jan 22 07:04:32 octavo (hostapd)[1241470]: hostapd.service: Referenced but unset environment variable evaluates to an empty string: DAEMON_OPTS
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: interface state UNINITIALIZED->COUNTRY_UPDATE
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: interface state COUNTRY_UPDATE->DFS
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: DFS-CAC-START freq=5260 chan=52 sec_chan=0, width=0, seg0=0, seg1=0, cac_time=60s
+Jan 22 07:04:33 octavo hostapd[1241470]: DFS start_dfs_cac() failed, -1
+Jan 22 07:04:33 octavo hostapd[1241470]: Interface initialization failed
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: interface state DFS->DISABLED
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: AP-DISABLED
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: Unable to setup interface.
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: interface state DISABLED->DISABLED
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: AP-DISABLED
+Jan 22 07:04:33 octavo hostapd[1241470]: wlo1: CTRL-EVENT-TERMINATING
+Jan 22 07:04:33 octavo hostapd[1241470]: hostapd_free_hapd_data: Interface wlo1 wasn't started
+Jan 22 07:04:33 octavo hostapd[1241470]: nl80211: deinit ifname=wlo1 disabled_11b_rates=0
+Jan 22 07:04:33 octavo hostapd[1241470]: nl80211: Failed to remove interface wlo1 from bridge br0: Invalid argument
+Jan 22 07:04:33 octavo systemd[1]: hostapd.service: Control process exited, code=exited, status=1/FAILURE
+```
