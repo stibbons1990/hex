@@ -573,6 +573,109 @@ storageclass.storage.k8s.io/longhorn-nvme created
 storageclass.storage.k8s.io/longhorn-sata created
 ```
 
+### Replication Vs. Bandwidth
+
+When creating new PVC using the `longhorn-nvme` class to use the fastest SSD,
+`accessModes` should *almost always* be set to `ReadWriteOnce`.
+
+**RWO** volumes (`ReadWriteOnce`) are mounted directly as block devices via iSCSI. This
+provides the highest performance for database-like workloads (e.g., Postgres, Redis, or
+application caches) because there is no network filesystem overhead. Most Kubernetes
+deployments (even those with multiple replicas) do not require
+**multiple pods to write to the same volume simultaneously**.
+Instead, each pod typically manages its own data. In a multi-node cluster, if one node
+fails, Kubernetes will move the pod to the other node. Longhorn will then detach the RWO
+cvolume from the old node and attach it to the new one.
+
+**RWX** volumes (`ReadWriteMany`) should only be used when an application specifically
+requires **multiple pods** (possibly on multiple nodes) to 
+**read and write to the exact same files at the same time**. 
+Longhorn implements RWX by spinning up a "Share Manager" pod that acts as an NFS server
+for that specific volume. This mode requires the `nfs-common` package you installed on
+your Ubuntu hosts earlier.
+
+When scaling a single-node cluster to two nodes and setting `numberOfReplicas: 2`,
+an RWO volume will still be fully distributed and synced across both your i7 and i5 NVMe
+SSDs. The "Once" in `ReadWriteOnce` refers only to *how many nodes can mount the volume*
+at one time, not how many nodes store the data. Even with RWO, your data is redundant
+and safe on both nodes.
+
+However, in a two-node Longhorn cluster with two replicas, each pod will **not** use *exclusively local PCIe NVMe bandwidth* for its storage operations. While each pod can
+be guaranteed to have a local copy of its data, the synchronous replication requirement
+of a distributed system introduces network latency. 
+
+By default, Longhorn may schedule a pod on a node that does not contain a local replica
+of its volume. To force each pod to prioritize its local disk, enable **Data Locality**
+in the `StorageClass` or volume settings: 
+
+*   `best-effort`: Longhorn attempts to keep one replica on the same node as the pod.
+    If it can't, the pod will still run but will access its data over the network from
+    the other node.
+*   `strict-local`: Enforces that a healthy replica must exist on the same node as the
+    pod. This provides the lowest possible latency for reads but prevents the pod from
+    starting if the local disk is unavailable. 
+
+Even if a pod is reading directly from its local NVMe SSD, write operations are
+synchronous. When a pod writes data, the Longhorn Engine (running on the same node as
+the pod) must successfully write that data to both the local replica and the remote
+replica on the second node before the write is considered "complete".
+This means the write bandwidth and latency are capped by the network speed and the
+overhead of the iSCSI/Longhorn protocol, rather than the raw PCIe NVMe bandwidth.
+
+While the pod will benefit from NVMe speeds for local reads (if data locality is
+enabled), the overall performance will be significantly lower than a raw local NVMe SSD:
+reads will have *near-local* speeds if a local replica is present, but writes will be
+limited by network latency and the processing time of the Longhorn engine.
+
+Ultimately, if an application requires raw PCIe NVMe bandwidth and doesn't need
+Longhorn’s high availability features (cross-node syncing, et.c.), then a `hostPath` or
+Local Path Provisioner class may be best for that specific workload. However, for most
+general-purpose applications, the performance trade-off of Longhorn is acceptable for
+the benefit of having a fully synced, distributed cluster.
+
+### Active-Active Vs. Active-Passive
+
+For a single-pod deployment like code-server, when scaling up to 2 replicas on 2 nodes,
+with Longhorn replicating its RWO volume with **data locality** set to `best-effort` to
+keep both volumes in sync, the result is an **active-passive** with one pod being
+active while the other stays in stand-by to take over only when the first one goes down.
+
+This setup will not work for an **active-active** setup because of two reasons:
+
+1.  A `ReadWriteOnce` (RWO) volume is **physically locked to a single** node at a time.
+    If Pod-A is running one node and has the volume mounted, Pod-B on the other node
+    **will be unable to start**. It will stay in a `ContainerCreating` or
+    `MatchNodeSelector` state because Longhorn cannot attach an RWO volume to two nodes
+    simultaneously. While Longhorn replicates the data to both nodes' NVMe SSDs in the
+    background, only one engine can be the **Primary** (the writer) at any given moment.
+
+    With `dataLocality: best-effort` and `numberOfReplicas: 2` every byte Pod-A writes
+    to the one NVMe is synchronously sent over the network to the other NVMe, so that
+    both disks are always bit-for-bit identical. If one node crashes, Kubernetes
+    detects the node failure. It then schedules a new Pod on the other node. Longhorn
+    "promotes" the second replica to be the new **Primary**, and the Pod starts.
+    This is an **Active-Passive HA** setup, with redundancy, but not both pods
+    responding to requests at the same time.
+
+2.  Even when using **RWX** (which allows both pods to run), applications like
+    `code-server` are not **stateless**; `code-server` (and its underlying VS Code
+    engine) uses **SQLite** databases for extensions and settings. SQLite does not
+    support multiple processes writing to the same file over a network (NFS/RWX).
+    Attempting to run multiple instances on a single such database would lead to
+    database corruption or immediate "Locked" errors. Moreover, if Pomerium proxy sends
+    a request for "Save File" to Pod-B, but the "Open Editor" session was handled by
+    Pod-A, the session state would be inconsistent.
+
+RWO volumes (best compromise for speed and replication) support **Disaster Recovery** (Active-Passive) setups, ensuring data is never lost a node dies. However, it cannot be
+Active-Active; for that, an application must be specifically designed to store its
+state in an external database (like Postgres) rather than a local RWO/RWX volume.
+
+Most of the currently running applications are designed as monolithic services that rely
+on a single local database (SQLite) or a local file system (e.g. Home Assistant), making
+them **Active-Passive** by nature. However, several can be adapted for Active-Active HA
+with specific configurations: Pomerium and Homepage are stateless, Grafana can have its
+SQLite database replaced by Postgres or MySQL, but ony InfluxDB 3.0 supports clustering.
+
 ## From `hostPath` to Longhorn
 
 At this point data can be migrated from the old `hostPath` volume to the new Longhorn
@@ -588,29 +691,37 @@ To copy the data the same simple pod can be run by adjusting just the highlighte
 
 !!! k8s "`longhorn-migrator.yaml`"
 
-    ``` yaml hl_lines="5 19 22"
-    apiVersion: v1
-    kind: Pod
+    ``` yaml hl_lines="5 27 30"
+    apiVersion: batch/v1
+    kind: Job
     metadata:
       name: hostpath-to-longhorn-migrator
-      namespace: app-name-namespace  # Set to each application's namespace
+      namespace: code-server  # Set to each application's namespace
     spec:
-      containers:
-      - name: worker
-        image: busybox
-        command: ["cp", "-av", "/old/.", "/new/"]
-        volumeMounts:
-        - name: old-data
-          mountPath: /old  # Point to existing hostPath subdirectory
-        - name: new-data
-          mountPath: /new  # Point to new Longhorn PVC
-      volumes:
-      - name: old-data
-        hostPath:
-          path: /home/k8s/app-name  # The hostPath directory for each application.
-      - name: new-data
-        persistentVolumeClaim:
-          claimName: app-name-longhorn-pvc  # The new PVC created for each application.
+      template:
+        spec:
+          restartPolicy: OnFailure  # Restart only upon failure.
+          containers:
+          - name: worker
+            image: ubuntu:22.04
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                apt-get update && apt-get install -y rsync
+                rsync -uva /old/ /new/
+            volumeMounts:
+            - name: old-data
+              mountPath: /old  # Point to existing hostPath subdirectory
+              readOnly: true
+            - name: new-data
+              mountPath: /new  # Point to new Longhorn PVC
+          volumes:
+          - name: old-data
+            hostPath:
+              path: /home/k8s/code-server
+          - name: new-data
+            persistentVolumeClaim:
+              claimName: code-server-pvc-lh  # The new PVC created for each application.
     ```
 
 ### Example migration
@@ -632,7 +743,7 @@ To illustrate the migration process with a simple case, start by migrating
         spec:
           storageClassName: longhorn-nvme
           accessModes:
-            - ReadWriteMany
+            - ReadWriteOnce
           resources:
             requests:
               storage: 5Gi
@@ -640,8 +751,9 @@ To illustrate the migration process with a simple case, start by migrating
 
     !!! warning
     
-        Setting `accessModes` to `ReadWriteMany` **cannot** be done later, e.g. when
-        [adding a node](#adding-future-nodes); it must be set upfront.
+        The `accessModes` value **cannot** be *easly* done later, e.g. when [adding a
+        node](#adding-future-nodes); see
+        [Replication Vs. Bandwidth](#replication-vs-bandwidth).
 
     Confirm the PVC is created after applying the `code-server.yaml` manifest:
     
@@ -671,44 +783,52 @@ To illustrate the migration process with a simple case, start by migrating
 
     !!! k8s "`longhorn-migrator.yaml`"
 
-        ``` yaml hl_lines="5 20 23"
-        apiVersion: v1
-        kind: Pod
+        ``` yaml hl_lines="5 27 30"
+        apiVersion: batch/v1
+        kind: Job
         metadata:
           name: hostpath-to-longhorn-migrator
           namespace: code-server  # Set to each application's namespace
         spec:
-          restartPolicy: OnFailure  # Restart only upon failure.
-          containers:
-          - name: worker
-            image: busybox
-            command: ["sh", "-c", "cp -av /old/. /new/ && echo 'Migration Complete'"]
-            volumeMounts:
-            - name: old-data
-              mountPath: /old  # Point to existing hostPath subdirectory
-            - name: new-data
-              mountPath: /new  # Point to new Longhorn PVC
-          volumes:
-          - name: old-data
-            persistentVolumeClaim:
-              claimName: code-server-pv-claim  # The old PVC to copy data from.
-          - name: new-data
-            persistentVolumeClaim:
-              claimName: code-server-pvc-lh  # The new PVC created for each application.
+          template:
+            spec:
+              restartPolicy: OnFailure  # Restart only upon failure.
+              containers:
+              - name: worker
+                image: ubuntu:22.04
+                command: ["/bin/sh", "-c"]
+                args:
+                  - |
+                    apt-get update && apt-get install -y rsync
+                    rsync -uva /old/ /new/
+                volumeMounts:
+                - name: old-data
+                  mountPath: /old  # Point to existing hostPath subdirectory
+                  readOnly: true
+                - name: new-data
+                  mountPath: /new  # Point to new Longhorn PVC
+              volumes:
+              - name: old-data
+                hostPath:
+                  path: /home/k8s/code-server
+              - name: new-data
+                persistentVolumeClaim:
+                  claimName: code-server-pvc-lh  # The new PVC created for each application.
         ```
 
     ``` console
     $ kubectl apply -f longhorn-migrator.yaml 
-    pod/hostpath-to-longhorn-migrator created
+    job.batch/hostpath-to-longhorn-migrator created
 
-    $ kubectl -n code-server get pods --watch
-    NAME                            READY   STATUS              RESTARTS   AGE
-    hostpath-to-longhorn-migrator   0/1     ContainerCreating   0          8s
-    hostpath-to-longhorn-migrator   1/1     Running             0          14s
-    hostpath-to-longhorn-migrator   0/1     Completed           0          61s
+    $ kubectl -n code-server get jobs --watch
+    NAME                            STATUS    COMPLETIONS   DURATION   AGE
+    hostpath-to-longhorn-migrator   Running   0/1           12s        12s
+    hostpath-to-longhorn-migrator   Running   0/1           18s        18s
+    hostpath-to-longhorn-migrator   SuccessCriteriaMet   0/1           19s        19s
+    hostpath-to-longhorn-migrator   Complete             1/1           19s        19s
 
-    $ kubectl -n code-server delete pod hostpath-to-longhorn-migrator
-    pod "hostpath-to-longhorn-migrator" deleted from code-server namespace
+    $ kubectl -n code-server delete job hostpath-to-longhorn-migrator 
+    job.batch "hostpath-to-longhorn-migrator" deleted from code-server namespace
     ```
 
 4.  Update the Deployment to mount the new `PersistentVolumeClaim`.
