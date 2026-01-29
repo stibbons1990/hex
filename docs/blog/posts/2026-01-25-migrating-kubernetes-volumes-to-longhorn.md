@@ -585,19 +585,18 @@ deployments (even those with multiple replicas) do not require
 **multiple pods to write to the same volume simultaneously**.
 Instead, each pod typically manages its own data. In a multi-node cluster, if one node
 fails, Kubernetes will move the pod to the other node. Longhorn will then detach the RWO
-cvolume from the old node and attach it to the new one.
+volume from the old node and attach it to the new one.
 
 **RWX** volumes (`ReadWriteMany`) should only be used when an application specifically
 requires **multiple pods** (possibly on multiple nodes) to 
 **read and write to the exact same files at the same time**. 
 Longhorn implements RWX by spinning up a "Share Manager" pod that acts as an NFS server
-for that specific volume. This mode requires the `nfs-common` package you installed on
-your Ubuntu hosts earlier.
+for that specific volume (this requires the `nfs-common`).
 
-When scaling a single-node cluster to two nodes and setting `numberOfReplicas: 2`,
-an RWO volume will still be fully distributed and synced across both your i7 and i5 NVMe
-SSDs. The "Once" in `ReadWriteOnce` refers only to *how many nodes can mount the volume*
-at one time, not how many nodes store the data. Even with RWO, your data is redundant
+When scaling a single-node cluster to two nodes and setting `numberOfReplicas: 2`, an
+RWO volume will still be fully distributed and synced across both nodes' NVMe SSDs.
+The "Once" in `ReadWriteOnce` refers only to *how many nodes can mount the volume*
+at one time, not how many nodes store the data. Even with RWO, data is redundant
 and safe on both nodes.
 
 However, in a two-node Longhorn cluster with two replicas, each pod will **not** use *exclusively local PCIe NVMe bandwidth* for its storage operations. While each pod can
@@ -608,37 +607,39 @@ By default, Longhorn may schedule a pod on a node that does not contain a local 
 of its volume. To force each pod to prioritize its local disk, enable **Data Locality**
 in the `StorageClass` or volume settings: 
 
-*   `best-effort`: Longhorn attempts to keep one replica on the same node as the pod.
-    If it can't, the pod will still run but will access its data over the network from
-    the other node.
 *   `strict-local`: Enforces that a healthy replica must exist on the same node as the
     pod. This provides the lowest possible latency for reads but prevents the pod from
     starting if the local disk is unavailable. 
+*   `best-effort`: Longhorn attempts to keep one replica on the same node as the pod.
+    If it can't, the pod will still run but will access its data over the network from
+    the other node. This is very nearly always as fast as `strict-local` but with the
+    advantage that pods can move across nodes more easily and quickly, which maximizes
+    uptime without compromising performance.
 
 Even if a pod is reading directly from its local NVMe SSD, write operations are
 synchronous. When a pod writes data, the Longhorn Engine (running on the same node as
 the pod) must successfully write that data to both the local replica and the remote
 replica on the second node before the write is considered "complete".
+
 This means the write bandwidth and latency are capped by the network speed and the
 overhead of the iSCSI/Longhorn protocol, rather than the raw PCIe NVMe bandwidth.
-
-While the pod will benefit from NVMe speeds for local reads (if data locality is
-enabled), the overall performance will be significantly lower than a raw local NVMe SSD:
-reads will have *near-local* speeds if a local replica is present, but writes will be
-limited by network latency and the processing time of the Longhorn engine.
+While the pod will benefit from NVMe speeds for local reads, the overall performance
+is lower than a raw local NVMe SSD: reads will have *near-local* speeds but writes is
+limited by network latency.
 
 Ultimately, if an application requires raw PCIe NVMe bandwidth and doesn't need
-Longhorn’s high availability features (cross-node syncing, et.c.), then a `hostPath` or
-Local Path Provisioner class may be best for that specific workload. However, for most
-general-purpose applications, the performance trade-off of Longhorn is acceptable for
-the benefit of having a fully synced, distributed cluster.
+Longhorn’s high availability features, then a `hostPath` or Local Path Provisioner
+class may be best for that specific workload. However, for most general-purpose
+applications, the performance trade-off of Longhorn is acceptable for the benefit of
+having a fully synced, distributed cluster.
 
 ### Active-Active Vs. Active-Passive
 
 For a single-pod deployment like code-server, when scaling up to 2 replicas on 2 nodes,
 with Longhorn replicating its RWO volume with **data locality** set to `best-effort` to
-keep both volumes in sync, the result is an **active-passive** with one pod being
-active while the other stays in stand-by to take over only when the first one goes down.
+keep both volumes in sync, the result is an **active-passive** cluster, with one pod
+being active while the other stays in stand-by to take over only when the first one
+goes down.
 
 This setup will not work for an **active-active** setup because of two reasons:
 
@@ -654,8 +655,8 @@ This setup will not work for an **active-active** setup because of two reasons:
     both disks are always bit-for-bit identical. If one node crashes, Kubernetes
     detects the node failure. It then schedules a new Pod on the other node. Longhorn
     "promotes" the second replica to be the new **Primary**, and the Pod starts.
-    This is an **Active-Passive HA** setup, with redundancy, but not both pods
-    responding to requests at the same time.
+    This is an **Active-Passive High Availability** setup, with redundancy, but not
+    both pods responding to requests at the same time.
 
 2.  Even when using **RWX** (which allows both pods to run), applications like
     `code-server` are not **stateless**; `code-server` (and its underlying VS Code
@@ -672,9 +673,10 @@ state in an external database (like Postgres) rather than a local RWO/RWX volume
 
 Most of the currently running applications are designed as monolithic services that rely
 on a single local database (SQLite) or a local file system (e.g. Home Assistant), making
-them **Active-Passive** by nature. However, several can be adapted for Active-Active HA
-with specific configurations: Pomerium and Homepage are stateless, Grafana can have its
-SQLite database replaced by Postgres or MySQL, but ony InfluxDB 3.0 supports clustering.
+them **Active-Passive** by nature. However, several can be adapted for Active-Active 
+High Availability with specific configurations: Pomerium and Homepage are stateless,
+Grafana can have its SQLite database replaced by Postgres or MySQL, but ony InfluxDB
+3.0 supports clustering.
 
 ## From `hostPath` to Longhorn
 
@@ -874,6 +876,119 @@ To illustrate the migration process with a simple case, start by migrating
     $ kubectl delete pv code-server-pv
     persistentvolume "code-server-pv" deleted
     ```
+
+### NAS-to-Longhorn sync
+
+Some applications work better when files are in a "local" file system, e.g.
+Audiobookshelf detects new books when added to a local (`hostPath`) volume, but when
+added to a NFS volume the library must be manually re-scanned; while this is not too
+bad for audiobooks when added at a rate of *a few per month* , it becomes a problem 
+with podcasts since the aggregate release rate of episodes soon amounts to
+*a few every day*.
+
+To keep such apps running off of "local" Longhorn volumes while using the NAS NFS
+volume as the canonical repository, run a sidecar pod that continuously syncs content
+from the NAS to the Longhorn volume. To avoid constantly scanning the **content** of
+files in the NAS, the pod should scan the NFS volume for **metadata** updates. Here is
+the sidecar pod added to [Komga](./2024-05-26-self-hosted-ebook-library-with-komga.md):
+
+!!! k8s "Kubernetes deployment: `komga.yaml`"
+
+    ``` yaml linenums="72" hl_lines="25-52"
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: komga
+      name: komga
+      namespace: komga
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 0
+      selector:
+        matchLabels:
+          app: komga
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: komga
+        spec:
+          containers:
+            - image: alpine:latest
+              imagePullPolicy: Always
+              name: sync-nvme-from-nas
+              command: ["/bin/sh"]
+              args:
+                - "-c"
+                - |
+                  apk add --no-cache rsync
+                  SOURCE="/nas-source"
+                  TARGET="/data-target"
+                  LAST_FINGERPRINT=""
+                  echo "Starting Smart-Sync Poller..."
+                  while true; do
+                    CURRENT_FINGERPRINT=$(ls -Rl --full-time $SOURCE | md5sum)
+                    if [ "$CURRENT_FINGERPRINT" != "$LAST_FINGERPRINT" ]; then
+                      echo "Change detected on Synology NAS. Synchronizing to NVMe..."
+                      rsync -au --delete --inplace "$SOURCE/" "$TARGET/"
+                      LAST_FINGERPRINT=$CURRENT_FINGERPRINT
+                      echo "Sync complete. Waiting for next change..."
+                    fi
+                    sleep 60
+                  done
+              volumeMounts:
+              - name: komga-ebooks-nfs
+                mountPath: /nas-source
+                readOnly: true
+              - name: komga-books
+                mountPath: /data-target
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsUser: 118
+                runAsGroup: 118
+            - image: gotson/komga
+              imagePullPolicy: Always
+              name: komga
+    ```
+
+After applying this change to the Komga deployment, the pod is now running
+**two containers**: the application `komga` and the sidecar `sync-nvme-from-nas`.
+Dropping new files in the `ebooks` directory in the NAS, or deleting them, is detected
+and synced to the Longhorn volume:
+
+``` console hl_lines="19-28"
+$ kubectl logs -n komga -f deployment/komga -c sync-nvme-from-nas -f
+(1/6) Installing acl-libs (2.3.2-r1)
+(2/6) Installing lz4-libs (1.10.0-r0)
+(3/6) Installing popt (1.19-r4)
+(4/6) Installing libxxhash (0.8.3-r0)
+(5/6) Installing zstd-libs (1.5.7-r2)
+(6/6) Installing rsync (3.4.1-r1)
+Executing busybox-1.37.0-r30.trigger
+OK: 9602 KiB in 22 packages
+Starting Smart-Sync Poller...
+Change detected on Synology NAS. Synchronizing to NVMe...
+sending incremental file list
+./
+
+sent 573,984 bytes  received 1,172 bytes  383,437.33 bytes/sec
+total size is 13,228,874,013  speedup is 23,000.50
+Sync complete. Waiting for next change...
+
+Change detected on Synology NAS. Synchronizing to NVMe...
+sending incremental file list
+Manuals/books/
+Manuals/books/FUJIFILM X-T5 Owner's Manual.pdf
+
+sent 8,633,357 bytes  received 1,165 bytes  5,756,348.00 bytes/sec
+total size is 13,228,874,013  speedup is 1,532.09
+Sync complete. Waiting for next change...
+```
 
 ## Longhorn Backups
 
