@@ -1,0 +1,1805 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2025/03/08/adopting-firefox-and-bitwarden-as-daily-drivers/">
+      
+      
+        <link rel="prev" href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/">
+      
+      
+        <link rel="next" href="../../28/remote-access-options-for-self-hosted-services/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Adopting Firefox and Bitwarden as daily drivers - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-pln" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adopting Firefox and Bitwarden as daily drivers
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-pln" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The PLN
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The PLN">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#language-and-appearance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language and Appearance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Language and Appearance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#website-appearance-dark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Website appearance: Dark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zoom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zoom
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digital-rights-management-drm-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Digital Rights Management (DRM) Content
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Home">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firefox-home-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefox Home Content
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privacy-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Privacy &amp; Security
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Privacy &amp; Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browser-privacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser Privacy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser Privacy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#website-privacy-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Website Privacy Preferences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passwords" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passwords
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#autofill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autofill
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox-data-collection-and-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefox Data Collection and Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#website-advertising-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Website Advertising Preferences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#https-only-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTPS-Only Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-over-https" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS over HTTPS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox-labs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefox Labs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Firefox Labs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#customize-your-browsing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customize your browsing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profiles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#themes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Themes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extentions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extentions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extentions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dark-reader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dark Reader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ublock-origin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        uBlock Origin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sponsor-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sponsor Block
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-youtube-dislike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Return YouTube Dislike
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privacy-badger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Privacy Badger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-by-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search by Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#augmented-steam-and-steamdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Augmented Steam and SteamDB
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activitywatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActivityWatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-isolation-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account-isolation Containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noscript-security-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NoScript Security Suite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dearrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeArrow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#password-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Password Manager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Password Manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-2025-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A 2025 Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bitwarden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bitwarden
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bitwarden">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#import-passwords" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import Passwords
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chrome-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chrome extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox-add-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefox Add-on
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#desktop-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desktop applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-touches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final touches
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2025-03-08 00:00:00+00:00" class="md-ellipsis">March 8, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/firefox/">firefox</a>, 
+                              <a href="../../../../category/privacy/">privacy</a>, 
+                              <a href="../../../../category/security/">security</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              14 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Adopting Firefox and Bitwarden as daily drivers</h1>
+
+<p>Google Chrome has been my daily driver for a really long time; so long, in fact,
+that all I remember was the initial frustration when it first came out without a
+release for the GNU/Linux platforms. I don't remember why, or even <em>whether</em>, I
+was so eager to jump ship, and at this point I can only guess that the old ship
+was the one I'm preparing to jump back to:
+<a href="https://www.mozilla.org/en-US/firefox/new/">Firefox</a>.</p>
+<p>It seems on-line life has gotten a wee bit more <em>comp-lic-ated</em> that it was
+<a href="https://cybercultural.com/p/internet-2008/">back in 2008</a>, when smartphone
+apps were a new thing, YouTube had only 720p video, and Spotify was brand new...</p>
+<!-- more -->
+
+<p>And one of the worst thing back in those days was that a single web browser had
+so much market share, many (<em>too many</em>) developers would not care much about
+people, including paying customers, using any other browser. The landscape has
+since changed, only to essentially come back round to the same old problem:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-03-08-adopting-firefox-and-bitwarden-as-daily-drivers/desktop-browser-marketshare-worldwide-2009-2024.png" data-desc-position="bottom"><img alt="Desktop Browser Market Share Worldwide from 2009 to 2024" src="../../../../media/2025-03-08-adopting-firefox-and-bitwarden-as-daily-drivers/desktop-browser-marketshare-worldwide-2009-2024.png"></a>
+Source: <a href="https://gs.statcounter.com/browser-market-share/desktop/worldwide#monthly-200901-202412">StatCounter Global Stats - Browser Market Share</a></p>
+<p>These days there are other problems; developers and companies understand that
+users must be respected even if they don't use the one most popular web browser,
+operating system, screen resolution... well, at least <em>more</em> developers care,
+but that's not enough; <em>still too many</em> don't, and so
+<a href="https://batsov.com/articles/2021/11/28/firefox-is-the-only-alternative/">We Have A Browser Monopoly Again and Firefox is The Only Alternative Out There</a>.</p>
+<h2 id="the-pln">The PLN</h2>
+<p>With a significantly more complex on-line life and stronger dependencies on
+many more on-line services, <em>one does not simply</em> leave everything behind.
+Chrome used to be particularly useful thanks to many extensions, which would
+make development easier or enable workarounds on half-broken sites. These days
+I find its integrated password manager with cloud-based storage, along with
+very conviniently accessible multiple profiles, the more useful features in a
+modern browser. <a href="https://mzl.la/3vR5WB1">Firefox stores passwords only locally</a>,
+which essentially means no multi-device password manager, but at least multiple
+<a href="https://mzl.la/3zOUSpg">profiles are supported</a> if only less convenient to use.</p>
+<h3 id="settings">Settings</h3>
+<p>Default settings are seldom the best for anyone; if anything, they are the
+<em>one side does not exactly fit anybody</em> at best, or <em>what they want for you</em>
+at worst. Either way, the following changes to default settings are, if not
+necessarily vital, at least worth considering:</p>
+<h4 id="general">General</h4>
+<h5 id="startup">Startup</h5>
+<p><strong>☑ Open previous windows and tabs</strong></p>
+<p>I like to enable this option to easily go back to consistently
+<a href="http://mzl.la/1BAQAMJ">restore previous sessions</a> each time. There is a mostly
+fixed set of sites I like to keep <em>pinned</em> because I used them on a daily
+basis, and beyond those I also like being able to just close the browser with
+the peace of mind that I can easily and quickly go badk to <strong>all</strong> of them by
+just launching the browser again.</p>
+<p><strong>☐ Ask before closing multiple tabs</strong></p>
+<p>This option is useful to avoid accidentally closing a window, although even then
+it is not too hard to get those tabs back: just reopen the relevant profile and
+then use the <code>Control</code>+<code>Shift</code>+<code>T</code> shortcut to reopen recently closed tabs.</p>
+<h5 id="language-and-appearance">Language and Appearance</h5>
+<h6 id="website-appearance-dark">Website appearance: Dark</h6>
+<p>I prefer dark themes on most websites, so I like to set this to <strong>Dark</strong>.</p>
+<p>There are many more <a href="https://addons.mozilla.org/en-US/firefox/themes/">themes</a>
+available to further customize Firefox appearance; these may be useful later to
+make different <a href="#profiles">profiles</a> visually distinct.</p>
+<h6 id="zoom">Zoom</h6>
+<p>Working regularly on high DPI screens such as 4K and 2K monitors, I like to
+keep <em>Default zoom</em> at <strong>120%</strong>.</p>
+<h6 id="language">Language</h6>
+<p>This is an interesting one if you are a multilingual person; even if you can
+<em>just read</em> additional languages, it's useful to <strong>Set Alternatives</strong> and add
+those languages, so that websites that are available in those languages are
+not unnecessarily translated.</p>
+<h5 id="digital-rights-management-drm-content">Digital Rights Management (DRM) Content</h5>
+<p><strong>☐ Play DRM-controlled content</strong></p>
+<p>This option is necessary to watch video in the most protective platforms, e.g.
+<a href="https://help.netflix.com/en/node/32661">Netflix Error F7701-1003</a> requires
+enabling DRM to play videos, Spotify requires it to play music, etc.</p>
+<p>It may make sense to have a dedicated <a href="#profiles">profile</a> with this enabled,
+while leaving it disabled on all/most other profiles to avoid misuse or DRM
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1451762#c9">Apply this workaround</a> 
+to avoid epetitive nagging for those profiles that are meant to never play DRM.</p>
+<h4 id="home">Home</h4>
+<h5 id="firefox-home-content">Firefox Home Content</h5>
+<p><strong>☐ Web Search</strong></p>
+<p>I see no need to have a search bar in the home page, since the same search is
+readily available in the location bar already <em>and</em> that's where the keyboard
+focus goes by default. The screen space saved by removing this can be better
+used to display other, more useful links.</p>
+<p><strong>☑ Shortcuts</strong></p>
+<p>Shortcuts are good, but I rather not have <strong>☐ Sponsored shortcuts</strong>.</p>
+<p><strong>☑ Recent activity</strong></p>
+<p>Recent activity provides bigger page thumbnails from various sources, all of
+which seem interesting enough to leave enabled and even allow this to take
+2 or more rows.</p>
+<h4 id="privacy-security">Privacy &amp; Security</h4>
+<h5 id="browser-privacy">Browser Privacy</h5>
+<h6 id="website-privacy-preferences">Website Privacy Preferences</h6>
+<p><strong>☑ Tell websites not to sell or share my data</strong></p>
+<p>This enables <a href="https://mzl.la/40igpUf">Global Privacy Control</a> which
+<em>operates as a “Do Not Sell” mechanism in some US states such as California,
+Colorado and Connecticut. It may also be used to indicate an opt-out of
+targeted advertising or general request to limit the sale or sharing of your
+personal data in those jurisdictions, as well as in jurisdictions such as the
+EU, UK, Nevada, Utah and Virginia.</em></p>
+<h6 id="passwords">Passwords</h6>
+<p><strong>☐ Ask to save passwords</strong></p>
+<p>Firefox built-in password manager stores passwords only locally, <em>optionally</em>
+<a href="https://mzl.la/3SG033C">protected by a primary password</a>. While this is fine
+for a single person using a single computer, as soon as multiple users and/or
+devices are involved, it becomes more recommendable to disable this in favor of
+a 3rd-party <a href="#password-manager">password manager</a>.</p>
+<h6 id="autofill">Autofill</h6>
+<p><strong>☐ Save and fill payment methods</strong></p>
+<p>This should only be enabled on specific <a href="#profiles">profiles</a> used for shopping.</p>
+<h5 id="firefox-data-collection-and-use">Firefox Data Collection and Use</h5>
+<p><strong>☐ Allow Firefox to send technical and interaction data to Mozilla</strong></p>
+<p><a href="https://www.mozilla.org/en-US/privacy/firefox/#health-report">Firefox Privacy Notice</a>
+explains many ways in which such <em>technical and interaction data</em>, including
+<strong>To serve relevant content and advertising on Firefox New Tab</strong>
+which is not going to work anyway after disabling <strong>☐ Sponsored shortcuts</strong>.</p>
+<p><strong>☐ Allow Firefox to send backlogged crash reports on your behalf</strong></p>
+<h5 id="website-advertising-preferences">Website Advertising Preferences</h5>
+<p><strong>☐ Allow websites to perform privacy-preserving ad measurement</strong></p>
+<p>Disable <a href="https://mzl.la/3Xht2j1">Privacy-Preserving Attribution</a> because,
+quite frankly, even <em>Privacy-Preserving</em> is not unlikely to end up leaking a
+bit too much.</p>
+<h5 id="security">Security</h5>
+<h6 id="https-only-mode">HTTPS-Only Mode</h6>
+<p><strong>🔘 Enable HTTPS-Only Mode in all windows</strong><br>
+⊙ Enable HTTPS-Only Mode in private windows only<br>
+⊙ Don’t enable HTTPS-Only Mode</p>
+<p><a href="https://mzl.la/3dnQOF5">HTTPS-Only Mode in Firefox</a> should be enabled by
+default everywhere; given how HTTPS is actually supported, often even
+enforced, by most websites. Accessing HTTP-only sites remains easy and
+exceptions can be added to make them permanent.</p>
+<h5 id="dns-over-https">DNS over HTTPS</h5>
+<p><strong>Enable DNS over HTTPS using: Default Protection</strong></p>
+<p><a href="https://mzl.la/3CeKjxH">DNS over HTTPS protection levels</a> higher than default
+are only useful when a specific DNS provider is preferred, or when failing to
+resolve DNS queries is preferred over using non-HTTPS resolvers.</p>
+<h4 id="sync">Sync</h4>
+<p>This provides a secure method to synchronize data across Mozilla applications
+using a <strong>Mozilla account</strong>. Currently exclusive to Firefox, Sync ensures data
+is effortlessly shared and up-to-date. This enables seamless browsing across
+multiple Firefox instances with bookmarks, logins and passwords, addresses,
+credit cards, extensions and important settings kept consistent and accessible
+across all devices.</p>
+<p><a href="https://www.mozilla.org/en-US/account/">Create a Mozilla account</a> and keep
+the <a href="https://mzl.la/3bNrM1I">Recovery Keys</a> safe. These can be saved later
+using a <a href="#password-manager">password manager</a>.</p>
+<p>Displays a shortcut to prompts when you select text. Firefox sends the text, page title, and prompt to the chatbot.</p>
+<h4 id="firefox-labs">Firefox Labs</h4>
+<h5 id="customize-your-browsing">Customize your browsing</h5>
+<p><strong>☐ AI chatbot</strong> should probably stay disabled until it has been thoroughly
+tested and confirmed more useful than harmful. So far the available
+<a href="https://connect.mozilla.org/t5/discussions/share-your-feedback-on-the-ai-services-experiment-in-nightly/m-p/60519">community feedback</a>
+seems <em>overwhelmingly negative</em>.</p>
+<p><a href="https://connect.mozilla.org/t5/discussions/share-your-feedback-on-the-ai-services-experiment-in-nightly/m-p/60840/highlight/true#M21309">This</a>
+may be interesting in the future if/when employing a local LLM, there is a
+way to change <code>about:config</code> to set <code>browser.ml.chat.provider</code> to any URL and,
+if that URL accepts passing in prompts with <code>?q=</code>, the context menu works too.</p>
+<h3 id="profiles">Profiles</h3>
+<p>Firefox <a href="https://mzl.la/3zOUSpg">Profile Manager</a> may not be as convenient
+(and pretty) as Chrome's, but it does let you create, remove or switch profiles.</p>
+<p>Open <code>about:profiles</code> in a tab to see the list of profiles, create new ones,
+make any one of them the default profile, and launch any in a new window.
+To directly launch a specific profile by clicking on an icon, create desktop
+launchers making use of the 
+<a href="https://wiki.mozilla.org/Firefox/CommandLineOptions#-P_%22profile_name%22"><code>-P "profile_name"</code></a>
+command line flag, or use <code>-P</code> alone to launch only the 
+<a href="https://wiki.mozilla.org/Firefox/CommandLineOptions#-ProfileManager">Profile Manager</a>.</p>
+<p><strong>All</strong> the above <a href="#settings">Settings</a> are specific to <strong>each</strong> profile, so
+that each user can have their own profile with individual settings, etc.
+The <em>most important</em> settings are also stored online via <a href="#sync">Sync</a>, so
+it also makes sense to keep each profile synced to its own Mozilla account.</p>
+<p>That means maintaining a number of Mozilla accounts, each with either their own
+<strong>unique email address</strong> and password, which can lead to keeping track of many
+accounts and passwords; too many to have only in one's head (or not-so-secure
+places), so better setup a <a href="#password-manager">password manager</a>.</p>
+<p>My preferred practice is to create a profile for each active account; meaning
+accounts (Apple, Google, etc.) that I use on a daily basis, not necessarily
+accounts like a dedicated one for the Android TV in the living room that is
+used by the whole family.</p>
+<p>Right after creating each profile,</p>
+<ol>
+<li>Install the <a href="https://addons.mozilla.org/en-US/firefox/addon/bitwarden-password-manager/">Bitwarden Password Manager</a>
+    (assuming the <a href="#password-manager">password manager</a> is already set up),
+    so that it can be used when creating the Mozilla account.</li>
+<li>Adjust all the above <a href="#settings">settings</a>; in particular, disable the
+    built-in option to <strong>☐ Ask to save passwords</strong> so that Bitwarden is used.</li>
+<li>Install a visually distinct <a href="#themes">Theme</a>.</li>
+<li>Create an account at <a href="https://accounts.firefox.com/">accounts.firefox.com</a>
+    and save the credentials to Bitwarden.</li>
+<li>Enable <strong>Sync</strong> in Firefox settings (requires logging in again).</li>
+<li>Install whatever other <a href="#extentions">Extensions</a> are relevant.</li>
+</ol>
+<h3 id="themes">Themes</h3>
+<p><a href="https://addons.mozilla.org/en-US/firefox/themes/">Themes</a> are not only pretty
+to look at (although some of them get old <em>real</em> fast), they are also <strong>useful</strong>
+to make each <a href="#profiles">profile</a> visually distinct. Scrolling through the
+<a href="https://addons.mozilla.org/en-US/firefox/search/?sort=rating&amp;
+type=statictheme">top rated themes</a>
+I liked a few:</p>
+<ul>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/hatsune-miku-dancing-animated/">Animated Miku Dance</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/animated-sea-sunset-02/">ANIMATED sea sunset 02 by candelora</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/chihiro/">chihiro</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/cyberpunk-pixels-animated/">Cyberpunk [Animated]</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/anime-firefox-girl-nebula-b/">Fire Fox, The Anime Girl : Nebula Space [Blue]</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/hacker-animated/">Hacker (Animated)</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/halloween-moon-bats/">Halloween Moon Bats</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/kirby9/">Kirby9</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/nyan-cat-animated/">Nyan Cat (Animated)</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/praisethesun/">Praise the sun (animated)</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/purple-starfield-animated/">Purple starfield - Animated</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/sakura-blossoms-birds/">Sakura Blossoms &amp; Birds by MaDonna</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/spirited-away-animated/">Spirited Away (Animated)</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/tardis-spinny-twinkly-stars/">TARDIS ⍟ animated</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/totoro-12/">Totoro 12</a></li>
+</ul>
+<h3 id="extentions">Extentions</h3>
+<p>There are many many <em>lots</em> of Firefox
+<a href="https://addons.mozilla.org/en-US/firefox/extensions/">Extensions</a>
+to tweak how it behaves, or how websites look like, or behave. What follows
+is only a handful I found worth <em>at least trying, to see how it goes</em>...</p>
+<h4 id="dark-reader">Dark Reader</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/darkreader/">Dark Reader</a>
+makes <em>most</em> websites look like they have a dark mode. It turns out a bit
+<em>hit and miss</em>, some websites will look <em>good enough</em>, other not really good,
+while a few will look <em>pretty bad</em>, sometimes to the point of being unusable.</p>
+<h4 id="ublock-origin">uBlock Origin</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/">uBlock Origin</a>
+is probably the most <em>transformative</em> extension; makes the Internet <em>bearable</em>.
+(again). Ads are not even the worst part of the 
+<a href="https://arstechnica.com/gadgets/2025/02/as-internet-enshittification-marches-on-here-are-some-of-the-worst-offenders/">Internet enshittification</a>,
+so this extension helps dealing with many more of those things that make the
+Internet <em>a sorry place</em>.</p>
+<p>After installing the extension, I like to set it to prefer <strong>Dark</strong> theme
+(under <strong>Settings</strong>) and enable all the additional <strong>Filter lists</strong>:
+Cookie notices, Social widgets, Annoyances, Regions, languages.</p>
+<h4 id="sponsor-block">Sponsor Block</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/sponsorblock/">SponsorBlock</a>
+makes YouTube <em>bearable</em> (again). Sponsors may or may not be the better solution
+for content creators to sustain their business, but after well over a decade
+putting up with sponsor segments, I'm quite ready to not see them again. Most
+(if not all) of what I watch on YouTube, especially those I watch regularly,
+are creators I really like and support financially directly; they'll be okay.
+I get precious little time to catch up with <em>their</em> videos, so I set this up:</p>
+<p>Under <strong>Behavior</strong>:  </p>
+<ul>
+<li>Unpaid/Self Promotion: <strong>Auto skip</strong></li>
+<li>Interaction Reminder (Subscribe): <strong>Auto skip</strong></li>
+<li>Highlight: <strong>Auto skip to the start</strong></li>
+<li>Intermission/Intro Animation: <strong>Auto skip</strong></li>
+</ul>
+<p>Under <strong>Interface</strong>:  </p>
+<ul>
+<li><strong>Disable</strong> Show notice after a segment is skipped</li>
+<li><strong>Enable</strong> Hide clutter in segment list group</li>
+<li><strong>Enable</strong> Hide prompts about new features</li>
+<li><strong>Enable</strong> Hide donation link</li>
+<li><strong>Enable</strong> Hide options not available without extra payment</li>
+</ul>
+<p>Undeer <strong>Backup/Restore</strong>, save the settings to file (<code>SponsorBlockConfig.json</code>)
+to then easily apply the same settings to other profiles.</p>
+<h4 id="return-youtube-dislike">Return YouTube Dislike</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/return-youtube-dislikes/">Return YouTube Dislike</a>
+should not be as needed as it sadly may still be; as much as YouTube is full of
+great content, there is also many many <em>lots</em> of the opposite and the number of
+dislikes <em>should</em> be a useful signal to keep an eye on.</p>
+<h4 id="privacy-badger">Privacy Badger</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/privacy-badger17/">Privacy Badger</a>
+automatically learns to block invisible trackers.</p>
+<h4 id="search-by-image">Search by Image</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/search_by_image/">Search by Image</a>
+makes effortless reverse image searches possible, and comes with support
+for more than 30 search engines.</p>
+<h4 id="augmented-steam-and-steamdb">Augmented Steam and SteamDB</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/augmented-steam/">Augmented Steam</a>
+and <a href="https://addons.mozilla.org/en-US/firefox/addon/steam-database/">SteamDB</a>
+add small but nice-to-have improvements to the Steam store, which I'm mostly
+curious about even though I may visit that store only a few times per year.</p>
+<p>The most welcome features I would say are the ones that get rid of repetitive,
+useless and/or annoying behaviors, such as</p>
+<ul>
+<li>Skip age check page</li>
+<li>Remove "You are leaving Steam" link filter from external sites</li>
+<li>Hide "Open in Steam" banner</li>
+</ul>
+<h4 id="activitywatch">ActivityWatch</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/aw-watcher-web/">ActivityWatch</a>
+is necessary (or just useful) to report active browser tags to the
+<a href="../../../../2024/06/30/self-hosted-time-tracking-with-activitywatch/">Self-hosted time tracking with ActivityWatch</a>.</p>
+<h4 id="account-isolation-containers">Account-isolation Containers</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/">Firefox Multi-Account Containers</a>
+(explained in <a href="https://mzl.la/3bGetAg">Multi-Account Containers</a>), and the
+<a href="https://addons.mozilla.org/en-US/firefox/addon/facebook-container/">Facebook Container</a>
+in particular, seems interesting for cases where Facebook or similar web apps
+are unavoidable. Since I'm pretty good at avoiding Facebook, this shall stay
+filed under <em>Interesting, Revisit Later If Needed</em>.</p>
+<h4 id="noscript-security-suite">NoScript Security Suite</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/noscript/">NoScript Security Suite</a>
+seems a bit too strong and restrictive, for instance Discord web app turns into
+an empty void when this is enabled. More concerning would be e-Banking web apps
+or other real-life mission-critical web apps that depend, for entirely legit
+reasons, on scripting techniques that this extention would flag as malicious.</p>
+<h4 id="dearrow">DeArrow</h4>
+<p><a href="https://dearrow.ajay.app/payment/#link=firefox">DeArrow</a> is a paid browser
+extension: unlimited-use license key for 1$, 6-hour free trial. The <em>idea</em> of
+moving away from clickbait and sensationalism is mildly appealing, but some of
+the examples seem to go a little too far in the opposite directions. Either way,
+even if not something to jump into right away, this is something to be aware of.</p>
+<h2 id="password-manager">Password Manager</h2>
+<p>If had a penny for each time I've heard someone saying <em>people, get yourself a
+password manager!</em> I could probably afford myself a harty meal. Adding those who
+also have shared their <em>quest to passwordmanagerized the whole family</em>, I should
+have enough for an unreasonably hefty dessert.</p>
+<p>Google's password manager is integrated well enough with Chrome and Android, so
+that for quite a few years I have seldom needed to remember or lookup more than a
+few passwords, but I do run into its limitations more often than I'd like. Other
+browsers in Android and other applications on desktop don't get any of those
+benefits, which often means having to ask Chrome for the password or, when that
+is not an option, storing a few passwords in an <em>alternative storage</em> which, to
+put it mildly, is not quite as secure as a <em>proper</em> password manager.</p>
+<h3 id="a-2025-comparison">A 2025 Comparison</h3>
+<p>Choosing <em>a</em> password manager can be a bit of a daunting task; although it is
+probably not as hard to switch password managers are cars or houses, it is still
+something one does not simply do in a few minutes. In the spirit of contrasting
+multiple sources, without even trying too hard to verify how <em>reputable</em> each of
+these sources are, and not bothering at all to figure out whether each of these
+has been written by actual human beins with carbon-based brain, I've put together
+this multi-source comparision (sources below):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Ranking</th>
+<th style="text-align: center;">Engadget</th>
+<th style="text-align: center;">Safety Detectives</th>
+<th style="text-align: center;">PCMag</th>
+<th style="text-align: center;">security.org</th>
+<th style="text-align: center;">tom's guide</th>
+<th style="text-align: center;">TechRadar</th>
+<th style="text-align: center;">Password Manager</th>
+<th style="text-align: center;">Zapier</th>
+<th style="text-align: center;">Cybernews</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">RoboForm</td>
+<td style="text-align: center;">RoboForm</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">NordPass</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: center;">Bitwarden</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;">Bitwarden</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">Bitwarden</td>
+<td style="text-align: center;">RoboForm</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;">RoboForm</td>
+<td style="text-align: center;">Proton Pass</td>
+<td style="text-align: center;">Total Password</td>
+<td style="text-align: center;">Keeper</td>
+<td style="text-align: center;">RoboForm</td>
+<td style="text-align: center;">Keeper</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">1Password</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">NordPass</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Apple Passwords</td>
+<td style="text-align: center;">Keeper</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Keeper</td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;">1Password</td>
+<td style="text-align: center;">Bitdefender</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Dashlane</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">LastPass</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Proton Pass</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Bitwarden</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">LogMeOnce</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Dashlane</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Keeper</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Apple Passwords</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Bitwarden</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Enpass</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<details class="note">
+<summary>Sources (in reverse chronological order):</summary>
+<ul>
+<li><a href="https://www.engadget.com/cybersecurity/best-password-manager-134639599.html">The best password manager for 2025</a>
+  from Engadget, Mar 7, 2025.</li>
+<li><a href="https://www.safetydetectives.com/best-password-managers/windows/">10 Best Password Managers for Windows in 2025</a>
+  from Safety Detectives, March 7, 2025. </li>
+<li><a href="https://uk.pcmag.com/password-managers/4296/the-best-password-managers">The Best Password Managers for 2025</a>
+  from PCMag, Feb 21, 2025.</li>
+<li><a href="https://www.security.org/password-manager/best/free/">The Best Free Password Managers of 2025</a>
+  from security.org, Feb 19, 2025.</li>
+<li><a href="https://www.tomsguide.com/us/best-password-managers,review-3785.html">The best password managers in 2025</a>
+  from tom's guide, February 11, 2025.</li>
+<li><a href="https://zapier.com/blog/best-password-manager/">The 4 best password managers in 2025</a>
+  from Zapier, February 6, 2025</li>
+<li><a href="https://cybernews.com/best-password-managers/">The best password manager for 2025</a>
+  from Cybernews, February 4, 2025</li>
+<li><a href="https://www.techradar.com/best/password-manager">Best password manager of 2025</a>
+  from TechRadar, January 9, 2025.</li>
+<li><a href="https://www.passwordmanager.com/best-password-managers/">The Best Password Managers of 2025</a>
+  from Password Manager, <em>Updated</em> June 23, <strong>2023</strong> (!!??)</li>
+</ul>
+<p>The first two sources claim to have been <em>updated</em> just yesterday, while
+the last one was updated in 2023 to list the best ones in 2025... take that
+with a chunk of salt.</p>
+</details>
+<p>Aggreating these rankings by giving each contestant 1 point each time they rank
+in the first position, 1/2 pont each time they rank in the second position, and
+so on, only three stand out:</p>
+<ol>
+<li><a href="https://1password.com/"><strong>1Password</strong></a> with 5.78 points.</li>
+<li><a href="https://nordpass.com/"><strong>NordPass</strong></a> with 3.83 points.</li>
+<li><a href="https://bitwarden.com/"><strong>Bitwarden</strong></a> with 3.27 points.</li>
+</ol>
+<p>Comparing <a href="https://bitwarden.com/pricing/">Bitwarden pricing</a> and
+<a href="https://nordpass.com/plans/">NordPass pricing</a> for <em>personal</em> use,
+although they both offer a <strong>Free</strong> tier, only Bitwarden seems to offer enough
+functionality to make that free tier <em>realistically useful</em> in the long run.
+<a href="https://1password.com/pricing">1Password pricing</a> includes no Free tier, only a
+14-day free trial.</p>
+<h3 id="bitwarden">Bitwarden</h3>
+<p>And so the adventure begins at
+<a href="https://bitwarden.com/go/start-free/">bitwarden.com/go/start-free</a>,
+creating a new account using my main everyday email address. The email takes a
+minute or two to come in, with the link to finish the process by setting a
+primary password. Funnily enough, the <em>unrecoverable</em> primary password for
+<em>the new</em> password manager can be stored in <em>the old</em> password manager.</p>
+<h4 id="import-passwords">Import Passwords</h4>
+<p><a href="https://bitwarden.com/help/import-data/">Import Data to your Vault</a> should be
+the first step after creating the account, and that means importing passwords
+<a href="https://bitwarden.com/help/import-from-chrome/">from Google Chrome</a> since that
+is the one that has been in use for years.</p>
+<p>Since multiple Chrome profiles have been in used over the years, although most
+of them had been out of use for years too, this involved repeating a few steps
+for each profile:</p>
+<ol>
+<li>Open <code>chrome://password-manager</code> to check if there are any passwords.</li>
+<li>If there are, then open <code>chrome://password-manager/settings</code> to download them,
+   this will download a <code>Chrome Passwords.csv</code> file.</li>
+<li>Create a <strong>Folder</strong> named after the profile, just to keep things tidy.</li>
+<li>Go to <a href="https://bitwarden.com/help/import-data/"><strong>Import Data</strong></a> (under
+   <strong>Tools</strong>) and upload the <code>Chrome Passwords.csv</code> into the corresponding
+   <strong>Folder</strong>.</li>
+</ol>
+<h4 id="chrome-extension">Chrome extension</h4>
+<p><a href="https://bitwarden.com/browser-start/">bitwarden.com/browser-start</a> suggests to
+install the relevant browser extension once data has been imported. Because
+Bitwarden supports multiple devices, the same account (vault) can be used at
+the same time from Chrome and Firefox.</p>
+<h4 id="firefox-add-on">Firefox Add-on</h4>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/bitwarden-password-manager/">Bitwarden Password Manager</a>
+is just as easy to setup: install, pin to the toolbar, log in. The whole dance
+needs to be done for each and every <a href="#profile">profile</a>, </p>
+<h4 id="desktop-applications">Desktop applications</h4>
+<p>Installing the Linux desktop app and command line tool is super easy with <code>snap</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>snap<span class="w"> </span>search<span class="w"> </span>bitwarden
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="go">Name         Version   Publisher    Notes  Summary</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="go">bitwarden    2025.2.1  bitwarden✓   -      Bitwarden</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="go">bw           2025.1.3  bitwarden✓   -      Bitwarden CLI - A secure and free password manager for all of your devices.</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="go">...</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gp">$ </span>sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>bitwarden<span class="w"> </span>bw
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="go">bitwarden 2025.2.1 from 8bit Solutions LLC (bitwarden✓) installed</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="go">bw 2025.1.3 from 8bit Solutions LLC (bitwarden✓) installed</span>
+</span></code></pre></div>
+<h2 id="final-touches">Final touches</h2>
+<p>Once everything is setup with all the <a href="#profiles">profiles</a> and accounts, or
+even during the processing of setting it all up, a few extra steps were taken
+to take the opportunity and spend a little extra time to make sure everything
+was more consistent and better organized than before, including</p>
+<ul>
+<li>Generating and securely storing recovery codes for every account that
+  supports them. At first it seemd those would be only the ones with 2FA
+  enabled, but somehow a few more accounts did produce recovery codes, while
+  others did not.</li>
+<li>Designate criteria to decide when to use each profile, such as <em>main profile
+  only for the most personal stuff, a second profile for work-related stuff, and
+  most importantly one or more additional profiles for everything else</em>. The
+  purpose of this separation is to avoid being distracted by work-related stuff
+  while shopping around, and vice-versa, and other such situations.</li>
+<li>Review old profiles in all browsers for anything worth keeping, such as
+  long-forgotten tabs with interesting content that would be worth bookmarking
+  for future reference, but this time in a better-suited profile.</li>
+</ul>
+<p>Last but not least, <strong>reconsidering Bitwarden Premium plans</strong>. Once passwords
+have been migrated, even organized in folders, and <strong>all</strong> behind a single
+main password, and <em>all for free</em>, the value of upgrading to Premium
+<a href="https://www.reddit.com/r/Bitwarden/comments/1dt3uz3/premium_is_it_worth_it/">is a no-brainer</a>.
+<a href="https://www.reddit.com/r/Bitwarden/comments/1bwgbzd/subscribing_the_family_plan/">Upgrading to a Family plan is not yet worth it</a>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Home Assistant on Kubernetes on Raspberry Pi 5 (Alfred)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Home Assistant on Kubernetes on Raspberry Pi 5 (Alfred)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../28/remote-access-options-for-self-hosted-services/" class="md-footer__link md-footer__link--next" aria-label="Next: Remote access options for self-hosted services">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Remote access options for self-hosted services
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

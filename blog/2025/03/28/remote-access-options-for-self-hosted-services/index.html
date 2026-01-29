@@ -1,0 +1,1625 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2025/03/28/remote-access-options-for-self-hosted-services/">
+      
+      
+        <link rel="prev" href="../../08/adopting-firefox-and-bitwarden-as-daily-drivers/">
+      
+      
+        <link rel="next" href="../../../04/12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Remote access options for self-hosted services - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#options-considered" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Remote access options for self-hosted services
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#options-considered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options considered
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options chosen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudflare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cloudflare">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-the-first-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add the first site
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-tunnels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Tunnels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tailscale
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tailscale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-tailnet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a tailnet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-up-dns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set up DNS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Set up DNS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dns-alias-with-cname" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS alias with CNAME
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-up-https-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set up HTTPS access
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Set up HTTPS access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tailscale-kubernetes-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tailscale Kubernetes operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#private-access-through-invite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Private access through invite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#public-access-through-funnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public access through Funnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2025-03-28 00:00:00+00:00" class="md-ellipsis">March 28, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/privacy/">privacy</a>, 
+                              <a href="../../../../category/security/">security</a>, 
+                              <a href="../../../../category/cloudflare/">cloudflare</a>, 
+                              <a href="../../../../category/tailscale/">tailscale</a>, 
+                              <a href="../../../../category/tunnels/">tunnels</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              21 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Remote access options for self-hosted services</h1>
+
+<p>Running self-hosted services behind a router that allows port forwarding is <em>mostly</em> as
+simple as forwarding a few ports, mainly 443 for everything over HTTP<strong>S</strong> and port 80 for
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#automatic-renovation">automatically renewing Let's Encrypt certificates</a>.</p>
+<p>Otherwise, being behind a router that either doens't allow port forwarding, or just doesn't
+work well, or being behind <a href="https://en.wikipedia.org/wiki/Carrier-grade_NAT">CGNAT</a>,
+may require the use of some sort of tunnels to route inbound traffic using outbound
+connections. This can also be useful even in the above case, when multiple systems need to
+be reachable <em>on port 80</em>.</p>
+<details class="note">
+<summary>Cloudflare tunnels do not enable access on port 80.</summary>
+<p>Cloudflare redirects port 80 to 443, to upgrade HTTP connections to HTTPS. That means
+ACME HTTP-01 challenges to renew Let's Encrypt certificates need to be routed to the
+relevant port (80 or 32080) based on the request <strong>path</strong>; see
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#lets-encrypt-via-tunnel">Let's Encrypt via tunnel</a>.</p>
+</details>
+<!-- more -->
+
+<h2 id="options-considered">Options considered</h2>
+<p>Making applications (ports) reachable from outside will require a different approach and
+implementation depending on the type of traffic served by the application behind each port:</p>
+<ul>
+<li>
+<p><strong>HTML <em>non-sensitive</em> content</strong> can easibly be made available through a
+  <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a>.
+  These are free to use and easy to setup, with the caveats that</p>
+<ul>
+<li>Traffic <strong>must</strong> be decrypted by Cloudflare, to apply certain traffic filters, even
+  if everything is then (re-)encrypted between Cloudflare and each service.</li>
+<li>Traffic <strong>must</strong> be <em>either</em> HTML content or <strong>low-bandwidth</strong> non-HTML content.
+  Cloudflare does not allow, at least when using their tunnels for free, to stream
+  high-bandwidth multi-media content: audio, video, photos, videogame client-to-server
+  communication, etc.</li>
+</ul>
+</li>
+<li>
+<p><strong>HTML <em>sensitive</em> content</strong> may also be made available through a
+  <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a>;
+  <a href="https://developers.cloudflare.com/cloudflare-one/policies/access/">Zero Trust Access</a>
+  can be used to limit access to each application (port) based on a number of rules,
+  including user's identity as verified by 3P SSO providers (e.g. Google account).</p>
+</li>
+<li>
+<p><strong>Non-HTML <em>sensitive</em> content</strong> may also be made available through a
+  <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a>;
+  <a href="https://developers.cloudflare.com/cloudflare-one/applications/non-http/">Non-HTTP applications</a>
+  <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/private-net/">require connecting your private network to Cloudflare</a>
+  which, again, means that Cloudflare is decrypting traffic (to inspected it and apply
+  filters) to then re-encrypt it again. Then again, this may only be used for
+  <strong>low-bandwidth</strong> non-HTML content, e.g. SSH sessions. Ideally with password
+  authentication disabled!</p>
+</li>
+<li>
+<p><strong>Non-HTML <em>sensitive</em> <del>or <em>high-bandwidth</em></del> content</strong> can also be made <em>reachable</em>
+  externally, through the use of  <a href="https://tailscale.com/kb/1223/funnel">Tailscale Funnel</a>
+  (or similar) to establish <a href="https://tailscale.com/kb/1504/encryption">fully-encrypted</a>
+  (TLS passthrough) tunnels between <em>sites</em> (LANs) and a few trusted clients. However,
+  <a href="https://www.reddit.com/r/Tailscale/comments/188jvlr/is_funnels_really_slow/">this is only suitable for low-bandwidth applications</a>,
+  and there is no way of knowing how tightly bandwidth is restricted.</p>
+</li>
+<li>
+<p><strong>Non-HTML <em>high-bandwidth</em> content</strong> (sensitive or not) seems to be only practical to
+  expose by opening and forwarding ports; as much as this seems to be the method most
+  people recommend <em>against</em>. This is also the method that <em>just won't work</em> when working
+  with a defective or restriced router, or behind CGNAT.</p>
+</li>
+</ul>
+<h2 id="options-chosen">Options chosen</h2>
+<p>With the above considerations, each of those options would seem to best match the
+relevant self-hosted services as follows:</p>
+<ul>
+<li>
+<p><a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a> 
+  can be used for non-sensitive, or at least <em>not-too-sensitive</em>, HTML content:</p>
+<ul>
+<li><a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#automatic-renovation.md">automatically renewing Let's Encrypt certificates</a> 
+  over plain HTTP on port 80.</li>
+<li><a href="../../../../2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes/">InfluxDB</a>
+  already serving over HTTPS and <em>not-too-sensitive</em>; basic PC monitoring.</li>
+</ul>
+</li>
+<li>
+<p><a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a> 
+  can also be used for sensitive HTML content, when combined with
+  <a href="https://developers.cloudflare.com/cloudflare-one/policies/access/">Zero Trust Access</a>
+  to restrict access to each service:</p>
+<ul>
+<li><a href="../../../../2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes/">Grafana</a></li>
+<li><a href="../../../../2024/12/31/migrating-unifi-controller-to-kubernetes/">UniFi Controller</a></li>
+<li><a href="../../../../2023/05/29/running-visual-studio-code-server-on-kubernetes/">Visual Studio Code Server</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/">Kubernetes Dashboard</a></li>
+<li><a href="../../../../2024/05/19/self-hosted-accountancy-with-firefly-iii/">Firefly III</a></li>
+<li><a href="../../../../2024/07/10/self-hosted-inventory-with-homebox/">Homebox</a></li>
+</ul>
+</li>
+<li>
+<p><a href="https://tailscale.com/kb/1223/funnel">Tailscale Funnel</a>
+  must be used for those applications that transfer mostly non-HTML content:</p>
+<ul>
+<li><a href="../../../../2024/02/28/audiobookshelf-on-kubernetes/">Audiobookshelf</a></li>
+<li><a href="../../../../2024/05/26/self-hosted-ebook-library-with-komga/">Komga: eBook library</a></li>
+<li><a href="../../../../2024/10/26/self-hosted-music-streaming-with-navidrome/">Navidrome</a></li>
+<li><a href="../../../../2023/09/16/migrating-a-plex-media-server-to-kubernetes/">Plex Media Server</a></li>
+<li>SSH</li>
+</ul>
+</li>
+<li>
+<p>Port forwarding may still be needed for <strong>non-HTTP</strong> services that are meant to be
+  accessible by <em>technically not trusted</em> clients, i.e. without Tailscale. This would
+  be mostl video game servers, of which there is so far only</p>
+<ul>
+<li><a href="../../../../2023/08/10/running-minecraft-java-server-for-bedrock-clients-on-kubernetes/">Minecraft Server</a></li>
+</ul>
+</li>
+</ul>
+<p>DNS records are setup to point the various <code>&lt;service&gt;.&lt;node&gt;.uu.am</code> to the external IP
+address of the router, with port 80 redirected to <strong>one</strong> node's port <code>32080</code>, so that
+HTTPS certificates can be renewed automatically, and port 443 pointing to Nginx on <strong>one</strong>
+node. While it is possible to access Nginx on additional nodes by forwarding a different
+port, the automated renewals of HTTPS certificates is only possible over port 80.</p>
+<p>This limitation may mean the node that is rechable through the external port 80 is the
+only one that can serve high-bandwidth content directly via port forwarding. All other
+nodes will need to use Cloudflare tunnels, and thus be restricted to HTML-only or
+low-bandwidth traffic, or use Tailscale Funnel to serve high-bandwidth traffic, and
+thus be restricted to specific clients.</p>
+<h2 id="cloudflare">Cloudflare</h2>
+<p>To get started with Cloudflare, create account and a team (e.g. <code>high-energy-building</code>),
+select the <strong>Free plan</strong>, enter billing details and checkout. Make sure to enable 2FA
+authentiction and take a look around for other settings to personalize.</p>
+<h3 id="add-the-first-site">Add the first site</h3>
+<p><a href="https://developers.cloudflare.com/fundamentals/setup/manage-domains/add-site/">Adding a site</a>
+is required before creating a tunnel. This can be an external domain, although it requires
+replacing that domain's DNS with the one from Cloudflare. It seems most convenient to have
+a dedicated domain for self-hosted applications, to be used mostly, if not exclusively,
+through Cloudflare tunnels. For this purpose, I've registered <code>very-very-dark-gray.top</code>
+with Porkbun and cleared the default DNS records, which removed their
+<a href="https://kb.porkbun.com/article/239-cname-alias-record-with-that-host-already-exists-error">parking domain</a>.</p>
+<p>Start at the <strong>Account Home</strong> in
+<a href="https://dash.cloudflare.com/0041a4dbd1c161fe785c4f63fa8fcc06/home">dash.cloudflare.com</a>,
+enter the new domain and select the option to <em>Manually enter DNS records</em> since
+there is none anyway. Scroll down to select the <strong>Free plan</strong> and continue to
+start adding DNS records.</p>
+<p>Having no DNS records yet, 3 warnings are shown about missing an MX record to for
+emails to <code>@very-very-dark-gray.top</code> addresses and missing A/AAAA/CNAME records
+for the root domain and <code>www</code>. All that is fine, there is no need for those.</p>
+<p>As a quick test, add a subdomain for <code>alfred</code> pointing to the router's external
+IPv4 address and let it be proxied by Cloudflare to see how that goes. Then
+replace the DNS for this domain with the ones from Cloudflare's, and wait.</p>
+<p>Once the change is live, go under <strong>DNS &gt; Settings</strong> in Cloudflare and
+<a href="https://developers.cloudflare.com/dns/dnssec/">Enable DNSSEC</a>.</p>
+<h3 id="cloudflare-tunnels">Cloudflare Tunnels</h3>
+<p>Tunnels are very easy to setup; accessing applications behind them not necessarily so much.
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#cloudflare-tunnel">Cloudflare Tunnels in Alfred</a>
+involved an <em>unfair</em> amount of troubleshooting to get the Kubernetes dashboard to work at
+<a href="https://kubernetes-alfred.very-very-dark-gray.top/">https://kubernetes-alfred.very-very-dark-gray.top/</a>,
+eventually using it's own Let's Encrypt certificates.</p>
+<h3 id="cloudflare-access">Cloudflare Access</h3>
+<p><a href="https://developers.cloudflare.com/learning-paths/zero-trust-web-access/">Zero Trust Web Access</a>
+builds on top of the previous setup; once an applications is made available through a
+tunnel, restricting access to a fixed set of users (e.g. Google accounts) requires only
+a few more steps:</p>
+<ol>
+<li>
+<p><a href="https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/google/">Set up Google as an identity provider</a>,
+    which requires creating an OAuth Client ID in the Google Cloud Console.</p>
+<p>The OAuth client will be limited to a list of (max 100) test users, which is more than
+enough but those users have to be manually added in the Google Cloud Console, under
+<a href="https://console.cloud.google.com/auth/audience?project=very-very-dark-gray">/auth/audience?project=very-very-dark-gray</a>.</p>
+</li>
+<li>
+<p>Create a <strong>Policy</strong> (e.g <em>Google Account</em>) to <strong>Allow</strong> only a few users, with
+    <strong>only one Include rule</strong> to match those users' email addresses.</p>
+</li>
+<li>
+<p><a href="https://developers.cloudflare.com/learning-paths/zero-trust-web-access/access-application/create-access-app/">Create an Access application</a></p>
+<ul>
+<li>Choose <strong>self-hosted</strong> application and name it after the public
+    host it will expose (e.g. <code>kubernetes-alfred</code>).</li>
+<li>Add a <strong>Public hostname</strong>
+(<a href="https://kubernetes-alfred.very-very-dark-gray.top/">https://kubernetes-alfred.very-very-dark-gray.top/</a>)</li>
+<li>Add <strong>only</strong> the <strong>Google Account</strong> policy, so that
+    only users that match that policy are allowed.</li>
+<li>To authenicate those users, enable <strong>only</strong> the <em>Google</em>
+    authentication in <strong>Login methods</strong>.</li>
+<li>Finally, enable <strong>Instant Auth</strong>.</li>
+<li>Then accept the defaults in the next two pages and <strong>Save</strong>.</li>
+</ul>
+</li>
+<li>
+<p>If this application will need to renew its own Let's Encrypt certificates,
+    create another Policy called to <strong>Bypass</strong> all authentication mechanisms,
+    and set the selector to <strong>Everyone</strong> as in the examples for the action
+    <a href="https://developers.cloudflare.com/cloudflare-one/policies/access/#bypass">Bypass</a>.</p>
+</li>
+<li>
+<p>Then create another Access application as the previou one, with these changes:</p>
+<ul>
+<li>Set the same as <code>kubernetes-alfred-well-known</code>.</li>
+<li>Add the same <em>Public hostname</em> with <strong>Path</strong> set to <code>.well-known</code>.</li>
+<li>Add <strong>only</strong> the <strong>Bypass</strong> policy.</li>
+<li>Then accept the defaults in the next two pages and <strong>Save</strong>.</li>
+</ul>
+</li>
+</ol>
+<p>So long as <strong>only one policy</strong> is added to the applications <em>and</em> that policy has
+<strong>only one Include rule</strong>, only those users added to that Include rule are allowed in.</p>
+<p>Additional sources of inspiration (not reference):</p>
+<ul>
+<li><a href="https://github.com/immich-app/immich/discussions/8299">Cloudflare Tunnels with SSO/OAuth working for immich</a></li>
+<li><a href="https://community.home-assistant.io/t/howto-secure-cloudflare-tunnels-remote-access/570837/1">HOWTO: Secure Cloudflare Tunnels remote access</a></li>
+</ul>
+<h2 id="tailscale">Tailscale</h2>
+<p><a href="https://tailscale.com/kb/1017/install">Tailscale quickstart</a> explains the basics and how to
+get started as a <a href="https://tailscale.com/kb/1017/install#personal-users">personal user</a>.</p>
+<h3 id="create-a-tailnet">Create a tailnet</h3>
+<p><a href="https://tailscale.com/kb/1017/install#create-a-tailnet">Create a tailnet</a>
+by singing up with your choice of identity provider; e.g. signging up with a <code>@gmail.com</code>
+account automatically set the tailnet up so that other <code>@gmail.com</code> users can be invited
+to form part of the "team". Choosing the <strong>Personal Plan</strong> keeps the service free of charge,
+there is not even a requirement to setup a valid billing method (e.g. credit card).</p>
+<p>The quickstart wizard will wait until <strong>Tailscale</strong> is installed on 2 systems, e.g. a
+server and a PC. The installation process is as simple as running their <code>install.sh</code> script:</p>
+<details class="terminal">
+<summary>Installation of Tailscale on <strong>alfred</strong></summary>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">pi@alfred:~ $ </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://tailscale.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="go">Installing Tailscale for debian bookworm, using method apt</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="go">+ sudo mkdir -p --mode=0755 /usr/share/keyrings</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="go">+ curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="go">+ sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="go">+ sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="go">+ curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="go">+ sudo tee /etc/apt/sources.list.d/tailscale.list</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="gp"># </span>Tailscale<span class="w"> </span>packages<span class="w"> </span><span class="k">for</span><span class="w"> </span>debian<span class="w"> </span>bookworm
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="go">deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="go">+ sudo chmod 0644 /etc/apt/sources.list.d/tailscale.list</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="go">+ sudo apt-get update</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="go">Hit:1 http://deb.debian.org/debian bookworm InRelease</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="go">Hit:2 http://archive.raspberrypi.com/debian bookworm InRelease                                               </span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="go">Hit:3 https://download.docker.com/linux/debian bookworm InRelease                                            </span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="go">Hit:4 http://deb.debian.org/debian-security bookworm-security InRelease                                      </span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="go">Hit:5 http://deb.debian.org/debian bookworm-updates InRelease                                                </span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="go">Hit:6 https://baltocdn.com/helm/stable/debian all InRelease                                                  </span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="go">Hit:7 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.32/deb  InRelease</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="go">Get:8 https://pkgs.tailscale.com/stable/debian bookworm InRelease               </span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="go">Get:9 https://pkgs.tailscale.com/stable/debian bookworm/main armhf Packages [12.2 kB]</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="go">Get:10 https://pkgs.tailscale.com/stable/debian bookworm/main arm64 Packages [12.3 kB]</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="go">Get:11 https://pkgs.tailscale.com/stable/debian bookworm/main all Packages [354 B]</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="go">Fetched 31.4 kB in 1s (29.4 kB/s)  </span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="go">+ sudo apt-get install -y tailscale tailscale-archive-keyring</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="go">Building dependency tree... Done</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="go">Reading state information... Done</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="go">The following packages were automatically installed and are no longer required:</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="go">  linux-headers-6.6.51+rpt-common-rpi linux-kbuild-6.6.51+rpt</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="go">Use 'sudo apt autoremove' to remove them.</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="go">The following NEW packages will be installed:</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="go">  tailscale tailscale-archive-keyring</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="go">0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="go">Need to get 29.6 MB of archives.</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="go">After this operation, 56.1 MB of additional disk space will be used.</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="go">Get:2 https://pkgs.tailscale.com/stable/debian bookworm/main all tailscale-archive-keyring all 1.35.181 [3,082 B]</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="go">Get:1 https://pkgs.tailscale.com/stable/debian bookworm/main arm64 tailscale arm64 1.82.0 [29.6 MB]   </span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="go">Fetched 29.6 MB in 15s (2,040 kB/s)                                                                          </span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="go">Selecting previously unselected package tailscale.</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="gp gp-VirtualEnv">(Reading database ... 91338 files and directories currently installed.)</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="go">Preparing to unpack .../tailscale_1.82.0_arm64.deb ...</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="go">Unpacking tailscale (1.82.0) ...</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="go">Selecting previously unselected package tailscale-archive-keyring.</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="go">Preparing to unpack .../tailscale-archive-keyring_1.35.181_all.deb ...</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="go">Unpacking tailscale-archive-keyring (1.35.181) ...</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="go">Setting up tailscale-archive-keyring (1.35.181) ...</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="go">Setting up tailscale (1.82.0) ...</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="go">Created symlink /etc/systemd/system/multi-user.target.wants/tailscaled.service → /lib/systemd/system/tailscaled.service.</span>
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="go">+ [ false = true ]</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="go">+ set +x</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="go">Installation complete! Log in to start using Tailscale by running:</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="go">sudo tailscale up</span>
+</span></code></pre></div>
+</details>
+<details class="terminal">
+<summary>Installation of Tailscale on <strong>rapture</strong></summary>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp">$ </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://tailscale.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">Installing Tailscale for ubuntu noble, using method apt</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">+ sudo mkdir -p --mode=0755 /usr/share/keyrings</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="go">+ curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="go">+ sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="go">+ sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="go">+ curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="go">+ sudo tee /etc/apt/sources.list.d/tailscale.list</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="gp"># </span>Tailscale<span class="w"> </span>packages<span class="w"> </span><span class="k">for</span><span class="w"> </span>ubuntu<span class="w"> </span>noble
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="go">+ sudo chmod 0644 /etc/apt/sources.list.d/tailscale.list</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="go">+ sudo apt-get update</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="go">Hit:1 http://ch.archive.ubuntu.com/ubuntu noble InRelease</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="go">Hit:2 https://brave-browser-apt-release.s3.brave.com stable InRelease                                        </span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="go">Hit:3 https://repo.steampowered.com/steam stable InRelease                                                   </span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="go">Hit:4 http://ch.archive.ubuntu.com/ubuntu noble-updates InRelease                                            </span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="go">Hit:5 http://archive.ubuntu.com/ubuntu noble InRelease                                                       </span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="go">Hit:6 http://ch.archive.ubuntu.com/ubuntu noble-backports InRelease                                          </span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="go">Hit:7 https://packages.microsoft.com/repos/code stable InRelease                                             </span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="go">Hit:8 https://dl.google.com/linux/chrome/deb stable InRelease                                                </span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="go">Hit:9 http://archive.ubuntu.com/ubuntu noble-updates InRelease                                               </span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="go">Hit:10 https://esm.ubuntu.com/apps/ubuntu noble-apps-security InRelease                                      </span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="go">Hit:11 https://esm.ubuntu.com/apps/ubuntu noble-apps-updates InRelease                                       </span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="go">Hit:12 https://esm.ubuntu.com/infra/ubuntu noble-infra-security InRelease                        </span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="go">Hit:13 https://esm.ubuntu.com/infra/ubuntu noble-infra-updates InRelease                         </span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="go">Hit:14 http://security.ubuntu.com/ubuntu noble-security InRelease          </span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="go">Get:15 https://pkgs.tailscale.com/stable/ubuntu noble InRelease</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="go">Get:16 https://pkgs.tailscale.com/stable/ubuntu noble/main all Packages [354 B]</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="go">Get:17 https://pkgs.tailscale.com/stable/ubuntu noble/main i386 Packages [12.2 kB]</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="go">Get:18 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 Packages [12.7 kB]</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="go">Fetched 31.8 kB in 1s (23.3 kB/s)                </span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="go">N: Skipping acquire of configured file 'main/binary-i386/Packages' as repository 'https://brave-browser-apt-release.s3.brave.com stable InRelease' doesn't support architecture 'i386'</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="go">+ sudo apt-get install -y tailscale tailscale-archive-keyring</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="go">Building dependency tree... Done</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="go">Reading state information... Done</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="go">The following NEW packages will be installed:</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="go">  tailscale tailscale-archive-keyring</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="go">0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="go">Need to get 31.5 MB of archives.</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="go">After this operation, 59.1 MB of additional disk space will be used.</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="go">Get:2 https://pkgs.tailscale.com/stable/ubuntu noble/main all tailscale-archive-keyring all 1.35.181 [3,082 B]</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="go">Get:1 https://pkgs.tailscale.com/stable/ubuntu noble/main amd64 tailscale amd64 1.82.0 [31.5 MB]       </span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="go">Fetched 31.5 MB in 14s (2,258 kB/s)                                                                          </span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="go">Selecting previously unselected package tailscale.</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="gp gp-VirtualEnv">(Reading database ... 491341 files and directories currently installed.)</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a><span class="go">Preparing to unpack .../tailscale_1.82.0_amd64.deb ...</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="go">Unpacking tailscale (1.82.0) ...</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a><span class="go">Selecting previously unselected package tailscale-archive-keyring.</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a><span class="go">Preparing to unpack .../tailscale-archive-keyring_1.35.181_all.deb ...</span>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a><span class="go">Unpacking tailscale-archive-keyring (1.35.181) ...</span>
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a><span class="go">Setting up tailscale-archive-keyring (1.35.181) ...</span>
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a><span class="go">Setting up tailscale (1.82.0) ...</span>
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a><span class="go">Created symlink /etc/systemd/system/multi-user.target.wants/tailscaled.service → /usr/lib/systemd/system/tailscaled.service.</span>
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a><span class="go">+ [ false = true ]</span>
+</span><span id="__span-1-57"><a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a><span class="go">+ set +x</span>
+</span><span id="__span-1-58"><a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a><span class="go">Installation complete! Log in to start using Tailscale by running:</span>
+</span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a>
+</span><span id="__span-1-60"><a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a><span class="go">sudo tailscale up</span>
+</span></code></pre></div>
+</details>
+<p>After installing the software, running <code>sudo tailscale up</code> will provide a URL to 
+authenticate and the system will show up as ready in the wizard:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>tailscale<span class="w"> </span>up
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="go">To authenticate, visit:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="go">        https://login.tailscale.com/a/______________</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="go">Success.</span>
+</span></code></pre></div>
+<p>Repeat the process with the second system and the wizzard will show both as active;
+along with a useful test to check that all is working well:</p>
+<blockquote>
+<p>Every device in your Tailscale network has a private 100.x.y.z IP address
+that you can reach no matter where you are. And every protocol works —
+SSH, RDP, HTTP, Minecraft — use whatever you want while Tailscale is running.</p>
+</blockquote>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-quickstart-success.png" data-desc-position="bottom"><img alt="Successful Tailscale Quickstart" src="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-quickstart-success.png"></a></p>
+<p>And indeed that <em>just works</em>; an SSH connection to <code>pi@100.113.110.3</code> instantly connects
+to <code>alfred</code> and SSH key authentication just works (after accepting this new hostname).</p>
+<p>From this point on, one can connect more devices, by repeating the above 2 steps:
+install Tailscale, then authenticate it to join this tailnet. It may be a good idea to add
+all desired devices before proceeding to additional configuration changes, such as</p>
+<ul>
+<li><a href="https://login.tailscale.com/admin/dns">Set up DNS</a>, to more easily connect to devices.</li>
+<li><a href="https://tailscale.com/kb/1084/sharing">Share a node</a> with users on other networks.</li>
+<li><a href="https://login.tailscale.com/admin/acls">Set up access controls</a> to limit which devices
+    can talk to each other.</li>
+</ul>
+<h3 id="set-up-dns">Set up DNS</h3>
+<p>The first step when setting up DNS, although optional, should be to rename the tailnet to a
+more memorable ("fun") name. There is a limited number of 4 randomly generated names to pick
+from, which one can reroll many times but will never, probably by design, contain only
+dictionary words. Some of the "funniest" names offered were:</p>
+<ul>
+<li><code>blenny-godzilla.ts.net</code></li>
+<li><code>chicken-fujita.ts.net</code></li>
+<li><code>ocelot-betelgeuse.ts.net</code></li>
+<li><code>raptor-penny.ts.net</code></li>
+<li><code>royal-penny.ts.net</code></li>
+<li><code>risk-truck.ts.net</code></li>
+<li><code>xantu-lizard.ts.net</code></li>
+</ul>
+<p>The tailnet name is not too important, so just pick the first one that isn't too long or
+hard to spell, then try re-rolling a few times just in a case a better one shows up.</p>
+<p><a href="https://tailscale.com/kb/1081/magicdns">MagicDNS</a> being enabled by default, it should be
+possible to ping or SSH directly to <code>alfred.royal-penny.ts.net</code>, etc.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp">$ </span>ping<span class="w"> </span>alfred.royal-penny.ts.net
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="go">PING alfred.royal-penny.ts.net (100.113.110.3) 56(84) bytes of data.</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="go">64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=1 ttl=64 time=5.51 ms</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="go">64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=2 ttl=64 time=4.92 ms</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="go">64 bytes from alfred.royal-penny.ts.net (100.113.110.3): icmp_seq=3 ttl=64 time=5.37 ms</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="go">^C</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="go">--- alfred.royal-penny.ts.net ping statistics ---</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="go">3 packets transmitted, 3 received, 0% packet loss, time 2002ms</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="go">rtt min/avg/max/mdev = 4.921/5.264/5.505/0.249 ms</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>MagicDNS seems to need some time to propagate, so that for several minutes (possibly
+a few hours) after connecting each host, its name will not resolve.</p>
+</div>
+<p>Once DNS has propagated, it is also possible to SSH directly to any host by its FQDN.</p>
+<h4 id="dns-alias-with-cname">DNS alias with <code>CNAME</code></h4>
+<p>To make web services more easily available, one can add a <code>CNAME</code> record for a publicly
+reachable domain to redirect every hostname under a subdomain to a specirfic host (node)
+in the tailnet, e.g. redirect everything under <code>.alfred.very-very-dark-gray.top</code> to the
+<code>alfred</code> node, <strong>disabling</strong> traffic proxying so that this is only a <strong>DNS only</strong> redirect:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/cloudflare-dns-add-cname-alfred.png" data-desc-position="bottom"><img alt="Add a CNAME record in Cloudflare DNS" src="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/cloudflare-dns-add-cname-alfred.png"></a></p>
+<p>Unfortunately, this does not support adding a port number, so the services would only be available when listening on standard ports, e.g. when using a <code>LoadBalancer</code> IP in
+Kubernetes nodes. However, whether it's because a <code>LoadBalancer</code> IP is not the same as the
+node's IP, or something else, HTTPS connections are rejected on port 443 (but not 22):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp">$ </span>telnet<span class="w"> </span><span class="m">100</span>.113.110.3<span class="w"> </span><span class="m">443</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">Trying 100.113.110.3...</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">telnet: Unable to connect to remote host: Connection refused</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="gp">$ </span>telnet<span class="w"> </span><span class="m">100</span>.113.110.3<span class="w"> </span><span class="m">22</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="go">Trying 100.113.110.3...</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="go">Connected to 100.113.110.3.</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="go">Escape character is '^]'.</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="go">SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="go">^]</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="go">telnet&gt; </span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="go">Connection closed.</span>
+</span></code></pre></div>
+<p>It seems services can only be accessed through <code>NodePort</code> ports, </p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>curl<span class="w"> </span>-k<span class="w"> </span>https://kubernetes.alfred.very-very-dark-gray.top/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">curl: (7) Failed to connect to kubernetes.alfred.very-very-dark-gray.top port 443 after 1 ms: Couldn't connect to server</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="gp">$ </span>curl<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Host: kubernetes-alfred.very-very-dark-gray.top"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>-k<span class="w"> </span>https://kubernetes.alfred.very-very-dark-gray.top:32035/<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="p">|</span><span class="w"> </span>head
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="go">&lt;!--</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="go">Copyright 2017 The Kubernetes Authors.</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="go">Licensed under the Apache License, Version 2.0 (the "License");</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="go">you may not use this file except in compliance with the License.</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="go">You may obtain a copy of the License at</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="go">    http://www.apache.org/licenses/LICENSE-2.0</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="go">Unless required by applicable law or agreed to in writing, software</span>
+</span></code></pre></div>
+<p>However, exposing port 80 <em>and</em> redirecting it to a different <code>NodePort</code>, as needed for
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#automatic-renovation">automatically renewing Let's Encrypt certificates</a>,
+does not seem to be possible. HTTPS access should be setup differently, as follows.</p>
+<h3 id="set-up-https-access">Set up HTTPS access</h3>
+<p>Exposing <strong>Kubernetes</strong> services throuth Tailscale requires the use of the
+<a href="https://tailscale.com/kb/1236/kubernetes-operator">Kubernetes operator</a>, which involves
+the following one-time (per node/host) setup and one additional <code>Ingress</code> per service.</p>
+<h4 id="tailscale-kubernetes-operator">Tailscale Kubernetes operator</h4>
+<p><a href="https://joshrnoll.com/securely-exposing-applications-on-kubernetes-with-tailscale/">Securely Exposing Applications on Kubernetes With Tailscale</a>
+using the <strong>Tailscale Kubernetes operator</strong> and the <em>Tailscale Ingress Controller</em>
+enables access over HTTPS with valid (signed) SSL certificates from within your tailnet.</p>
+<p>Create a <code>tailscale</code> namespace and <strong>allow privilege escalation</strong> via a namespace label:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>tailscale
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="go">namespace/tailscale created</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="gp">$ </span>kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>tailscale<span class="w"> </span>pod-security.kubernetes.io/enforce<span class="o">=</span>privileged
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="go">namespace/tailscale labeled</span>
+</span></code></pre></div>
+<p><a href="https://login.tailscale.com/admin/acls/file">Edit Tailscale ACL</a> to set the following
+<code>tagOwners</code>:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">"tagOwners"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">   </span><span class="nt">"tag:k8s-operator"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">   </span><span class="nt">"tag:k8s"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"tag:k8s-operator"</span><span class="p">],</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Create an <a href="https://login.tailscale.com/admin/settings/oauth">Oauth Client</a>, with a unique
+name (e.g. <code>k8s-operator</code> or <code>k8s-operator-alfred</code>) and read/write access to
+<strong>Devices &gt; Core</strong> and <strong>Keys &gt; Auth Keys</strong>, with the <code>k8s-operator</code> <strong>tag</strong> in both.
+<strong>Copy the Client ID and secret</strong>, keep them safe because these will never be provided
+again. Then install the Tailscale Kubernetes operator with Helm using these:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp">$ </span>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>tailscale<span class="w"> </span>https://pkgs.tailscale.com/helmcharts<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>helm<span class="w"> </span>repo<span class="w"> </span>update
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="go">"tailscale" has been added to your repositories</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="go">Hang tight while we grab the latest from your chart repositories...</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="go">...Successfully got an update from the "kubernetes-dashboard" chart repository</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="go">...Successfully got an update from the "ingress-nginx" chart repository</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="go">...Successfully got an update from the "jetstack" chart repository</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="go">...Successfully got an update from the "tailscale" chart repository</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="go">Update Complete. ⎈Happy Helming!⎈</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="gp">$ </span>helm<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span>--install<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span>tailscale-operator<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span>tailscale/tailscale-operator<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">  </span>--namespace<span class="o">=</span>tailscale<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span>--create-namespace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span>--set-string<span class="w"> </span>oauth.clientId<span class="o">=</span><span class="s2">"_________________"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">  </span>--set-string<span class="w"> </span>oauth.clientSecret<span class="o">=</span><span class="s2">"tskey-client-_________________-__________________________________"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">  </span>--wait
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="go">Release "tailscale-operator" does not exist. Installing it now.</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="go">NAME: tailscale-operator</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="go">LAST DEPLOYED: Sun Apr 13 16:58:26 2025</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="go">NAMESPACE: tailscale</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="go">STATUS: deployed</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="go">REVISION: 1</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="go">TEST SUITE: None</span>
+</span></code></pre></div>
+<p>Before proceeding further,
+<a href="https://tailscale.com/kb/1153/enabling-https#configure-https">enabling HTTPS</a>
+is required to make Kubernetes accessible over Tailscale Ingress operator.
+After enabling HTTPS in the Tailscale console, a certificate must be requested from each
+server by running <code>tailscale cert</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>tailscale<span class="w"> </span>cert<span class="w"> </span>alfred.royal-penny.ts.net
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="go">Wrote public cert to alfred.royal-penny.ts.net.crt</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">Wrote private key to alfred.royal-penny.ts.net.key</span>
+</span></code></pre></div>
+<p>Using the Tailscale Ingress Controller is now possible by adding a new <code>Ingress</code>, e.g.
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#kubernetes#dashboard-ingress">the Kubernetes dashboard in <code>alfred</code></a>
+can be now exposed at <a href="https://kubernetes-alfred.royal-penny.ts.net">https://kubernetes-alfred.royal-penny.ts.net</a> by adding this
+<code>Ingress</code> in <code>nginx-ingress.yaml</code>:</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">dashboard/nginx-ingress.yaml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-44">44</a></span>
+<span class="normal"><a href="#__codelineno-10-45">45</a></span>
+<span class="normal"><a href="#__codelineno-10-46">46</a></span>
+<span class="normal"><a href="#__codelineno-10-47">47</a></span>
+<span class="normal"><a href="#__codelineno-10-48">48</a></span>
+<span class="normal"><a href="#__codelineno-10-49">49</a></span>
+<span class="normal"><a href="#__codelineno-10-50">50</a></span>
+<span class="normal"><a href="#__codelineno-10-51">51</a></span>
+<span class="normal"><a href="#__codelineno-10-52">52</a></span>
+<span class="normal"><a href="#__codelineno-10-53">53</a></span>
+<span class="normal"><a href="#__codelineno-10-54">54</a></span>
+<span class="normal"><a href="#__codelineno-10-55">55</a></span>
+<span class="normal"><a href="#__codelineno-10-56">56</a></span>
+<span class="normal"><a href="#__codelineno-10-57">57</a></span>
+<span class="normal"><a href="#__codelineno-10-58">58</a></span>
+<span class="normal"><a href="#__codelineno-10-59">59</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-44"><a id="__codelineno-10-44" name="__codelineno-10-44"></a><span class="nn">---</span>
+</span><span id="__span-10-45"><a id="__codelineno-10-45" name="__codelineno-10-45"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+</span><span id="__span-10-46"><a id="__codelineno-10-46" name="__codelineno-10-46"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+</span><span id="__span-10-47"><a id="__codelineno-10-47" name="__codelineno-10-47"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-10-48"><a id="__codelineno-10-48" name="__codelineno-10-48"></a><span class="hll"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard-ingress-tailscale</span>
+</span></span><span id="__span-10-49"><a id="__codelineno-10-49" name="__codelineno-10-49"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard</span>
+</span><span id="__span-10-50"><a id="__codelineno-10-50" name="__codelineno-10-50"></a><span class="hll"><span class="nt">spec</span><span class="p">:</span>
+</span></span><span id="__span-10-51"><a id="__codelineno-10-51" name="__codelineno-10-51"></a><span class="hll"><span class="w">  </span><span class="nt">defaultBackend</span><span class="p">:</span>
+</span></span><span id="__span-10-52"><a id="__codelineno-10-52" name="__codelineno-10-52"></a><span class="hll"><span class="w">    </span><span class="nt">service</span><span class="p">:</span>
+</span></span><span id="__span-10-53"><a id="__codelineno-10-53" name="__codelineno-10-53"></a><span class="hll"><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard-kong-proxy</span>
+</span></span><span id="__span-10-54"><a id="__codelineno-10-54" name="__codelineno-10-54"></a><span class="hll"><span class="w">      </span><span class="nt">port</span><span class="p">:</span>
+</span></span><span id="__span-10-55"><a id="__codelineno-10-55" name="__codelineno-10-55"></a><span class="hll"><span class="w">        </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+</span></span><span id="__span-10-56"><a id="__codelineno-10-56" name="__codelineno-10-56"></a><span class="hll"><span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tailscale</span>
+</span></span><span id="__span-10-57"><a id="__codelineno-10-57" name="__codelineno-10-57"></a><span class="hll"><span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+</span></span><span id="__span-10-58"><a id="__codelineno-10-58" name="__codelineno-10-58"></a><span class="hll"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span>
+</span></span><span id="__span-10-59"><a id="__codelineno-10-59" name="__codelineno-10-59"></a><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-alfred</span>
+</span></span></code></pre></div></td></tr></tbody></table></div>
+<details class="warning">
+<summary>This new <code>Ingress</code> needs its own <strong>unique</strong> <code>metadata.name</code>.</summary>
+<p>This new <code>Ingress</code> needs its own <strong>unique</strong> <code>name</code>, hence the addition of
+<code>-tailscale</code> to the <code>name</code> above.</p>
+<p>Otherwise, while DNS takes <del>hours</del> <strong>about 2 days</strong> to propagate access to the Tailscale Ingress, the previously working setup to access the Ingress for
+<a href="https://kubernetes-alfred.very-very-dark-gray.top/">https://kubernetes-alfred.very-very-dark-gray.top/</a> starts
+returning 404 Not Found immediately. The reason could not be determined even by
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#troubleshooting-public-hostnames">adding <code>error-log-level: debug</code> to <code>nginx-baremetal.yaml</code></a>, but the issue becomes apparent when listing
+all <code>Ingress</code> before and after adding the Tailscale <code>Ingress</code>:</p>
+<p><strong>Before:</strong><br>
+</p><div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-A
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">NAMESPACE              NAME                           CLASS            HOSTS                                                             ADDRESS         PORTS     AGE</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard           internal-nginx   localhost                                                                         80, 443   53d</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-ingress   nginx            kubernetes-alfred.very-very-dark-gray.top,k8s.alfred.uu.am        192.168.0.121   80, 443   26d</span>
+</span></code></pre></div><p></p>
+<p><strong>After:</strong><br>
+</p><div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-A
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="go">NAMESPACE              NAME                           CLASS            HOSTS       ADDRESS                                 PORTS     AGE</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard           internal-nginx   localhost                                           80, 443   53d</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-ingress   tailscale        *           kubernetes-alfred.royal-penny.ts.net    80, 443   26d</span>
+</span></code></pre></div><p></p>
+<p>The <code>nginx</code> (class) <code>Ingress</code> is <strong>replaced</strong> by the <code>tailscale</code> (class) <code>Ingress</code>
+and thus <a href="https://kubernetes-alfred.very-very-dark-gray.top/">https://kubernetes-alfred.very-very-dark-gray.top/</a> is no longer mapped.
+Avoid this by using <strong>unique <code>metadata.name</code> values within each <code>namespace</code></strong>.</p>
+<p><strong>Removing</strong> the Tailscale Ingress immediately restored access to the previously
+setup Nginx Ingress <strong>the first time</strong>, but doing the same 2 days later did not have
+the same effect; the Dashboard at the Cloudflare subdomain did not became available
+again, while the Dashboard <em>finally</em> available on the Tailscale subdomain also became
+unavailable.</p>
+<p>To make this <em>even worse</em>, removing the Ingress and adding it back later will result
+in a different Tailscale IP address being assigned to it, so that's another 2 days of
+waiting until DNS records propagate.</p>
+</details>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>dashboard/nginx-ingress.yaml<span class="w"> </span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="go">ingress.networking.k8s.io/kubernetes-dashboard-ingress configured</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="gp">$ </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-A
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="go">NAMESPACE              NAME                                     CLASS            HOSTS                                                             ADDRESS                                 PORTS     AGE</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard                     internal-nginx   localhost                                                                                                 80, 443   53d</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-ingress             nginx            kubernetes-alfred.very-very-dark-gray.top,k8s.alfred.uu.am        192.168.0.121                           80, 443   26d</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-ingress-tailscale   tailscale        *                                                                 kubernetes-alfred.royal-penny.ts.net    80, 443   54s</span>
+</span></code></pre></div>
+<p>After applying this change, the new service <code>kubernetes-alfred</code> shows up in the list of
+<strong>Machines</strong> in the Tailscale console:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-kubernetes-operator-machines.png" data-desc-position="bottom"><img alt="Kubernetes Operator Machines in Tailscale Console" src="../../../../media/2025-03-23-remote-access-options-for-self-hosted-services/tailscale-kubernetes-operator-machines.png"></a></p>
+<p>Access can be tested with <code>curl</code> (from within the tailnet):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="gp">$ </span>curl<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>-k<span class="w"> </span>https://kubernetes-alfred.royal-penny.ts.net/<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="p">|</span><span class="w"> </span>head
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="go">&lt;!--</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="go">Copyright 2017 The Kubernetes Authors.</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="go">Licensed under the Apache License, Version 2.0 (the "License");</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="go">you may not use this file except in compliance with the License.</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="go">You may obtain a copy of the License at</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="go">    http://www.apache.org/licenses/LICENSE-2.0</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="go">Unless required by applicable law or agreed to in writing, software</span>
+</span></code></pre></div>
+<details class="note">
+<summary>Then again, MagicDNS takes a while to propagate to public DNS.</summary>
+<p>Even from another host in the same tailnet, this test will fail for the
+first few hours:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp">$ </span>curl<span class="w"> </span>-k<span class="w"> </span>https://kubernetes-alfred.royal-penny.ts.net/<span class="w"> </span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">curl: (6) Could not resolve host: kubernetes-alfred.royal-penny.ts.net</span>
+</span></code></pre></div>
+<p>This is because, even when querying the tailnet DNS server, the new host
+is not yet resolved:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gp">$ </span>dig<span class="w"> </span>kubernetes-alfred.royal-penny.ts.net<span class="w"> </span><span class="m">100</span>.100.100.100<span class="w">  </span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="go">; &lt;&lt;&gt;&gt; DiG 9.18.30-0ubuntu0.24.04.2-Ubuntu &lt;&lt;&gt;&gt; kubernetes-alfred.royal-penny.ts.net 100.100.100.100</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="go">;; global options: +cmd</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="go">;; Got answer:</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="go">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NXDOMAIN, id: 57292</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="hll"><span class="go">;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1</span>
+</span></span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="go">;; OPT PSEUDOSECTION:</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="go">; EDNS: version: 0, flags:; udp: 65494</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="go">;; QUESTION SECTION:</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="go">;kubernetes-alfred.royal-penny.ts.net. IN A</span>
+</span></code></pre></div>
+<p>In the meantime, only in the tailnet node where the Tailscale Kubernetes operator
+is running, the new host is already resolved:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="gp">$ </span>dig<span class="w"> </span>kubernetes-alfred.royal-penny.ts.net<span class="w"> </span><span class="m">100</span>.100.100.100<span class="w">  </span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="go">; &lt;&lt;&gt;&gt; DiG 9.18.33-1~deb12u2-Debian &lt;&lt;&gt;&gt; kubernetes-alfred.royal-penny.ts.net 100.100.100.100</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="go">;; global options: +cmd</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="go">;; Got answer:</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="go">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 41209</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="hll"><span class="go">;; flags: qr aa rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0</span>
+</span></span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="go">;; QUESTION SECTION:</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="go">;kubernetes-alfred.royal-penny.ts.net. IN A</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="go">;; ANSWER SECTION:</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="hll"><span class="go">kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20</span>
+</span></span></code></pre></div>
+<p>From that host, even querying the default (system) DNS already resolves the new host:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="gp">$ </span>dig<span class="w"> </span>kubernetes-alfred.royal-penny.ts.net
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="go">; &lt;&lt;&gt;&gt; DiG 9.18.33-1~deb12u2-Debian &lt;&lt;&gt;&gt; kubernetes-alfred.royal-penny.ts.net</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="go">;; global options: +cmd</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="go">;; Got answer:</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="go">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 22456</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="hll"><span class="go">;; flags: qr aa rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0</span>
+</span></span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="go">;; QUESTION SECTION:</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="go">;kubernetes-alfred.royal-penny.ts.net. IN A</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="go">;; ANSWER SECTION:</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="hll"><span class="go">kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20</span>
+</span></span></code></pre></div>
+</details>
+<p><em>Eventually</em>, after <strong>2 days</strong>, the new host is finally resolved:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gp">$ </span>dig<span class="w"> </span>kubernetes-alfred.royal-penny.ts.net
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="go">; &lt;&lt;&gt;&gt; DiG 9.18.30-0ubuntu0.24.04.2-Ubuntu &lt;&lt;&gt;&gt; kubernetes-alfred.royal-penny.ts.net</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="go">;; global options: +cmd</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="go">;; Got answer:</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="go">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 10204</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="hll"><span class="go">;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1</span>
+</span></span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="go">;; OPT PSEUDOSECTION:</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="go">; EDNS: version: 0, flags:; udp: 65494</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="go">;; QUESTION SECTION:</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="go">;kubernetes-alfred.royal-penny.ts.net. IN A</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="go">;; ANSWER SECTION:</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="hll"><span class="go">kubernetes-alfred.royal-penny.ts.net. 600 IN A 100.74.213.20</span>
+</span></span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="go">;; Query time: 1 msec</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="go">;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)</span>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="go">;; WHEN: Tue Apr 15 23:54:58 CEST 2025</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="go">;; MSG SIZE  rcvd: 82</span>
+</span></code></pre></div>
+<p>At that point the Kubernetes dashboard is finally accessible at
+<a href="https://kubernetes-alfred.royal-penny.ts.net/">https://kubernetes-alfred.royal-penny.ts.net/</a>
+from hosts in the same tailnet:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gp">$ </span>curl<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span>-k<span class="w"> </span>https://kubernetes-alfred.royal-penny.ts.net/<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="go">&lt;!--</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="go">Copyright 2017 The Kubernetes Authors.</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="go">Licensed under the Apache License, Version 2.0 (the "License");</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="go">you may not use this file except in compliance with the License.</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="go">You may obtain a copy of the License at</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="go">    http://www.apache.org/licenses/LICENSE-2.0</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="go">Unless required by applicable law or agreed to in writing, software</span>
+</span></code></pre></div>
+<h4 id="private-access-through-invite">Private access through invite</h4>
+<p>Once a node is reachable by using a public FQDN, other users (e.g. friends and familiy)
+can be <a href="https://youtu.be/Vt4PDUXB_fg?t=646">invited through Tailscale</a> to access that one
+service from their computers or phones.</p>
+<h4 id="public-access-through-funnel">Public access through Funnel</h4>
+<p><a href="https://tailscale.com/kb/1223/funnel">Tailscale Funnel</a> lets you route traffic from the
+broader internet to a local service, like a web app, for anyone to access—even if they
+don't use Tailscale. This can be used to expose <strong>low-bandwidth</strong> sensitive applications over <strong>HTTPS</strong>, with the caveat that traffic is not protected from abuse as with Cloudflare.
+<a href="https://www.reddit.com/r/Tailscale/comments/188jvlr/is_funnels_really_slow/">Tailscale Funnel are slow by design</a>,
+so this method only really works well for non-HTTP applications that are low-bandwidth,
+e.g. SSH or perhaps gaming servers.</p>
+<p><a href="https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-service-to-the-public-internet-using-ingress-and-tailscale-funnel">Exposing a Service <strong>to the public internet</strong> using Ingress and Tailscale Funnel</a>
+enables access to local (Kubernetes) services also to clients that are not in the same
+tailnet, or even in their own tailnet. This is <em>as simple</em> as adding the following
+annotation to the Tailscale <code>Ingress</code> for a Kubernetes service:</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">dashboard/nginx-ingress.yaml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-44">44</a></span>
+<span class="normal"><a href="#__codelineno-21-45">45</a></span>
+<span class="normal"><a href="#__codelineno-21-46">46</a></span>
+<span class="normal"><a href="#__codelineno-21-47">47</a></span>
+<span class="normal"><a href="#__codelineno-21-48">48</a></span>
+<span class="normal"><a href="#__codelineno-21-49">49</a></span>
+<span class="normal"><a href="#__codelineno-21-50">50</a></span>
+<span class="normal"><a href="#__codelineno-21-51">51</a></span>
+<span class="normal"><a href="#__codelineno-21-52">52</a></span>
+<span class="normal"><a href="#__codelineno-21-53">53</a></span>
+<span class="normal"><a href="#__codelineno-21-54">54</a></span>
+<span class="normal"><a href="#__codelineno-21-55">55</a></span>
+<span class="normal"><a href="#__codelineno-21-56">56</a></span>
+<span class="normal"><a href="#__codelineno-21-57">57</a></span>
+<span class="normal"><a href="#__codelineno-21-58">58</a></span>
+<span class="normal"><a href="#__codelineno-21-59">59</a></span>
+<span class="normal"><a href="#__codelineno-21-60">60</a></span>
+<span class="normal"><a href="#__codelineno-21-61">61</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-21-44"><a id="__codelineno-21-44" name="__codelineno-21-44"></a><span class="nn">---</span>
+</span><span id="__span-21-45"><a id="__codelineno-21-45" name="__codelineno-21-45"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+</span><span id="__span-21-46"><a id="__codelineno-21-46" name="__codelineno-21-46"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+</span><span id="__span-21-47"><a id="__codelineno-21-47" name="__codelineno-21-47"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-21-48"><a id="__codelineno-21-48" name="__codelineno-21-48"></a><span class="hll"><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+</span></span><span id="__span-21-49"><a id="__codelineno-21-49" name="__codelineno-21-49"></a><span class="hll"><span class="w">    </span><span class="nt">tailscale.com/funnel</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span></span><span id="__span-21-50"><a id="__codelineno-21-50" name="__codelineno-21-50"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard-ingress-tailscale</span>
+</span><span id="__span-21-51"><a id="__codelineno-21-51" name="__codelineno-21-51"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard</span>
+</span><span id="__span-21-52"><a id="__codelineno-21-52" name="__codelineno-21-52"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-21-53"><a id="__codelineno-21-53" name="__codelineno-21-53"></a><span class="w">  </span><span class="nt">defaultBackend</span><span class="p">:</span>
+</span><span id="__span-21-54"><a id="__codelineno-21-54" name="__codelineno-21-54"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span>
+</span><span id="__span-21-55"><a id="__codelineno-21-55" name="__codelineno-21-55"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-dashboard-kong-proxy</span>
+</span><span id="__span-21-56"><a id="__codelineno-21-56" name="__codelineno-21-56"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span>
+</span><span id="__span-21-57"><a id="__codelineno-21-57" name="__codelineno-21-57"></a><span class="w">        </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+</span><span id="__span-21-58"><a id="__codelineno-21-58" name="__codelineno-21-58"></a><span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tailscale</span>
+</span><span id="__span-21-59"><a id="__codelineno-21-59" name="__codelineno-21-59"></a><span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+</span><span id="__span-21-60"><a id="__codelineno-21-60" name="__codelineno-21-60"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span>
+</span><span id="__span-21-61"><a id="__codelineno-21-61" name="__codelineno-21-61"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes-alfred</span>
+</span></code></pre></div></td></tr></tbody></table></div>
+<p><strong>Before</strong> applying this change,
+<a href="https://login.tailscale.com/admin/acls/file">Edit Tailscale ACL</a>
+to allow Kubernetes Operator proxy services to use Tailscale Funnel:</p>
+<ol>
+<li>Expand the <strong>Funnel</strong> section and select <strong>Add Funnel to policy</strong>.</li>
+<li>Edit the <code>nodeAttrs</code> to allow nodes created by the Kubernetes operator to use Funnel:</li>
+</ol>
+<div class="language-json highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-61">61</a></span>
+<span class="normal"><a href="#__codelineno-22-62">62</a></span>
+<span class="normal"><a href="#__codelineno-22-63">63</a></span>
+<span class="normal"><a href="#__codelineno-22-64">64</a></span>
+<span class="normal"><a href="#__codelineno-22-65">65</a></span>
+<span class="normal"><a href="#__codelineno-22-66">66</a></span>
+<span class="normal"><a href="#__codelineno-22-67">67</a></span>
+<span class="normal"><a href="#__codelineno-22-68">68</a></span>
+<span class="normal"><a href="#__codelineno-22-69">69</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-61"><a id="__codelineno-22-61" name="__codelineno-22-61"></a><span class="w">  </span><span class="nt">"nodeAttrs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-22-62"><a id="__codelineno-22-62" name="__codelineno-22-62"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-22-63"><a id="__codelineno-22-63" name="__codelineno-22-63"></a><span class="w">      </span><span class="c1">// Funnel policy, which lets tailnet members control Funnel</span>
+</span><span id="__span-22-64"><a id="__codelineno-22-64" name="__codelineno-22-64"></a><span class="w">      </span><span class="c1">// for their own devices.</span>
+</span><span id="__span-22-65"><a id="__codelineno-22-65" name="__codelineno-22-65"></a><span class="w">      </span><span class="c1">// Learn more at https://tailscale.com/kb/1223/tailscale-funnel/</span>
+</span><span id="__span-22-66"><a id="__codelineno-22-66" name="__codelineno-22-66"></a><span class="hll"><span class="w">      </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"tag:k8s"</span><span class="p">],</span><span class="w"> </span><span class="c1">// tag that Tailscale Operator uses to tag proxies; defaults to 'tag:k8s'</span>
+</span></span><span id="__span-22-67"><a id="__codelineno-22-67" name="__codelineno-22-67"></a><span class="w">      </span><span class="nt">"attr"</span><span class="p">:</span><span class="w">   </span><span class="p">[</span><span class="s2">"funnel"</span><span class="p">],</span>
+</span><span id="__span-22-68"><a id="__codelineno-22-68" name="__codelineno-22-68"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-22-69"><a id="__codelineno-22-69" name="__codelineno-22-69"></a><span class="w">  </span><span class="p">],</span>
+</span></code></pre></div></td></tr></tbody></table></div>
+<p>Then applying the change to the <code>Ingress</code> manifest:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>dashboard/nginx-ingress.yaml<span class="w"> </span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="go">ingress.networking.k8s.io/kubernetes-dashboard-ingress unchanged</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="go">ingress.networking.k8s.io/kubernetes-dashboard-ingress configured</span>
+</span></code></pre></div>
+<p>Once DNS has propagated to resolve <a href="https://kubernetes-alfred.royal-penny.ts.net">https://kubernetes-alfred.royal-penny.ts.net</a> to the
+machine's Tailscale IP address (<code>100.74.213.20</code>); enabling the <code>funnel</code> annotation and
+applying the change results in yet another Tailscale IP address begin assigned to it, so
+there we go to wait for DNS to propagate <em>again</em> to test access using this method.</p>
+<p>Eventually, after another couple of days for DNS to propagate, the Kubernetes dashboard
+is available at <a href="https://kubernetes-alfred.royal-penny.ts.net">https://kubernetes-alfred.royal-penny.ts.net</a> also for computers <strong>not</strong>
+in the same tailnet.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../08/adopting-firefox-and-bitwarden-as-daily-drivers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Adopting Firefox and Bitwarden as daily drivers">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Adopting Firefox and Bitwarden as daily drivers
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../04/12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/" class="md-footer__link md-footer__link--next" aria-label="Next: Kubernetes homelab server with Ubuntu Server 24.04 (octavo)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Kubernetes homelab server with Ubuntu Server 24.04 (octavo)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
