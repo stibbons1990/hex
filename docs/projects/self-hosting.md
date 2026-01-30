@@ -79,6 +79,13 @@ were really purchased for the kids, having a central library we all
 can use, from any and every device, is a lot easier than sharing
 files in an inevitably more disorganized fashion.
 
+#### Longhorn
+
+[Longhorn](../blog/posts/2026-01-25-migrating-kubernetes-volumes-to-longhorn.md)
+is not an application but instead a storage drivers to support future expansion to an
+[Active-Passive High Availability](../blog/posts/2026-01-25-migrating-kubernetes-volumes-to-longhorn.md#active-active-vs-active-passive)
+cluster.
+
 #### Navidrome
 
 [Self-hosted music streaming with Navidrome](../blog/posts/2024-10-26-self-hosted-music-streaming-with-navidrome.md)
@@ -126,6 +133,14 @@ into groups to represent *real-life activities*.
 should become a good replacement for the
 [Continuous Monitoring for TP-Link Tapo devices](../blog/posts/2024-12-28-continuous-monitoring-for-tp-link-tapo-devices.md),
 although that may yet take some more work.
+
+#### Homepage
+
+[Homepage](https://gethomepage.dev/) is a modern, highly customizable
+application dashboard that could be useful to have a *big picture* view
+of all services in one place, should there ever be too many of them.
+It was easy enough to install and setup in a couple of days during holidays,
+time will yet have to tell how much this get actually used.
 
 #### Kubernetes Dashboard
 
@@ -175,14 +190,6 @@ good motivation to invest the *hours* to fill it in, there
 is only so much you can do with it. It will probably make
 more sense after establishing a criteria for *what goes in*,
 because it hardly makes sense to *try and get it all in*.
-
-#### Homepage
-
-[Homepage](https://gethomepage.dev/) is a modern, highly customizable
-application dashboard that could be useful to have a *big picture* view
-of all services in one place, should there ever be too many of them.
-It was easy enough to install and setup in a couple of days during holidays,
-time will yet have to tell howmucho this get actually used.
 
 #### Minecraft Server
 
@@ -367,6 +374,15 @@ We combine strategy, planning and execution while making it easy for everyone
 on the team to use. Built with ADHD, dyslexia and autism in mind.* 🧠
 
 Sounds likely a better fit for me than [Kendo Manager](https://www.kendomanager.com/).
+
+#### Linkwarden
+
+[Linkwarden](https://github.com/linkwarden/linkwarden?tab=readme-ov-file#linkwarden)
+is a self-hosted, open-source collaborative bookmark manager to collect, read, annotate,
+and fully preserve what matters, all in one place. There are only installation steps for
+[Docker](https://docs.linkwarden.app/self-hosting/installation#docker-) and `compose`,
+but should be easy to run in Kubernetes. It also supports 
+[Google (OIDC)](https://docs.linkwarden.app/self-hosting/sso-oauth#google).
 
 #### Netdata
 
