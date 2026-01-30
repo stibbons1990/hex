@@ -2472,6 +2472,279 @@ Spec:
 Events:              <none>
 ```
 
+#### **2026** Upgrade to Helm chart
+
+[Upgrading Kubernetes](./2026-01-10-upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-24-04-octavo.md)
+eventually reached a point where MetalLB needed to be upgraded too; upgrading to
+Kubernetes 1.35 requires MetalLB 0.15 or later.
+
+MetalLb was last using the `metallb-native.yaml` instead of its Helm chart, and there
+is a `IPAddressPool` defined in a separate manifest, so now in order to migrate to the
+Helm chart without losing IP assignments or causing a collision, the migration needs to
+perform a "takeover". Kubernetes allows Helm to manage existing resources if they are correctly labeled and annotated. The `IPAddressPool` and `L2Advertisement` are Custom
+Resources (CRD). Helm will not delete these during the upgrade if the namespace is
+handled correctly, but they should be backed up first:
+
+``` console
+$ kubectl get ipaddresspools.metallb.io,l2advertisements.metallb.io -A -o yaml \
+  > metallb-config-backup.yaml
+```
+
+Install the MetalLB Helm chart:
+
+``` console
+$ helm repo add metallb https://metallb.github.io/metallb
+"metallb" has been added to your repositories
+
+$ helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "metallb" chart repository
+...
+Update Complete. ⎈Happy Helming!⎈
+```
+
+To minimize downtime during the takeover, pre-pull the Docker images so that the Helm
+installation happens in seconds rather than minutes:
+
+``` console
+# docker pull quay.io/metallb/speaker:v0.15.3
+v0.15.3: Pulling from metallb/speaker
+fd4aa3667332: Pull complete 
+...
+07003b9acb06: Pull complete 
+Digest: sha256:c6a5b25b2e1fba610a57b2db4bb8141d7c133569d561a8cc29e38ca5113efbc4
+Status: Downloaded newer image for quay.io/metallb/speaker:v0.15.3
+quay.io/metallb/speaker:v0.15.3
+
+# docker pull quay.io/metallb/controller:v0.15.3
+v0.15.3: Pulling from metallb/controller
+fd4aa3667332: Already exists 
+...
+ddf74a63f7d8: Already exists 
+6dff88f058c1: Pull complete 
+db83dd67de88: Pull complete 
+Digest: sha256:6698ccc54c380913816ed1fd0758637ec87dd79da419c4ab170a2c26c158ab89
+Status: Downloaded newer image for quay.io/metallb/controller:v0.15.3
+quay.io/metallb/controller:v0.15.3
+```
+
+Helm requires specific metadata to "adopt" existing resources. Without this, Helm will
+fail with an "already exists" error. To avoid this, annotate and label the namespace:
+
+``` console
+$ kubectl describe namespaces metallb-system 
+Name:         metallb-system
+Labels:       kubernetes.io/metadata.name=metallb-system
+              pod-security.kubernetes.io/audit=privileged
+              pod-security.kubernetes.io/enforce=privileged
+              pod-security.kubernetes.io/warn=privileged
+Annotations:  <none>
+Status:       Active
+
+No resource quota.
+
+No LimitRange resource.
+
+$ kubectl annotate namespace metallb-system meta.helm.sh/release-name=metallb
+namespace/metallb-system annotated
+
+$ kubectl annotate namespace metallb-system meta.helm.sh/release-namespace=metallb-system
+namespace/metallb-system annotated
+
+$ kubectl label namespace metallb-system app.kubernetes.io/managed-by=Helm
+namespace/metallb-system labeled
+
+$ kubectl describe namespaces metallb-system
+Name:         metallb-system
+Labels:       app.kubernetes.io/managed-by=Helm
+              kubernetes.io/metadata.name=metallb-system
+              pod-security.kubernetes.io/audit=privileged
+              pod-security.kubernetes.io/enforce=privileged
+              pod-security.kubernetes.io/warn=privileged
+Annotations:  meta.helm.sh/release-name: metallb
+              meta.helm.sh/release-namespace: metallb-system
+Status:       Active
+
+No resource quota.
+
+No LimitRange resource.
+```
+
+Then, to avoid conflicts, delete the existing deployment/daemonset while **keeping** the
+**CRDs and Namespace**. It is critical *not to delete* the namespace, as doing so would
+trigger a cascading deletion of `IPAddressPools` and potentially `Services` using them.
+
+**Do not run** `kubectl delete -f` on the `metallb-native.yaml` manifest. Instead, use
+the manifest to identify and delete only the functional components (Deployments,
+DaemonSets, and RBAC) while leaving the Namespace and CRDs intact. To delete everything
+**except** the namespace and the CRDs, use the `--selector` to target MetalLB's
+internal components:
+
+``` console
+$ kubectl delete -n metallb-system -l app=metallb \
+  deployment,daemonset,service,serviceaccount,role,rolebinding 
+deployment.apps "controller" deleted from metallb-system namespace
+daemonset.apps "speaker" deleted from metallb-system namespace
+serviceaccount "controller" deleted from metallb-system namespace
+serviceaccount "speaker" deleted from metallb-system namespace
+role.rbac.authorization.k8s.io "controller" deleted from metallb-system namespace
+role.rbac.authorization.k8s.io "pod-lister" deleted from metallb-system namespace
+rolebinding.rbac.authorization.k8s.io "controller" deleted from metallb-system namespace
+rolebinding.rbac.authorization.k8s.io "pod-lister" deleted from metallb-system namespace
+
+$ kubectl delete -l app=metallb clusterrole,clusterrolebinding
+clusterrole.rbac.authorization.k8s.io "metallb-system:controller" deleted
+clusterrole.rbac.authorization.k8s.io "metallb-system:speaker" deleted
+clusterrolebinding.rbac.authorization.k8s.io "metallb-system:controller" deleted
+clusterrolebinding.rbac.authorization.k8s.io "metallb-system:speaker" deleted
+
+$ kubectl delete validatingwebhookconfiguration metallb-webhook-configuration
+validatingwebhookconfiguration.admissionregistration.k8s.io "metallb-webhook-configuration" deleted
+```
+
+The CRDs (`IPAddressPool` and `L2Advertisement`) in the 0.14.9 manifest don't have the
+`app=metallb` label, so the commands above will not touch them and thus the IP Pool
+configuration is safe.
+
+However, the above deletions are not enough, attempting to install the Helm chart fails
+with `INSTALLATION FAILED` errors due to many other pre-existing
+`CustomResourceDefinition` objects such as `bfdprofiles.metallb.io`:
+
+``` console
+$ helm install metallb metallb/metallb \
+  --namespace metallb-system \
+  --version 0.15.3
+Error: INSTALLATION FAILED: Unable to continue with install: CustomResourceDefinition
+"bfdprofiles.metallb.io" in namespace "" exists and cannot be imported into the
+current release: invalid ownership metadata; label validation error: missing key
+"app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error:
+missing key "meta.helm.sh/release-name": must be set to "metallb"; annotation
+validation error: missing key "meta.helm.sh/release-namespace": must be set to
+"metallb-system"
+```
+
+So there are two options: `delete` or `annotate`; a few need to be deleted:
+
+``` console
+$ kubectl delete secret metallb-webhook-cert -n metallb-system
+secret "metallb-webhook-cert" deleted from metallb-system namespace
+
+$ kubectl delete configmap metallb-excludel2 -n metallb-system
+configmap "metallb-excludel2" deleted from metallb-system namespace
+
+$ kubectl delete service metallb-webhook-service -n metallb-system
+service "metallb-webhook-service" deleted from metallb-system namespace
+```
+
+The rest need to be annotated (to preserve them):
+
+``` console
+$ CRDS="bfdprofiles.metallb.io bgpadvertisements.metallb.io bgppeers.metallb.io communities.metallb.io ipaddresspools.metallb.io l2advertisements.metallb.io"
+$ for crd in $CRDS; do
+  kubectl annotate crd $crd meta.helm.sh/release-name=metallb --overwrite
+  kubectl annotate crd $crd meta.helm.sh/release-namespace=metallb-system --overwrite
+  kubectl label crd $crd app.kubernetes.io/managed-by=Helm --overwrite
+done
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io labeled
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bgpadvertisements.metallb.io labeled
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/bgppeers.metallb.io labeled
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/communities.metallb.io labeled
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/ipaddresspools.metallb.io labeled
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io annotated
+customresourcedefinition.apiextensions.k8s.io/l2advertisements.metallb.io labeled
+
+$ kubectl annotate crd servicel2statuses.metallb.io meta.helm.sh/release-name=metallb --overwrite
+customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io annotated
+
+$ kubectl annotate crd servicel2statuses.metallb.io meta.helm.sh/release-namespace=metallb-system --overwrite
+customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io annotated
+
+$ kubectl label crd servicel2statuses.metallb.io app.kubernetes.io/managed-by=Helm --overwrite
+customresourcedefinition.apiextensions.k8s.io/servicel2statuses.metallb.io labeled
+```
+
+Once the old `controller` and `speaker` are gone, Helm can install 0.15.3 into
+the existing namespace:
+
+``` console
+$ helm install metallb metallb/metallb \
+  --namespace metallb-system \
+  --version 0.15.3
+NAME: metallb
+LAST DEPLOYED: Fri Jan 30 23:33:07 2026
+NAMESPACE: metallb-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+MetalLB is now running in the cluster.
+
+Now you can configure it via its CRs. Please refer to the metallb official docs
+on how to use the CRs.
+```
+
+After the Helm install, the existing `IPAddressPool` is immediately active:
+
+``` console
+$ kubectl -n metallb-system get ipaddresspools
+NAME         AUTO ASSIGN   AVOID BUGGY IPS   ADDRESSES
+production   true          false             ["192.168.0.171-192.168.0.180","192.168.1.171-201.168.1.220"]
+
+$ kubectl -n metallb-system describe ipaddresspools
+Name:         production
+Namespace:    metallb-system
+Labels:       <none>
+Annotations:  <none>
+API Version:  metallb.io/v1beta1
+Kind:         IPAddressPool
+Metadata:
+  Creation Timestamp:  2025-04-26T15:40:23Z
+  Generation:          4
+  Resource Version:    62054111
+  UID:                 3a7c5d52-ab54-4cb8-b339-2a81930bf199
+Spec:
+  Addresses:
+    192.168.0.171-192.168.0.180
+    192.168.1.171-201.168.1.220
+  Auto Assign:       true
+  Avoid Buggy I Ps:  false
+Status:
+  assignedIPv4:   3
+  assignedIPv6:   0
+  availableIPv4:  150995001
+  availableIPv6:  0
+Events:           <none>
+```
+
+Had this not worked, the Speaker pod logs should be inspected. When the pools are
+active, the speaker should be announcing services like this:
+
+``` console
+$ kubectl logs -n metallb-system metallb-speaker-54w68 | grep -i pool
+...
+{"caller":"main.go:444","event":"serviceAnnounced","ips":["192.168.0.173"],"level":"info","msg":"service has IP, announcing","pool":"production","protocol":"layer2","ts":"2026-01-30T22:33:18Z"}
+{"caller":"main.go:444","event":"serviceAnnounced","ips":["192.168.1.220"],"level":"info","msg":"service has IP, announcing","pool":"production","protocol":"layer2","ts":"2026-01-30T22:33:18Z"}
+{"caller":"main.go:444","event":"serviceAnnounced","ips":["192.168.0.172"],"level":"info","msg":"service has IP, announcing","pool":"production","protocol":"layer2","ts":"2026-01-30T22:33:18Z"}
+```
+
+In the event of the logs showing errors about `"no pools found"`, re-apply the
+specific `IPAddressPool` manifest:
+
+``` console
+$ kubectl apply -f metallb/ipaddress-pool-octavo.yaml
+```
+
 ### Kubernets Dashboard
 
 [Install the Helm repository](https://github.com/kubernetes/dashboard?tab=readme-ov-file#installation)
