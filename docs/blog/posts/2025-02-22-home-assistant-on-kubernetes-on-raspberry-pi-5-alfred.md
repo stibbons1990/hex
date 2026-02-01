@@ -2389,7 +2389,117 @@ Other resources briefly considered were:
 - [Using Kong to access Kubernetes services, using a Gateway resource with no cloud provided LoadBalancer](https://medium.com/@martin.hodges/using-kong-to-access-kubernetes-services-using-a-gateway-resource-with-no-cloud-provided-8a1bcd396be9)
 - Setting [trusted_ips](https://docs.konghq.com/gateway/latest/reference/configuration/#trusted_ips) in Kong.
 
+
+### **New in 2026:** Headlamp
+
+[Kubernetes Dashboard](https://github.com/kubernetes-retired/dashboard?tab=readme-ov-file#kubernetes-dashboard)
+was deprecated and archived in January 2026, and is no longer
+maintained due to lack of active maintainers and contributors.
+The suggested replacement is
+[Headlamp](https://github.com/kubernetes-sigs/headlamp?tab=readme-ov-file#------------),
+which can be deployed
+[in-cluster](https://headlamp.dev/docs/latest/installation/in-cluster/)
+with a (Pomerium) ingress.
+
+The easiest way to install Headlamp is to use their helm chart:
+
+``` console
+$ helm repo add headlamp https://kubernetes-sigs.github.io/headlamp/
+"headlamp" has been added to your repositories
+
+$ helm repo update
+
+$ helm install headlamp headlamp/headlamp \
+  --namespace kube-system \
+  -f headlamp-values.yaml
+NAME: headlamp
+LAST DEPLOYED: Sun Feb  1 00:27:44 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace kube-system -l "app.kubernetes.io/name=headlamp,app.kubernetes.io/instance=headlamp" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace kube-system $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace kube-system port-forward $POD_NAME 8080:$CONTAINER_PORT
+2. Get the token using
+  kubectl create token headlamp --namespace kube-system
+```
+
+!!! k8s "`headlamp-values.yaml`"
+
+    ``` yaml
+    config:
+      baseURL: "https://headlamp.very-very-dark-gray.top/"
+      watchPlugins: true
+    pluginsManager:
+      enabled: true
+      configContent: |
+        plugins:
+          - name: cert-manager
+            source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
+            version: 0.1.0
+          - name: flux
+            source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_flux
+            version: 0.5.0
+          - name: trivy
+            source: https://artifacthub.io/packages/headlamp/headlamp-trivy/headlamp_trivy
+            version: 0.3.1
+        installOptions:
+          parallel: true
+          maxConcurrent: 2
+      baseImage: node:lts-alpine
+      version: latest
+    ```
+
+To make Headlamp available via [Pomerium ingress](./2025-12-18-replacing-ingress-nginx-with-pomerium.md)
+on external URL, add an `Ingress` manifest under `pomerium/pomerium-ingress/`
+(and load it from `kustomization.yaml`):
+
+!!! k8s "`pomerium/pomerium-ingress/headlamp.yaml`"
+
+    ``` yaml
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: headlamp-pomerium-ingress
+      namespace: kube-system
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        ingress.pomerium.io/pass_identity_headers: true
+    spec:
+      ingressClassName: pomerium
+      rules:
+        - host: batlamp.very-very-dark-gray.top
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: headlamp
+                    port:
+                      number: 80
+      tls:
+        - secretName: tls-secret-cloudflare
+          hosts:
+            - batlamp.very-very-dark-gray.top
+    ```
+
+Finally, to log into the Headlamp dashboard, request a token for `headlamp`:
+
+``` console
+$ kubectl create token headlamp --namespace kube-system
+```
+
 ### Ingress Controller
+
+!!! warning
+
+    The Nginx Ingress Controller was deprecated in 2025 and
+    [replaced with Pomerium](./2025-12-18-replacing-ingress-nginx-with-pomerium.md).
 
 An Nginx Ingress Controller will be used to redirect HTTPS requests to
 different services depending on the `Host` header, while all those requests
