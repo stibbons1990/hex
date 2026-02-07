@@ -43,6 +43,31 @@ with the addition of a `Service` and an `Ingress` for remote access:
       name: steam-headless
     ---
     apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: init-d-scripts
+      namespace: steam-headless
+    data:
+      add-vnc-passwd.sh: |
+        #!/bin/bash
+        
+        # Define the file path
+        FILE_PATH="/usr/bin/start-x11vnc.sh"
+        
+        # Define the password part to insert
+        PASSWORD_PART="-passwd $USER_PASSWORD"
+        
+        # Check if the -passwd option is already in the script
+        if grep -q "\-passwd" "$FILE_PATH"; then
+            echo "VNC Password flag already exists."
+        else
+            echo "Adding VNC password flag..."
+            # Use sed to insert the password part before the '&' at the end of the command line
+            sed -i "/x11vnc.*\&/s/\&/ $PASSWORD_PART&/" "$FILE_PATH"
+            echo "VNC Password flag added successfully."
+        fi
+    ---
+    apiVersion: v1
     kind: PersistentVolume
     metadata:
       name: home-dir-pv
@@ -95,6 +120,7 @@ with the addition of a `Service` and an `Ingress` for remote access:
           hostNetwork: true
           securityContext:
             fsGroup: 1000
+            fsGroupChangePolicy: "OnRootMismatch"
           containers:
           - name: steam-headless
             securityContext:
@@ -102,18 +128,20 @@ with the addition of a `Service` and an `Ingress` for remote access:
             image: josh5/steam-headless:latest
             resources:
               requests:
-                memory: "12G"
-                cpu: "4"
+                memory: "8G"
+                cpu: "2"
                 gpu.intel.com/i915: "1"
               limits:
                 memory: "16G"
-                cpu: "8"
+                cpu: "4"
                 gpu.intel.com/i915: "1"
             volumeMounts:
             - name: dev-dri-renderd128
               mountPath: /dev/dri/renderD128
             - name: dshm
               mountPath: /dev/shm
+            - name: writable-scripts
+              mountPath: /home/default/init.d/
             - name: home-dir
               mountPath: /home/default/
             - name: input-devices
@@ -167,7 +195,22 @@ with the addition of a `Service` and an `Ingress` for remote access:
               value: '****************************'
             - name: ENABLE_EVDEV_INPUTS
               value: 'true'
+          initContainers:
+          - name: init-scripts
+            image: busybox
+            command: ['sh', '-c', 'cp /config/add-vnc-passwd.sh /scripts/add-vnc-passwd.sh && chmod +x /scripts/add-vnc-passwd.sh']
+            volumeMounts:
+            - name: init-d-scripts
+              mountPath: /config
+            - name: writable-scripts
+              mountPath: /scripts
           volumes:
+          - name: init-d-scripts
+            configMap:
+              name: init-d-scripts
+              defaultMode: 0755
+          - name: writable-scripts
+            emptyDir: {}
           - name: dev-dri-renderd128
             hostPath:
               path: /dev/dri/renderD128
@@ -444,15 +487,12 @@ To verify that the pod has full access to the GPU, open a Terminal and run
 `glxinfo | grep -i 'direct render'`; the onput should be
 `direct rendering: Yes`.
 
-!!! todo "Install Heroic and Lutris via Flatpak"
+## Authentication
 
-## Closed Issues
-
-### Authentication
-
-There is a big **Connect** button but **no authentication** at all,
-so this web UI is **not ready** to be deployed **for remote use** just yet.
-While authentication is not ready; scale the `StatefulSet` down to zero replicas:
+Using a simple deployment, there is a big **Connect** button but **no authentication** at
+all, so this web UI is **not ready** to be deployed **for remote use**. Authentication
+must be added before exposing this externally; scale the `StatefulSet` down to zero
+replicas until authentication is added!
 
 ``` console
 $ kubectl scale --replicas=0 sts steam-headless -n steam-headless
@@ -483,10 +523,12 @@ else
 fi
 ```
 
-This relies on `USER_PASSWORD` environment variable existing, which should be in places from
-the deployment above. With this, clicking on the big **Connect** button prompts for the pasword.
-
-## Open Issues
+This relies on `USER_PASSWORD` environment variable existing, which should be in places
+from the deployment above. With this, clicking on the big **Connect** button prompts for
+the pasword. To make this script available, executable and *writeable* to the the
+`steam-headless` container, the [deployment](#headless-steam-deployment) includes the
+script as a `ConfigMap` (which is always read-only) and copies it into the
+`steam-headless` container using an `init-container`.
 
 ### Audio over SSL
 
