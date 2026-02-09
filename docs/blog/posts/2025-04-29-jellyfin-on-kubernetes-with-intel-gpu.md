@@ -703,6 +703,64 @@ Friendly note about CRDs. Make sure to manually update CRDs if
 they have changed. CRDs are not updated with helm by default.
 ```
 
+##### 2026 Update: disable NPU controller
+
+Newer versions of the `intel-device-plugins-operator` by default attempt to initialize
+also the `v1.NpuDevicePlugin` even if there is no NPU in the system, as is the case in
+Intel NUCs:
+
+```
+I0209 18:45:01.738198       1 internal.go:571] "Stopping and waiting for webhooks" logger="intel-device-plugins-manager"
+I0209 18:45:01.738279       1 server.go:249] "Shutting down webhook server with timeout of 1 minute" logger="controller-runtime.webhook"
+I0209 18:45:01.738376       1 internal.go:574] "Stopping and waiting for HTTP servers" logger="intel-device-plugins-manager"
+I0209 18:45:01.738395       1 server.go:68] "shutting down server" name="health probe" addr="[::]:8081"
+I0209 18:45:01.738411       1 server.go:254] "Shutting down metrics server with timeout of 1 minute" logger="controller-runtime.metrics"
+I0209 18:45:01.738597       1 internal.go:578] "Wait completed, proceeding to shutdown the manager" logger="intel-device-plugins-manager"
+E0209 18:45:01.738797       1 main.go:276] "problem running manager" err="failed to wait for npudeviceplugin caches to sync kind source: *v1.NpuDevicePlugin: timed out waiting for cache to be synced for Kind *v1.NpuDevicePlugin" logger="setup"
+E0209 18:45:01.738803       1 internal.go:517] "error received after stop sequence was engaged" err="leader election lost" logger="intel-device-plugins-manager"
+```
+
+This leads to the `inteldeviceplugins-controller-manager` being stuck in a crash loop:
+
+``` console
+$ kubectl get pods -n intel-device-plugins-gpu
+NAMESPACE                  NAME                                                     READY   STATUS             RESTARTS          AGE
+...
+intel-device-plugins-gpu   inteldeviceplugins-controller-manager-579649cd7d-8lnq7   0/1     CrashLoopBackOff   152 (4m35s ago)   18h
+```
+
+To avoid this issue, apply the following values to the Helm chart:
+
+``` yaml title="intel-operator-values.yaml"
+manager:
+  devices:
+    gpu: true
+```
+
+``` console
+$ helm upgrade \
+  -n intel-device-plugins-gpu  \
+  intel-device-plugins-operator  \
+  intel/intel-device-plugins-operator  \
+  -f intel-operator-values.yaml 
+Release "intel-device-plugins-operator" has been upgraded. Happy Helming!
+NAME: intel-device-plugins-operator
+LAST DEPLOYED: Mon Feb  9 20:01:58 2026
+NAMESPACE: intel-device-plugins-gpu
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+NOTES:
+Thank you for installing intel-device-plugins-operator.
+
+The next step would be to install the device (plugin) specific chart.
+
+Friendly note about CRDs. Make sure to manually update CRDs if
+they have changed. CRDs are not updated with helm by default.
+```
+
+#### Intel GPU
+
 With the operator running, use it to install Intel’s GPU plugin, providing the following
 (minimal) values file:
 
