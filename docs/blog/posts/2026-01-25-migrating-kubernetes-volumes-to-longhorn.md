@@ -427,6 +427,33 @@ After a few minutes all the pods and services are up and running:
     replicaset.apps/longhorn-ui-7c54575f4d                2         2         2       4m19s
     ```
 
+### Disable Multipath
+
+Longhorn can run into issues when Multipath is enabled, which is visible in the output
+from `lsblk` on a Longhorn block device, e.g.
+
+``` console
+# lsblk /dev/longhorn/pvc-7ae11ade-d6c8-4296-ac67-58953e3dddc2NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINTS
+sda 8:0 0 50G 0 disk
+ └─mpatha 252:0 0 50G 0 mpath 
+```
+
+This can cause a mount to fail despite the device showing as **Healthy** in the Longhorn
+UI. When Longhorn attaches the volume, `multipathd` immediately "claims" the device
+(`sda`) and creates a virtual device (`/dev/mapper/mpatha`). Because `multipathd` has an
+exclusive lock on the block device, the Longhorn CSI driver (and the `mount` command)
+gets an `"Already mounted or mount point busy"` error when it tries to open
+`/dev/longhorn/pvc-7ae11ade...` Longhorn shows the volume as Healthy because the iSCSI
+connection is technically up and the data is replicated; the "Health" check doesn't know
+the host OS has "hijacked" the local block device.
+
+To avoid such problems **disable and remove** `multipathd`:
+
+``` console
+# systemctl disable --now multipathd
+# apt-get remove multipath-tools -y
+```
+
 ### Longhorn UI Ingress
 
 To make the Longhorn UI, create an `Ingress` to access it over HTTPS:
