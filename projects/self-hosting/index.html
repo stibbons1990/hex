@@ -1,0 +1,2532 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/projects/self-hosting/">
+      
+      
+        <link rel="prev" href="../conmon/">
+      
+      
+        <link rel="next" href="../../blog/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Self-hosting - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#why-because-i-can" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Self-hosting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-because-i-can" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why? Because I Can!
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why? Because I Can!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#not-a-question-of-price" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not a Question of Price
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applications-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applications Installed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applications Installed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#used-often" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used Often
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Used Often">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audiobookshelf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audiobookshelf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#komga" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Komga
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longhorn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navidrome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navidrome
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unifi-network-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniFi Network Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-code-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Studio Code Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#used-occasionally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used Occasionally
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Used Occasionally">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#activitywatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActivityWatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#home-assistant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home Assistant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#homepage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homepage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jellyfin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jellyfin
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-really-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Really Used
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not Really Used">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firefly-iii" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefly III
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headless-steam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headless Steam
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#homebox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homebox
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minecraft-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minecraft Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-really-useful" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Really Useful
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not Really Useful">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kavita" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kavita
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#photoprism" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PhotoPrism®
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applications-considered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applications Considered
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applications Considered">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#desired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desired
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Desired">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adguardhome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AdGuardHome
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#affine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AFFiNE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blocky" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blocky
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fail2ban" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fail2Ban
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freshrss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FreshRSS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forgejo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forgejo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ghostfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ghostfolio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitea" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gitea
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heimdall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heimdall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#immich" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immich
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jellystat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jellystat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leantime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Leantime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linkwarden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linkwarden
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Netdata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newsblur" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NewsBlur
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pi-hole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pi-hole®
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pterodactyl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pterodactyl®
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scrutiny" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scrutiny
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tp-link-omada-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TP-Link Omada Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unifi-poller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniFi Poller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#victoriametrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VictoriaMetrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vikunja" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vikunja
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discarded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discarded
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Discarded">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentik
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mediatracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MediaTracker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nginx-proxy-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nginx Proxy Manager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plex-media-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plex Media Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ryot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ryot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamtrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yamtrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-because-i-can" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why? Because I Can!
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why? Because I Can!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#not-a-question-of-price" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not a Question of Price
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applications-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applications Installed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applications Installed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#used-often" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used Often
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Used Often">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audiobookshelf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audiobookshelf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#komga" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Komga
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longhorn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navidrome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navidrome
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unifi-network-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniFi Network Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-code-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Studio Code Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#used-occasionally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used Occasionally
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Used Occasionally">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#activitywatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActivityWatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#home-assistant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home Assistant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#homepage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homepage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jellyfin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jellyfin
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-really-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Really Used
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not Really Used">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firefly-iii" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firefly III
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headless-steam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headless Steam
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#homebox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homebox
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minecraft-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minecraft Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-really-useful" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Really Useful
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not Really Useful">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kavita" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kavita
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#photoprism" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PhotoPrism®
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applications-considered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applications Considered
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applications Considered">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#desired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desired
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Desired">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adguardhome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AdGuardHome
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#affine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AFFiNE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blocky" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blocky
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fail2ban" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fail2Ban
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freshrss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FreshRSS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forgejo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forgejo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ghostfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ghostfolio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitea" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gitea
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heimdall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heimdall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#immich" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immich
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jellystat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jellystat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leantime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Leantime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linkwarden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linkwarden
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Netdata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newsblur" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NewsBlur
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pi-hole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pi-hole®
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pterodactyl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pterodactyl®
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scrutiny" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scrutiny
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tp-link-omada-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TP-Link Omada Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unifi-poller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniFi Poller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#victoriametrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VictoriaMetrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vikunja" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vikunja
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discarded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discarded
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Discarded">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentik
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mediatracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MediaTracker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nginx-proxy-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nginx Proxy Manager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plex-media-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plex Media Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ryot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ryot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yamtrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yamtrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+
+  <h1>Self-hosting</h1>
+
+<p><em>Self-hosting is the practice of hosting and managing applications on your own server(s)</em>.</p>
+<p>Source: <a href="https://github.com/awesome-selfhosted/awesome-selfhosted">awesome-selfhosted</a>.</p>
+<h2 id="why-because-i-can">Why? <em>Because I Can!</em></h2>
+<p>Self-Hosting is <em>a choice</em>.
+It is primarily about choice and control.</p>
+<p>Hosted services are still valuable as they provide access
+to content and tools that would otherwise be unavailable.
+Self-hosted services are not necessarily are replacement to
+those, most of the times they are an extension or addition.</p>
+<p>But sometimes it is <em>nice</em> to replace a hosted service with a
+self-hosted alternative; I find listening to audiobooks and podcasts
+<em>substantially</em> more enjoyable since I started using
+<a href="#audiobookshelf">Audiobookshelf</a> and eventually removed the Audible
+app since all I was getting out of it was annoying push notifications.</p>
+<h3 id="not-a-question-of-price">Not a Question of Price</h3>
+<p>Self-Hosting is a hobby, not a way to save money, or a business plan.
+Like every hobby, it is practiced <em>for the joy of it</em> within the
+limits allowed by restrictions impossed by the environment.</p>
+<p><a href="https://kevquirk.com/blog/the-cost-of-self-hosting">The Cost of Self-Hosting</a>
+is always a consideration, and it's not just the monetary cost; a
+significant amount of time goes into learning how to get things to
+work, and then later into dealing with things breaking down, because
+<em>every thing breaks down eventually</em>. For now, I am still happy to
+take that as an <em>investment</em> because I <em>enjoy</em> the learning process.</p>
+<p>Last but not least,
+<a href="https://matduggan.com/self-hosting-isnt-a-solution-its-a-patch/">Self-Hosting Isn't a Solution; It's A Patch</a>.</p>
+<h2 id="applications-installed">Applications Installed</h2>
+<p>These are the applications that have been installed and used,
+at least enough to determine whether they are a good match for
+my intended purpose/s.</p>
+<h3 id="used-often">Used Often</h3>
+<p>These are the applications I find myself using often, most of them
+on a daily basis, otherwise at least once or twice a week.</p>
+<h4 id="audiobookshelf">Audiobookshelf</h4>
+<p><a href="../../blog/2024/02/28/audiobookshelf-on-kubernetes/">Audiobookshelf on Kubernetes</a>
+may be the one application I use every single day, to listen to
+podcasts during the day and to audiobooks in the evening, sometimes
+also offline while traveling.</p>
+<h4 id="continuous-monitoring">Continuous Monitoring</h4>
+<p><a href="../conmon/">Continuous Monitoring</a> is also used very nearly on a
+daily basis. It started in early 2020 as an ad-hoc implementation of
+<a href="../../blog/2020/03/31/detailed-system-and-process-monitoring/">detailed system and process monitoring</a>
+and 4 years later remained my preferred setup for
+<a href="../../blog/2024/04/20/monitoring-with-influxdb-and-grafana-on-kubernetes/">monitoring with InfluxDB and Grafana on Kubernetes</a>.</p>
+<p><a href="../../blog/2024/12/28/continuous-monitoring-for-tp-link-tapo-devices/">Continuous Monitoring for TP-Link Tapo devices</a>
+made this application a <em>mission critical</em> tool that I used
+<em>all the time</em>, every single day, for a few weeks every year.</p>
+<h4 id="komga">Komga</h4>
+<p><a href="../../blog/2024/05/26/self-hosted-ebook-library-with-komga/">Self-hosted eBook library with Komga</a>
+has made it <em>substantially</em> easier, and thus more likely, for me
+to read digital books. Not only me either, since some of the books
+were really purchased for the kids, having a central library we all
+can use, from any and every device, is a lot easier than sharing
+files in an inevitably more disorganized fashion.</p>
+<h4 id="longhorn">Longhorn</h4>
+<p><a href="../../blog/2026/01/25/migrating-kubernetes-volumes-to-longhorn/">Longhorn</a>
+is not an application but instead a storage drivers to support future expansion to an
+<a href="../../blog/2026/01/25/migrating-kubernetes-volumes-to-longhorn/#active-active-vs-active-passive">Active-Passive High Availability</a>
+cluster.</p>
+<h4 id="navidrome">Navidrome</h4>
+<p><a href="../../blog/2024/10/26/self-hosted-music-streaming-with-navidrome/">Self-hosted music streaming with Navidrome</a>
+may not be perfect but it works quite well enough for listening to
+music while working or chilling out. I like to listen to the same music
+again and again anyway, I only buy albums from my favorite artists at
+<a href="https://bandcamp.com/">Bandcamp</a> and listen to them on an infinite loop.</p>
+<h4 id="unifi-network-server">UniFi Network Server</h4>
+<p><a href="../../blog/2024/12/31/migrating-unifi-controller-to-kubernetes/">Migrating UniFi Controller to Kubernetes</a>
+means no longer having to manually update the
+<a href="https://ui.com/download/releases/network-server">UniFi Network Server</a>
+<em>plus</em> its dependencies (MongoDB and Java). The alternatives to
+self-hosting are pricey, starting at $15/month or $29/month depending
+on the provider.</p>
+<h4 id="visual-studio-code-server">Visual Studio Code Server</h4>
+<p><a href="../../blog/2023/05/29/running-visual-studio-code-server-on-kubernetes/">Running Visual Studio Code Server on Kubernetes</a>
+was the first self-hosted service on the first
+<a href="../../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon/">single-node Kubernetes cluster on Ubuntu Server (lexicon)</a>.
+It remains frequently used for the ability to edit Kubernetes deployment
+files directly on the server, even after installing 
+<a href="../../blog/2024/12/27/ubuntu-studio-2404-on-raven-gaming-pc-and-more/#visual-studio-code">Visual Studio Code on desktop PCs</a>
+which does work better for developing for desktop PCs.</p>
+<h3 id="used-occasionally">Used Occasionally</h3>
+<p>These are the applications I still consider <em>in use</em>, even though use
+is less frequent. Most of them still get used on a weekly basis,
+otherwise at least once or twice per month.</p>
+<h4 id="activitywatch">ActivityWatch</h4>
+<p><a href="../../blog/2024/06/30/self-hosted-time-tracking-with-activitywatch/">Self-hosted time tracking with ActivityWatch</a>
+is limited to the one machine where it is deployed, by design.
+This has made its usefulness somewhat limited but not as much as
+how hard it really is to categorize and aggregate "activities"
+into groups to represent <em>real-life activities</em>.</p>
+<h4 id="home-assistant">Home Assistant</h4>
+<p><a href="../../blog/2025/02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/">Home Assistant on a Raspberry Pi 5 (<code>alfred</code>)</a>
+should become a good replacement for the
+<a href="../../blog/2024/12/28/continuous-monitoring-for-tp-link-tapo-devices/">Continuous Monitoring for TP-Link Tapo devices</a>,
+although that may yet take some more work.</p>
+<h4 id="homepage">Homepage</h4>
+<p><a href="https://gethomepage.dev/">Homepage</a> is a modern, highly customizable
+application dashboard that could be useful to have a <em>big picture</em> view
+of all services in one place, should there ever be too many of them.
+It was easy enough to install and setup in a couple of days during holidays,
+time will yet have to tell how much this get actually used.</p>
+<h4 id="kubernetes-dashboard">Kubernetes Dashboard</h4>
+<p><a href="https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/">The built-in Kubernetes Dashboard</a>
+was deployed as part of the 
+<a href="../../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#dashboard">single-node Kubernetes cluster on Ubuntu Server (lexicon)</a>
+and is a nice UI to see how the cluster is doing, although when it
+comes to root-causing problems for real it doesn't seem to provide
+quite enough details.</p>
+<h4 id="jellyfin">Jellyfin</h4>
+<p><a href="../../blog/2025/04/29/jellyfin-on-kubernetes-with-intel-gpu/">Jellyfin on Kubernetes with Intel GPU</a>
+turned out even better than expected, even though it required a fair bit of
+<a href="../../blog/2025/04/29/jellyfin-on-kubernetes-with-intel-gpu/#troubleshooting">troubleshooting</a> to get everything to work.</p>
+<p>It handles private videos, such as family videos and purchased video lectures,
+none of which would be found in a public database like IMDB,
+better than the (retired) <a href="#plex-media-server">Plex Media Server</a>.</p>
+<h3 id="not-really-used">Not Really Used</h3>
+<p>These are applications I used <em>for a bit</em> or <em>tried out</em>, but then
+did not become frequently used.</p>
+<h4 id="firefly-iii">Firefly III</h4>
+<p><a href="../../blog/2024/05/19/self-hosted-accountancy-with-firefly-iii/">Self-hosted accountancy with Firefly III</a>
+works well and feels agile enough to use, yet the most important
+ingredient to keep using such an application is <em>perseverance</em>;
+that's what I don't have.</p>
+<h4 id="headless-steam">Headless Steam</h4>
+<p><a href="https://github.com/Steam-Headless/docker-steam-headless/tree/master?tab=readme-ov-file#headless-steam-service">Headless Steam Service</a>
+was installed and proved <em>somewhat useful</em> to casually
+<a href="../../blog/2025/07/27/playing-steam-games-in-the-browser-with-self-hosted-headless-steam-service/">play Steam games in the browser</a>
+but is not really used for two reasons: 1. there is only one GPU in the cluster and
+<a href="#jellyfin">Jellyfin</a> needs it (and uses it); 2. games audio is not available outside of
+the LAN, which for me pretty much defeats the purpose of the whole thing.</p>
+<h4 id="homebox">Homebox</h4>
+<p><a href="../../blog/2024/07/10/self-hosted-inventory-with-homebox/">Self-hosted inventory with Homebox</a>
+looks promising and easy enough to use, yet again without a
+good motivation to invest the <em>hours</em> to fill it in, there
+is only so much you can do with it. It will probably make
+more sense after establishing a criteria for <em>what goes in</em>,
+because it hardly makes sense to <em>try and get it all in</em>.</p>
+<h4 id="minecraft-server">Minecraft Server</h4>
+<p><a href="../../blog/2023/08/10/running-minecraft-java-server-for-bedrock-clients-on-kubernetes/">Running Minecraft Java Server for Bedrock clients on Kubernetes</a>
+is a convenient method to keep the Minecraft Java Edition server up to date <em>and</em>
+make it available to multiple kids, including friends playing remotely.</p>
+<p>Sometimes docker images are released several days later than the original
+server, which leads to a temporary version mismatch between the server
+and the clients, but when the server is lagging one version behind,
+(or, rarely, down) the kids will just use one of their own PCs as the
+secondary server and play on that one until the primary server is fixed.</p>
+<p>Eventually the kids seem to have <em>grown out of it</em> and are no longer so interested
+in playing Minecraft, so the server has been
+<a href="../../blog/2025/04/12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/#minecraft-server">archived for potential future use</a>.</p>
+<h3 id="not-really-useful">Not Really Useful</h3>
+<p>These applications turned out to be not really useful for the
+intended purpose/s. This may be due to open issues (bugs) or
+their design and intended behavior not matching intended purpose/s.</p>
+<h4 id="kavita">Kavita</h4>
+<p><a href="https://www.kavitareader.com/">Kavita</a> looked promising and was
+installed during the process that lead to
+<a href="../../blog/2024/05/26/self-hosted-ebook-library-with-komga/#alternatives">self-hosted eBook library with Komga</a>.
+What kept me from using this one long-term was that it really is
+built for comic <em>series</em> and not so much for individual books.</p>
+<h4 id="photoprism">PhotoPrism®</h4>
+<p><a href="../../blog/2024/08/24/self-hosted-photo-albums-with-photoprism/">Self-hosted photo albums with PhotoPrism®</a>
+was very promising with its <em>use of the latest technologies to
+tag and find pictures automatically without getting in your way</em>,
+but turned out to present one
+<a href="../../blog/2024/08/24/self-hosted-photo-albums-with-photoprism/#big-problem">Big Problem</a>
+that kept it from being really useful (and that was not the only one).</p>
+<p>There may be solutions for those problems but, even then, the whole
+navigation and UI experience was not entirely satisfactory.
+The current plan is to try <a href="#immich">Immich</a> next.</p>
+<h2 id="applications-considered">Applications Considered</h2>
+<p>These applications have not been installed <em>yet</em>.</p>
+<h3 id="desired">Desired</h3>
+<p>These applications have been <em>briefly</em> evaluated and look like they
+may be a good match for my intended purpose/s.</p>
+<h4 id="adguardhome">AdGuardHome</h4>
+<p><a href="https://github.com/AdguardTeam/AdGuardHome">AdGuardHome</a> may be a
+good tool to mitigate phishing and malware attacks on the web and
+possibly leverage blocking of adult domains; provided it works better
+than <a href="#pi-hole">Pi-hole®</a>.</p>
+<h4 id="affine">AFFiNE</h4>
+<p><a href="https://affine.pro/">AFFiNE</a> <em>is a workspace with fully merged docs,
+whiteboards and databases</em>, a <em>privacy-focused, local-first,
+open-source, and ready-to-use alternative for Notion &amp; Miro</em>.</p>
+<p>To <a href="https://docs.affine.pro/docs/self-host-affine">self-host AFFiNE</a>
+in a Kubernetes cluster, a deployment including AFFiNE and its
+dependencies can be created from their example
+<a href="https://github.com/toeverything/AFFiNE/blob/canary/.github/deployment/self-host/compose.yaml"><code>compose.yaml</code></a>.</p>
+<h4 id="blocky">Blocky</h4>
+<p><a href="https://0xerr0r.github.io/blocky/latest/">Blocky</a> may be a better
+alternative to <a href="#pi-hole">Pi-hole®</a> than <a href="#adguardhome">AdGuardHome</a>.
+Some people report having unexplained latency issues with AdGuard
+and/or some users experiencing broken websites, while these issues
+do not seem to occur with Blocky. There is no frontend, but the
+configuration lives in a single YAML file which is easy to track.</p>
+<h4 id="fail2ban">Fail2Ban</h4>
+<p><a href="https://github.com/fail2ban/fail2ban?tab=readme-ov-file#fail2ban-ban-hosts-that-cause-multiple-authentication-errors">Fail2Ban</a>
+<em>scans log files and bans IP addresses conducting too many failed login
+attempts</em>.</p>
+<p>This is already setup in the host OS but is limited to the
+SSH service, which is has
+<a href="../../blog/2022/07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc/#disable-ssh-password-authentication">password authentication disabled</a>.
+The next step would be to set it up to ban IPs that fail to
+authenticate through <a href="#authentik">Authentik</a>.</p>
+<h4 id="freshrss">FreshRSS</h4>
+<p><a href="https://github.com/FreshRSS/FreshRSS?tab=readme-ov-file#freshrss">FreshRSS</a>
+is a self-hosted RSS feed aggregator, much like
+<a href="#newsblur">NewsBlur</a>, but perhaps the plus of having integration with
+<a href="#homepage">Homepage</a>.</p>
+<h4 id="forgejo">Forgejo</h4>
+<p><a href="https://forgejo.org/">Forgejo</a> is a self-hosted lightweight software forge.
+There is a <a href="https://artifacthub.io/packages/helm/forgejo-helm/forgejo">Helm Chart</a> and other goodies:</p>
+<ul>
+<li><a href="https://jastorey.me/blog/integrating-forgejo-actions/#fnref:1">Integrating Forgejo Actions on my Self-Hosted Instance</a></li>
+<li><a href="https://codeberg.org/forgejo-contrib/delightful-forgejo">Delightful Forgejo</a></li>
+</ul>
+<h4 id="gatus">Gatus</h4>
+<p><a href="https://github.com/TwiN/gatus">Gatus</a> is <em>a developer-oriented health
+dashboard to monitor your services, evaluate the result of queries
+based on conditions and health checks can be paired with alerting</em>,
+e.g. via 
+<a href="https://github.com/TwiN/gatus?tab=readme-ov-file#configuring-ntfy-alerts">Ntfy alerts</a>
+to push notifications to your phone via <a href="https://ntfy.sh/">ntfy</a>.</p>
+<h4 id="ghostfolio">Ghostfolio</h4>
+<p><a href="https://github.com/ghostfolio/ghostfolio?tab=readme-ov-file#ghostfolio">Ghostfolio</a>
+is an open source wealth management software built with web technology. The application empowers busy people to keep track of stocks, ETFs or cryptocurrencies and make solid, data-driven investment decisions. The software is designed for personal use in continuous operation.</p>
+<h4 id="gitea">Gitea</h4>
+<p><a href="https://about.gitea.com/products/gitea/">Gitea</a> is a
+<em>painless, self-hosted Git service</em>, although the last (first)
+time I tried it, it was painfully finicky to use,
+<a href="../../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#add-ingress-for-the-first-pod">setting up Nginx ingress with HTTPs took me a while</a>
+and I could never figure out how to use it as the (only) remote
+repository when working from
+<a href="#visual-studio-code-server">Visual Studio Code Server</a>.</p>
+<h4 id="heimdall">Heimdall</h4>
+<p><a href="https://heimdall.site/">Heimdall Application Dashboard</a> is
+<em>a dashboard for all your web applications and links to anything else</em>
+which seems more versatile than a applications-only dashboard like
+<a href="#homepage">Homepage</a>.</p>
+<h4 id="immich">Immich</h4>
+<p><a href="https://immich.app/">Immich</a> is a <em>self-hosted photo and video
+management solution</em> that should make it easy to <em>browse, search and
+organize photos and videos with ease, without sacrificing privacy</em>.</p>
+<p>Immich can be deployed on Kubernetes using the
+<a href="https://github.com/immich-app/immich-charts?tab=readme-ov-file#immich-charts">official Helm charts</a>,
+which requires a <em>suitable postgres instance with the vectorchord extension</em>.
+It is recommended to use <a href="https://cloudnative-pg.io/">cloudnative-pg</a> with the
+<a href="https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord">tensorchord/cloudnative-vectorchord</a>
+container image. An example cluster manifest can be found
+<a href="https://github.com/immich-app/immich-charts/blob/main/local/cloudnative-pg.yaml">here</a>.
+There are also <a href="https://kubesearch.dev/#/immich">examples</a> of how other people run
+Immich on Kubernetes, using the official chart or otherwise.</p>
+<p>Besides deployment, leveraging Immich for a rich multi-user experience will require much
+fine-tuning of multiple features:</p>
+<ul>
+<li><a href="https://docs.immich.app/features/libraries/">External Libraries</a> to track assets
+  stored in the filesystem outside of Immich, since there are multiple personal
+  libraries with &gt;100,000 photos going back &gt;20 years.</li>
+<li><a href="https://docs.immich.app/features/folder-view/">Folder View</a> to navigate through the
+  folders and files in those external librarires, which are already organized.</li>
+<li><a href="https://docs.immich.app/administration/storage-template/">Storage Template</a> to set
+  the uploaded filename patterns for each user.</li>
+<li><a href="https://docs.immich.app/administration/user-management/">User Management</a> because
+  each familiy member should have their own library.</li>
+<li><a href="https://docs.immich.app/features/partner-sharing/">Partner Sharing</a> for each user to
+  let other see <em>all</em> their photos.</li>
+<li><a href="https://github.com/Salvoxia/immich-folder-album-creator?tab=readme-ov-file#immich-folder-album-creator">Immich Folder Album Creator</a>
+  to automatically create albums from (some) directories.</li>
+</ul>
+<h4 id="jellystat">Jellystat</h4>
+<p><a href="https://github.com/CyferShepard/Jellystat?tab=readme-ov-file#current-features">Jellystat</a>
+is a free and open source Statistics App for Jellyfin.</p>
+<h4 id="leantime">Leantime</h4>
+<p><a href="https://github.com/Leantime/leantime/?tab=readme-ov-file#leantime">Leantime</a>
+<em>is an open source project management system for non-project managers.
+We combine strategy, planning and execution while making it easy for everyone
+on the team to use. Built with ADHD, dyslexia and autism in mind.</em> 🧠</p>
+<p>Sounds likely a better fit for me than <a href="https://www.kendomanager.com/">Kendo Manager</a>.</p>
+<h4 id="linkwarden">Linkwarden</h4>
+<p><a href="https://github.com/linkwarden/linkwarden?tab=readme-ov-file#linkwarden">Linkwarden</a>
+is a self-hosted, open-source collaborative bookmark manager to collect, read, annotate,
+and fully preserve what matters, all in one place. There are only installation steps for
+<a href="https://docs.linkwarden.app/self-hosting/installation#docker-">Docker</a> and <code>compose</code>,
+but should be easy to run in Kubernetes. It also supports 
+<a href="https://docs.linkwarden.app/self-hosting/sso-oauth#google">Google (OIDC)</a>.</p>
+<h4 id="netdata">Netdata</h4>
+<p><a href="https://www.netdata.cloud/">Netdata</a> <em>could</em> replace
+<a href="#continuous-monitoring">Continuous Monitoring</a>,
+at the cost of <strong>$90 billed yearly</strong>
+(<a href="https://www.netdata.cloud/pricing/">Homelab pricing</a>),
+probably a significant amount of time to set it up in all hosts
+<em>and</em> sending all telemetry <strong>off-site</strong> to Netdata Cloud, where
+it can only be visualized in the <strong>closed-source</strong> Netdata UI.</p>
+<p>Otherwise, the free plan is limited to <em>Max </em><em>5</em><em> Active Connected
+Nodes</em> (in total), not enough to monitor all the <em>active</em> hosts in
+our home network. It may be enough to monitor the <em>most active</em> hosts,
+to get a sense of how much more desirable an upgrade may be.</p>
+<p>In addition to the limitation on the number of hosts, metrics are
+<a href="https://learn.netdata.cloud/docs/netdata-agent/database">aggregated past 14 days</a>
+so it still requires an external database for long-term storage.
+<a href="https://learn.netdata.cloud/docs/exporting-metrics/exporting-quickstart">Export metrics to external time-series databases</a>
+supports
+<a href="https://learn.netdata.cloud/docs/exporting-metrics/influxdb">InfluxDB</a>
+via
+<a href="https://learn.netdata.cloud/docs/exporting-metrics/graphite">Graphite</a>
+and
+<a href="https://learn.netdata.cloud/docs/exporting-metrics/victoriametrics">VictoriaMetrics</a>
+via
+<a href="https://learn.netdata.cloud/docs/exporting-metrics/prometheus-remote-write">Prometheus Remote Write</a>.</p>
+<p>That said, Netdata offers superior monitoring functionalities, with
+<a href="https://learn.netdata.cloud/docs/top-monitoring-netdata-functions">Top Monitoring (Netdata Functions)</a>
+including <em>customizable</em>
+<a href="https://www.netdata.cloud/blog/understanding-linux-cpu-consumption-load-and-pressure-for-performance-optimisation/#applications-cpu-utilization">Applications CPU Utilization</a>
+and
+<a href="https://www.netdata.cloud/blog/accurate-process-monitoring-with-netdata/#netdatas-appsplugin-aggregating-cpu-consumption-across-process-trees">Aggregating CPU Consumption Across Process Trees</a>,
+<a href="https://www.netdata.cloud/blog/netdata-processes-monitoring-comparison-with-console-tools/#what-does-netdata-report">better than other console based tools</a>
+which is what is used under the hood by
+<a href="#continuous-monitoring">Continuous Monitoring</a>.
+Also, there are hundreds of integrations, including
+<a href="https://learn.netdata.cloud/docs/collecting-metrics/hardware-devices-and-sensors/hdd-temperature">HDD temperature</a>,
+<a href="https://learn.netdata.cloud/docs/collecting-metrics/hardware-devices-and-sensors/intel-gpu">Intel GPU</a>,
+<a href="https://learn.netdata.cloud/docs/collecting-metrics/hardware-devices-and-sensors/linux-sensors">Linux Sensors</a>,
+<a href="https://learn.netdata.cloud/docs/collecting-metrics/hardware-devices-and-sensors/nvidia-gpu">Nvidia GPU</a>
+and even
+<a href="https://learn.netdata.cloud/docs/collecting-metrics/iot-devices/tp-link-p110">TP-Link P110</a>.</p>
+<h4 id="newsblur">NewsBlur</h4>
+<p><a href="https://www.newsblur.com/">NewsBlur</a> <em>is a personal news reader
+bringing people together to talk about the world</em>, something I've
+been missing since
+<a href="https://en.wikipedia.org/wiki/Google_Reader">Google Reader</a>
+shut down on July 1, 2013.</p>
+<h4 id="ollama">Ollama</h4>
+<p><a href="https://ollama.com/">Ollama</a> allows you to <em>get up and running with
+large language models</em>, including Llama 3.3, Phi 3, Mistral, Gemma 2,
+and others. Whether this can actually be useful or fun, that is to be
+determined; it should be at least some fun for
+<a href="https://www.reddit.com/r/selfhosted/comments/1bjdbjb/comment/kvrtkgx/">things with object / audio detection</a>.</p>
+<p>There is a Helm chart in
+<a href="https://github.com/otwld/ollama-helm">otwld/ollama-helm</a>
+and a user-friendly self-hosted WebUI at
+<a href="https://github.com/open-webui/open-webui">open-webui/open-webui</a>.
+You can even install
+<a href="https://github.com/open-webui/open-webui/blob/main/INSTALLATION.md#installing-both-ollama-and-open-webui-using-helm">both Ollama and Open WebUI using Helm</a>.</p>
+<h4 id="pi-hole">Pi-hole®</h4>
+<p><a href="https://pi-hole.net/">Pi-hole®</a> is a renowned <em>Network-wide Ad Blocking</em>
+and is very simple to run. However, blocking ads is not the main concern,
+but instead blocking phishing and malware domains. This requires using
+<a href="https://marcelbootsman.nl/securing-my-home-network-why-i-use-pi-hole#:~:text=Customization">custom blocklists</a>
+manually, like
+<a href="https://github.com/tweedge/emerging-threats-pihole">tweedge/emerging-threats-pihole</a>.</p>
+<h4 id="pterodactyl">Pterodactyl®</h4>
+<p><a href="https://pterodactyl.io/">Pterodactyl®</a> is a <em>free, open-source game server management panel designed with security in mind</em>, <em>which runs 
+all game servers in isolated Docker containers while exposing a
+beautiful and intuitive UI to end users</em>.</p>
+<p>There is an example <code>docker-compose.yml</code>
+<a href="https://technotim.live/posts/pterodactyl-game-server/">here</a>.
+The full list of supported games is split between
+<a href="https://github.com/pelican-eggs/games-standalone">pelican-eggs/games-standalone</a>
+and
+<a href="https://github.com/pelican-eggs/games-steamcmd">pelican-eggs/games-steamcmd</a>.</p>
+<ul>
+<li><a href="https://developer.valvesoftware.com/wiki/SteamCMD#Ubuntu">SteamCMD</a></li>
+<li>Sven Co-op : <a href="https://wiki.svencoop.com/Running_a_server#Dedicated_server">Running a server</a></li>
+<li><a href="https://www.reddit.com/r/HalfLife/comments/o08dus/how_to_start_a_sven_coop_server/">How to start a Sven Coop server?</a></li>
+<li><a href="https://www.reddit.com/r/HalfLife/comments/cj19oy/sven_coop_server_hosting/">Sven Co-op server hosting</a></li>
+<li>Sven Co-op: <a href="https://steamcommunity.com/app/225840/discussions/0/4638240322751615066/">How do I turn off Survival Mode?</a></li>
+</ul>
+<h4 id="scrutiny">Scrutiny</h4>
+<p><a href="https://github.com/AnalogJ/scrutiny?tab=readme-ov-file#scrutiny">scrutiny</a>
+is a <em>WebUI for smartd S.M.A.R.T monitoring</em> that includes a
+<a href="https://github.com/AnalogJ/scrutiny/blob/master/example.collector.yaml">collector</a>
+that can run on a 
+<a href="https://github.com/AnalogJ/scrutiny?tab=readme-ov-file#hubspoke-deployment">Hub &amp; Spoke model, with multiple Hosts</a>.
+The <em>Hub</em> host needs to run all 3 images, as illustrated in the example
+<a href="https://github.com/AnalogJ/scrutiny/blob/master/docker/example.hubspoke.docker-compose.yml"><code>docker-compose.yml</code></a>.</p>
+<h4 id="tp-link-omada-controller">TP-Link Omada Controller</h4>
+<p><a href="https://www.tp-link.com/en/business-networking/all-omada/">TP-Link Omada Hardware</a>
+works well enough with each access point managing its own wireless network, but the
+<a href="https://www.tp-link.com/us/support/download/omada-software-controller/">TP-Link Omada Controller</a>
+may offer additiona (desirable) features to adjust their behavior and have the same
+wireless network/s across the building.</p>
+<p><a href="https://github.com/mbentley/docker-omada-controller?tab=readme-ov-file">mbentley/docker-omada-controller</a>
+includes a few examples files for Kubernetes deployments, and
+<a href="https://www.evilbox.ro/linux/tp-link-omada-controller-on-kubernetes/">TP-Link Omada Controller on Kubernetes</a>
+contains a first-hand account of deploying the service in a small cluster.</p>
+<h4 id="unifi-poller">UniFi Poller</h4>
+<p><a href="https://unpoller.com/">UniFi Poller</a> <em>allows you to collect data from
+your UniFi network controller, save it to a database, and then display
+it on pre-supplied attractive and data-rich Grafana dashboards</em> and
+you can also <em>re-use existing database or Grafana installations</em>.</p>
+<h4 id="victoriametrics">VictoriaMetrics</h4>
+<p>Migrating <a href="#continuous-monitoring">Continuous Monitoring</a>,
+<a href="https://docs.influxdata.com/influxdb/v2/install/upgrade/v1-to-v2/">from InfluxDB 1.x to InfluxDB 2.7</a>
+<a href="https://www.reddit.com/r/influxdb/comments/mq08og/upgrading_influxdb_from_v1x_to_v2x_is_it_even/">may be too much trouble</a>,
+<a href="https://www.reddit.com/r/grafana/comments/151wpsn/anyone_migrated_from_influxdb_18x_to_some_newer/">it may turn out to be easier</a>
+<a href="https://community.home-assistant.io/t/influxdb-vs-victoriametrics/453361/1">to replace InfluxDB with VictoriaMetrics</a>.
+<a href="https://github.com/VictoriaMetrics/VictoriaMetrics?tab=readme-ov-file#victoriametrics">VictoriaMetrics</a>
+<em>is a fast, cost-saving, and scalable solution for monitoring and
+managing time series data</em>.</p>
+<h4 id="vikunja">Vikunja</h4>
+<p><a href="https://vikunja.io/features/">Vikunja</a> is a TODO app, like a
+notebook where you can have all your things to keep track of.</p>
+<h3 id="discarded">Discarded</h3>
+<p>These applications were evaluated based on their documentation and/or
+live demos, and deemed not a good match for my intended purpose/s.</p>
+<h4 id="authentik">Authentik</h4>
+<p><a href="https://goauthentik.io/">Authentik</a> allows restricting access to a
+specific set of users based on their email addresses, so that each
+applications can only be accessed by their legit users and their
+authentication is enforced by their respective identity providers.</p>
+<p>In particular, it is clearly documented that the rather popular
+<code>@gmail.com</code> addresses are supported by the
+<a href="https://docs.goauthentik.io/docs/users-sources/sources/social-logins/google/">Google</a>
+identity provider (see also 
+<a href="https://github.com/goauthentik/authentik/discussions/1776">authentik/discussions/1776</a>).</p>
+<p><a href="../../blog/2025/12/18/replacing-ingress-nginx-with-pomerium/">replacing Ingress-NGINX with Pomerium</a>
+superseded Authentik because Pomerium natively supports restricting access to a
+specific set of users based on their email addresses, <em>just</em> <code>@gmail.com</code> addresses.</p>
+<h4 id="mediatracker">MediaTracker</h4>
+<p><a href="https://github.com/bonukai/MediaTracker?tab=readme-ov-file#mediatracker--------">MediaTracker</a>
+is a <em>self hosted platform for tracking movies, tv shows, video games,
+books</em> <strong>and audiobooks</strong>, which <em>would</em> make it more interesting
+than <a href="#yamtrack">Yamtrack</a> <em>if only</em> it would allow you to
+<a href="https://github.com/bonukai/MediaTracker/issues/652">add media manually</a>.</p>
+<h4 id="nginx-proxy-manager">Nginx Proxy Manager</h4>
+<p><a href="https://nginxproxymanager.com/">Nginx Proxy Manager</a> would be nice
+to have a GUI, but the current setup with
+<a href="../../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#ingress-controller">ingress Nginx</a>.
+paired with
+<a href="../../blog/2023/03/25/single-node-kubernetes-cluster-on-ubuntu-server-lexicon/#https-with-lets-encrypt">ACME cert manager</a>
+deployment already provides the same functionality.</p>
+<p>IP restrictions and other advanced settings can be deployed by making
+use of <code>nginx.ingress.kubernetes.io</code> annotation snippets.</p>
+<h4 id="outline">Outline</h4>
+<p><a href="https://www.getoutline.com/">Outline</a> is
+<em>a blazing fast editor with markdown support</em>.
+Discarded in favor of
+<a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
+<a href="../../blog/2024/12/03/starting-a-blog-with-mkdocs-material-on-github-pages/">hosted on GitHub Pages</a>
+because it looks like a better fit teams rather than one individual.
+Previously,
+<a href="../../blog/2023/09/21/starting-a-blog-with-jekyll-on-github-pages/">Jekyll on GitHub pages</a>
+filled the same role.</p>
+<p>It may still be an interesting learning exercise, to create a Kubernetes
+deployment based on their recommended method to self-host with
+<a href="https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t">Docker Compose</a>.</p>
+<h4 id="plex-media-server">Plex Media Server</h4>
+<p><a href="../../blog/2023/09/16/migrating-a-plex-media-server-to-kubernetes/">Plex Media Server</a>
+<em>was</em> very convenient to let Kubernetes take care of updating the software and it
+served me well for a few years, while I enjoyed catching up with old (sometimes
+<em>very</em> old) podcasts. Since then, I've moved entirely to
+<a href="#audiobookshelf">Audiobookshelf</a> has already replaced it for audiobooks and
+podcasts (and found a way to catch up with old ones).</p>
+<p><a href="#immich">Immich</a> is yet to be tested, but even without it the need for a Plex
+server has not been felt since the migration of services to the new NUC server
+(<a href="../../blog/2025/04/12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/">octavo</a>).
+Since then, <a href="#jellyfin">Jellyfin</a> has replaced Plex for watching videos and
+<a href="#navidrome">Navidrome</a> has replaced it for music.</p>
+<h4 id="project-management">Project Management</h4>
+<p><a href="https://www.openproject.org/">OpenProject</a>
+(<a href="https://www.openproject.org/docs/installation-and-operations/installation/helm-chart/">Helm chart</a>),
+<a href="https://taiga.io/">Taiga</a> and
+<a href="https://github.com/wekan/wekan?tab=readme-ov-file#wekan----open-source-kanban">WeKan</a>
+(<a href="https://artifacthub.io/packages/helm/wekan/wekan">Helm chart</a>) all seem very
+promising applications for task and project management, but it the prospects of
+having any time to manage are not all that promising; a handful of post-its
+already reflects the <em>very limited</em> success so far in 2025.</p>
+<h4 id="ryot">Ryot</h4>
+<p><a href="../../blog/2025/05/18/tracking-progress-with-ryot/">Ryot</a>
+turned out work well only for <a href="#audiobookshelf">Audiobookshelf</a>; all other
+imports and integrations failed.</p>
+<h4 id="yamtrack">Yamtrack</h4>
+<p><a href="../../blog/2025/05/18/tracking-progress-with-ryot/#yamtrack">Yamtrack</a>
+would add no more (useful to me) features compared to <a href="#ryot">Ryot</a>,
+it would seem easier (or, at least, a better idea) to implement
+<em>Generic JSON</em> imports and integrations than to try importing using
+<a href="https://github.com/FuzzyGrim/Yamtrack/issues/246">Yamtrack CSV import format</a>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" hidden>
+        
+          
+          <a href="../conmon/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Continuous Monitoring">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Continuous Monitoring
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../blog/" class="md-footer__link md-footer__link--next" aria-label="Next: Unexpected Linux Adventures">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Unexpected Linux Adventures
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

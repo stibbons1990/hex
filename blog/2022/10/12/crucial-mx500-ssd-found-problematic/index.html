@@ -1,0 +1,1139 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2022/10/12/crucial-mx500-ssd-found-problematic/">
+      
+      
+        <link rel="prev" href="../../../09/29/accented-characters-missing-on-all-browsers/">
+      
+      
+        <link rel="next" href="../../../11/05/the-weirdest-corrupted-video-on-an-nvidia-card/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Crucial MX500 SSD found problematic - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#prologue" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Crucial MX500 SSD found problematic
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prologue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prologue
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-happened" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happened
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get-smart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get S.M.A.R.T.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-wrong-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's Wrong #1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-wrong-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's Wrong #2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workaround" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workaround
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#root-cause-confirmed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Cause Confirmed
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2022-10-12 00:00:00+00:00" class="md-ellipsis">October 12, 2022</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/linux/">linux</a>, 
+                              <a href="../../../../category/hardware/">Hardware</a>, 
+                              <a href="../../../../category/ubuntu/">Ubuntu</a>, 
+                              <a href="../../../../category/server/">Server</a>, 
+                              <a href="../../../../category/crucial/">crucial</a>, 
+                              <a href="../../../../category/ssd/">ssd</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              15 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Crucial MX500 SSD found problematic</h1>
+
+<p><strong>Crucial MX500 SSD disks are problematic</strong>, 
+in strange ways they should not be.</p>
+<!-- more -->
+
+<h2 id="prologue">Prologue</h2>
+<p>Encouraged by a sudden price fall (by 15% down to $300), and
+spurred by the recent
+<a href="https://stibbons1990.github.io/hex/2022/09/27/undead-yes-unraid-no.html">failure of 6TB HDD RAID</a>,
+I added a
+<a href="https://www.crucial.com/ssd/mx500/ct4000mx500ssd1">Crucial MX500 4TB 3D NAND SATA SSD</a> to serve as an backup to some of my
+precious files in that cursed RAID.</p>
+<p>This <em>should</em> have been all too easy and trouble-free, but alas
+these disks have something (in their firmware?) that makes these
+disks <em>crash</em> when writing to them <em>too fast</em>.</p>
+<p>Before diving into the details, it should be noted that this was
+an entirely new problem, never encountered with Intel or Samsung
+SATA SSDs, <em>at least</em> those used in this environment since 2010:</p>
+<ul>
+<li><a href="https://www.storagereview.com/review/intel-x25-v-ssd-review-40gb">Intel X25-V G2 40GB SATA-II</a> (2010)</li>
+<li><a href="https://www.samsung.com/uk/support/model/MZ-7TD120BW/">Samsung SSD 840 Basic 120GB SATA</a> (2013)</li>
+<li><a href="https://www.samsung.com/uk/support/model/MZ-7TD250BW/">Samsung 850 EVO Basic 250GB SATA</a> (2016)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-850-evo-2-5-sata-iii-1tb-mz-75e1t0b-am/">Samsung 850 EVO Basic 1000GB SATA</a> (2017)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-860-evo-2-5--sata-iii-2tb-mz-76e2t0b-am/">Samsung 860 EVO Basic 2000GB SATA</a> (2019)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-860-evo-m-2-sata-1tb-mz-n6e1t0bw/">Samsung SSD 860 EVO M.2 1TB SATA</a> (2019)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/870-evo-sata-2-5-ssd-4tb-mz-77e4t0b-am/">Samsung 870 EVO 4000GB SATA</a> (2020)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-860-evo-m-2-sata-500gb-mz-n6e500bw/">Samsung 860 EVO 500GB m.2 SATA</a> (2021)</li>
+<li><a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-970-evo-plus-nvme-m-2-1-tb-mz-v7s1t0b-am/">Samsung 970 EVO Plus 1000 GB M.2 NVMe PCIe 3.0</a> (2021)</li>
+<li><strong>3</strong> <a href="https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-970-evo-plus-nvme-m-2-2-tb-mz-v7s2t0b-am/">Samsung 970 EVO Plus 2000 GB M.2 NVMe PCIe 3.0</a> (2022)</li>
+</ul>
+<p>Of all these, the only one ever to fail was the
+<strong>Samsung 860 EVO Basic 2000GB</strong> from 2019, failing in 2021.
+When it failed, it started with the <code>WRITE FPDMA QUEUED</code> errors
+that appeared this time around too. Other than that, Samsung SSD
+disks have proven reliable and trouble-free for the last 12 years
+which is more than can be said for nearly any other product.</p>
+<h2 id="what-happened">What Happened</h2>
+<p>Since the previous files (my Audible library and select Podcasts)
+take up nearly 500 MB, the natural move would be to copy the
+files directly.</p>
+<p>First, formatted the (entire) drive as BTRFS and mounted it at
+<code>/home/ssd</code> (there is only room for one SSD).</p>
+<p>Then the problem: when trying to do this, possibly because
+the files were originally in the NVMe SSD that is much faster,
+the Crucial SSD failed after copying less than 8 GB:</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="m">[  614.810936] </span><span class="k">BTRFS info (device sda):</span> flagging fs with big metadata feature
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="m">[  614.810947] </span><span class="k">BTRFS info (device sda):</span> using free space tree
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="m">[  614.810951] </span><span class="k">BTRFS info (device sda):</span> has skinny extents
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="m">[  614.814588] </span><span class="k">BTRFS info (device sda):</span> enabling ssd optimizations
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="m">[  614.814892] </span><span class="k">BTRFS info (device sda):</span> checking UUID tree
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="m">[  750.641105] </span><span class="k">ata1.00:</span> exception Emask 0x0 SAct 0x80e00003 SErr 0x0 action 0x6 frozen
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="m">[  750.641124] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="m">[  750.641128] </span><span class="k">ata1.00:</span> cmd 61/00:00:d0:3f:6c/0a:00:00:00:00/40 tag 0 ncq dma 1310720 ou
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                        res 40/00:00:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="m">[  750.641144] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="m">[  750.641148] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="m">[  750.641152] </span><span class="k">ata1.00:</span> cmd 61/00:08:d0:49:6c/0a:00:00:00:00/40 tag 1 ncq dma 1310720 ou
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                        res 40/00:00:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="m">[  750.641164] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="m">[  750.641168] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="m">[  750.641171] </span><span class="k">ata1.00:</span> cmd 61/70:a8:60:21:6c/00:00:00:00:00/40 tag 21 ncq dma 57344 out
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>                        res 40/00:00:00:4f:c2/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="m">[  750.641182] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="m">[  750.641186] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="m">[  750.641189] </span><span class="k">ata1.00:</span> cmd 61/00:b0:d0:21:6c/0a:00:00:00:00/40 tag 22 ncq dma 1310720 ou
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                        res 40/00:ff:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="m">[  750.641202] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="m">[  750.641206] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="m">[  750.641209] </span><span class="k">ata1.00:</span> cmd 61/00:b8:d0:2b:6c/0a:00:00:00:00/40 tag 23 ncq dma 1310720 ou
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                        res 40/00:01:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="m">[  750.641220] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="m">[  750.641224] </span><span class="k">ata1.00:</span><span class="gr"> failed command: WRITE FPDMA QUEUED</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="m">[  750.641227] </span><span class="k">ata1.00:</span> cmd 61/00:f8:d0:35:6c/0a:00:00:00:00/40 tag 31 ncq dma 1310720 ou
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                        res 40/00:00:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="m">[  750.641238] </span><span class="k">ata1.00:</span> status: { DRDY }
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="m">[  750.641244] </span><span class="k">ata1:</span> hard resetting link
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="m">[  756.009469] </span><span class="k">ata1:</span> link is slow to respond, please be patient (ready=0)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="m">[  760.677688] </span><span class="k">ata1:</span><span class="gr"> COMRESET failed (errno=-16)</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="m">[  760.677734] </span><span class="k">ata1:</span> hard resetting link
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="m">[  766.017924] </span><span class="k">ata1:</span> link is slow to respond, please be patient (ready=0)
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="m">[  770.690140] </span><span class="k">ata1:</span><span class="gr"> COMRESET failed (errno=-16)</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="m">[  770.690185] </span><span class="k">ata1:</span> hard resetting link
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="m">[  776.018382] </span><span class="k">ata1:</span> link is slow to respond, please be patient (ready=0)
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="m">[  805.739547] </span><span class="k">ata1:</span><span class="gr"> COMRESET failed (errno=-16)</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="m">[  805.739590] </span><span class="k">ata1:</span> limiting SATA link speed to 3.0 Gbps
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="m">[  805.739594] </span><span class="k">ata1:</span> hard resetting link
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="m">[  810.743856] </span><span class="k">ata1:</span><span class="gr"> COMRESET failed (errno=-16)</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="m">[  810.743904] </span><span class="k">ata1:</span><span class="gr"> reset failed, giving up</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="m">[  810.743910] </span><span class="k">ata1.00:</span> disabled
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="m">[  810.745057] </span><span class="k">ata1:</span> EH complete
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="m">[  810.745101] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#2 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="m">[  810.745109] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#2 CDB: Write(16) 8a 00 00 00 00 00 00 6c 35 d0 00 00 0a 00 00 00
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="m">[  810.745111] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7091664 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="m">[  810.745135] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#3 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="m">[  810.745138] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#3 CDB: Write(16) 8a 00 00 00 00 00 00 6c 2b d0 00 00 0a 00 00 00
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="m">[  810.745140] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7089104 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="m">[  810.745151] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#4 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="m">[  810.745154] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#4 CDB: Write(16) 8a 00 00 00 00 00 00 6c 21 d0 00 00 0a 00 00 00
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="m">[  810.745156] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7086544 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="m">[  810.745165] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#5 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a><span class="m">[  810.745168] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#5 CDB: Write(16) 8a 00 00 00 00 00 00 6c 21 60 00 00 00 70 00 00
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a><span class="m">[  810.745170] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7086432 op 0x1:(WRITE) flags 0x100000 phys_seg 1 prio class 0</span>
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a><span class="m">[  810.745180] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 1, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a><span class="m">[  810.747865] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#6 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="m">[  810.747872] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#6 CDB: Write(16) 8a 00 00 00 00 00 00 6c 49 d0 00 00 0a 00 00 00
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a><span class="m">[  810.747875] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7096784 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a><span class="m">[  810.747894] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#7 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=91s
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a><span class="m">[  810.747899] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#7 CDB: Write(16) 8a 00 00 00 00 00 00 6c 3f d0 00 00 0a 00 00 00
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a><span class="m">[  810.747902] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7094224 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a><span class="m">[  810.748109] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#2 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=0s
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="m">[  810.748120] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#2 CDB: Write(16) 8a 00 00 00 00 00 00 6c 53 d0 00 00 0a 00 00 00
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a><span class="m">[  810.748125] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7099344 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a><span class="m">[  810.748156] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#3 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=0s
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="m">[  810.748161] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#3 CDB: Write(16) 8a 00 00 00 00 00 00 6c 5d d0 00 00 0a 00 00 00
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="m">[  810.748164] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7101904 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a><span class="m">[  810.748181] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#4 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=0s
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a><span class="m">[  810.748186] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#4 CDB: Write(16) 8a 00 00 00 00 00 00 6c 67 d0 00 00 0a 00 00 00
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a><span class="m">[  810.748189] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7104464 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a><span class="m">[  810.748205] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#5 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=0s
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="m">[  810.748210] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#5 CDB: Write(16) 8a 00 00 00 00 00 00 6c 71 d0 00 00 0a 00 00 00
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a><span class="m">[  810.748213] </span><span class="k">blk_update_request:</span><span class="gr"> I/O error, dev sda, sector 7107024 op 0x1:(WRITE) flags 0x104000 phys_seg 20 prio class 0</span>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="m">[  810.748327] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 2, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a><span class="m">[  810.748350] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 3, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a><span class="m">[  810.750196] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 4, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a><span class="m">[  810.750211] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 5, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a><span class="m">[  810.750218] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 6, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a><span class="m">[  810.750224] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 7, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a><span class="m">[  810.750231] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 8, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a><span class="m">[  810.750237] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 9, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a><span class="m">[  810.750244] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 10, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a><span class="m">[  810.752702] </span><span class="k">BTRFS:</span><span class="gr"> error (device sda) in btrfs_commit_transaction:2438: errno=-5 IO failure (Error while writing out transaction)</span>
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a><span class="m">[  810.752722] </span><span class="k">BTRFS info (device sda):</span> forced readonly
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a><span class="m">[  810.752728] </span><span class="k">BTRFS warning (device sda):</span><span class="gs"> Skipping commit of aborted transaction.</span>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a><span class="m">[  810.752732] </span><span class="k">BTRFS:</span><span class="gr"> error (device sda) in cleanup_transaction:2011: errno=-5 IO failure</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a><span class="m">[ 1229.016176] </span><span class="k">scsi_io_completion_action:</span> 5045 callbacks suppressed
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a><span class="m">[ 1229.016188] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#23 FAILED Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK cmd_age=0s
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a><span class="m">[ 1229.016197] </span><span class="k">sd 0:</span>0:0:0: [sda] tag#23 CDB: ATA command pass through(16) 85 06 20 00 00 00 00 00 00 00 00 00 00 00 e5 00
+</span></code></pre></div>
+<p>The disk did not <em>actually</em> write any data; although <code>df</code>
+reported 1.4G used at this point, it reported only a few MB
+after reboot:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp"># </span>/home/depot<span class="w"> </span><span class="c1"># df -h</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">Filesystem      Size  Used Avail Use% Mounted on</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">/dev/sda        3.7T  1.4G  3.7T   1% /home/ssd</span>
+</span></code></pre></div>
+<p>After this failure, the disk was not <em>just</em> read only,
+it was entirely disabled and unavailable:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp"># </span>du<span class="w"> </span>-sh<span class="w"> </span>/home/ssd/*
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="go">du: cannot access '/home/ssd/*': Input/output error</span>
+</span></code></pre></div>
+<p>After reboot:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp"># </span>/home/depot<span class="w"> </span><span class="c1"># df -h</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="go">Filesystem      Size  Used Avail Use% Mounted on</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="go">/dev/sda        3.7T  3.6M  3.7T   1% /home/ssd</span>
+</span></code></pre></div>
+<h2 id="get-smart">Get S.M.A.R.T.</h2>
+<p>Based on the experience with the recently failed
+<strong>Samsung 860 EVO Basic 2000GB</strong>, this looked like it could be
+a defective disk that would need an RMA. In search of more
+definitive signs of hardware failure, I run S.M.A.R.T. long test:
+<code>smartctl -t long /dev/sda</code></p>
+<p>After some time the results were as follows:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp"># </span>smartctl<span class="w"> </span>-a<span class="w"> </span>/dev/sda
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-48-generic] (local build)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="go">=== START OF INFORMATION SECTION ===</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="go">Device Model:     CT4000MX500SSD1</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="go">Serial Number:    2221E632FD50</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="go">LU WWN Device Id: 5 00a075 1e632fd50</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="go">Firmware Version: M3CR044</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="go">User Capacity:    4,000,787,030,016 bytes [4.00 TB]</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="go">Sector Sizes:     512 bytes logical, 4096 bytes physical</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="go">Rotation Rate:    Solid State Device</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="go">Form Factor:      2.5 inches</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="go">TRIM Command:     Available</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="go">Device is:        Not in smartctl database [for details use: -P showall]</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="go">ATA Version is:   ACS-3 T13/2161-D revision 5</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="go">SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="go">Local Time is:    Wed Oct 12 21:31:31 2022 CEST</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="go">SMART support is: Available - device has SMART capability.</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="go">SMART support is: Enabled</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="go">=== START OF READ SMART DATA SECTION ===</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="go">SMART overall-health self-assessment test result: PASSED</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="go">General SMART Values:</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="go">Offline data collection status:  (0x03) Offline data collection activity</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="go">                                        is in progress.</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="go">                                        Auto Offline Data Collection: Disabled.</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="go">Self-test execution status:      (   0) The previous self-test routine completed</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="go">                                        without error or no self-test has ever </span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="go">                                        been run.</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="go">Total time to complete Offline </span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="go">data collection:                ( 1402) seconds.</span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="go">Offline data collection</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="go">capabilities:                    (0x7b) SMART execute Offline immediate.</span>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="go">                                        Auto Offline data collection on/off support.</span>
+</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="go">                                        Suspend Offline collection upon new</span>
+</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="go">                                        command.</span>
+</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="go">                                        Offline surface scan supported.</span>
+</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="go">                                        Self-test supported.</span>
+</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="go">                                        Conveyance Self-test supported.</span>
+</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="go">                                        Selective Self-test supported.</span>
+</span><span id="__span-4-43"><a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="go">SMART capabilities:            (0x0003) Saves SMART data before entering</span>
+</span><span id="__span-4-44"><a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="go">                                        power-saving mode.</span>
+</span><span id="__span-4-45"><a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="go">                                        Supports SMART auto save timer.</span>
+</span><span id="__span-4-46"><a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="go">Error logging capability:        (0x01) Error logging supported.</span>
+</span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="go">                                        General Purpose Logging supported.</span>
+</span><span id="__span-4-48"><a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="go">Short self-test routine </span>
+</span><span id="__span-4-49"><a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a><span class="go">recommended polling time:        (   2) minutes.</span>
+</span><span id="__span-4-50"><a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a><span class="go">Extended self-test routine</span>
+</span><span id="__span-4-51"><a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a><span class="go">recommended polling time:        (  30) minutes.</span>
+</span><span id="__span-4-52"><a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a><span class="go">Conveyance self-test routine</span>
+</span><span id="__span-4-53"><a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a><span class="go">recommended polling time:        (   2) minutes.</span>
+</span><span id="__span-4-54"><a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a><span class="go">SCT capabilities:              (0x0031) SCT Status supported.</span>
+</span><span id="__span-4-55"><a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a><span class="go">                                        SCT Feature Control supported.</span>
+</span><span id="__span-4-56"><a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a><span class="go">                                        SCT Data Table supported.</span>
+</span><span id="__span-4-57"><a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a>
+</span><span id="__span-4-58"><a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a><span class="go">SMART Attributes Data Structure revision number: 16</span>
+</span><span id="__span-4-59"><a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a><span class="go">Vendor Specific SMART Attributes with Thresholds:</span>
+</span><span id="__span-4-60"><a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="go">ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE</span>
+</span><span id="__span-4-61"><a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a><span class="go">  1 Raw_Read_Error_Rate     0x002f   100   100   000    Pre-fail  Always       -       0</span>
+</span><span id="__span-4-62"><a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a><span class="go">  5 Reallocated_Sector_Ct   0x0032   100   100   010    Old_age   Always       -       0</span>
+</span><span id="__span-4-63"><a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a><span class="go">  9 Power_On_Hours          0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-64"><a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a><span class="go"> 12 Power_Cycle_Count       0x0032   100   100   000    Old_age   Always       -       6</span>
+</span><span id="__span-4-65"><a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a><span class="go">171 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-66"><a id="__codelineno-4-66" name="__codelineno-4-66" href="#__codelineno-4-66"></a><span class="go">172 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-67"><a id="__codelineno-4-67" name="__codelineno-4-67" href="#__codelineno-4-67"></a><span class="go">173 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-68"><a id="__codelineno-4-68" name="__codelineno-4-68" href="#__codelineno-4-68"></a><span class="go">174 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       1</span>
+</span><span id="__span-4-69"><a id="__codelineno-4-69" name="__codelineno-4-69" href="#__codelineno-4-69"></a><span class="go">180 Unused_Rsvd_Blk_Cnt_Tot 0x0033   000   000   000    Pre-fail  Always       -       217</span>
+</span><span id="__span-4-70"><a id="__codelineno-4-70" name="__codelineno-4-70" href="#__codelineno-4-70"></a><span class="go">183 Runtime_Bad_Block       0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-71"><a id="__codelineno-4-71" name="__codelineno-4-71" href="#__codelineno-4-71"></a><span class="go">184 End-to-End_Error        0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-72"><a id="__codelineno-4-72" name="__codelineno-4-72" href="#__codelineno-4-72"></a><span class="go">187 Reported_Uncorrect      0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-73"><a id="__codelineno-4-73" name="__codelineno-4-73" href="#__codelineno-4-73"></a><span class="go">194 Temperature_Celsius     0x0022   070   068   000    Old_age   Always       -       30 (Min/Max 25/32)</span>
+</span><span id="__span-4-74"><a id="__codelineno-4-74" name="__codelineno-4-74" href="#__codelineno-4-74"></a><span class="go">196 Reallocated_Event_Count 0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-75"><a id="__codelineno-4-75" name="__codelineno-4-75" href="#__codelineno-4-75"></a><span class="go">197 Current_Pending_Sector  0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-76"><a id="__codelineno-4-76" name="__codelineno-4-76" href="#__codelineno-4-76"></a><span class="go">198 Offline_Uncorrectable   0x0030   100   100   000    Old_age   Offline      -       0</span>
+</span><span id="__span-4-77"><a id="__codelineno-4-77" name="__codelineno-4-77" href="#__codelineno-4-77"></a><span class="go">199 UDMA_CRC_Error_Count    0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-78"><a id="__codelineno-4-78" name="__codelineno-4-78" href="#__codelineno-4-78"></a><span class="go">202 Unknown_SSD_Attribute   0x0030   100   100   001    Old_age   Offline      -       0</span>
+</span><span id="__span-4-79"><a id="__codelineno-4-79" name="__codelineno-4-79" href="#__codelineno-4-79"></a><span class="go">206 Unknown_SSD_Attribute   0x000e   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-80"><a id="__codelineno-4-80" name="__codelineno-4-80" href="#__codelineno-4-80"></a><span class="go">210 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       0</span>
+</span><span id="__span-4-81"><a id="__codelineno-4-81" name="__codelineno-4-81" href="#__codelineno-4-81"></a><span class="go">246 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       2843016</span>
+</span><span id="__span-4-82"><a id="__codelineno-4-82" name="__codelineno-4-82" href="#__codelineno-4-82"></a><span class="go">247 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       22592</span>
+</span><span id="__span-4-83"><a id="__codelineno-4-83" name="__codelineno-4-83" href="#__codelineno-4-83"></a><span class="go">248 Unknown_Attribute       0x0032   100   100   000    Old_age   Always       -       11555</span>
+</span><span id="__span-4-84"><a id="__codelineno-4-84" name="__codelineno-4-84" href="#__codelineno-4-84"></a>
+</span><span id="__span-4-85"><a id="__codelineno-4-85" name="__codelineno-4-85" href="#__codelineno-4-85"></a><span class="go">SMART Error Log Version: 1</span>
+</span><span id="__span-4-86"><a id="__codelineno-4-86" name="__codelineno-4-86" href="#__codelineno-4-86"></a><span class="go">Warning: ATA error count 0 inconsistent with error log pointer 1</span>
+</span><span id="__span-4-87"><a id="__codelineno-4-87" name="__codelineno-4-87" href="#__codelineno-4-87"></a>
+</span><span id="__span-4-88"><a id="__codelineno-4-88" name="__codelineno-4-88" href="#__codelineno-4-88"></a><span class="go">ATA Error Count: 0</span>
+</span><span id="__span-4-89"><a id="__codelineno-4-89" name="__codelineno-4-89" href="#__codelineno-4-89"></a><span class="go">        CR = Command Register [HEX]</span>
+</span><span id="__span-4-90"><a id="__codelineno-4-90" name="__codelineno-4-90" href="#__codelineno-4-90"></a><span class="go">        FR = Features Register [HEX]</span>
+</span><span id="__span-4-91"><a id="__codelineno-4-91" name="__codelineno-4-91" href="#__codelineno-4-91"></a><span class="go">        SC = Sector Count Register [HEX]</span>
+</span><span id="__span-4-92"><a id="__codelineno-4-92" name="__codelineno-4-92" href="#__codelineno-4-92"></a><span class="go">        SN = Sector Number Register [HEX]</span>
+</span><span id="__span-4-93"><a id="__codelineno-4-93" name="__codelineno-4-93" href="#__codelineno-4-93"></a><span class="go">        CL = Cylinder Low Register [HEX]</span>
+</span><span id="__span-4-94"><a id="__codelineno-4-94" name="__codelineno-4-94" href="#__codelineno-4-94"></a><span class="go">        CH = Cylinder High Register [HEX]</span>
+</span><span id="__span-4-95"><a id="__codelineno-4-95" name="__codelineno-4-95" href="#__codelineno-4-95"></a><span class="go">        DH = Device/Head Register [HEX]</span>
+</span><span id="__span-4-96"><a id="__codelineno-4-96" name="__codelineno-4-96" href="#__codelineno-4-96"></a><span class="go">        DC = Device Command Register [HEX]</span>
+</span><span id="__span-4-97"><a id="__codelineno-4-97" name="__codelineno-4-97" href="#__codelineno-4-97"></a><span class="go">        ER = Error register [HEX]</span>
+</span><span id="__span-4-98"><a id="__codelineno-4-98" name="__codelineno-4-98" href="#__codelineno-4-98"></a><span class="go">        ST = Status register [HEX]</span>
+</span><span id="__span-4-99"><a id="__codelineno-4-99" name="__codelineno-4-99" href="#__codelineno-4-99"></a><span class="go">Powered_Up_Time is measured from power on, and printed as</span>
+</span><span id="__span-4-100"><a id="__codelineno-4-100" name="__codelineno-4-100" href="#__codelineno-4-100"></a><span class="go">DDd+hh:mm:SS.sss where DD=days, hh=hours, mm=minutes,</span>
+</span><span id="__span-4-101"><a id="__codelineno-4-101" name="__codelineno-4-101" href="#__codelineno-4-101"></a><span class="go">SS=sec, and sss=millisec. It "wraps" after 49.710 days.</span>
+</span><span id="__span-4-102"><a id="__codelineno-4-102" name="__codelineno-4-102" href="#__codelineno-4-102"></a>
+</span><span id="__span-4-103"><a id="__codelineno-4-103" name="__codelineno-4-103" href="#__codelineno-4-103"></a><span class="go">Error 0 occurred at disk power-on lifetime: 0 hours (0 days + 0 hours)</span>
+</span><span id="__span-4-104"><a id="__codelineno-4-104" name="__codelineno-4-104" href="#__codelineno-4-104"></a><span class="go">  When the command that caused the error occurred, the device was in an unknown state.</span>
+</span><span id="__span-4-105"><a id="__codelineno-4-105" name="__codelineno-4-105" href="#__codelineno-4-105"></a>
+</span><span id="__span-4-106"><a id="__codelineno-4-106" name="__codelineno-4-106" href="#__codelineno-4-106"></a><span class="go">  After command completion occurred, registers were:</span>
+</span><span id="__span-4-107"><a id="__codelineno-4-107" name="__codelineno-4-107" href="#__codelineno-4-107"></a><span class="go">  ER ST SC SN CL CH DH</span>
+</span><span id="__span-4-108"><a id="__codelineno-4-108" name="__codelineno-4-108" href="#__codelineno-4-108"></a><span class="go">  -- -- -- -- -- -- --</span>
+</span><span id="__span-4-109"><a id="__codelineno-4-109" name="__codelineno-4-109" href="#__codelineno-4-109"></a><span class="go">  00 ec 00 00 00 00 00</span>
+</span><span id="__span-4-110"><a id="__codelineno-4-110" name="__codelineno-4-110" href="#__codelineno-4-110"></a>
+</span><span id="__span-4-111"><a id="__codelineno-4-111" name="__codelineno-4-111" href="#__codelineno-4-111"></a><span class="go">  Commands leading to the command that caused the error were:</span>
+</span><span id="__span-4-112"><a id="__codelineno-4-112" name="__codelineno-4-112" href="#__codelineno-4-112"></a><span class="go">  CR FR SC SN CL CH DH DC   Powered_Up_Time  Command/Feature_Name</span>
+</span><span id="__span-4-113"><a id="__codelineno-4-113" name="__codelineno-4-113" href="#__codelineno-4-113"></a><span class="go">  -- -- -- -- -- -- -- --  ----------------  --------------------</span>
+</span><span id="__span-4-114"><a id="__codelineno-4-114" name="__codelineno-4-114" href="#__codelineno-4-114"></a><span class="go">  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE</span>
+</span><span id="__span-4-115"><a id="__codelineno-4-115" name="__codelineno-4-115" href="#__codelineno-4-115"></a><span class="go">  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE</span>
+</span><span id="__span-4-116"><a id="__codelineno-4-116" name="__codelineno-4-116" href="#__codelineno-4-116"></a><span class="go">  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE</span>
+</span><span id="__span-4-117"><a id="__codelineno-4-117" name="__codelineno-4-117" href="#__codelineno-4-117"></a><span class="go">  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE</span>
+</span><span id="__span-4-118"><a id="__codelineno-4-118" name="__codelineno-4-118" href="#__codelineno-4-118"></a><span class="go">  c8 00 00 00 00 00 00 00      00:00:00.000  READ DMA</span>
+</span><span id="__span-4-119"><a id="__codelineno-4-119" name="__codelineno-4-119" href="#__codelineno-4-119"></a>
+</span><span id="__span-4-120"><a id="__codelineno-4-120" name="__codelineno-4-120" href="#__codelineno-4-120"></a><span class="go">SMART Self-test log structure revision number 1</span>
+</span><span id="__span-4-121"><a id="__codelineno-4-121" name="__codelineno-4-121" href="#__codelineno-4-121"></a><span class="go">Num  Test_Description    Status                  Remaining  LifeTime(hours)  LBA_of_first_error</span>
+</span><span id="__span-4-122"><a id="__codelineno-4-122" name="__codelineno-4-122" href="#__codelineno-4-122"></a><span class="gp"># </span><span class="m">1</span><span class="w">  </span>Extended<span class="w"> </span>offline<span class="w">    </span>Completed<span class="w"> </span>without<span class="w"> </span>error<span class="w">       </span><span class="m">00</span>%<span class="w">         </span><span class="m">0</span><span class="w">         </span>-
+</span><span id="__span-4-123"><a id="__codelineno-4-123" name="__codelineno-4-123" href="#__codelineno-4-123"></a>
+</span><span id="__span-4-124"><a id="__codelineno-4-124" name="__codelineno-4-124" href="#__codelineno-4-124"></a><span class="go">SMART Selective self-test log data structure revision number 1</span>
+</span><span id="__span-4-125"><a id="__codelineno-4-125" name="__codelineno-4-125" href="#__codelineno-4-125"></a><span class="go"> SPAN  MIN_LBA  MAX_LBA  CURRENT_TEST_STATUS</span>
+</span><span id="__span-4-126"><a id="__codelineno-4-126" name="__codelineno-4-126" href="#__codelineno-4-126"></a><span class="go">    1        0        0  Not_testing</span>
+</span><span id="__span-4-127"><a id="__codelineno-4-127" name="__codelineno-4-127" href="#__codelineno-4-127"></a><span class="go">    2        0        0  Not_testing</span>
+</span><span id="__span-4-128"><a id="__codelineno-4-128" name="__codelineno-4-128" href="#__codelineno-4-128"></a><span class="go">    3        0        0  Not_testing</span>
+</span><span id="__span-4-129"><a id="__codelineno-4-129" name="__codelineno-4-129" href="#__codelineno-4-129"></a><span class="go">    4        0        0  Not_testing</span>
+</span><span id="__span-4-130"><a id="__codelineno-4-130" name="__codelineno-4-130" href="#__codelineno-4-130"></a><span class="go">    5        0        0  Not_testing</span>
+</span><span id="__span-4-131"><a id="__codelineno-4-131" name="__codelineno-4-131" href="#__codelineno-4-131"></a><span class="go">Selective self-test flags (0x10):</span>
+</span><span id="__span-4-132"><a id="__codelineno-4-132" name="__codelineno-4-132" href="#__codelineno-4-132"></a><span class="go">  After scanning selected spans, do NOT read-scan remainder of disk.</span>
+</span><span id="__span-4-133"><a id="__codelineno-4-133" name="__codelineno-4-133" href="#__codelineno-4-133"></a><span class="go">If Selective self-test is pending on power-up, resume after 0 minute delay.</span>
+</span></code></pre></div>
+<p>The long test <em>completed without error</em>, but there are other
+signs that this disk may be problematic.</p>
+<h2 id="whats-wrong-1">What's Wrong #1</h2>
+<p>First, the disk seems to think it can go as fast as 6.0 TB/s which is <em>definitely</em> not true; that would be 12 times fater
+than the 560/530 (read/write) MB/s it is rated as, and confirmed
+by <code>hdparm</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp"># </span>hdparm<span class="w"> </span>-t<span class="w"> </span>-T<span class="w"> </span>/dev/sda
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">/dev/sda:</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="go"> Timing cached reads:   34646 MB in  2.00 seconds = 17350.03 MB/sec</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="go"> Timing buffered disk reads: 1596 MB in  3.00 seconds = 531.82 MB/sec</span>
+</span></code></pre></div>
+<p>Note this line from <code>smartctl</code>, in the <code>INFORMATION SECTION</code>
+at the top:</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="err">SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)</span>
+</span></code></pre></div>
+<p>It seems the kernel is expecting <em>up to</em> <strong>6.0 Gbps</strong></p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="go">[    1.625648] ahci 0000:00:17.0: AHCI 0001.0301 32 slots 2 ports 6 Gbps 0x3 impl SATA mode</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">[    1.646123] ata1: SATA max UDMA/133 abar m2048@0x6a602000 port 0x6a602100 irq 131</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="go">[    1.646129] ata2: SATA max UDMA/133 abar m2048@0x6a602000 port 0x6a602180 irq 131</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="go">[    1.963187] ata2: SATA link down (SStatus 4 SControl 300)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="go">[    1.963249] ata1: SATA link up 6.0 Gbps (SStatus 133 SControl 300)</span>
+</span></code></pre></div>
+<p>A transfer rate of 6.0 Gbps would be 750 MB/s, which is about
+50% more than this disk is rated for, but that <em>shouldn't</em> be a
+problem. It <em>certainly</em> is not a problem with the
+<strong>Samsung 870 EVO 4000GB SATA</strong> disk, which does show the same
+<em>up to 6.0 Gbps</em> line in <code>dmesg</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="go">[    1.178462] ata6: SATA max UDMA/133 abar m2048@0xfc600000 port 0xfc600180 irq 66</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="go">[    1.651823] ata6: SATA link up 6.0 Gbps (SStatus 133 SControl 300)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="go">[    1.654633] ata6.00: supports DRM functions and may not be fully accessible</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="go">[    1.655166] ata6.00: ATA-11: Samsung SSD 870 EVO 4TB, SVT01B6Q, max UDMA/133</span>
+</span></code></pre></div>
+<p>Somehow, the Crucial SSD is unable to <em>self-regulate</em> when
+given data to write at any rate higher than what it's rated for,
+while (all) Samsung disks have no such problem.</p>
+<h2 id="whats-wrong-2">What's Wrong #2</h2>
+<p>Second, back to <code>smartctl</code> output, this entire block is new
+and unique to the Crucial SSD:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Warning: ATA error count 0 inconsistent with error log pointer 1
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>ATA Error Count: 0
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>        CR = Command Register [HEX]
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        FR = Features Register [HEX]
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        SC = Sector Count Register [HEX]
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        SN = Sector Number Register [HEX]
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>        CL = Cylinder Low Register [HEX]
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>        CH = Cylinder High Register [HEX]
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>        DH = Device/Head Register [HEX]
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>        DC = Device Command Register [HEX]
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>        ER = Error register [HEX]
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>        ST = Status register [HEX]
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>Powered_Up_Time is measured from power on, and printed as
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>DDd+hh:mm:SS.sss where DD=days, hh=hours, mm=minutes,
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>SS=sec, and sss=millisec. It "wraps" after 49.710 days.
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>Error 0 occurred at disk power-on lifetime: 0 hours (0 days + 0 hours)
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>  When the command that caused the error occurred, the device was in an unknown state.
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>  After command completion occurred, registers were:
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>  ER ST SC SN CL CH DH
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>  -- -- -- -- -- -- --
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>  00 ec 00 00 00 00 00
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>  Commands leading to the command that caused the error were:
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>  CR FR SC SN CL CH DH DC   Powered_Up_Time  Command/Feature_Name
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>  -- -- -- -- -- -- -- --  ----------------  --------------------
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a>  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE
+</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE
+</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a>  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE
+</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>  ec 00 00 00 00 00 00 00      00:00:00.000  IDENTIFY DEVICE
+</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a>  c8 00 00 00 00 00 00 00      00:00:00.000  READ DMA
+</span></code></pre></div>
+<p>This a long way of saying, the READ DMA command lead to an error
+state, reflected as value <code>0xEC</code> in the <code>Status register</code>.</p>
+<h2 id="workaround">Workaround</h2>
+<p>Manually limiting the transfer rate when writing files seems to
+be the only way to get large write operations to succeed.
+Luckly, this is rather easy when using <code>rsync</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp">$ </span>rsync<span class="w"> </span>-turva<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="hll"><span class="w">  </span>--bwlimit<span class="o">=</span><span class="m">500000</span><span class="w"> </span><span class="se">\</span>
+</span></span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>/home/depot/audio/Audiobooks<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>/home/ssd/audio/
+</span></code></pre></div>
+<p>Attempting the same with a higher <code>--bwlimit</code> value (700 MB/s)
+reproduces the error almost immediately:</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="m">[10745.786389] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 4, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="m">[10745.786405] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 5, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="m">[10745.786418] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 6, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="m">[10745.786429] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 7, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="m">[10745.786532] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 8, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="m">[10745.788424] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 9, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="m">[10745.788687] </span><span class="k">BTRFS error (device sda):</span><span class="gr"> bdev /dev/sda errs: wr 10, rd 0, flush 0, corrupt 0, gen 0</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="m">[10745.811622] </span><span class="k">BTRFS:</span><span class="gr"> error (device sda) in btrfs_commit_transaction:2438: errno=-5 IO failure (Error while writing out transaction)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="m">[10745.811633] </span><span class="k">BTRFS info (device sda):</span> forced readonly
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="m">[10745.811635] </span><span class="k">BTRFS warning (device sda):</span><span class="gs"> Skipping commit of aborted transaction.</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="m">[10745.811637] </span><span class="k">BTRFS:</span><span class="gr"> error (device sda) in cleanup_transaction:2011: errno=-5 IO failure</span>
+</span></code></pre></div>
+<h2 id="root-cause-confirmed">Root Cause Confirmed</h2>
+<p>Shortly after dealing with this problem in
+<a href="../../../07/03/low-effort-homelab-server-with-ubuntu-server-on-intel-nuc/">Lexicon</a>,
+the very same problem reproduced with <em>another</em> Crucial MX500 SSD
+on a different system (<strong>Rapture</strong>) with a
+<a href="https://www.linuxlookup.com/review/asus_prime_x370_pro_motherboard_review">ASUS PRIME X370-PRO</a> motherboard, which is
+the one where the <strong>Samsung 870 EVO 4000GB SATA</strong> disk
+exhibits no such problem.</p>
+<p><strong>Crucial MX500 SSD are no longer welcome or recommended</strong>,
+cheap as they may be.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../../09/29/accented-characters-missing-on-all-browsers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Accented characters missing on all browsers">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Accented characters missing on all browsers
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../11/05/the-weirdest-corrupted-video-on-an-nvidia-card/" class="md-footer__link md-footer__link--next" aria-label="Next: The weirdest corrupted video on an NVidia card">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                The weirdest corrupted video on an NVidia card
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

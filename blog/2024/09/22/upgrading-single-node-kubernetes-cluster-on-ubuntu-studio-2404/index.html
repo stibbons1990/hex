@@ -1,0 +1,1271 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2024/09/22/upgrading-single-node-kubernetes-cluster-on-ubuntu-studio-2404/">
+      
+      
+        <link rel="prev" href="../../14/ubuntu-studio-2404-on-computer-for-a-young-artist/">
+      
+      
+        <link rel="next" href="../kubernetes-cluster-dns-issues/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04 - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2024-09-22 00:00:00+00:00" class="md-ellipsis">September 22, 2024</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/linux/">linux</a>, 
+                              <a href="../../../../category/ubuntu/">Ubuntu</a>, 
+                              <a href="../../../../category/server/">Server</a>, 
+                              <a href="../../../../category/kubernetes/">kubernetes</a>, 
+                              <a href="../../../../category/docker/">docker</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              20 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Upgrading single-node Kubernetes cluster on Ubuntu Studio 24.04</h1>
+
+<p>Last month I took a look at
+<a href="../../../08/22/checking-deployments-before-upgrading-kubeadm-clusters/">checking deployments before upgrading kubeadm clusters</a>
+and found results <em>mostly</em> reassuring.</p>
+<p>As a practice run to upgrade more complex setups, lets upgrade
+<a href="../../../05/12/single-node-kubernetes-cluster-on-ubuntu-studio-desktop-rapture/">the cluster running on the desktop PC</a>,
+which is only running a Plex Media Server (which recently become
+unresponsive) and the
+<a href="../../../08/24/self-hosted-photo-albums-with-photoprism/">PhotoPrism®</a> photo album (which
+never worked well enough to be critical to me).</p>
+<!-- more -->
+
+<p>The cluster is running version 1.26 (which is quite old):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp"># </span>kubeadm<span class="w"> </span>version
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="go">kubeadm version: &amp;version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.15", GitCommit:"1649f592f1909b97aa3c2a0a8f968a3fd05a7b8b", GitTreeState:"clean", BuildDate:"2024-03-14T01:03:33Z", GoVersion:"go1.21.8", Compiler:"gc", Platform:"linux/amd64"}</span>
+</span></code></pre></div>
+<p>Kubernetes clusters can only be upgraded one minor version at a
+time (skipping minor version is not supported), so we start with
+<a href="https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/">upgrading a Kubernetes cluster created with kubeadm from version 1.26.x to version 1.27.x</a>.</p>
+<p>Although the workloads are not critical, lets pretend they are and
+<a href="https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/#use-kubectl-drain-to-remove-a-node-from-service">use <code>kubectl drain</code> to remove the node from service</a>
+to ensure all pods are shut down gracefully:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>get<span class="w"> </span>nodes
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">NAME      STATUS   ROLES           AGE    VERSION</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">rapture   Ready    control-plane   132d   v1.26.15</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="gp"># </span>kubectl<span class="w"> </span>drain<span class="w"> </span>--ignore-daemonsets<span class="w"> </span>rapture
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="go">cordoned</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="go">error: unable to drain node "rapture" due to error:cannot delete Pods with local storage (use --delete-emptydir-data to override): kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-s77ss, kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9dxc2, continuing command...</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="go">There are pending nodes to be drained:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="go"> rapture</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">cannot delete Pods with local storage (use --delete-emptydir-data to override): kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-s77ss, kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9dxc2</span>
+</span></code></pre></div>
+<p>Turns out this clustomers needs the <code>--delete-emptydir-data</code> flag
+because <em>there are pods using emptyDir</em> and <em>local data that will
+be deleted when the node is drained</em>.</p>
+<details class="terminal">
+<summary><code># kubectl drain --ignore-daemonsets rapture --delete-emptydir-data</code></summary>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>drain<span class="w"> </span>--ignore-daemonsets<span class="w"> </span>rapture<span class="w"> </span>--delete-emptydir-data
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="go">node/rapture already cordoned</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="go">Warning: ignoring DaemonSet-managed Pods: kube-flannel/kube-flannel-ds-bbhn8, kube-system/kube-proxy-tszr7, metallb-system/speaker-58krr</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-admission-create-nfm7b</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-jshnd</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-5ncn8</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="go">evicting pod kube-system/coredns-787d4945fb-k8m6b</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-bhzkt</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-78t4g</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-admission-patch-8x6r7</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-qrj7s</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-4lwwm</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-5pgkv</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-b2n6c</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-4sswx</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-6b5wz</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-6v4ds</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-67p2t</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-7r4xz</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-4nnmr</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-nhw62</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-gzvjt</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-dbpwt</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-xkvg8</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-qtljx</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-5dj66</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-hzzsl</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9ndhr</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-6sp2m</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-nthjr</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-mvs2g</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-bkppp</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-krkdp</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-9vz7w</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-s77ss</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-l5pm9</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-bctwj</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-brzmr</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-mktgp</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-t64ks</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-p6l6x</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="go">evicting pod default/command-demo</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-twnjf</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-cbfb4</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-dmlzv</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9dxc2</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-zfxwn</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-v22hn</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-ntftm</span>
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-zdv25</span>
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-7g5s8</span>
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9kwrh</span>
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-w5pzx</span>
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="go">evicting pod photoprism/photoprism-0</span>
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-nv9pk</span>
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-n6vpl</span>
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-hxwmf</span>
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-qgwjz</span>
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-djsjh</span>
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9qg2h</span>
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-dqrn8</span>
+</span><span id="__span-2-62"><a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-r5cng</span>
+</span><span id="__span-2-63"><a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-42q9b</span>
+</span><span id="__span-2-64"><a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-57nb6</span>
+</span><span id="__span-2-65"><a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-b22xz</span>
+</span><span id="__span-2-66"><a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-rjrjb</span>
+</span><span id="__span-2-67"><a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-f2kfh</span>
+</span><span id="__span-2-68"><a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-952v2</span>
+</span><span id="__span-2-69"><a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-b6nwl</span>
+</span><span id="__span-2-70"><a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-dfc2k</span>
+</span><span id="__span-2-71"><a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-bs26f</span>
+</span><span id="__span-2-72"><a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-9zbn4</span>
+</span><span id="__span-2-73"><a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-pc2f7</span>
+</span><span id="__span-2-74"><a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-4tgjq</span>
+</span><span id="__span-2-75"><a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-b2pch</span>
+</span><span id="__span-2-76"><a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-c82nc</span>
+</span><span id="__span-2-77"><a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-qbbmd</span>
+</span><span id="__span-2-78"><a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-bjw5s</span>
+</span><span id="__span-2-79"><a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-bkt7v</span>
+</span><span id="__span-2-80"><a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-bl2tn</span>
+</span><span id="__span-2-81"><a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-qz758</span>
+</span><span id="__span-2-82"><a id="__codelineno-2-82" name="__codelineno-2-82" href="#__codelineno-2-82"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-cbsq4</span>
+</span><span id="__span-2-83"><a id="__codelineno-2-83" name="__codelineno-2-83" href="#__codelineno-2-83"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-x5trq</span>
+</span><span id="__span-2-84"><a id="__codelineno-2-84" name="__codelineno-2-84" href="#__codelineno-2-84"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-bm6bw</span>
+</span><span id="__span-2-85"><a id="__codelineno-2-85" name="__codelineno-2-85" href="#__codelineno-2-85"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-cvkmj</span>
+</span><span id="__span-2-86"><a id="__codelineno-2-86" name="__codelineno-2-86" href="#__codelineno-2-86"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-ss2sq</span>
+</span><span id="__span-2-87"><a id="__codelineno-2-87" name="__codelineno-2-87" href="#__codelineno-2-87"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-b8lzj</span>
+</span><span id="__span-2-88"><a id="__codelineno-2-88" name="__codelineno-2-88" href="#__codelineno-2-88"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-s5sr7</span>
+</span><span id="__span-2-89"><a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-jfjsx</span>
+</span><span id="__span-2-90"><a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-f6zjm</span>
+</span><span id="__span-2-91"><a id="__codelineno-2-91" name="__codelineno-2-91" href="#__codelineno-2-91"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-fl49q</span>
+</span><span id="__span-2-92"><a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-8h9rw</span>
+</span><span id="__span-2-93"><a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-s9tcr</span>
+</span><span id="__span-2-94"><a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-cqrhs</span>
+</span><span id="__span-2-95"><a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-pxb5m</span>
+</span><span id="__span-2-96"><a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-pzgln</span>
+</span><span id="__span-2-97"><a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-pls88</span>
+</span><span id="__span-2-98"><a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-t27j4</span>
+</span><span id="__span-2-99"><a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-pzmbn</span>
+</span><span id="__span-2-100"><a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-prw6v</span>
+</span><span id="__span-2-101"><a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-g9g2x</span>
+</span><span id="__span-2-102"><a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-jn4bt</span>
+</span><span id="__span-2-103"><a id="__codelineno-2-103" name="__codelineno-2-103" href="#__codelineno-2-103"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-8gzvj</span>
+</span><span id="__span-2-104"><a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-zrrb8</span>
+</span><span id="__span-2-105"><a id="__codelineno-2-105" name="__codelineno-2-105" href="#__codelineno-2-105"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-krrtr</span>
+</span><span id="__span-2-106"><a id="__codelineno-2-106" name="__codelineno-2-106" href="#__codelineno-2-106"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-hkxzh</span>
+</span><span id="__span-2-107"><a id="__codelineno-2-107" name="__codelineno-2-107" href="#__codelineno-2-107"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-ht7tz</span>
+</span><span id="__span-2-108"><a id="__codelineno-2-108" name="__codelineno-2-108" href="#__codelineno-2-108"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-nr92c</span>
+</span><span id="__span-2-109"><a id="__codelineno-2-109" name="__codelineno-2-109" href="#__codelineno-2-109"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-n2gn8</span>
+</span><span id="__span-2-110"><a id="__codelineno-2-110" name="__codelineno-2-110" href="#__codelineno-2-110"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-ktq7h</span>
+</span><span id="__span-2-111"><a id="__codelineno-2-111" name="__codelineno-2-111" href="#__codelineno-2-111"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-xx5bb</span>
+</span><span id="__span-2-112"><a id="__codelineno-2-112" name="__codelineno-2-112" href="#__codelineno-2-112"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-hx4dl</span>
+</span><span id="__span-2-113"><a id="__codelineno-2-113" name="__codelineno-2-113" href="#__codelineno-2-113"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-lbzrz</span>
+</span><span id="__span-2-114"><a id="__codelineno-2-114" name="__codelineno-2-114" href="#__codelineno-2-114"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-n8cxk</span>
+</span><span id="__span-2-115"><a id="__codelineno-2-115" name="__codelineno-2-115" href="#__codelineno-2-115"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-m8mb8</span>
+</span><span id="__span-2-116"><a id="__codelineno-2-116" name="__codelineno-2-116" href="#__codelineno-2-116"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-vd88s</span>
+</span><span id="__span-2-117"><a id="__codelineno-2-117" name="__codelineno-2-117" href="#__codelineno-2-117"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-7bjzs</span>
+</span><span id="__span-2-118"><a id="__codelineno-2-118" name="__codelineno-2-118" href="#__codelineno-2-118"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-45qcw</span>
+</span><span id="__span-2-119"><a id="__codelineno-2-119" name="__codelineno-2-119" href="#__codelineno-2-119"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-kbhtg</span>
+</span><span id="__span-2-120"><a id="__codelineno-2-120" name="__codelineno-2-120" href="#__codelineno-2-120"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-fx98h</span>
+</span><span id="__span-2-121"><a id="__codelineno-2-121" name="__codelineno-2-121" href="#__codelineno-2-121"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-hjwcl</span>
+</span><span id="__span-2-122"><a id="__codelineno-2-122" name="__codelineno-2-122" href="#__codelineno-2-122"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-ztfwd</span>
+</span><span id="__span-2-123"><a id="__codelineno-2-123" name="__codelineno-2-123" href="#__codelineno-2-123"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-v8lkd</span>
+</span><span id="__span-2-124"><a id="__codelineno-2-124" name="__codelineno-2-124" href="#__codelineno-2-124"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-kt46k</span>
+</span><span id="__span-2-125"><a id="__codelineno-2-125" name="__codelineno-2-125" href="#__codelineno-2-125"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-mbkmb</span>
+</span><span id="__span-2-126"><a id="__codelineno-2-126" name="__codelineno-2-126" href="#__codelineno-2-126"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-fscmh</span>
+</span><span id="__span-2-127"><a id="__codelineno-2-127" name="__codelineno-2-127" href="#__codelineno-2-127"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-6n2zd</span>
+</span><span id="__span-2-128"><a id="__codelineno-2-128" name="__codelineno-2-128" href="#__codelineno-2-128"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-wbrk4</span>
+</span><span id="__span-2-129"><a id="__codelineno-2-129" name="__codelineno-2-129" href="#__codelineno-2-129"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-x462f</span>
+</span><span id="__span-2-130"><a id="__codelineno-2-130" name="__codelineno-2-130" href="#__codelineno-2-130"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-26hxx</span>
+</span><span id="__span-2-131"><a id="__codelineno-2-131" name="__codelineno-2-131" href="#__codelineno-2-131"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-zs228</span>
+</span><span id="__span-2-132"><a id="__codelineno-2-132" name="__codelineno-2-132" href="#__codelineno-2-132"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-9htbw</span>
+</span><span id="__span-2-133"><a id="__codelineno-2-133" name="__codelineno-2-133" href="#__codelineno-2-133"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-hxnnz</span>
+</span><span id="__span-2-134"><a id="__codelineno-2-134" name="__codelineno-2-134" href="#__codelineno-2-134"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-74flg</span>
+</span><span id="__span-2-135"><a id="__codelineno-2-135" name="__codelineno-2-135" href="#__codelineno-2-135"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-jvpbg</span>
+</span><span id="__span-2-136"><a id="__codelineno-2-136" name="__codelineno-2-136" href="#__codelineno-2-136"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-vkfxn</span>
+</span><span id="__span-2-137"><a id="__codelineno-2-137" name="__codelineno-2-137" href="#__codelineno-2-137"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-2gpk2</span>
+</span><span id="__span-2-138"><a id="__codelineno-2-138" name="__codelineno-2-138" href="#__codelineno-2-138"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-dmws2</span>
+</span><span id="__span-2-139"><a id="__codelineno-2-139" name="__codelineno-2-139" href="#__codelineno-2-139"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-xr74p</span>
+</span><span id="__span-2-140"><a id="__codelineno-2-140" name="__codelineno-2-140" href="#__codelineno-2-140"></a><span class="go">evicting pod metallb-system/controller-759b6c5bb8-hxhzc</span>
+</span><span id="__span-2-141"><a id="__codelineno-2-141" name="__codelineno-2-141" href="#__codelineno-2-141"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-wlzfq</span>
+</span><span id="__span-2-142"><a id="__codelineno-2-142" name="__codelineno-2-142" href="#__codelineno-2-142"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-wgtll</span>
+</span><span id="__span-2-143"><a id="__codelineno-2-143" name="__codelineno-2-143" href="#__codelineno-2-143"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-qpp5w</span>
+</span><span id="__span-2-144"><a id="__codelineno-2-144" name="__codelineno-2-144" href="#__codelineno-2-144"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-hmjdg</span>
+</span><span id="__span-2-145"><a id="__codelineno-2-145" name="__codelineno-2-145" href="#__codelineno-2-145"></a><span class="go">evicting pod ingress-nginx/ingress-nginx-controller-7c7754d4b6-mgkdz</span>
+</span><span id="__span-2-146"><a id="__codelineno-2-146" name="__codelineno-2-146" href="#__codelineno-2-146"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-v66mn</span>
+</span><span id="__span-2-147"><a id="__codelineno-2-147" name="__codelineno-2-147" href="#__codelineno-2-147"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-nj2l7</span>
+</span><span id="__span-2-148"><a id="__codelineno-2-148" name="__codelineno-2-148" href="#__codelineno-2-148"></a><span class="go">evicting pod kubernetes-dashboard/dashboard-metrics-scraper-7bc864c59-7z57g</span>
+</span><span id="__span-2-149"><a id="__codelineno-2-149" name="__codelineno-2-149" href="#__codelineno-2-149"></a><span class="go">evicting pod kube-system/coredns-787d4945fb-sqfcw</span>
+</span><span id="__span-2-150"><a id="__codelineno-2-150" name="__codelineno-2-150" href="#__codelineno-2-150"></a><span class="go">evicting pod kubernetes-dashboard/kubernetes-dashboard-6c7ccbcf87-b94tb</span>
+</span><span id="__span-2-151"><a id="__codelineno-2-151" name="__codelineno-2-151" href="#__codelineno-2-151"></a><span class="go">evicting pod plexserver/plexserver-7cb77ddc8-d6bqg</span>
+</span><span id="__span-2-152"><a id="__codelineno-2-152" name="__codelineno-2-152" href="#__codelineno-2-152"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-x5trq evicted</span>
+</span><span id="__span-2-153"><a id="__codelineno-2-153" name="__codelineno-2-153" href="#__codelineno-2-153"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-bhzkt evicted</span>
+</span><span id="__span-2-154"><a id="__codelineno-2-154" name="__codelineno-2-154" href="#__codelineno-2-154"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-qz758 evicted</span>
+</span><span id="__span-2-155"><a id="__codelineno-2-155" name="__codelineno-2-155" href="#__codelineno-2-155"></a><span class="go">pod/controller-759b6c5bb8-zfxwn evicted</span>
+</span><span id="__span-2-156"><a id="__codelineno-2-156" name="__codelineno-2-156" href="#__codelineno-2-156"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-v22hn evicted</span>
+</span><span id="__span-2-157"><a id="__codelineno-2-157" name="__codelineno-2-157" href="#__codelineno-2-157"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-hzzsl evicted</span>
+</span><span id="__span-2-158"><a id="__codelineno-2-158" name="__codelineno-2-158" href="#__codelineno-2-158"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-l5pm9 evicted</span>
+</span><span id="__span-2-159"><a id="__codelineno-2-159" name="__codelineno-2-159" href="#__codelineno-2-159"></a><span class="go">pod/controller-759b6c5bb8-cbsq4 evicted</span>
+</span><span id="__span-2-160"><a id="__codelineno-2-160" name="__codelineno-2-160" href="#__codelineno-2-160"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-67p2t evicted</span>
+</span><span id="__span-2-161"><a id="__codelineno-2-161" name="__codelineno-2-161" href="#__codelineno-2-161"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-bm6bw evicted</span>
+</span><span id="__span-2-162"><a id="__codelineno-2-162" name="__codelineno-2-162" href="#__codelineno-2-162"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-nthjr evicted</span>
+</span><span id="__span-2-163"><a id="__codelineno-2-163" name="__codelineno-2-163" href="#__codelineno-2-163"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-bctwj evicted</span>
+</span><span id="__span-2-164"><a id="__codelineno-2-164" name="__codelineno-2-164" href="#__codelineno-2-164"></a><span class="go">I0922 09:37:13.980459 1271042 request.go:690] Waited for 1.000499779s due to client-side throttling, not priority and fairness, request: POST:https://10.0.0.2:6443/api/v1/namespaces/metallb-system/pods/controller-759b6c5bb8-cvkmj/eviction</span>
+</span><span id="__span-2-165"><a id="__codelineno-2-165" name="__codelineno-2-165" href="#__codelineno-2-165"></a><span class="go">pod/controller-759b6c5bb8-cvkmj evicted</span>
+</span><span id="__span-2-166"><a id="__codelineno-2-166" name="__codelineno-2-166" href="#__codelineno-2-166"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-9dxc2 evicted</span>
+</span><span id="__span-2-167"><a id="__codelineno-2-167" name="__codelineno-2-167" href="#__codelineno-2-167"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-78t4g evicted</span>
+</span><span id="__span-2-168"><a id="__codelineno-2-168" name="__codelineno-2-168" href="#__codelineno-2-168"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-ntftm evicted</span>
+</span><span id="__span-2-169"><a id="__codelineno-2-169" name="__codelineno-2-169" href="#__codelineno-2-169"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-6b5wz evicted</span>
+</span><span id="__span-2-170"><a id="__codelineno-2-170" name="__codelineno-2-170" href="#__codelineno-2-170"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-ss2sq evicted</span>
+</span><span id="__span-2-171"><a id="__codelineno-2-171" name="__codelineno-2-171" href="#__codelineno-2-171"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-brzmr evicted</span>
+</span><span id="__span-2-172"><a id="__codelineno-2-172" name="__codelineno-2-172" href="#__codelineno-2-172"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-xkvg8 evicted</span>
+</span><span id="__span-2-173"><a id="__codelineno-2-173" name="__codelineno-2-173" href="#__codelineno-2-173"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-zdv25 evicted</span>
+</span><span id="__span-2-174"><a id="__codelineno-2-174" name="__codelineno-2-174" href="#__codelineno-2-174"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-b8lzj evicted</span>
+</span><span id="__span-2-175"><a id="__codelineno-2-175" name="__codelineno-2-175" href="#__codelineno-2-175"></a><span class="go">pod/ingress-nginx-admission-patch-8x6r7 evicted</span>
+</span><span id="__span-2-176"><a id="__codelineno-2-176" name="__codelineno-2-176" href="#__codelineno-2-176"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-qtljx evicted</span>
+</span><span id="__span-2-177"><a id="__codelineno-2-177" name="__codelineno-2-177" href="#__codelineno-2-177"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-s5sr7 evicted</span>
+</span><span id="__span-2-178"><a id="__codelineno-2-178" name="__codelineno-2-178" href="#__codelineno-2-178"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-mktgp evicted</span>
+</span><span id="__span-2-179"><a id="__codelineno-2-179" name="__codelineno-2-179" href="#__codelineno-2-179"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-nhw62 evicted</span>
+</span><span id="__span-2-180"><a id="__codelineno-2-180" name="__codelineno-2-180" href="#__codelineno-2-180"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-jfjsx evicted</span>
+</span><span id="__span-2-181"><a id="__codelineno-2-181" name="__codelineno-2-181" href="#__codelineno-2-181"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-qrj7s evicted</span>
+</span><span id="__span-2-182"><a id="__codelineno-2-182" name="__codelineno-2-182" href="#__codelineno-2-182"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-gzvjt evicted</span>
+</span><span id="__span-2-183"><a id="__codelineno-2-183" name="__codelineno-2-183" href="#__codelineno-2-183"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-t64ks evicted</span>
+</span><span id="__span-2-184"><a id="__codelineno-2-184" name="__codelineno-2-184" href="#__codelineno-2-184"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-dbpwt evicted</span>
+</span><span id="__span-2-185"><a id="__codelineno-2-185" name="__codelineno-2-185" href="#__codelineno-2-185"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-5dj66 evicted</span>
+</span><span id="__span-2-186"><a id="__codelineno-2-186" name="__codelineno-2-186" href="#__codelineno-2-186"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-4lwwm evicted</span>
+</span><span id="__span-2-187"><a id="__codelineno-2-187" name="__codelineno-2-187" href="#__codelineno-2-187"></a><span class="go">pod/ingress-nginx-admission-create-nfm7b evicted</span>
+</span><span id="__span-2-188"><a id="__codelineno-2-188" name="__codelineno-2-188" href="#__codelineno-2-188"></a><span class="go">pod/controller-759b6c5bb8-f6zjm evicted</span>
+</span><span id="__span-2-189"><a id="__codelineno-2-189" name="__codelineno-2-189" href="#__codelineno-2-189"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-cbfb4 evicted</span>
+</span><span id="__span-2-190"><a id="__codelineno-2-190" name="__codelineno-2-190" href="#__codelineno-2-190"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-p6l6x evicted</span>
+</span><span id="__span-2-191"><a id="__codelineno-2-191" name="__codelineno-2-191" href="#__codelineno-2-191"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-5pgkv evicted</span>
+</span><span id="__span-2-192"><a id="__codelineno-2-192" name="__codelineno-2-192" href="#__codelineno-2-192"></a><span class="go">pod/coredns-787d4945fb-k8m6b evicted</span>
+</span><span id="__span-2-193"><a id="__codelineno-2-193" name="__codelineno-2-193" href="#__codelineno-2-193"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-fl49q evicted</span>
+</span><span id="__span-2-194"><a id="__codelineno-2-194" name="__codelineno-2-194" href="#__codelineno-2-194"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-djsjh evicted</span>
+</span><span id="__span-2-195"><a id="__codelineno-2-195" name="__codelineno-2-195" href="#__codelineno-2-195"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-8h9rw evicted</span>
+</span><span id="__span-2-196"><a id="__codelineno-2-196" name="__codelineno-2-196" href="#__codelineno-2-196"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-9qg2h evicted</span>
+</span><span id="__span-2-197"><a id="__codelineno-2-197" name="__codelineno-2-197" href="#__codelineno-2-197"></a><span class="go">pod/command-demo evicted</span>
+</span><span id="__span-2-198"><a id="__codelineno-2-198" name="__codelineno-2-198" href="#__codelineno-2-198"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-s9tcr evicted</span>
+</span><span id="__span-2-199"><a id="__codelineno-2-199" name="__codelineno-2-199" href="#__codelineno-2-199"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-dmlzv evicted</span>
+</span><span id="__span-2-200"><a id="__codelineno-2-200" name="__codelineno-2-200" href="#__codelineno-2-200"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-hxwmf evicted</span>
+</span><span id="__span-2-201"><a id="__codelineno-2-201" name="__codelineno-2-201" href="#__codelineno-2-201"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-twnjf evicted</span>
+</span><span id="__span-2-202"><a id="__codelineno-2-202" name="__codelineno-2-202" href="#__codelineno-2-202"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-7r4xz evicted</span>
+</span><span id="__span-2-203"><a id="__codelineno-2-203" name="__codelineno-2-203" href="#__codelineno-2-203"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-qgwjz evicted</span>
+</span><span id="__span-2-204"><a id="__codelineno-2-204" name="__codelineno-2-204" href="#__codelineno-2-204"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-w5pzx evicted</span>
+</span><span id="__span-2-205"><a id="__codelineno-2-205" name="__codelineno-2-205" href="#__codelineno-2-205"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-9kwrh evicted</span>
+</span><span id="__span-2-206"><a id="__codelineno-2-206" name="__codelineno-2-206" href="#__codelineno-2-206"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-nv9pk evicted</span>
+</span><span id="__span-2-207"><a id="__codelineno-2-207" name="__codelineno-2-207" href="#__codelineno-2-207"></a><span class="go">pod/photoprism-0 evicted</span>
+</span><span id="__span-2-208"><a id="__codelineno-2-208" name="__codelineno-2-208" href="#__codelineno-2-208"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-4sswx evicted</span>
+</span><span id="__span-2-209"><a id="__codelineno-2-209" name="__codelineno-2-209" href="#__codelineno-2-209"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-bkppp evicted</span>
+</span><span id="__span-2-210"><a id="__codelineno-2-210" name="__codelineno-2-210" href="#__codelineno-2-210"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-7g5s8 evicted</span>
+</span><span id="__span-2-211"><a id="__codelineno-2-211" name="__codelineno-2-211" href="#__codelineno-2-211"></a><span class="go">I0922 09:37:24.142398 1271042 request.go:690] Waited for 1.349459923s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.2:6443/api/v1/namespaces/kubernetes-dashboard/pods/dashboard-metrics-scraper-7bc864c59-6v4ds</span>
+</span><span id="__span-2-212"><a id="__codelineno-2-212" name="__codelineno-2-212" href="#__codelineno-2-212"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-6v4ds evicted</span>
+</span><span id="__span-2-213"><a id="__codelineno-2-213" name="__codelineno-2-213" href="#__codelineno-2-213"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-42q9b evicted</span>
+</span><span id="__span-2-214"><a id="__codelineno-2-214" name="__codelineno-2-214" href="#__codelineno-2-214"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-9ndhr evicted</span>
+</span><span id="__span-2-215"><a id="__codelineno-2-215" name="__codelineno-2-215" href="#__codelineno-2-215"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-dqrn8 evicted</span>
+</span><span id="__span-2-216"><a id="__codelineno-2-216" name="__codelineno-2-216" href="#__codelineno-2-216"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-9vz7w evicted</span>
+</span><span id="__span-2-217"><a id="__codelineno-2-217" name="__codelineno-2-217" href="#__codelineno-2-217"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-mvs2g evicted</span>
+</span><span id="__span-2-218"><a id="__codelineno-2-218" name="__codelineno-2-218" href="#__codelineno-2-218"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-b22xz evicted</span>
+</span><span id="__span-2-219"><a id="__codelineno-2-219" name="__codelineno-2-219" href="#__codelineno-2-219"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-pc2f7 evicted</span>
+</span><span id="__span-2-220"><a id="__codelineno-2-220" name="__codelineno-2-220" href="#__codelineno-2-220"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-5ncn8 evicted</span>
+</span><span id="__span-2-221"><a id="__codelineno-2-221" name="__codelineno-2-221" href="#__codelineno-2-221"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-qbbmd evicted</span>
+</span><span id="__span-2-222"><a id="__codelineno-2-222" name="__codelineno-2-222" href="#__codelineno-2-222"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-bkt7v evicted</span>
+</span><span id="__span-2-223"><a id="__codelineno-2-223" name="__codelineno-2-223" href="#__codelineno-2-223"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-rjrjb evicted</span>
+</span><span id="__span-2-224"><a id="__codelineno-2-224" name="__codelineno-2-224" href="#__codelineno-2-224"></a><span class="go">pod/controller-759b6c5bb8-bl2tn evicted</span>
+</span><span id="__span-2-225"><a id="__codelineno-2-225" name="__codelineno-2-225" href="#__codelineno-2-225"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-krkdp evicted</span>
+</span><span id="__span-2-226"><a id="__codelineno-2-226" name="__codelineno-2-226" href="#__codelineno-2-226"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-4tgjq evicted</span>
+</span><span id="__span-2-227"><a id="__codelineno-2-227" name="__codelineno-2-227" href="#__codelineno-2-227"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-c82nc evicted</span>
+</span><span id="__span-2-228"><a id="__codelineno-2-228" name="__codelineno-2-228" href="#__codelineno-2-228"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-f2kfh evicted</span>
+</span><span id="__span-2-229"><a id="__codelineno-2-229" name="__codelineno-2-229" href="#__codelineno-2-229"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-bjw5s evicted</span>
+</span><span id="__span-2-230"><a id="__codelineno-2-230" name="__codelineno-2-230" href="#__codelineno-2-230"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-dfc2k evicted</span>
+</span><span id="__span-2-231"><a id="__codelineno-2-231" name="__codelineno-2-231" href="#__codelineno-2-231"></a><span class="go">pod/controller-759b6c5bb8-57nb6 evicted</span>
+</span><span id="__span-2-232"><a id="__codelineno-2-232" name="__codelineno-2-232" href="#__codelineno-2-232"></a><span class="go">pod/controller-759b6c5bb8-b2pch evicted</span>
+</span><span id="__span-2-233"><a id="__codelineno-2-233" name="__codelineno-2-233" href="#__codelineno-2-233"></a><span class="go">pod/controller-759b6c5bb8-9zbn4 evicted</span>
+</span><span id="__span-2-234"><a id="__codelineno-2-234" name="__codelineno-2-234" href="#__codelineno-2-234"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-b6nwl evicted</span>
+</span><span id="__span-2-235"><a id="__codelineno-2-235" name="__codelineno-2-235" href="#__codelineno-2-235"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-s77ss evicted</span>
+</span><span id="__span-2-236"><a id="__codelineno-2-236" name="__codelineno-2-236" href="#__codelineno-2-236"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-bs26f evicted</span>
+</span><span id="__span-2-237"><a id="__codelineno-2-237" name="__codelineno-2-237" href="#__codelineno-2-237"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-952v2 evicted</span>
+</span><span id="__span-2-238"><a id="__codelineno-2-238" name="__codelineno-2-238" href="#__codelineno-2-238"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-n6vpl evicted</span>
+</span><span id="__span-2-239"><a id="__codelineno-2-239" name="__codelineno-2-239" href="#__codelineno-2-239"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-4nnmr evicted</span>
+</span><span id="__span-2-240"><a id="__codelineno-2-240" name="__codelineno-2-240" href="#__codelineno-2-240"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-cqrhs evicted</span>
+</span><span id="__span-2-241"><a id="__codelineno-2-241" name="__codelineno-2-241" href="#__codelineno-2-241"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-r5cng evicted</span>
+</span><span id="__span-2-242"><a id="__codelineno-2-242" name="__codelineno-2-242" href="#__codelineno-2-242"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-pxb5m evicted</span>
+</span><span id="__span-2-243"><a id="__codelineno-2-243" name="__codelineno-2-243" href="#__codelineno-2-243"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-pzgln evicted</span>
+</span><span id="__span-2-244"><a id="__codelineno-2-244" name="__codelineno-2-244" href="#__codelineno-2-244"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-pls88 evicted</span>
+</span><span id="__span-2-245"><a id="__codelineno-2-245" name="__codelineno-2-245" href="#__codelineno-2-245"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-t27j4 evicted</span>
+</span><span id="__span-2-246"><a id="__codelineno-2-246" name="__codelineno-2-246" href="#__codelineno-2-246"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-pzmbn evicted</span>
+</span><span id="__span-2-247"><a id="__codelineno-2-247" name="__codelineno-2-247" href="#__codelineno-2-247"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-prw6v evicted</span>
+</span><span id="__span-2-248"><a id="__codelineno-2-248" name="__codelineno-2-248" href="#__codelineno-2-248"></a><span class="go">pod/controller-759b6c5bb8-g9g2x evicted</span>
+</span><span id="__span-2-249"><a id="__codelineno-2-249" name="__codelineno-2-249" href="#__codelineno-2-249"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-b2n6c evicted</span>
+</span><span id="__span-2-250"><a id="__codelineno-2-250" name="__codelineno-2-250" href="#__codelineno-2-250"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-jn4bt evicted</span>
+</span><span id="__span-2-251"><a id="__codelineno-2-251" name="__codelineno-2-251" href="#__codelineno-2-251"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-8gzvj evicted</span>
+</span><span id="__span-2-252"><a id="__codelineno-2-252" name="__codelineno-2-252" href="#__codelineno-2-252"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-zrrb8 evicted</span>
+</span><span id="__span-2-253"><a id="__codelineno-2-253" name="__codelineno-2-253" href="#__codelineno-2-253"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-krrtr evicted</span>
+</span><span id="__span-2-254"><a id="__codelineno-2-254" name="__codelineno-2-254" href="#__codelineno-2-254"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-hkxzh evicted</span>
+</span><span id="__span-2-255"><a id="__codelineno-2-255" name="__codelineno-2-255" href="#__codelineno-2-255"></a><span class="go">pod/controller-759b6c5bb8-ht7tz evicted</span>
+</span><span id="__span-2-256"><a id="__codelineno-2-256" name="__codelineno-2-256" href="#__codelineno-2-256"></a><span class="go">pod/controller-759b6c5bb8-nr92c evicted</span>
+</span><span id="__span-2-257"><a id="__codelineno-2-257" name="__codelineno-2-257" href="#__codelineno-2-257"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-n2gn8 evicted</span>
+</span><span id="__span-2-258"><a id="__codelineno-2-258" name="__codelineno-2-258" href="#__codelineno-2-258"></a><span class="go">pod/controller-759b6c5bb8-ktq7h evicted</span>
+</span><span id="__span-2-259"><a id="__codelineno-2-259" name="__codelineno-2-259" href="#__codelineno-2-259"></a><span class="go">pod/controller-759b6c5bb8-xx5bb evicted</span>
+</span><span id="__span-2-260"><a id="__codelineno-2-260" name="__codelineno-2-260" href="#__codelineno-2-260"></a><span class="go">I0922 09:37:34.180242 1271042 request.go:690] Waited for 21.199712674s due to client-side throttling, not priority and fairness, request: POST:https://10.0.0.2:6443/api/v1/namespaces/kubernetes-dashboard/pods/dashboard-metrics-scraper-7bc864c59-kbhtg/eviction</span>
+</span><span id="__span-2-261"><a id="__codelineno-2-261" name="__codelineno-2-261" href="#__codelineno-2-261"></a><span class="go">pod/controller-759b6c5bb8-6sp2m evicted</span>
+</span><span id="__span-2-262"><a id="__codelineno-2-262" name="__codelineno-2-262" href="#__codelineno-2-262"></a><span class="go">pod/controller-759b6c5bb8-hx4dl evicted</span>
+</span><span id="__span-2-263"><a id="__codelineno-2-263" name="__codelineno-2-263" href="#__codelineno-2-263"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-lbzrz evicted</span>
+</span><span id="__span-2-264"><a id="__codelineno-2-264" name="__codelineno-2-264" href="#__codelineno-2-264"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-n8cxk evicted</span>
+</span><span id="__span-2-265"><a id="__codelineno-2-265" name="__codelineno-2-265" href="#__codelineno-2-265"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-m8mb8 evicted</span>
+</span><span id="__span-2-266"><a id="__codelineno-2-266" name="__codelineno-2-266" href="#__codelineno-2-266"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-vd88s evicted</span>
+</span><span id="__span-2-267"><a id="__codelineno-2-267" name="__codelineno-2-267" href="#__codelineno-2-267"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-7bjzs evicted</span>
+</span><span id="__span-2-268"><a id="__codelineno-2-268" name="__codelineno-2-268" href="#__codelineno-2-268"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-45qcw evicted</span>
+</span><span id="__span-2-269"><a id="__codelineno-2-269" name="__codelineno-2-269" href="#__codelineno-2-269"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-kbhtg evicted</span>
+</span><span id="__span-2-270"><a id="__codelineno-2-270" name="__codelineno-2-270" href="#__codelineno-2-270"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-fx98h evicted</span>
+</span><span id="__span-2-271"><a id="__codelineno-2-271" name="__codelineno-2-271" href="#__codelineno-2-271"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-hjwcl evicted</span>
+</span><span id="__span-2-272"><a id="__codelineno-2-272" name="__codelineno-2-272" href="#__codelineno-2-272"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-ztfwd evicted</span>
+</span><span id="__span-2-273"><a id="__codelineno-2-273" name="__codelineno-2-273" href="#__codelineno-2-273"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-v8lkd evicted</span>
+</span><span id="__span-2-274"><a id="__codelineno-2-274" name="__codelineno-2-274" href="#__codelineno-2-274"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-kt46k evicted</span>
+</span><span id="__span-2-275"><a id="__codelineno-2-275" name="__codelineno-2-275" href="#__codelineno-2-275"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-mbkmb evicted</span>
+</span><span id="__span-2-276"><a id="__codelineno-2-276" name="__codelineno-2-276" href="#__codelineno-2-276"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-fscmh evicted</span>
+</span><span id="__span-2-277"><a id="__codelineno-2-277" name="__codelineno-2-277" href="#__codelineno-2-277"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-6n2zd evicted</span>
+</span><span id="__span-2-278"><a id="__codelineno-2-278" name="__codelineno-2-278" href="#__codelineno-2-278"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-wbrk4 evicted</span>
+</span><span id="__span-2-279"><a id="__codelineno-2-279" name="__codelineno-2-279" href="#__codelineno-2-279"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-x462f evicted</span>
+</span><span id="__span-2-280"><a id="__codelineno-2-280" name="__codelineno-2-280" href="#__codelineno-2-280"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-26hxx evicted</span>
+</span><span id="__span-2-281"><a id="__codelineno-2-281" name="__codelineno-2-281" href="#__codelineno-2-281"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-zs228 evicted</span>
+</span><span id="__span-2-282"><a id="__codelineno-2-282" name="__codelineno-2-282" href="#__codelineno-2-282"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-9htbw evicted</span>
+</span><span id="__span-2-283"><a id="__codelineno-2-283" name="__codelineno-2-283" href="#__codelineno-2-283"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-hxnnz evicted</span>
+</span><span id="__span-2-284"><a id="__codelineno-2-284" name="__codelineno-2-284" href="#__codelineno-2-284"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-74flg evicted</span>
+</span><span id="__span-2-285"><a id="__codelineno-2-285" name="__codelineno-2-285" href="#__codelineno-2-285"></a><span class="go">pod/controller-759b6c5bb8-jvpbg evicted</span>
+</span><span id="__span-2-286"><a id="__codelineno-2-286" name="__codelineno-2-286" href="#__codelineno-2-286"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-vkfxn evicted</span>
+</span><span id="__span-2-287"><a id="__codelineno-2-287" name="__codelineno-2-287" href="#__codelineno-2-287"></a><span class="go">pod/controller-759b6c5bb8-2gpk2 evicted</span>
+</span><span id="__span-2-288"><a id="__codelineno-2-288" name="__codelineno-2-288" href="#__codelineno-2-288"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-dmws2 evicted</span>
+</span><span id="__span-2-289"><a id="__codelineno-2-289" name="__codelineno-2-289" href="#__codelineno-2-289"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-xr74p evicted</span>
+</span><span id="__span-2-290"><a id="__codelineno-2-290" name="__codelineno-2-290" href="#__codelineno-2-290"></a><span class="go">pod/controller-759b6c5bb8-hxhzc evicted</span>
+</span><span id="__span-2-291"><a id="__codelineno-2-291" name="__codelineno-2-291" href="#__codelineno-2-291"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-jshnd evicted</span>
+</span><span id="__span-2-292"><a id="__codelineno-2-292" name="__codelineno-2-292" href="#__codelineno-2-292"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-wlzfq evicted</span>
+</span><span id="__span-2-293"><a id="__codelineno-2-293" name="__codelineno-2-293" href="#__codelineno-2-293"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-wgtll evicted</span>
+</span><span id="__span-2-294"><a id="__codelineno-2-294" name="__codelineno-2-294" href="#__codelineno-2-294"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-qpp5w evicted</span>
+</span><span id="__span-2-295"><a id="__codelineno-2-295" name="__codelineno-2-295" href="#__codelineno-2-295"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-hmjdg evicted</span>
+</span><span id="__span-2-296"><a id="__codelineno-2-296" name="__codelineno-2-296" href="#__codelineno-2-296"></a><span class="go">pod/ingress-nginx-controller-7c7754d4b6-mgkdz evicted</span>
+</span><span id="__span-2-297"><a id="__codelineno-2-297" name="__codelineno-2-297" href="#__codelineno-2-297"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-v66mn evicted</span>
+</span><span id="__span-2-298"><a id="__codelineno-2-298" name="__codelineno-2-298" href="#__codelineno-2-298"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-nj2l7 evicted</span>
+</span><span id="__span-2-299"><a id="__codelineno-2-299" name="__codelineno-2-299" href="#__codelineno-2-299"></a><span class="go">pod/dashboard-metrics-scraper-7bc864c59-7z57g evicted</span>
+</span><span id="__span-2-300"><a id="__codelineno-2-300" name="__codelineno-2-300" href="#__codelineno-2-300"></a><span class="go">pod/kubernetes-dashboard-6c7ccbcf87-b94tb evicted</span>
+</span><span id="__span-2-301"><a id="__codelineno-2-301" name="__codelineno-2-301" href="#__codelineno-2-301"></a><span class="go">pod/plexserver-7cb77ddc8-d6bqg evicted</span>
+</span><span id="__span-2-302"><a id="__codelineno-2-302" name="__codelineno-2-302" href="#__codelineno-2-302"></a><span class="go">pod/coredns-787d4945fb-sqfcw evicted</span>
+</span><span id="__span-2-303"><a id="__codelineno-2-303" name="__codelineno-2-303" href="#__codelineno-2-303"></a><span class="go">node/rapture drained</span>
+</span></code></pre></div>
+</details>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Local storage defined as <code>PersistentVolume</code> is <strong>not</strong> deleted:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp"># </span>du<span class="w"> </span>-sh<span class="w"> </span>/home/k8s/*
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="go">920M    /home/k8s/audiobookshelf</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="go">17G     /home/k8s/photoprism</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="go">7.6G    /home/k8s/plexmediaserver</span>
+</span></code></pre></div>
+</div>
+<p>At this point the Kubernetes cluster is running everything <strong>but</strong>
+those pods that are not part of Kubernetes:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>get<span class="w"> </span>deployments<span class="w"> </span>-A
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">NAMESPACE              NAME                        READY   UP-TO-DATE   AVAILABLE   AGE</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">ingress-nginx          ingress-nginx-controller    0/1     1            0           132d</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="go">kube-system            coredns                     0/2     2            0           132d</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="go">kubernetes-dashboard   dashboard-metrics-scraper   0/1     1            0           132d</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard        0/1     1            0           132d</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="go">metallb-system         controller                  0/1     1            0           132d</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="go">plexserver             plexserver                  0/1     1            0           132d</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="gp"># </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="go">NAMESPACE              NAME                                        READY   STATUS    RESTARTS        AGE</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="go">ingress-nginx          ingress-nginx-controller-7c7754d4b6-w4w5g   0/1     Pending   0               9m15s</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="go">kube-flannel           kube-flannel-ds-bbhn8                       1/1     Running   120 (27h ago)   132d</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="go">kube-system            coredns-787d4945fb-8xkqt                    0/1     Pending   0               9m3s</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="go">kube-system            coredns-787d4945fb-kjrlx                    0/1     Pending   0               9m30s</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="go">kube-system            etcd-rapture                                1/1     Running   89 (27h ago)    132d</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="go">kube-system            kube-apiserver-rapture                      1/1     Running   89 (27h ago)    132d</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="go">kube-system            kube-controller-manager-rapture             1/1     Running   89 (27h ago)    132d</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="go">kube-system            kube-proxy-tszr7                            1/1     Running   89 (27h ago)    132d</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="go">kube-system            kube-scheduler-rapture                      1/1     Running   89 (27h ago)    132d</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="go">kubernetes-dashboard   dashboard-metrics-scraper-7bc864c59-4lw4r   0/1     Pending   0               9m16s</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-6c7ccbcf87-mg8j6       0/1     Pending   0               9m30s</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="go">metallb-system         controller-759b6c5bb8-d4lwr                 0/1     Pending   0               9m25s</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="go">metallb-system         speaker-58krr                               1/1     Running   50 (27h ago)    76d</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="go">photoprism             photoprism-0                                0/1     Pending   0               9m21s</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="go">plexserver             plexserver-7cb77ddc8-rn2p6                  0/1     Pending   0               9m3s</span>
+</span></code></pre></div>
+<p>At this point it would be safe to stop all the services; but this
+<em>is not necessary</em> (and may get in the way of upgrading):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>kubelet
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>containerd.service
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>docker.service
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>docker.socket
+</span></code></pre></div>
+<p><strong>Instead</strong>, the next step is to
+<a href="https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#determine-which-version-to-upgrade-to">determine which version to upgrade to</a>
+by updating the minor version in the repository configuration and
+then finding the latest patch version:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp"># </span>vi<span class="w"> </span>/etc/apt/sources.list.d/kubernetes.list
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="go">deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="gp"># </span>apt<span class="w"> </span>update
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="gp"># </span>apt-cache<span class="w"> </span>madison<span class="w"> </span>kubeadm
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="go">   kubeadm | 1.27.16-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="go">   kubeadm | 1.27.15-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="go">   kubeadm | 1.27.14-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="go">   kubeadm | 1.27.13-2.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="go">   kubeadm | 1.27.12-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="go">   kubeadm | 1.27.11-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="go">   kubeadm | 1.27.10-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="go">   kubeadm | 1.27.9-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="go">   kubeadm | 1.27.8-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="go">   kubeadm | 1.27.7-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="go">   kubeadm | 1.27.6-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="go">   kubeadm | 1.27.5-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="go">   kubeadm | 1.27.4-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="go">   kubeadm | 1.27.3-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="go">   kubeadm | 1.27.2-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="go">   kubeadm | 1.27.1-1.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="go">   kubeadm | 1.27.0-2.1 | https://pkgs.k8s.io/core:/stable:/v1.27/deb  Packages</span>
+</span></code></pre></div>
+<p>The latest patch version is 1.27.<strong>16</strong> and that is the one to
+<a href="https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#upgrading-control-plane-nodes">upgrade control plane nodes</a> to:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp"># </span>apt-mark<span class="w"> </span>unhold<span class="w"> </span>kubeadm<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">kubeadm</span><span class="o">=</span><span class="s1">'1.27.16-*'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>apt-mark<span class="w"> </span>hold<span class="w"> </span>kubeadm
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="go">kubeadm was already not on hold.</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="go">...</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="go">Selected version '1.27.16-1.1' (isv:kubernetes:core:stable:v1.27:pkgs.k8s.io [amd64]) for 'kubeadm'</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="go">The following packages will be upgraded:</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="go">  kubeadm</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="go">1 upgraded, 0 newly installed, 0 to remove and 5 not upgraded.</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="go">Need to get 10.0 MB of archives.</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="go">After this operation, 848 kB of additional disk space will be used.</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="go">Get:1 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.27/deb  kubeadm 1.27.16-1.1 [10.0 MB]</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="go">Fetched 10.0 MB in 1s (15.8 MB/s)</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="gp gp-VirtualEnv">(Reading database ... 645263 files and directories currently installed.)</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="go">Preparing to unpack .../kubeadm_1.27.16-1.1_amd64.deb ...</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="go">Unpacking kubeadm (1.27.16-1.1) over (1.26.15-1.1) ...</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="go">Setting up kubeadm (1.27.16-1.1) ...</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="go">kubeadm set on hold.</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="gp"># </span>kubeadm<span class="w"> </span>version
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="go">kubeadm version: &amp;version.Info{Major:"1", Minor:"27", GitVersion:"v1.27.16", GitCommit:"cbb86e0d7f4a049666fac0551e8b02ef3d6c3d9a", GitTreeState:"clean", BuildDate:"2024-07-17T01:52:04Z", GoVersion:"go1.22.5", Compiler:"gc", Platform:"linux/amd64"}</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="gp"># </span>kubeadm<span class="w"> </span>upgrade<span class="w"> </span>plan
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="go">[upgrade/config] Making sure the configuration is correct:</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="go">[upgrade/config] Reading configuration from the cluster...</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="go">[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="go">[preflight] Running pre-flight checks.</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="go">[upgrade] Running cluster health checks</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="go">[upgrade] Fetching available versions to upgrade to</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="go">[upgrade/versions] Cluster version: v1.26.15</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="go">[upgrade/versions] kubeadm version: v1.27.16</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="go">I0922 10:02:36.788943 1866090 version.go:256] remote version is much newer: v1.31.1; falling back to: stable-1.27</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="go">[upgrade/versions] Target version: v1.27.16</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="go">[upgrade/versions] Latest version in the v1.26 series: v1.26.15</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="go">Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="go">COMPONENT   CURRENT        TARGET</span>
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="go">kubelet     1 x v1.26.15   v1.27.16</span>
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a>
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a><span class="go">Upgrade to the latest stable version:</span>
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a>
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="go">COMPONENT                 CURRENT    TARGET</span>
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="go">kube-apiserver            v1.26.15   v1.27.16</span>
+</span><span id="__span-7-44"><a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="go">kube-controller-manager   v1.26.15   v1.27.16</span>
+</span><span id="__span-7-45"><a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="go">kube-scheduler            v1.26.15   v1.27.16</span>
+</span><span id="__span-7-46"><a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="go">kube-proxy                v1.26.15   v1.27.16</span>
+</span><span id="__span-7-47"><a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="go">CoreDNS                   v1.9.3     v1.10.1</span>
+</span><span id="__span-7-48"><a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a><span class="go">etcd                      3.5.10-0   3.5.12-0</span>
+</span><span id="__span-7-49"><a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a>
+</span><span id="__span-7-50"><a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="go">You can now apply the upgrade by executing the following command:</span>
+</span><span id="__span-7-51"><a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a>
+</span><span id="__span-7-52"><a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="go">        kubeadm upgrade apply v1.27.16</span>
+</span><span id="__span-7-53"><a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a>
+</span><span id="__span-7-54"><a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="go">_____________________________________________________________________</span>
+</span><span id="__span-7-55"><a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a>
+</span><span id="__span-7-56"><a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a>
+</span><span id="__span-7-57"><a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="go">The table below shows the current state of component configs as understood by this version of kubeadm.</span>
+</span><span id="__span-7-58"><a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="go">Configs that have a "yes" mark in the "MANUAL UPGRADE REQUIRED" column require manual config upgrade or</span>
+</span><span id="__span-7-59"><a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a><span class="go">resetting to kubeadm defaults before a successful upgrade can be performed. The version to manually</span>
+</span><span id="__span-7-60"><a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a><span class="go">upgrade to is denoted in the "PREFERRED VERSION" column.</span>
+</span><span id="__span-7-61"><a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a>
+</span><span id="__span-7-62"><a id="__codelineno-7-62" name="__codelineno-7-62" href="#__codelineno-7-62"></a><span class="go">API GROUP                 CURRENT VERSION   PREFERRED VERSION   MANUAL UPGRADE REQUIRED</span>
+</span><span id="__span-7-63"><a id="__codelineno-7-63" name="__codelineno-7-63" href="#__codelineno-7-63"></a><span class="go">kubeproxy.config.k8s.io   v1alpha1          v1alpha1            no</span>
+</span><span id="__span-7-64"><a id="__codelineno-7-64" name="__codelineno-7-64" href="#__codelineno-7-64"></a><span class="go">kubelet.config.k8s.io     v1beta1           v1beta1             no</span>
+</span><span id="__span-7-65"><a id="__codelineno-7-65" name="__codelineno-7-65" href="#__codelineno-7-65"></a><span class="go">_____________________________________________________________________</span>
+</span><span id="__span-7-66"><a id="__codelineno-7-66" name="__codelineno-7-66" href="#__codelineno-7-66"></a>
+</span><span id="__span-7-67"><a id="__codelineno-7-67" name="__codelineno-7-67" href="#__codelineno-7-67"></a>
+</span><span id="__span-7-68"><a id="__codelineno-7-68" name="__codelineno-7-68" href="#__codelineno-7-68"></a><span class="gp"># </span>kubeadm<span class="w"> </span>upgrade<span class="w"> </span>apply<span class="w"> </span>v1.27.16
+</span><span id="__span-7-69"><a id="__codelineno-7-69" name="__codelineno-7-69" href="#__codelineno-7-69"></a><span class="go">[upgrade/config] Making sure the configuration is correct:</span>
+</span><span id="__span-7-70"><a id="__codelineno-7-70" name="__codelineno-7-70" href="#__codelineno-7-70"></a><span class="go">[upgrade/config] Reading configuration from the cluster...</span>
+</span><span id="__span-7-71"><a id="__codelineno-7-71" name="__codelineno-7-71" href="#__codelineno-7-71"></a><span class="go">[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'</span>
+</span><span id="__span-7-72"><a id="__codelineno-7-72" name="__codelineno-7-72" href="#__codelineno-7-72"></a><span class="go">[preflight] Running pre-flight checks.</span>
+</span><span id="__span-7-73"><a id="__codelineno-7-73" name="__codelineno-7-73" href="#__codelineno-7-73"></a><span class="go">[upgrade] Running cluster health checks</span>
+</span><span id="__span-7-74"><a id="__codelineno-7-74" name="__codelineno-7-74" href="#__codelineno-7-74"></a><span class="go">[upgrade/version] You have chosen to change the cluster version to "v1.27.16"</span>
+</span><span id="__span-7-75"><a id="__codelineno-7-75" name="__codelineno-7-75" href="#__codelineno-7-75"></a><span class="go">[upgrade/versions] Cluster version: v1.26.15</span>
+</span><span id="__span-7-76"><a id="__codelineno-7-76" name="__codelineno-7-76" href="#__codelineno-7-76"></a><span class="go">[upgrade/versions] kubeadm version: v1.27.16</span>
+</span><span id="__span-7-77"><a id="__codelineno-7-77" name="__codelineno-7-77" href="#__codelineno-7-77"></a><span class="go">[upgrade] Are you sure you want to proceed? [y/N]: y</span>
+</span><span id="__span-7-78"><a id="__codelineno-7-78" name="__codelineno-7-78" href="#__codelineno-7-78"></a><span class="go">[upgrade/prepull] Pulling images required for setting up a Kubernetes cluster</span>
+</span><span id="__span-7-79"><a id="__codelineno-7-79" name="__codelineno-7-79" href="#__codelineno-7-79"></a><span class="go">[upgrade/prepull] This might take a minute or two, depending on the speed of your internet connection</span>
+</span><span id="__span-7-80"><a id="__codelineno-7-80" name="__codelineno-7-80" href="#__codelineno-7-80"></a><span class="go">[upgrade/prepull] You can also perform this action in beforehand using 'kubeadm config images pull'</span>
+</span><span id="__span-7-81"><a id="__codelineno-7-81" name="__codelineno-7-81" href="#__codelineno-7-81"></a><span class="go">W0922 10:04:12.442139 1888818 checks.go:835] detected that the sandbox image "registry.k8s.io/pause:3.6" of the container runtime is inconsistent with that used by kubeadm. It is recommended that using "registry.k8s.io/pause:3.9" as the CRI sandbox image.</span>
+</span><span id="__span-7-82"><a id="__codelineno-7-82" name="__codelineno-7-82" href="#__codelineno-7-82"></a><span class="go">[upgrade/apply] Upgrading your Static Pod-hosted control plane to version "v1.27.16" (timeout: 5m0s)...</span>
+</span><span id="__span-7-83"><a id="__codelineno-7-83" name="__codelineno-7-83" href="#__codelineno-7-83"></a><span class="go">[upgrade/etcd] Upgrading to TLS for etcd</span>
+</span><span id="__span-7-84"><a id="__codelineno-7-84" name="__codelineno-7-84" href="#__codelineno-7-84"></a><span class="go">[upgrade/staticpods] Preparing for "etcd" upgrade</span>
+</span><span id="__span-7-85"><a id="__codelineno-7-85" name="__codelineno-7-85" href="#__codelineno-7-85"></a><span class="go">[upgrade/staticpods] Renewing etcd-server certificate</span>
+</span><span id="__span-7-86"><a id="__codelineno-7-86" name="__codelineno-7-86" href="#__codelineno-7-86"></a><span class="go">[upgrade/staticpods] Renewing etcd-peer certificate</span>
+</span><span id="__span-7-87"><a id="__codelineno-7-87" name="__codelineno-7-87" href="#__codelineno-7-87"></a><span class="go">[upgrade/staticpods] Renewing etcd-healthcheck-client certificate</span>
+</span><span id="__span-7-88"><a id="__codelineno-7-88" name="__codelineno-7-88" href="#__codelineno-7-88"></a><span class="go">[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/etcd.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-09-22-10-04-17/etcd.yaml"</span>
+</span><span id="__span-7-89"><a id="__codelineno-7-89" name="__codelineno-7-89" href="#__codelineno-7-89"></a><span class="go">[upgrade/staticpods] Waiting for the kubelet to restart the component</span>
+</span><span id="__span-7-90"><a id="__codelineno-7-90" name="__codelineno-7-90" href="#__codelineno-7-90"></a><span class="go">[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)</span>
+</span><span id="__span-7-91"><a id="__codelineno-7-91" name="__codelineno-7-91" href="#__codelineno-7-91"></a><span class="go">[apiclient] Found 1 Pods for label selector component=etcd</span>
+</span><span id="__span-7-92"><a id="__codelineno-7-92" name="__codelineno-7-92" href="#__codelineno-7-92"></a><span class="go">[upgrade/staticpods] Component "etcd" upgraded successfully!</span>
+</span><span id="__span-7-93"><a id="__codelineno-7-93" name="__codelineno-7-93" href="#__codelineno-7-93"></a><span class="go">[upgrade/etcd] Waiting for etcd to become available</span>
+</span><span id="__span-7-94"><a id="__codelineno-7-94" name="__codelineno-7-94" href="#__codelineno-7-94"></a><span class="go">[upgrade/staticpods] Writing new Static Pod manifests to "/etc/kubernetes/tmp/kubeadm-upgraded-manifests446600773"</span>
+</span><span id="__span-7-95"><a id="__codelineno-7-95" name="__codelineno-7-95" href="#__codelineno-7-95"></a><span class="go">[upgrade/staticpods] Preparing for "kube-apiserver" upgrade</span>
+</span><span id="__span-7-96"><a id="__codelineno-7-96" name="__codelineno-7-96" href="#__codelineno-7-96"></a><span class="go">[upgrade/staticpods] Renewing apiserver certificate</span>
+</span><span id="__span-7-97"><a id="__codelineno-7-97" name="__codelineno-7-97" href="#__codelineno-7-97"></a><span class="go">[upgrade/staticpods] Renewing apiserver-kubelet-client certificate</span>
+</span><span id="__span-7-98"><a id="__codelineno-7-98" name="__codelineno-7-98" href="#__codelineno-7-98"></a><span class="go">[upgrade/staticpods] Renewing front-proxy-client certificate</span>
+</span><span id="__span-7-99"><a id="__codelineno-7-99" name="__codelineno-7-99" href="#__codelineno-7-99"></a><span class="go">[upgrade/staticpods] Renewing apiserver-etcd-client certificate</span>
+</span><span id="__span-7-100"><a id="__codelineno-7-100" name="__codelineno-7-100" href="#__codelineno-7-100"></a><span class="go">[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-apiserver.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-09-22-10-04-17/kube-apiserver.yaml"</span>
+</span><span id="__span-7-101"><a id="__codelineno-7-101" name="__codelineno-7-101" href="#__codelineno-7-101"></a><span class="go">[upgrade/staticpods] Waiting for the kubelet to restart the component</span>
+</span><span id="__span-7-102"><a id="__codelineno-7-102" name="__codelineno-7-102" href="#__codelineno-7-102"></a><span class="go">[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)</span>
+</span><span id="__span-7-103"><a id="__codelineno-7-103" name="__codelineno-7-103" href="#__codelineno-7-103"></a><span class="go">[apiclient] Found 1 Pods for label selector component=kube-apiserver</span>
+</span><span id="__span-7-104"><a id="__codelineno-7-104" name="__codelineno-7-104" href="#__codelineno-7-104"></a><span class="go">[upgrade/staticpods] Component "kube-apiserver" upgraded successfully!</span>
+</span><span id="__span-7-105"><a id="__codelineno-7-105" name="__codelineno-7-105" href="#__codelineno-7-105"></a><span class="go">[upgrade/staticpods] Preparing for "kube-controller-manager" upgrade</span>
+</span><span id="__span-7-106"><a id="__codelineno-7-106" name="__codelineno-7-106" href="#__codelineno-7-106"></a><span class="go">[upgrade/staticpods] Renewing controller-manager.conf certificate</span>
+</span><span id="__span-7-107"><a id="__codelineno-7-107" name="__codelineno-7-107" href="#__codelineno-7-107"></a><span class="go">[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-controller-manager.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-09-22-10-04-17/kube-controller-manager.yaml"</span>
+</span><span id="__span-7-108"><a id="__codelineno-7-108" name="__codelineno-7-108" href="#__codelineno-7-108"></a><span class="go">[upgrade/staticpods] Waiting for the kubelet to restart the component</span>
+</span><span id="__span-7-109"><a id="__codelineno-7-109" name="__codelineno-7-109" href="#__codelineno-7-109"></a><span class="go">[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)</span>
+</span><span id="__span-7-110"><a id="__codelineno-7-110" name="__codelineno-7-110" href="#__codelineno-7-110"></a><span class="go">[apiclient] Found 1 Pods for label selector component=kube-controller-manager</span>
+</span><span id="__span-7-111"><a id="__codelineno-7-111" name="__codelineno-7-111" href="#__codelineno-7-111"></a><span class="go">[upgrade/staticpods] Component "kube-controller-manager" upgraded successfully!</span>
+</span><span id="__span-7-112"><a id="__codelineno-7-112" name="__codelineno-7-112" href="#__codelineno-7-112"></a><span class="go">[upgrade/staticpods] Preparing for "kube-scheduler" upgrade</span>
+</span><span id="__span-7-113"><a id="__codelineno-7-113" name="__codelineno-7-113" href="#__codelineno-7-113"></a><span class="go">[upgrade/staticpods] Renewing scheduler.conf certificate</span>
+</span><span id="__span-7-114"><a id="__codelineno-7-114" name="__codelineno-7-114" href="#__codelineno-7-114"></a><span class="go">[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-scheduler.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-09-22-10-04-17/kube-scheduler.yaml"</span>
+</span><span id="__span-7-115"><a id="__codelineno-7-115" name="__codelineno-7-115" href="#__codelineno-7-115"></a><span class="go">[upgrade/staticpods] Waiting for the kubelet to restart the component</span>
+</span><span id="__span-7-116"><a id="__codelineno-7-116" name="__codelineno-7-116" href="#__codelineno-7-116"></a><span class="go">[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)</span>
+</span><span id="__span-7-117"><a id="__codelineno-7-117" name="__codelineno-7-117" href="#__codelineno-7-117"></a><span class="go">[apiclient] Found 1 Pods for label selector component=kube-scheduler</span>
+</span><span id="__span-7-118"><a id="__codelineno-7-118" name="__codelineno-7-118" href="#__codelineno-7-118"></a><span class="go">[upgrade/staticpods] Component "kube-scheduler" upgraded successfully!</span>
+</span><span id="__span-7-119"><a id="__codelineno-7-119" name="__codelineno-7-119" href="#__codelineno-7-119"></a><span class="go">[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace</span>
+</span><span id="__span-7-120"><a id="__codelineno-7-120" name="__codelineno-7-120" href="#__codelineno-7-120"></a><span class="go">[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster</span>
+</span><span id="__span-7-121"><a id="__codelineno-7-121" name="__codelineno-7-121" href="#__codelineno-7-121"></a><span class="go">[upgrade] Backing up kubelet config file to /etc/kubernetes/tmp/kubeadm-kubelet-config4276155515/config.yaml</span>
+</span><span id="__span-7-122"><a id="__codelineno-7-122" name="__codelineno-7-122" href="#__codelineno-7-122"></a><span class="go">[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"</span>
+</span><span id="__span-7-123"><a id="__codelineno-7-123" name="__codelineno-7-123" href="#__codelineno-7-123"></a><span class="go">[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes</span>
+</span><span id="__span-7-124"><a id="__codelineno-7-124" name="__codelineno-7-124" href="#__codelineno-7-124"></a><span class="go">[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials</span>
+</span><span id="__span-7-125"><a id="__codelineno-7-125" name="__codelineno-7-125" href="#__codelineno-7-125"></a><span class="go">[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token</span>
+</span><span id="__span-7-126"><a id="__codelineno-7-126" name="__codelineno-7-126" href="#__codelineno-7-126"></a><span class="go">[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster</span>
+</span><span id="__span-7-127"><a id="__codelineno-7-127" name="__codelineno-7-127" href="#__codelineno-7-127"></a><span class="go">[addons] Applied essential addon: CoreDNS</span>
+</span><span id="__span-7-128"><a id="__codelineno-7-128" name="__codelineno-7-128" href="#__codelineno-7-128"></a><span class="go">[addons] Applied essential addon: kube-proxy</span>
+</span><span id="__span-7-129"><a id="__codelineno-7-129" name="__codelineno-7-129" href="#__codelineno-7-129"></a>
+</span><span id="__span-7-130"><a id="__codelineno-7-130" name="__codelineno-7-130" href="#__codelineno-7-130"></a><span class="go">[upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.27.16". Enjoy!</span>
+</span><span id="__span-7-131"><a id="__codelineno-7-131" name="__codelineno-7-131" href="#__codelineno-7-131"></a>
+</span><span id="__span-7-132"><a id="__codelineno-7-132" name="__codelineno-7-132" href="#__codelineno-7-132"></a><span class="go">[upgrade/kubelet] Now that your control plane is upgraded, please proceed with upgrading your kubelets if you haven't already done so.</span>
+</span><span id="__span-7-133"><a id="__codelineno-7-133" name="__codelineno-7-133" href="#__codelineno-7-133"></a>
+</span><span id="__span-7-134"><a id="__codelineno-7-134" name="__codelineno-7-134" href="#__codelineno-7-134"></a><span class="gp"># </span>kubeadm<span class="w"> </span>version
+</span><span id="__span-7-135"><a id="__codelineno-7-135" name="__codelineno-7-135" href="#__codelineno-7-135"></a><span class="go">kubeadm version: &amp;version.Info{Major:"1", Minor:"27", GitVersion:"v1.27.16", GitCommit:"cbb86e0d7f4a049666fac0551e8b02ef3d6c3d9a", GitTreeState:"clean", BuildDate:"2024-07-17T01:52:04Z", GoVersion:"go1.22.5", Compiler:"gc", Platform:"linux/amd64"}</span>
+</span></code></pre></div>
+<p>Now that the control plane is updated, proceed to
+<a href="https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#upgrade-kubelet-and-kubectl">upgrade kubelet and kubectl</a></p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp"># </span>apt-mark<span class="w"> </span>unhold<span class="w"> </span>kubelet<span class="w"> </span>kubectl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">kubelet</span><span class="o">=</span><span class="s1">'1.27.16-*'</span><span class="w"> </span><span class="nv">kubectl</span><span class="o">=</span><span class="s1">'1.27.16-*'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>apt-mark<span class="w"> </span>hold<span class="w"> </span>kubelet<span class="w"> </span>kubectl
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="go">kubelet was already not on hold.</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="go">kubectl was already not on hold.</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="go">...</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="go">Preparing to unpack .../kubectl_1.27.16-1.1_amd64.deb ...</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="go">Unpacking kubectl (1.27.16-1.1) over (1.26.15-1.1) ...</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="go">Preparing to unpack .../kubelet_1.27.16-1.1_amd64.deb ...</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="go">Unpacking kubelet (1.27.16-1.1) over (1.26.15-1.1) ...</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="go">dpkg: warning: unable to delete old directory '/etc/sysconfig': Directory not empty</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="go">Setting up kubectl (1.27.16-1.1) ...</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="go">Setting up kubelet (1.27.16-1.1) ...</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="go">kubelet set on hold.</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="go">kubectl set on hold.</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="gp"># </span>systemctl<span class="w"> </span>daemon-reload
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="gp"># </span>systemctl<span class="w"> </span>restart<span class="w"> </span>kubelet
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="gp"># </span>kubectl<span class="w">  </span>version<span class="w"> </span>--output<span class="o">=</span>yaml
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="go">clientVersion:</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="go">  buildDate: "2024-07-17T01:53:56Z"</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="go">  compiler: gc</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="go">  gitCommit: cbb86e0d7f4a049666fac0551e8b02ef3d6c3d9a</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="go">  gitTreeState: clean</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="go">  gitVersion: v1.27.16</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="go">  goVersion: go1.22.5</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="go">  major: "1"</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="go">  minor: "27"</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="go">  platform: linux/amd64</span>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="go">kustomizeVersion: v5.0.1</span>
+</span><span id="__span-8-32"><a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="go">serverVersion:</span>
+</span><span id="__span-8-33"><a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a><span class="go">  buildDate: "2024-07-17T01:44:26Z"</span>
+</span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="go">  compiler: gc</span>
+</span><span id="__span-8-35"><a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a><span class="go">  gitCommit: cbb86e0d7f4a049666fac0551e8b02ef3d6c3d9a</span>
+</span><span id="__span-8-36"><a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a><span class="go">  gitTreeState: clean</span>
+</span><span id="__span-8-37"><a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a><span class="go">  gitVersion: v1.27.16</span>
+</span><span id="__span-8-38"><a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a><span class="go">  goVersion: go1.22.5</span>
+</span><span id="__span-8-39"><a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a><span class="go">  major: "1"</span>
+</span><span id="__span-8-40"><a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a><span class="go">  minor: "27"</span>
+</span><span id="__span-8-41"><a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a><span class="go">  platform: linux/amd64</span>
+</span></code></pre></div>
+<p>Finally, bring the node back online by marking it schedulable:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>uncordon<span class="w"> </span>rapture
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="go">node/rapture uncordoned</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="gp"># </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">NAMESPACE              NAME                                        READY   STATUS        RESTARTS        AGE</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">ingress-nginx          ingress-nginx-controller-7c7754d4b6-w4w5g   0/1     Running       0               70m</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go">kube-flannel           kube-flannel-ds-bbhn8                       1/1     Running       120 (28h ago)   132d</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">kube-system            coredns-5d78c9869d-9xbh4                    1/1     Running       0               41m</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">kube-system            coredns-5d78c9869d-w8954                    1/1     Running       0               41m</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="go">kube-system            coredns-787d4945fb-8xkqt                    1/1     Terminating   0               70m</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="go">kube-system            etcd-rapture                                1/1     Running       2 (72s ago)     73s</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="go">kube-system            kube-apiserver-rapture                      1/1     Running       2 (72s ago)     73s</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="go">kube-system            kube-controller-manager-rapture             1/1     Running       2 (72s ago)     73s</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="go">kube-system            kube-proxy-nzmwz                            1/1     Running       0               40m</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="go">kube-system            kube-scheduler-rapture                      1/1     Running       1 (72s ago)     73s</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="go">kubernetes-dashboard   dashboard-metrics-scraper-7bc864c59-4lw4r   1/1     Running       0               70m</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="go">kubernetes-dashboard   kubernetes-dashboard-6c7ccbcf87-mg8j6       1/1     Running       0               70m</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="go">metallb-system         controller-759b6c5bb8-d4lwr                 0/1     Running       0               70m</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="go">metallb-system         speaker-58krr                               1/1     Running       50 (28h ago)    76d</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="go">photoprism             photoprism-0                                0/1     Running       0               70m</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="go">plexserver             plexserver-7cb77ddc8-rn2p6                  1/1     Running       0               70m</span>
+</span></code></pre></div>
+<p>After a few minutes, the Plex Media Server and the PhotoPrism®
+services are up and running again.</p>
+<p>In the end the process seems to have gone pretty smoothly. With
+this out of the way, and given that
+<a href="../../../08/22/checking-deployments-before-upgrading-kubeadm-clusters/">deployments passed checks for deprecations</a>,
+the next step is to repeat this process for every minor version
+up to the latest.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../14/ubuntu-studio-2404-on-computer-for-a-young-artist/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Ubuntu Studio 24.04 on Computer, for a young artist">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Ubuntu Studio 24.04 on Computer, for a young artist
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../kubernetes-cluster-dns-issues/" class="md-footer__link md-footer__link--next" aria-label="Next: Kubernetes cluster DNS issues">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Kubernetes cluster DNS issues
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

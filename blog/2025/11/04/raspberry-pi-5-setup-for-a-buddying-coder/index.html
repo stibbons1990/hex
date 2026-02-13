@@ -1,0 +1,1667 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2025/11/04/raspberry-pi-5-setup-for-a-buddying-coder/">
+      
+      
+        <link rel="prev" href="../../../09/25/ddns-updater-on-kubernetes/">
+      
+      
+        <link rel="next" href="../../../12/14/fotocx-on-ubuntu-studio-2404/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Raspberry Pi 5 setup for a buddying coder - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hardware" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Raspberry Pi 5 setup for a buddying coder
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-to-nvme-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install to NVMe SSD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install to NVMe SSD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-partitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom partitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-boot-tweaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-boot tweaks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pre-boot tweaks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pcie-gen-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PCIe Gen 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-cgroups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable CGroups
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wifi-reconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WiFi (re)configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WiFi (re)configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#additional-wifi-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional WiFi networks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-power-save-for-wifi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disable power save for WiFi
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fix-locales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fix locales
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to-swap-or-not-to-swap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        To Swap Or Not To Swap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-latest-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install latest updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-eeprom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update EEPROM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argon-case-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Argon case scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#essential-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Essential Software
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Essential Software">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fail2ban" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fail2Ban
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSH Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Software
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Software">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#additional-debian-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Debian packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Studio Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raspberry-pi-connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raspberry Pi Connect
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2025-11-04 00:00:00+00:00" class="md-ellipsis">November 4, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/linux/">linux</a>, 
+                              <a href="../../../../category/raspberrypi/">raspberrypi</a>, 
+                              <a href="../../../../category/server/">Server</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              20 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Raspberry Pi 5 setup for a buddying coder</h1>
+
+<p>As a certain season approaches, I embarked in a little side quest: to setup a Raspberry
+Pi 5 for a good bro who is learning to code and wants to learn more about Linux as well.
+Since his goal is learning to code rather than (I hope) getting lost down the infinite
+rabbit holes of tinkering with the OS and tools, I set this up so he doesn't have to,
+but otherwise left it basic and uncomplicated.</p>
+<!-- more -->
+
+<h2 id="hardware">Hardware</h2>
+<p>As this setup has been working quite well for <a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/">Alfred</a>,
+the hardware chosen is a the same except for the case, due to short-term availability:</p>
+<ul>
+<li><a href="https://www.raspberrypi.com/products/raspberry-pi-5/">Raspberry Pi 5 8GB</a></li>
+<li><a href="https://www.samsung.com/ch/memory-storage/nvme-ssd/990-evo-plus-2tb-nvme-pcie-gen-4-mz-v9s2t0bw/">Samsung 990 EVO Plus (2000 GB, M.2 2280)</a></li>
+<li><a href="https://argon40.com/products/argon-neo-5-m-2-nvme-for-raspberry-pi-5">Argon NEO 5 M.2 NVME PCIE Case for Raspberry Pi 5</a></li>
+<li><a href="https://www.raspberrypi.com/products/27w-power-supply/">Raspberry Pi Official 5 power supply, 27W USB-C</a></li>
+</ul>
+<p>Argon cases with NVMe extensions are tricky to assemble, one has to follow instructions
+carefully and make sure the PCIe cable is connected the right way and fully connected.
+This case actually came with two PCIe cables and a couple of spare screws, which is nice.</p>
+<p>See also this
+<a href="https://www.cytron.io/tutorial/in-depth-review-raspberry-pi-5-argon-neo-5-case">In-Depth Review Raspberry Pi 5 Argon NEO 5 Case</a>.</p>
+<h2 id="install-to-nvme-ssd">Install to NVMe SSD</h2>
+<p>To install Raspberry Pi Os directly on the NVMe drive, it goes first into an
+<a href="https://icybox.de/product/externe_speicherloesungen/IB-1817M-C31">ICY BOX IB-1817M-C31 USB 3.1 NVMe enclosure</a>,
+so the installation can be done on the SSD directl instead of using an Micro SD card.</p>
+<p><em>Only the best for my bro</em>, so I installed <strong>Raspberry Pi OS Full</strong> which is
+<em>a port of Debian Trixie with desktop environment and recommended applications</em>
+and came out only last month (Release date: 1 Oct 2025).</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Always</strong> download Raspberry Pi OS images from the official
+<a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS downloads</a>
+<strong>and check</strong> its SHA256 against the profided integrity hash.</p>
+</div>
+<p>Using <code>rpi-imager</code> there is no need to even download images manually, the tool does it
+automatically once the Raspberry Pi model (<em>device</em>) and OS version is chosen. The tool
+also allows setting a few basic parameter such as the password, WiFi network, etc.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/rpi-imager-options.png" data-desc-position="bottom"><img alt="Setting parameters in rpi-imager" src="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/rpi-imager-options.png"></a></p>
+<p>Once the installation is done, the original partitions are replaced with just two
+(<code>bootfs</code>, <code>rootfs</code>):</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="m">[104897.486810] </span><span class="k"> sdf:</span> sdf1 sdf2
+</span></code></pre></div>
+<details class="note">
+<summary>GPT would be necessary only if the disk is larger than 2TB.</summary>
+<p><a href="https://www.reddit.com/r/raspberry_pi/comments/19e0x42/booting_pi_from_nvme_greater_than_2tb_gpt_as/">Booting Pi from NVME greater than 2TB (GPT as opposed to MBR)</a>
+includes manual instructions to install Raspberry Pi OS on a 4TB NVME using
+a GPT table. If you image a disk which is larger than 2TB with the
+Raspberry Pi tools or images, your disk will be limited to 2TB because they
+use MBR (Master Boot Record) instead of GPT (GUID partition table).</p>
+</details>
+<h3 id="custom-partitions">Custom partitions</h3>
+<p>It always felt odd, if not wrong, to run a Raspberry Pi with a large SSD disk without
+having most of the space allocated to a separate partition (e.g. <code>/home</code>), so I took
+the liberty of resizing the <code>rootfs</code> partition to mount most of the 2TB disk as <code>/home</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This may not be entirely useful when it comes to reinstalling the OS, since tools
+like <code>rpi-imager</code> will anyway wipe the entire device regardless of partitions, and
+in all honesty I am yet to reinstall the OS in any of my devices.</p>
+</div>
+<p>This involved deleting the root partitiona and then recreating it with a different size,
+to then create a new primary partition taking the rest of the disk.</p>
+<p>For reference, see also:</p>
+<ul>
+<li><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/storage_administration_guide/s2-disk-storage-parted-resize-part">Resizing a Partition with fdisk</a></li>
+<li><a href="https://access.redhat.com/articles/1196333">How to Shrink an ext2/3/4 File system with resize2fs</a></li>
+</ul>
+<p>Since the disk has old-fashined MBR partitions, <code>fdisk</code> can be used. Note that this
+is done while the SSD is not yet installed in the Raspberry Pi, but on the USB adapter.</p>
+<p>The starting point is that <code>rpi-imager</code> has created only a 512MB boot partition and a
+8.5GB root partition:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp"># </span>fdisk<span class="w"> </span>/dev/sdf<span class="w"> </span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">Welcome to fdisk (util-linux 2.39.3).</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="go">Changes will remain in memory only, until you decide to write them.</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="go">Be careful before using the write command.</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="go">Command (m for help): p</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="go">Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">Disk model: SSD 990 EVO     </span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="go">Units: sectors of 1 * 512 = 512 bytes</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="go">Sector size (logical/physical): 512 bytes / 4096 bytes</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="go">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="go">Disklabel type: dos</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="go">Disk identifier: 0x796ebf23</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="go">Device     Boot   Start      End  Sectors  Size Id Type</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="go">/dev/sdf1         16384  1064959  1048576  512M  c W95 FAT32 (LBA)</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="hll"><span class="go">/dev/sdf2       1064960 18792447 17727488  8.5G 83 Linux</span>
+</span></span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="go">Command (m for help): q</span>
+</span></code></pre></div>
+<p>There is a small empty space before the first partition, which requires a bit of
+<em>maneuviring around</em>. Attempting to create new partitions with default values will
+first create a tiny 7MB partition at the start of the disk:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="hll"><span class="go">Command (m for help): n</span>
+</span></span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="go">Partition type</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="go">   p   primary (2 primary, 0 extended, 2 free)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="go">   e   extended (container for logical partitions)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="go">Select (default p): p</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="go">Partition number (3,4, default 3): </span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="hll"><span class="go">First sector (2048-3907029167, default 2048): </span>
+</span></span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="hll"><span class="go">Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-16383, default 16383): </span>
+</span></span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="hll"><span class="go">Created a new partition 3 of type 'Linux' and of size 7 MiB.</span>
+</span></span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="hll"><span class="go">Command (m for help): n</span>
+</span></span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="go">Partition type</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="go">   p   primary (3 primary, 0 extended, 1 free)</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="go">   e   extended (container for logical partitions)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="go">Select (default e): p</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="go">Selected partition 4</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="hll"><span class="go">First sector (18792448-3907029167, default 18792448): </span>
+</span></span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="hll"><span class="go">Last sector, +/-sectors or +/-size{K,M,G,T,P} (18792448-3907029167, default 3907029167): </span>
+</span></span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="hll"><span class="go">Created a new partition 4 of type 'Linux' and of size 1.8 TiB.</span>
+</span></span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="go">Command (m for help): p</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="go">Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="go">Disk model: SSD 990 EVO     </span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="go">Units: sectors of 1 * 512 = 512 bytes</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="go">Sector size (logical/physical): 512 bytes / 4096 bytes</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="go">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="go">Disklabel type: dos</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="go">Disk identifier: 0x796ebf23</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="go">Device     Boot    Start        End    Sectors  Size Id Type</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="go">/dev/sdf1          16384    1064959    1048576  512M  c W95 FAT32 (LBA)</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="go">/dev/sdf2        1064960   18792447   17727488  8.5G 83 Linux</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="hll"><span class="go">/dev/sdf3           2048      16383      14336    7M 83 Linux</span>
+</span></span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="hll"><span class="go">/dev/sdf4       18792448 3907029167 3888236720  1.8T 83 Linux</span>
+</span></span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="go">Partition table entries are not in disk order.</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="hll"><span class="go">Command (m for help): q</span>
+</span></span></code></pre></div>
+<p>To make things more interesting, consider that a root partition of 8.5 GB may not be
+enough. Despite having all user data in another patition, there are scenarios where a
+lot more than 10 GB of space is needed for system files, e.g. the
+<a href="../../../04/12/kubernetes-homelab-server-with-ubuntu-server-2404-octavo/">Kubernetes cluster in <code>octavo</code></a>
+has 45GB under <code>/var/lib/containerd</code>. In case this Raspberry Pi may developt such needs,
+the root partition is <strong>resized</strong> to a generous 200MB; this involves the <em>nerve-racking</em>
+operation of deleting that partition, to the re-created <strong>starting on the same sector</strong>:</p>
+<ol>
+<li>Start from the original 2 partitions; delete partitons 3 and 4 is previously created.</li>
+<li>Create partitioan 3 (7MB) to fill the odd gap at the stat of the disk.</li>
+<li>Delete partition 2 (root).</li>
+<li>Create new partition 2 <strong>starting on the same sector</strong> (1064960, which should be the
+    default, thanks to partition 3 filling the gap) with the desired size (e.g. <code>+200G</code>).
+    <strong>Do not delete the <code>ext4</code> signature</strong>.</li>
+<li>Create new partition 4 taking the rest of the space (default start and end).</li>
+<li>Delete partition 3; probably not necessary, just to reduce visual clutter.</li>
+<li>Write changes to the partition table, once </li>
+</ol>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp"># </span>fdisk<span class="w"> </span>/dev/sdf<span class="w"> </span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="go">Welcome to fdisk (util-linux 2.39.3).</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="go">Changes will remain in memory only, until you decide to write them.</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="go">Be careful before using the write command.</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="go">Command (m for help): p</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="go">Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="go">Disk model: SSD 990 EVO     </span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="go">Units: sectors of 1 * 512 = 512 bytes</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="go">Sector size (logical/physical): 512 bytes / 4096 bytes</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="go">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="go">Disklabel type: dos</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="go">Disk identifier: 0x796ebf23</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="go">Device     Boot   Start      End  Sectors  Size Id Type</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="hll"><span class="go">/dev/sdf1         16384  1064959  1048576  512M  c W95 FAT32 (LBA)</span>
+</span></span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="hll"><span class="go">/dev/sdf2       1064960 18792447 17727488  8.5G 83 Linux</span>
+</span></span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="hll"><span class="go">Command (m for help): n</span>
+</span></span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="go">Partition type</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="go">   p   primary (2 primary, 0 extended, 2 free)</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="go">   e   extended (container for logical partitions)</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="go">Select (default p): p</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="go">Partition number (3,4, default 3): </span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="go">First sector (2048-3907029167, default 2048): </span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="go">Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-16383, default 16383): </span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="hll"><span class="go">Created a new partition 3 of type 'Linux' and of size 7 MiB.</span>
+</span></span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>
+</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="hll"><span class="go">Command (m for help): d</span>
+</span></span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="hll"><span class="go">Partition number (1-3, default 3): 2</span>
+</span></span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a><span class="hll">
+</span></span><span id="__span-3-37"><a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="hll"><span class="go">Partition 2 has been deleted.</span>
+</span></span><span id="__span-3-38"><a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>
+</span><span id="__span-3-39"><a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>
+</span><span id="__span-3-40"><a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="hll"><span class="go">Command (m for help): n</span>
+</span></span><span id="__span-3-41"><a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="go">Partition type</span>
+</span><span id="__span-3-42"><a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="go">   p   primary (2 primary, 0 extended, 2 free)</span>
+</span><span id="__span-3-43"><a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a><span class="go">   e   extended (container for logical partitions)</span>
+</span><span id="__span-3-44"><a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="go">Select (default p): p</span>
+</span><span id="__span-3-45"><a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a><span class="go">Partition number (2,4, default 2): </span>
+</span><span id="__span-3-46"><a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="hll"><span class="go">First sector (1064960-3907029167, default 1064960): </span>
+</span></span><span id="__span-3-47"><a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="hll"><span class="go">Last sector, +/-sectors or +/-size{K,M,G,T,P} (1064960-3907029167, default 3907029167): +200G</span>
+</span></span><span id="__span-3-48"><a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="hll">
+</span></span><span id="__span-3-49"><a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a><span class="hll"><span class="go">Created a new partition 2 of type 'Linux' and of size 200 GiB.</span>
+</span></span><span id="__span-3-50"><a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a><span class="hll"><span class="go">Partition #2 contains a ext4 signature.</span>
+</span></span><span id="__span-3-51"><a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="hll">
+</span></span><span id="__span-3-52"><a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a><span class="hll"><span class="go">Do you want to remove the signature? [Y]es/[N]o: n</span>
+</span></span><span id="__span-3-53"><a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>
+</span><span id="__span-3-54"><a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a>
+</span><span id="__span-3-55"><a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a><span class="hll"><span class="go">Command (m for help): n</span>
+</span></span><span id="__span-3-56"><a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a><span class="go">Partition type</span>
+</span><span id="__span-3-57"><a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a><span class="go">   p   primary (3 primary, 0 extended, 1 free)</span>
+</span><span id="__span-3-58"><a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a><span class="go">   e   extended (container for logical partitions)</span>
+</span><span id="__span-3-59"><a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a><span class="go">Select (default e): p</span>
+</span><span id="__span-3-60"><a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a>
+</span><span id="__span-3-61"><a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a><span class="go">Selected partition 4</span>
+</span><span id="__span-3-62"><a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a><span class="hll"><span class="go">First sector (420495360-3907029167, default 420495360): </span>
+</span></span><span id="__span-3-63"><a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a><span class="hll"><span class="go">Last sector, +/-sectors or +/-size{K,M,G,T,P} (420495360-3907029167, default 3907029167): </span>
+</span></span><span id="__span-3-64"><a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a><span class="hll">
+</span></span><span id="__span-3-65"><a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a><span class="hll"><span class="go">Created a new partition 4 of type 'Linux' and of size 1.6 TiB.</span>
+</span></span><span id="__span-3-66"><a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a>
+</span><span id="__span-3-67"><a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a>
+</span><span id="__span-3-68"><a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a><span class="go">Command (m for help): p</span>
+</span><span id="__span-3-69"><a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a><span class="go">Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors</span>
+</span><span id="__span-3-70"><a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a><span class="go">Disk model: SSD 990 EVO     </span>
+</span><span id="__span-3-71"><a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a><span class="go">Units: sectors of 1 * 512 = 512 bytes</span>
+</span><span id="__span-3-72"><a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a><span class="go">Sector size (logical/physical): 512 bytes / 4096 bytes</span>
+</span><span id="__span-3-73"><a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a><span class="go">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span>
+</span><span id="__span-3-74"><a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a><span class="go">Disklabel type: dos</span>
+</span><span id="__span-3-75"><a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a><span class="go">Disk identifier: 0x796ebf23</span>
+</span><span id="__span-3-76"><a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a>
+</span><span id="__span-3-77"><a id="__codelineno-3-77" name="__codelineno-3-77" href="#__codelineno-3-77"></a><span class="go">Device     Boot     Start        End    Sectors  Size Id Type</span>
+</span><span id="__span-3-78"><a id="__codelineno-3-78" name="__codelineno-3-78" href="#__codelineno-3-78"></a><span class="go">/dev/sdf1           16384    1064959    1048576  512M  c W95 FAT32 (LBA)</span>
+</span><span id="__span-3-79"><a id="__codelineno-3-79" name="__codelineno-3-79" href="#__codelineno-3-79"></a><span class="hll"><span class="go">/dev/sdf2         1064960  420495359  419430400  200G 83 Linux</span>
+</span></span><span id="__span-3-80"><a id="__codelineno-3-80" name="__codelineno-3-80" href="#__codelineno-3-80"></a><span class="go">/dev/sdf3            2048      16383      14336    7M 83 Linux</span>
+</span><span id="__span-3-81"><a id="__codelineno-3-81" name="__codelineno-3-81" href="#__codelineno-3-81"></a><span class="hll"><span class="go">/dev/sdf4       420495360 3907029167 3486533808  1.6T 83 Linux</span>
+</span></span><span id="__span-3-82"><a id="__codelineno-3-82" name="__codelineno-3-82" href="#__codelineno-3-82"></a>
+</span><span id="__span-3-83"><a id="__codelineno-3-83" name="__codelineno-3-83" href="#__codelineno-3-83"></a><span class="go">Partition table entries are not in disk order.</span>
+</span><span id="__span-3-84"><a id="__codelineno-3-84" name="__codelineno-3-84" href="#__codelineno-3-84"></a>
+</span><span id="__span-3-85"><a id="__codelineno-3-85" name="__codelineno-3-85" href="#__codelineno-3-85"></a>
+</span><span id="__span-3-86"><a id="__codelineno-3-86" name="__codelineno-3-86" href="#__codelineno-3-86"></a><span class="hll"><span class="go">Command (m for help): d</span>
+</span></span><span id="__span-3-87"><a id="__codelineno-3-87" name="__codelineno-3-87" href="#__codelineno-3-87"></a><span class="hll"><span class="go">Partition number (1-4, default 4): 3</span>
+</span></span><span id="__span-3-88"><a id="__codelineno-3-88" name="__codelineno-3-88" href="#__codelineno-3-88"></a><span class="hll">
+</span></span><span id="__span-3-89"><a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a><span class="hll"><span class="go">Partition 3 has been deleted.</span>
+</span></span><span id="__span-3-90"><a id="__codelineno-3-90" name="__codelineno-3-90" href="#__codelineno-3-90"></a>
+</span><span id="__span-3-91"><a id="__codelineno-3-91" name="__codelineno-3-91" href="#__codelineno-3-91"></a>
+</span><span id="__span-3-92"><a id="__codelineno-3-92" name="__codelineno-3-92" href="#__codelineno-3-92"></a><span class="go">Command (m for help): p</span>
+</span><span id="__span-3-93"><a id="__codelineno-3-93" name="__codelineno-3-93" href="#__codelineno-3-93"></a><span class="go">Disk /dev/sdf: 1.82 TiB, 2000398934016 bytes, 3907029168 sectors</span>
+</span><span id="__span-3-94"><a id="__codelineno-3-94" name="__codelineno-3-94" href="#__codelineno-3-94"></a><span class="go">Disk model: SSD 990 EVO     </span>
+</span><span id="__span-3-95"><a id="__codelineno-3-95" name="__codelineno-3-95" href="#__codelineno-3-95"></a><span class="go">Units: sectors of 1 * 512 = 512 bytes</span>
+</span><span id="__span-3-96"><a id="__codelineno-3-96" name="__codelineno-3-96" href="#__codelineno-3-96"></a><span class="go">Sector size (logical/physical): 512 bytes / 4096 bytes</span>
+</span><span id="__span-3-97"><a id="__codelineno-3-97" name="__codelineno-3-97" href="#__codelineno-3-97"></a><span class="go">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span>
+</span><span id="__span-3-98"><a id="__codelineno-3-98" name="__codelineno-3-98" href="#__codelineno-3-98"></a><span class="go">Disklabel type: dos</span>
+</span><span id="__span-3-99"><a id="__codelineno-3-99" name="__codelineno-3-99" href="#__codelineno-3-99"></a><span class="go">Disk identifier: 0x796ebf23</span>
+</span><span id="__span-3-100"><a id="__codelineno-3-100" name="__codelineno-3-100" href="#__codelineno-3-100"></a>
+</span><span id="__span-3-101"><a id="__codelineno-3-101" name="__codelineno-3-101" href="#__codelineno-3-101"></a><span class="go">Device     Boot     Start        End    Sectors  Size Id Type</span>
+</span><span id="__span-3-102"><a id="__codelineno-3-102" name="__codelineno-3-102" href="#__codelineno-3-102"></a><span class="go">/dev/sdf1           16384    1064959    1048576  512M  c W95 FAT32 (LBA)</span>
+</span><span id="__span-3-103"><a id="__codelineno-3-103" name="__codelineno-3-103" href="#__codelineno-3-103"></a><span class="hll"><span class="go">/dev/sdf2         1064960  420495359  419430400  200G 83 Linux</span>
+</span></span><span id="__span-3-104"><a id="__codelineno-3-104" name="__codelineno-3-104" href="#__codelineno-3-104"></a><span class="hll"><span class="go">/dev/sdf4       420495360 3907029167 3486533808  1.6T 83 Linux</span>
+</span></span><span id="__span-3-105"><a id="__codelineno-3-105" name="__codelineno-3-105" href="#__codelineno-3-105"></a>
+</span><span id="__span-3-106"><a id="__codelineno-3-106" name="__codelineno-3-106" href="#__codelineno-3-106"></a>
+</span><span id="__span-3-107"><a id="__codelineno-3-107" name="__codelineno-3-107" href="#__codelineno-3-107"></a><span class="hll"><span class="go">Command (m for help): w</span>
+</span></span><span id="__span-3-108"><a id="__codelineno-3-108" name="__codelineno-3-108" href="#__codelineno-3-108"></a><span class="hll"><span class="go">The partition table has been altered.</span>
+</span></span><span id="__span-3-109"><a id="__codelineno-3-109" name="__codelineno-3-109" href="#__codelineno-3-109"></a><span class="hll"><span class="go">Calling ioctl() to re-read partition table.</span>
+</span></span><span id="__span-3-110"><a id="__codelineno-3-110" name="__codelineno-3-110" href="#__codelineno-3-110"></a><span class="hll"><span class="go">Syncing disks.</span>
+</span></span></code></pre></div>
+<p>One the root partition has the desired size, it is possible to resize the Ext4
+<strong>file system</strong> in it; but <em>first</em> one has to run a file system check:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="hll"><span class="gp"># </span>resize2fs<span class="w"> </span>/dev/sdf2<span class="w"> </span>200G
+</span></span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">resize2fs 1.47.0 (5-Feb-2023)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="hll"><span class="go">Please run 'e2fsck -f /dev/sdf2' first.</span>
+</span></span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="hll"><span class="gp"># </span>e2fsck<span class="w"> </span>-f<span class="w"> </span>/dev/sdf2
+</span></span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="go">e2fsck 1.47.0 (5-Feb-2023)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="go">Pass 1: Checking inodes, blocks, and sizes</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="go">Pass 2: Checking directory structure</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="go">Pass 3: Checking directory connectivity</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="go">Pass 4: Checking reference counts</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="go">Pass 5: Checking group summary information</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="go">rootfs: 183284/554880 files (0.1% non-contiguous), 1954143/2215936 blocks</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="hll"><span class="gp"># </span>resize2fs<span class="w"> </span>/dev/sdf2<span class="w"> </span>200G
+</span></span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="go">resize2fs 1.47.0 (5-Feb-2023)</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="go">Resizing the filesystem on /dev/sdf2 to 52428800 (4k) blocks.</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="go">The filesystem on /dev/sdf2 is now 52428800 (4k) blocks long.</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="gp"># </span>e2fsck<span class="w"> </span>/dev/sdf2
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="go">e2fsck 1.47.0 (5-Feb-2023)</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="go">rootfs: clean, 183284/13056000 files, 2741779/52428800 blocks</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="gp"># </span>mkfs.ex<span class="w"> </span>/dev/sdf4
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="go">mkfs.exfat  mkfs.ext2   mkfs.ext3   mkfs.ext4   </span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="gp"># </span>mkfs.ext4<span class="w"> </span>/dev/sdf4
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="go">mke2fs 1.47.0 (5-Feb-2023)</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="go">Creating filesystem with 435816726 4k blocks and 108961792 inodes</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="go">Filesystem UUID: 95b56139-4931-4dac-ab92-859e0d576453</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="go">Superblock backups stored on blocks: </span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="go">        32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208, </span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="go">        4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968, </span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="go">        102400000, 214990848</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="go">Allocating group tables: done                            </span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="go">Writing inode tables: done                            </span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="go">Creating journal (262144 blocks): done</span>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="go">Writing superblocks and filesystem accounting information: done       </span>
+</span></code></pre></div>
+<p>At this point the resized file system can be mounted, which will come in handy later.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp"># </span>mount<span class="w"> </span>/dev/sdf2<span class="w"> </span>/mnt
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="gp"># </span>ls<span class="w"> </span>/mnt/
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">bin  boot  dev  etc  home  lib  lost+found  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="gp"># </span>ls<span class="w"> </span>/mnt/home/
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="go">pi  rpi-first-boot-wizard</span>
+</span></code></pre></div>
+<h3 id="pre-boot-tweaks">Pre-boot tweaks</h3>
+<p>The following adjustments can be make by editing files in the boot partition (<code>sdf1</code>)
+<strong>before</strong> booting the Raspberry Pi OS for the first time; mount it under <code>/mnt/boot</code>
+once the root file system is mounted on <code>/mnt</code>.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp"># </span>mount<span class="w"> </span>/dev/sdf1<span class="w"> </span>/mnt/boot
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This partition will be mounted as <code>/boot/firmware</code> <strong>after</strong> booting the Raspberry
+Pi OS for the first time.</p>
+</div>
+<h4 id="pcie-gen-3">PCIe Gen 3</h4>
+<p><a href="https://www.jeffgeerling.com/blog/2023/nvme-ssd-boot-raspberry-pi-5">NVMe SSD boot with the Raspberry Pi 5</a>, at least with this Argon ONE case, turned out to
+be easy. When using a HAT+-compliant NVMe adapter, there is no need to enable
+the external PCIe port, it will be enabled automatically, but it is useful to
+<em>force PCIe Gen 3 speeds</em> using these options in <code>/mnt/boot/config.txt</code></p>
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[all]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="na">dtparam</span><span class="o">=</span><span class="s">pciex1</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="na">dtparam</span><span class="o">=</span><span class="s">pciex1_gen=3</span>
+</span></code></pre></div>
+<h4 id="enable-cgroups">Enable CGroups</h4>
+<p><a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#troubleshooting-bootstrap">Troubleshooting Bootstrap</a>
+for Kubernetes on the previous Raspberry Pi OS revealed that the required CGroups
+are not enabled by default. Since these may be needed by popular development tools,
+e.g. to run in Docker, enable these in <code>/mnt/boot/cmdline.txt</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory console=serial0,115200 console=tty1 root=PARTUUID=796ebf23-02 rootfstype=ext4 fsck.repair=yes rootwait resize quiet splash plymouth.ignore-serial-consoles cfg80211.ieee80211_regdom=CH systemd.run=/boot/firstrun.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target
+</span></code></pre></div>
+<h2 id="system-configuration">System Configuration</h2>
+<h3 id="wifi-reconfiguration">WiFi (re)configuration</h3>
+<p><a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#wifi-reconfiguration">Just as it happened with Alfred</a>,
+the WiFi connection was not established even though the system booted just fine the
+first time. Instead of going through the menus with <code>raspi-config</code>, access via SSH was
+gained by connecting the device to the LAN, which naturally worked like a charm:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">pi@roach:~ $ </span>ip<span class="w"> </span>a
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="go">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="go">    inet 127.0.0.1/8 scope host lo</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">    inet6 ::1/128 scope host noprefixroute </span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">    link/ether 88:a2:9e:10:1b:5d brd ff:ff:ff:ff:ff:ff</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="go">    inet 192.168.0.70/24 brd 192.168.0.255 scope global dynamic noprefixroute eth0</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="go">       valid_lft 86268sec preferred_lft 86268sec</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="go">    inet6 fe80::6e5d:6e2d:f3cf:d040/64 scope link noprefixroute </span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="go">3: wlan0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc fq_codel state DOWN group default qlen 1000</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="go">    link/ether 88:a2:9e:10:1b:5e brd ff:ff:ff:ff:ff:ff</span>
+</span></code></pre></div>
+<h4 id="additional-wifi-networks">Additional WiFi networks</h4>
+<p><a href="https://www.thedigitalpictureframe.com/how-to-add-a-second-wifi-network-to-your-raspberry-pi/">How to add a second WiFi network to your Raspberry Pi (updated for OS Bookworm)</a>
+explains how the wpa_supplicant.conf file is no longer used to configure Wi-Fi
+connections and, instead, the current Raspberry Pi OS (based on Bookworm) uses
+NetworkManager to manage network connections, including Wi-Fi.</p>
+<p>There is a separate configuration file for each WiFi connection under
+<code>/etc/NetworkManager/system-connections</code>, all it takes to configure additional
+WiFi connections is to</p>
+<ol>
+<li>Copy a working file with a new name (e.g. the SSID name).</li>
+<li>Replace the SSID and password.</li>
+<li>Replace the <code>id</code> with a new unique value of choice.</li>
+<li>Replace the <code>uuid</code> with a new unique value from running <code>uuid</code>.</li>
+<li>Set the permissions to <code>600</code></li>
+</ol>
+<p>This can be done in advance of replacing WiFi access points, etc.</p>
+<p>WiFi connections are not effective <em>immediately</em> after rebooting, but after a couple of
+minutes there is a new IP address assigned to the wireless device (<code>wlan0</code>):</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp">pi@roach:~ $ </span>ip<span class="w"> </span>a
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="go">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="go">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="go">    inet 127.0.0.1/8 scope host lo</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="go">    inet6 ::1/128 scope host noprefixroute </span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="go">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="go">    link/ether 88:a2:9e:10:1b:5d brd ff:ff:ff:ff:ff:ff</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="go">    inet 192.168.0.70/24 brd 192.168.0.255 scope global dynamic noprefixroute eth0</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="go">       valid_lft 79805sec preferred_lft 79805sec</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="go">    inet6 fe80::6e5d:6e2d:f3cf:d040/64 scope link noprefixroute </span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="go">3: wlan0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="go">    link/ether 88:a2:9e:10:1b:5e brd ff:ff:ff:ff:ff:ff</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="go">    inet 192.168.0.71/24 brd 192.168.0.255 scope global dynamic noprefixroute wlan0</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="go">       valid_lft 84609sec preferred_lft 84609sec</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="go">    inet6 fe80::8194:2d69:f7fb:c23e/64 scope link noprefixroute </span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="go">       valid_lft forever preferred_lft forever</span>
+</span></code></pre></div>
+<p>At this point the wired connecion to the LAN network can be removed.</p>
+<h3 id="disable-power-save-for-wifi">Disable power save for WiFi</h3>
+<p>Raspberry Pi enables power save on WiFi by default:</p>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="m">[    5.598286] </span><span class="k">brcmfmac:</span> F1 signature read @0x18000000=0x15264345
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="m">[    5.600446] </span><span class="k">brcmfmac:</span> brcmf_fw_alloc_request: using brcm/brcmfmac43455-sdio for chip BCM4345/6
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="m">[    5.600754] </span><span class="k">usbcore:</span> registered new interface driver brcmfmac
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="m">[    5.790052] </span><span class="k">brcmfmac:</span> brcmf_c_process_txcap_blob: no txcap_blob available (err=-2)
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="m">[    5.790325] </span><span class="k">brcmfmac:</span> brcmf_c_preinit_dcmds: Firmware: BCM4345/6 wl0: Aug 29 2023 01:47:08 version 7.45.265 (28bca26 CY) FWID 01-b677b91b
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="m">[    6.423812] </span><span class="k">brcmfmac:</span> brcmf_cfg80211_set_power_mgmt: power save enabled
+</span></code></pre></div>
+<p>This can lead to losing connectivity in certain conditions, so disable power
+save of WiFi to avoid having to deal with such problems like
+<a href="https://forums.raspberrypi.com/viewtopic.php?f=91&amp;t=16054">Reconnect on WiFi drop</a>.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>/sbin/iw<span class="w"> </span>dev<span class="w"> </span>wlan0<span class="w"> </span><span class="nb">set</span><span class="w"> </span>power_save<span class="w"> </span>off
+</span></code></pre></div>
+<div class="language-dmesg highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="m">[ 1767.061929] </span><span class="k">brcmfmac:</span> brcmf_cfg80211_set_power_mgmt: power save disabled
+</span></code></pre></div>
+<h3 id="fix-locales">Fix locales</h3>
+<p>The above looks like rpi-imager took my PC’s locale settings:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="go">-bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)</span>
+</span></code></pre></div>
+<p>The solution is to generate <code>en_US.UTF-8</code> and set it as the system default. To do this,
+run <code>raspi-config</code> and go into <code>5. Localisation Options</code> then <code>L1 Locale</code>, enable
+<code>en_US.UTF-8</code> and set it as the <code>Default locale for the system environment</code>.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>raspi-config
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">...</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="go">Generating locales (this might take a while)...</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="go">  en_GB.UTF-8... done</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="go">  en_US.UTF-8... done</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="go">Generation complete.</span>
+</span></code></pre></div>
+<h3 id="to-swap-or-not-to-swap">To Swap Or Not To Swap</h3>
+<p>With 8 GB of RAM there should be no reason to need disk swap, never mind that it
+would be rather fast in this system. Besides, Kubernetes <em>doesn't like swap</em> and
+similar issues may be encountered by other tools. On the other hand, running a
+desktop environment and compilers could lead to actually neededing swap.</p>
+<p>Therefore, instead of directly disabling swap entirely, lets leave its default setup.</p>
+<p>Debian 13 (Trixie), on which Raspberry Pi OS is based, introduced a different mechanism
+for enabling and disabling the swap file. View which swap units are running:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gp">pi@roach:~ $ </span>systemctl<span class="w"> </span>list-units<span class="w"> </span>--quiet<span class="w"> </span>--type<span class="o">=</span>swap
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="go">  dev-zram0.swap loaded active active rpi-swap managed swap device (zram+file)</span>
+</span></code></pre></div>
+<p>The default configuration is to automatically create swap when needed. To entirely
+disable it, create <code>/etc/rpi/swap.conf.d/99-disable-swap.conf</code> with the contents:</p>
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">[Main]</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="na">Mechanism</span><span class="o">=</span><span class="s">none</span>
+</span></code></pre></div>
+<p>Then stop the running swap unit:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="gp">pi@roach:~ $ </span>systemctl<span class="w"> </span>list-units<span class="w"> </span>--quiet<span class="w"> </span>--type<span class="o">=</span>swap
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="go">  dev-zram0.swap loaded active active Compressed Swap on /dev/zram0</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>dev-zram0.swap
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="gp">pi@roach:~ $ </span>systemctl<span class="w"> </span>list-units<span class="w"> </span>--quiet<span class="w"> </span>--type<span class="o">=</span>swap
+</span></code></pre></div>
+<p>But for now, let leave it at its default configuration. </p>
+<h3 id="install-latest-updates">Install latest updates</h3>
+<p>Before moving forward, make sure the system is up-to-date:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="go">Hit:1 http://deb.debian.org/debian trixie InRelease</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="go">Hit:2 http://deb.debian.org/debian trixie-updates InRelease</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="go">Hit:3 http://archive.raspberrypi.com/debian trixie InRelease</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="go">Hit:4 http://deb.debian.org/debian-security trixie-security InRelease</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="go">129 packages can be upgraded. Run 'apt list --upgradable' to see them.</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>full-upgrade<span class="w"> </span>-y
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="go">Upgrading:                      </span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="go">  agnostics         libssl3t64               raspi-utils          rpicam-apps-opencv-postprocess</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="go">  bluez-firmware    libswresample5           raspi-utils-core     rpicam-apps-preview</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="go">  chromium          libswscale8              raspi-utils-dt       rpinters</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="go">  chromium-common   libtiff6                 raspi-utils-eeprom   userconf-pi</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="go">  chromium-l10n     libvlc-bin               raspi-utils-otp      vlc</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="go">  chromium-sandbox  libvlc5                  raspinfo             vlc-bin</span>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="go">  ffmpeg            libvlccore9              rasputin             vlc-data</span>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="go">  firefox           lpplug-bluetooth         rc-gui               vlc-l10n</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="go">  ghostscript       lpplug-clock             rp-bookshelf         vlc-plugin-access-extra</span>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="go">  gui-pkinst        lpplug-ejecter           rp-prefapps          vlc-plugin-base</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="go">  gui-updater       lpplug-menu              rpcc                 vlc-plugin-notify</span>
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="go">  libavcodec61      lpplug-netman            rpd-applications     vlc-plugin-qt</span>
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="go">  libavdevice61     lpplug-power             rpd-common           vlc-plugin-samba</span>
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="go">  libavfilter10     lpplug-updater           rpd-developer        vlc-plugin-skins2</span>
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="go">  libavformat61     lpplug-volumepulse       rpd-graphics         vlc-plugin-video-output</span>
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="go">  libavutil59       lxpanel-pi               rpd-preferences      vlc-plugin-video-splitter</span>
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="go">  libcamera-ipa     mesa-libgallium          rpd-theme            vlc-plugin-visualization</span>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="go">  libcamera-tools   mesa-vulkan-drivers      rpd-utilities        wayvnc</span>
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="go">  libcamera-v4l2    openjdk-21-jre           rpd-wayland-core     wf-panel-pi</span>
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="go">  libcamera0.5      openjdk-21-jre-headless  rpd-wayland-extras   wfplug-bluetooth</span>
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a><span class="go">  libdtovl0         openssl                  rpd-x-core           wfplug-clock</span>
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="go">  libegl-mesa0      openssl-provider-legacy  rpd-x-extras         wfplug-connect</span>
+</span><span id="__span-19-32"><a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a><span class="go">  libgbm1           pipanel                  rpi-chromium-mods    wfplug-ejecter</span>
+</span><span id="__span-19-33"><a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a><span class="go">  libgl1-mesa-dri   piwiz                    rpi-connect          wfplug-menu</span>
+</span><span id="__span-19-34"><a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a><span class="go">  libglx-mesa0      pplug-ejecter-data       rpi-eeprom           wfplug-netman</span>
+</span><span id="__span-19-35"><a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a><span class="go">  libgpiolib0       pplug-netman-schema      rpi-firefox-mods     wfplug-power</span>
+</span><span id="__span-19-36"><a id="__codelineno-19-36" name="__codelineno-19-36" href="#__codelineno-19-36"></a><span class="go">  libgs-common      pplug-power-data         rpi-loop-utils       wfplug-updater</span>
+</span><span id="__span-19-37"><a id="__codelineno-19-37" name="__codelineno-19-37" href="#__codelineno-19-37"></a><span class="go">  libgs10           pplug-updater-data       rpi-swap             wfplug-volumepulse</span>
+</span><span id="__span-19-38"><a id="__codelineno-19-38" name="__codelineno-19-38" href="#__codelineno-19-38"></a><span class="go">  libgs10-common    pprompt                  rpi-userguide        xserver-common</span>
+</span><span id="__span-19-39"><a id="__codelineno-19-39" name="__codelineno-19-39" href="#__codelineno-19-39"></a><span class="go">  libpisp-common    python3-libcamera        rpicam-apps          xserver-xorg-core</span>
+</span><span id="__span-19-40"><a id="__codelineno-19-40" name="__codelineno-19-40" href="#__codelineno-19-40"></a><span class="go">  libpisp1          raindrop                 rpicam-apps-core</span>
+</span><span id="__span-19-41"><a id="__codelineno-19-41" name="__codelineno-19-41" href="#__codelineno-19-41"></a><span class="go">  libpostproc58     raspberrypi-sys-mods     rpicam-apps-encoder</span>
+</span><span id="__span-19-42"><a id="__codelineno-19-42" name="__codelineno-19-42" href="#__codelineno-19-42"></a><span class="go">  librpicam-app1    raspi-config             rpicam-apps-lite</span>
+</span><span id="__span-19-43"><a id="__codelineno-19-43" name="__codelineno-19-43" href="#__codelineno-19-43"></a>
+</span><span id="__span-19-44"><a id="__codelineno-19-44" name="__codelineno-19-44" href="#__codelineno-19-44"></a><span class="go">Installing dependencies:</span>
+</span><span id="__span-19-45"><a id="__codelineno-19-45" name="__codelineno-19-45" href="#__codelineno-19-45"></a><span class="go">  alacarte  gir1.2-gmenu-3.0  gnome-menus  libgnome-menu-3-0  qt6ct</span>
+</span><span id="__span-19-46"><a id="__codelineno-19-46" name="__codelineno-19-46" href="#__codelineno-19-46"></a>
+</span><span id="__span-19-47"><a id="__codelineno-19-47" name="__codelineno-19-47" href="#__codelineno-19-47"></a><span class="go">Summary:</span>
+</span><span id="__span-19-48"><a id="__codelineno-19-48" name="__codelineno-19-48" href="#__codelineno-19-48"></a><span class="go">  Upgrading: 129, Installing: 5, Removing: 0, Not Upgrading: 0</span>
+</span><span id="__span-19-49"><a id="__codelineno-19-49" name="__codelineno-19-49" href="#__codelineno-19-49"></a><span class="go">  Download size: 463 MB</span>
+</span><span id="__span-19-50"><a id="__codelineno-19-50" name="__codelineno-19-50" href="#__codelineno-19-50"></a><span class="go">  Space needed: 27.6 MB / 191 GB available</span>
+</span></code></pre></div>
+<h3 id="update-eeprom">Update EEPROM</h3>
+<p>Then again, before moving forward, and especially because it was necessary to fix a
+<a href="../../../02/22/home-assistant-on-kubernetes-on-raspberry-pi-5-alfred/#failed-argon-installation">Failed Argon installation on Alfred</a>,
+<a href="https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspi-config">use <code>raspi-config</code> to update the bootloader</a>
+and set it to <code>Latest</code> (<strong>without resetting config</strong>). This updated the EEPROM from a
+May release to a November release, less than a week old:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>rpi-eeprom-update<span class="w"> </span>-l
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="go">/usr/lib/firmware/raspberrypi/bootloader-2712/default/pieeprom-2025-05-08.bin</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="gp">pi@roach:~ $ </span>ls<span class="w"> </span>-l<span class="w"> </span>/usr/lib/firmware/raspberrypi/bootloader-2712/default/
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="go">total 2152</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="go">-rw-r--r-- 1 root root 2097152 Nov  6 13:30 pieeprom-2025-05-08.bin</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="go">-rw-r--r-- 1 root root  102992 Nov  6 13:30 recovery.bin</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>raspi-config
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="gp">pi@roach:~ $ </span>sudo<span class="w"> </span>rpi-eeprom-update<span class="w"> </span>-l
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="go">/usr/lib/firmware/raspberrypi/bootloader-2712/latest/pieeprom-2025-11-05.bin</span>
+</span></code></pre></div>
+<p><strong>Reboot</strong> after updating the EEPROM; and <em>definitely</em> <strong>before moving forward</strong>.</p>
+<h3 id="argon-case-scripts">Argon case scripts</h3>
+<p>The instructions in page 10 of the
+<a href="https://cdn.shopify.com/s/files/1/0556/1660/2177/files/FOR_WEB_INSTRUCTION_MANUAL_NEO_5_M.2_NVMe_20240909.pdf?v=1725870016">Argon NEO 5 M.2 NVME PCIE case manual</a>
+to install the scripts for FAN control seem simple enough:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/argon-neo-5-m2-nvme-manual-p10.png" data-desc-position="bottom"><img alt="Page 10 of Argon NEO 5 M.2 NVME PCIE case manual" src="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/argon-neo-5-m2-nvme-manual-p10.png"></a></p>
+<details class="terminal">
+<summary><code>curl https://download.argon40.com/argon-eeprom.sh | bash</code></summary>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="gp">pi@roach:~ $ </span>curl<span class="w"> </span>https://download.argon40.com/argon-eeprom.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="gp">% </span>Total<span class="w">    </span>%<span class="w"> </span>Received<span class="w"> </span>%<span class="w"> </span>Xferd<span class="w">  </span>Average<span class="w"> </span>Speed<span class="w">   </span>Time<span class="w">    </span>Time<span class="w">     </span>Time<span class="w">  </span>Current
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="go">                                Dload  Upload   Total   Spent    Left  Speed</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="go">100  1059  100  1059    0     0  16607      0 --:--:-- --:--:-- --:--:-- 16809</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="go">*************</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="go">Argon Setup  </span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="go">*************</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="go">Hit:1 http://deb.debian.org/debian trixie InRelease</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="go">Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="go">Hit:3 http://archive.raspberrypi.com/debian trixie InRelease</span>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="go">Hit:4 http://deb.debian.org/debian-security trixie-security InRelease</span>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="go">Fetched 47.3 kB in 0s (485 kB/s)</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="go">Building dependency tree... Done</span>
+</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="go">Reading state information... Done</span>
+</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="go">Calculating upgrade... Done</span>
+</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="go">0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.</span>
+</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="go">BOOTLOADER: up to date</span>
+</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="go">  CURRENT: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="go">  LATEST: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-21-22"><a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="go">  RELEASE: latest (/usr/lib/firmware/raspberrypi/bootloader-2712/latest)</span>
+</span><span id="__span-21-23"><a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="go">            Use raspi-config to change the release.</span>
+</span><span id="__span-21-24"><a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a><span class="go">Updating bootloader EEPROM</span>
+</span><span id="__span-21-25"><a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a><span class="go">image: /usr/lib/firmware/raspberrypi/bootloader-2712/latest/pieeprom-2025-11-05.bin</span>
+</span><span id="__span-21-26"><a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a><span class="go">config_src: blconfig device</span>
+</span><span id="__span-21-27"><a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a><span class="go">config: /tmp/tmp43cskz0p/boot.conf</span>
+</span><span id="__span-21-28"><a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a><span class="gp">#</span><span class="c1">###############################################################################</span>
+</span><span id="__span-21-29"><a id="__codelineno-21-29" name="__codelineno-21-29" href="#__codelineno-21-29"></a><span class="go">[all]</span>
+</span><span id="__span-21-30"><a id="__codelineno-21-30" name="__codelineno-21-30" href="#__codelineno-21-30"></a><span class="go">WAKE_ON_GPIO=0</span>
+</span><span id="__span-21-31"><a id="__codelineno-21-31" name="__codelineno-21-31" href="#__codelineno-21-31"></a><span class="go">POWER_OFF_ON_HALT=1</span>
+</span><span id="__span-21-32"><a id="__codelineno-21-32" name="__codelineno-21-32" href="#__codelineno-21-32"></a><span class="go">PCIE_PROBE=1</span>
+</span><span id="__span-21-33"><a id="__codelineno-21-33" name="__codelineno-21-33" href="#__codelineno-21-33"></a><span class="go">BOOT_UART=1</span>
+</span><span id="__span-21-34"><a id="__codelineno-21-34" name="__codelineno-21-34" href="#__codelineno-21-34"></a><span class="go">BOOT_ORDER=0xf416</span>
+</span><span id="__span-21-35"><a id="__codelineno-21-35" name="__codelineno-21-35" href="#__codelineno-21-35"></a><span class="go">NET_INSTALL_AT_POWER_ON=1</span>
+</span><span id="__span-21-36"><a id="__codelineno-21-36" name="__codelineno-21-36" href="#__codelineno-21-36"></a>
+</span><span id="__span-21-37"><a id="__codelineno-21-37" name="__codelineno-21-37" href="#__codelineno-21-37"></a><span class="gp">#</span><span class="c1">###############################################################################</span>
+</span><span id="__span-21-38"><a id="__codelineno-21-38" name="__codelineno-21-38" href="#__codelineno-21-38"></a>
+</span><span id="__span-21-39"><a id="__codelineno-21-39" name="__codelineno-21-39" href="#__codelineno-21-39"></a><span class="go">*** To cancel this update run 'sudo rpi-eeprom-update -r' ***</span>
+</span><span id="__span-21-40"><a id="__codelineno-21-40" name="__codelineno-21-40" href="#__codelineno-21-40"></a>
+</span><span id="__span-21-41"><a id="__codelineno-21-41" name="__codelineno-21-41" href="#__codelineno-21-41"></a><span class="go">*** CREATED UPDATE /tmp/tmp43cskz0p/pieeprom.upd  ***</span>
+</span><span id="__span-21-42"><a id="__codelineno-21-42" name="__codelineno-21-42" href="#__codelineno-21-42"></a>
+</span><span id="__span-21-43"><a id="__codelineno-21-43" name="__codelineno-21-43" href="#__codelineno-21-43"></a><span class="go">  CURRENT: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-21-44"><a id="__codelineno-21-44" name="__codelineno-21-44" href="#__codelineno-21-44"></a><span class="go">  UPDATE: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-21-45"><a id="__codelineno-21-45" name="__codelineno-21-45" href="#__codelineno-21-45"></a><span class="go">  BOOTFS: /boot/firmware</span>
+</span><span id="__span-21-46"><a id="__codelineno-21-46" name="__codelineno-21-46" href="#__codelineno-21-46"></a><span class="go">'/tmp/tmp.rxzVUvjeh8' -&gt; '/boot/firmware/pieeprom.upd'</span>
+</span><span id="__span-21-47"><a id="__codelineno-21-47" name="__codelineno-21-47" href="#__codelineno-21-47"></a>
+</span><span id="__span-21-48"><a id="__codelineno-21-48" name="__codelineno-21-48" href="#__codelineno-21-48"></a><span class="go">UPDATING bootloader. This could take up to a minute. Please wait</span>
+</span><span id="__span-21-49"><a id="__codelineno-21-49" name="__codelineno-21-49" href="#__codelineno-21-49"></a>
+</span><span id="__span-21-50"><a id="__codelineno-21-50" name="__codelineno-21-50" href="#__codelineno-21-50"></a><span class="go">*** Do not disconnect the power until the update is complete ***</span>
+</span><span id="__span-21-51"><a id="__codelineno-21-51" name="__codelineno-21-51" href="#__codelineno-21-51"></a>
+</span><span id="__span-21-52"><a id="__codelineno-21-52" name="__codelineno-21-52" href="#__codelineno-21-52"></a><span class="go">If a problem occurs then the Raspberry Pi Imager may be used to create</span>
+</span><span id="__span-21-53"><a id="__codelineno-21-53" name="__codelineno-21-53" href="#__codelineno-21-53"></a><span class="go">a bootloader rescue SD card image which restores the default bootloader image.</span>
+</span><span id="__span-21-54"><a id="__codelineno-21-54" name="__codelineno-21-54" href="#__codelineno-21-54"></a>
+</span><span id="__span-21-55"><a id="__codelineno-21-55" name="__codelineno-21-55" href="#__codelineno-21-55"></a><span class="go">flashrom -p linux_spi:dev=/dev/spidev10.0,spispeed=16000 -w /boot/firmware/pieeprom.upd</span>
+</span><span id="__span-21-56"><a id="__codelineno-21-56" name="__codelineno-21-56" href="#__codelineno-21-56"></a><span class="go">Verifying update</span>
+</span><span id="__span-21-57"><a id="__codelineno-21-57" name="__codelineno-21-57" href="#__codelineno-21-57"></a><span class="go">VERIFY: SUCCESS</span>
+</span><span id="__span-21-58"><a id="__codelineno-21-58" name="__codelineno-21-58" href="#__codelineno-21-58"></a><span class="go">UPDATE SUCCESSFUL</span>
+</span></code></pre></div>
+</details>
+<p>After a <strong>required reboot</strong>, run the <code>argonneo5.sh</code> script too:</p>
+<details class="terminal">
+<summary><code>curl https://download.argon40.com/argonneo5.sh | bash</code></summary>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="gp">pi@roach:~ $ </span>curl<span class="w"> </span>https://download.argon40.com/argonneo5.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="gp">  % </span>Total<span class="w">    </span>%<span class="w"> </span>Received<span class="w"> </span>%<span class="w"> </span>Xferd<span class="w">  </span>Average<span class="w"> </span>Speed<span class="w">   </span>Time<span class="w">    </span>Time<span class="w">     </span>Time<span class="w">  </span>Current
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="go">                                Dload  Upload   Total   Spent    Left  Speed</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="go">100  2171  100  2171    0     0  46338      0 --:--:-- --:--:-- --:--:-- 47195</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="go">*************</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="go">Argon Setup  </span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="go">*************</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="go">Hit:1 http://deb.debian.org/debian trixie InRelease</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="go">Hit:2 http://archive.raspberrypi.com/debian trixie InRelease</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="go">Hit:3 http://deb.debian.org/debian trixie-updates InRelease</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="go">Hit:4 http://deb.debian.org/debian-security trixie-security InRelease</span>
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="go">Reading package lists... Done</span>
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="go">Building dependency tree... Done</span>
+</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="go">Reading state information... Done</span>
+</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="go">Calculating upgrade... Done</span>
+</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="go">0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.</span>
+</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="go">BOOTLOADER: up to date</span>
+</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a><span class="go">  CURRENT: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="go">    LATEST: Wed Nov  5 05:37:18 PM UTC 2025 (1762364238)</span>
+</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="go">  RELEASE: latest (/usr/lib/firmware/raspberrypi/bootloader-2712/latest)</span>
+</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="go">            Use raspi-config to change the release.</span>
+</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a><span class="go">EEPROM settings up to date</span>
+</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="go">*********************</span>
+</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="go">  Setup Completed </span>
+</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a><span class="go">*********************</span>
+</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a>
+</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a><span class="go">Please reboot for changes to take effect</span>
+</span></code></pre></div>
+</details>
+<p>After <em>another</em> <strong>required reboot</strong>, the firware is ready and there is nothing to do.</p>
+<h2 id="essential-software">Essential Software</h2>
+<h3 id="basic-packages">Basic packages</h3>
+<p>Before moving forward, I like to install a few basics that make work easier,
+or on which subsequent packages depend:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>bc<span class="w"> </span>git<span class="w"> </span>iotop-c<span class="w"> </span>netcat-openbsd<span class="w"> </span>rename<span class="w"> </span>speedtest-cli<span class="w"> </span>sysstat<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span>vim<span class="w"> </span>python3-pip<span class="w"> </span>python3-influxdb<span class="w"> </span>python3-numpy<span class="w"> </span>python3-absl<span class="w"> </span>python3-unidecode
+</span></code></pre></div>
+<h3 id="fail2ban">Fail2Ban</h3>
+<p>Just in case this system ever gets its port 22 exposed to the Internet,
+<a href="https://github.com/fail2ban/fail2ban?tab=readme-ov-file#fail2ban-ban-hosts-that-cause-multiple-authentication-errors">Fail2Ban</a>
+scans log files and bans IP addresses conducting too many failed login attempts.
+It is a rather basic protection mechanism, and this system is not intended to
+have its SSH port open to the Internet, but it is so easy to install and enable
+that there is no excuse not to.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>iptables<span class="w"> </span>fail2ban<span class="w"> </span>-y
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="gp">$ </span>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>fail2ban
+</span></code></pre></div>
+<p>The configuration in <code>/etc/fail2ban/jail.conf</code> can be spiced up to make a
+little more trigger-happy:</p>
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># "bantime" is the number of seconds that a host is banned.</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="na">bantime</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">12h</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># A host is banned if it has generated "maxretry" during the last "findtime"</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># seconds.</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="na">findtime</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">90m</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="c1"># "maxretry" is the number of failures before a host get banned.</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="na">maxretry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="c1"># "bantime.increment" allows to use database for searching of previously banned ip's to increase a </span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="c1"># default ban time using special formula, default it is banTime * 1, 2, 4, 8, 16, 32...</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="na">bantime.increment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+</span></code></pre></div>
+<p>Then restart the service to pick the changes up:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>fail2ban
+</span></code></pre></div>
+<h3 id="ssh-server">SSH Server</h3>
+<p>As a general good practice, even if this system won't have its SSH port open to the
+Internet, <em>and on top</em> of having <a href="#fail2ban">Fail2ban</a> enabled, SSH authetication should
+be allowed <strong>only</strong> with
+<a href="https://www.ssh.com/academy/ssh/public-key-authentication">What is SSH Public Key Authentication?</a>.
+Once the system arrives as it final destination, its final owner should add their own
+public keys are added to <code>/home/pi/.ssh/authorized_keys</code> and disable password
+authentication by setting <code>PasswordAuthentication no</code> in <code>/etc/ssh/sshd_config</code>.</p>
+<p>This tutorial explains several concrete methods to the this on different platforms:
+<a href="https://servicenow.iu.edu/kb?id=kb_article_view&amp;sysparm_article=KB0023919">Set up SSH public key authentication to connect to a remote system</a>.</p>
+<h2 id="additional-software">Additional Software</h2>
+<h3 id="additional-debian-packages">Additional Debian packages</h3>
+<p>The following packages are installed based on experience setting up desktop environments
+in other PCs, most recently <strong>Ubuntu Studio 24.04</strong>
+<a href="../../../../2024/11/03/ubuntu-studio-2404-on-rapture-gaming-pc-and-more/">for myself</a> and
+<a href="../../../../2024/09/14/ubuntu-studio-2404-on-computer-for-a-young-artist/">a young artist</a>.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gkrellm<span class="w"> </span>gkrellm-cpufreq<span class="w"> </span>geeqie<span class="w"> </span>id3v2<span class="w"> </span>btop<span class="w"> </span>sox<span class="w"> </span>exiv2<span class="w"> </span>rename<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span>scrot<span class="w"> </span>python3-pip<span class="w"> </span>python3-selenium<span class="w"> </span>tor<span class="w"> </span>unrar<span class="w"> </span>ttf-mscorefonts-installer<span class="w"> </span>ffmpeg<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span>iotop-c<span class="w"> </span>xdotool<span class="w"> </span>redshift-gtk<span class="w"> </span>inxi<span class="w"> </span>screen<span class="w"> </span>code
+</span></code></pre></div>
+<h3 id="visual-studio-code">Visual Studio Code</h3>
+<p>Installing the <code>code</code> package is the canonical method to install
+<a href="https://code.visualstudio.com/docs/setup/raspberry-pi">VS Code on Raspberry Pi</a>.</p>
+<p>VS Code is not officially supported on Raspberry Pi, so it pays to keep an eye on their
+<a href="https://github.com/microsoft/vscode-discussions/discussions/2379">community discussions</a>
+for update and known issues and workarounds. One notorious known issue has been freezes
+on Raspberry Pi 4, for which the workaround is to disable use of the GPU by adding this
+flag in <code>/home/pi/.vscode/argv.json</code></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="p">{</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="hll"><span class="w">  </span><span class="nt">"disable-hardware-acceleration"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>This workaround may not be necessay for the more recent versions of VS Code, and the
+version installed at the time of writting is <strong>1.105.1</strong>.</p>
+<h2 id="raspberry-pi-connect">Raspberry Pi Connect</h2>
+<p><a href="https://www.raspberrypi.com/documentation/services/connect.html">Raspberry Pi Connect</a>
+provides secure access to your Raspberry Pi from anywhere in the world. While it is
+unsurprisingly a little laggy, it works well enough to use the desktop environment from
+any web browser anywhere without a complicated setup.</p>
+<p>Following the instructions is simple and quick enough to access the desktop environment
+within a couple of minutes, it can be enabled <em>and disabled</em> any time through SSH and it
+can also be added to (and remove from) a Raspberry Pi Connect account very easily.</p>
+<p>To connect, start the <code>rpi-connect</code> service and create a URL to sing in, then visit
+that URL with the browser with an active session on <a href="https://connect.raspberrypi.com/">https://connect.raspberrypi.com/</a></p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="gp">pi@roach:~ $ </span>rpi-connect<span class="w"> </span>on
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="go">✓ Raspberry Pi Connect started</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="gp">pi@roach:~ $ </span>rpi-connect<span class="w"> </span>signin
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="go">Complete sign in by visiting https://connect.raspberrypi.com/verify/XEKA-TPFN</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="go">✓ Signed in</span>
+</span></code></pre></div>
+<p>Once the device is signed in, it shows up at <a href="https://connect.raspberrypi.com/devices">https://connect.raspberrypi.com/devices</a>
+and it's just two clicks to open the desktop environment in a new browser window:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/raspberrypi_connect_vscode_in_menu.png" data-desc-position="bottom"><img alt="Raspberry Pi Connect - VS Code in the menu" src="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/raspberrypi_connect_vscode_in_menu.png"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/raspberrypi_connect_btop.png" data-desc-position="bottom"><img alt="Raspberry Pi Connect - Terminal running btop" src="../../../../media/2025-11-04-raspberry-pi-5-for-a-buddying-coder/raspberrypi_connect_btop.png"></a></p>
+<p>Once this access is no longer necessary, the service can be disabled on the Raspberry Pi
+by simply running <code>rpi-connect off</code> and running <code>rpi-connect signout</code> before will
+deassociated from the previously used Raspberry Pi Connect account.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="gp">pi@roach:~ $ </span>rpi-connect<span class="w"> </span>signout
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="go">✓ Signed out</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="gp">pi@roach:~ $ </span>rpi-connect<span class="w"> </span>off
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="go">✓ Raspberry Pi Connect stopped</span>
+</span></code></pre></div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../../09/25/ddns-updater-on-kubernetes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ddns-updater on Kubernetes">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                ddns-updater on Kubernetes
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../12/14/fotocx-on-ubuntu-studio-2404/" class="md-footer__link md-footer__link--next" aria-label="Next: Fotocx on Ubuntu Studio 24.04">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Fotocx on Ubuntu Studio 24.04
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

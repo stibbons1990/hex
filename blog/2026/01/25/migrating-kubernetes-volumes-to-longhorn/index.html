@@ -1,0 +1,1948 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stibbons1990.github.io/hex/blog/2026/01/25/migrating-kubernetes-volumes-to-longhorn/">
+      
+      
+        <link rel="prev" href="../../24/migrating-nfs-volumes-to-the-nfs-csi-driver-for-kubernetes/">
+      
+      
+        <link rel="next" href="../../../02/01/upgrading-a-single-node-kubernetes-cluster-to-zero-downtime-maintenance/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Migrating Kubernetes volumes to Longhorn - Inadvisably Applied Magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Y167L3ZVGY"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Y167L3ZVGY",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Y167L3ZVGY",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  <link href="../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#motivation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-header__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Inadvisably Applied Magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migrating Kubernetes volumes to Longhorn
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="green" aria-label="Light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Inadvisably Applied Magic" class="md-nav__button md-logo" aria-label="Inadvisably Applied Magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m64 400 85.7-208.2c17-41.3 47.8-75.3 87.2-96.3l146.9-78.3c12.3-6.6 26.5 4.7 23 18.2l-37.2 142.4c-1.1 4.1-1.6 8.3-1.6 12.6 0 6.3 1.2 12.6 3.6 18.5L448 400H240.9l11.8-35.4 40.4-13.5c6.5-2.2 10.9-8.3 10.9-15.2s-4.4-13-10.9-15.2l-40.4-13.5-13.5-40.4c-2.2-6.4-8.3-10.8-15.2-10.8s-13 4.4-15.2 10.9l-13.5 40.4-40.4 13.5c-6.5 2.2-10.9 8.3-10.9 15.2s4.4 13 10.9 15.2l40.4 13.5 11.8 35.4H64zm215.6-258.5c-1.1-3.3-4.1-5.5-7.6-5.5s-6.5 2.2-7.6 5.5l-6.7 20.2-20.2 6.7c-3.3 1.1-5.5 4.1-5.5 7.6s2.2 6.5 5.5 7.6l20.2 6.7 6.7 20.2c1.1 3.3 4.1 5.5 7.6 5.5s6.5-2.2 7.6-5.5l6.7-20.2 20.2-6.7c3.3-1.1 5.5-4.1 5.5-7.6s-2.2-6.5-5.5-7.6l-20.2-6.7zM32 448h448c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32"></path></svg>
+
+    </a>
+    Inadvisably Applied Magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About This Place
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/conmon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../projects/self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unexpected Linux Adventures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-host-os" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare Host OS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prepare Host OS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration-from-btrfs-to-xfs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration from Btrfs to XFS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration from Btrfs to XFS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#remove-use-of-the-sata-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove use of the SATA SSD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy-nvme-to-sata-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy NVMe to SATA SSD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy-sata-to-nvme-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy SATA to NVMe SSD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-longhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Longhorn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install Longhorn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disable-multipath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disable Multipath
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longhorn-ui-ingress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longhorn UI Ingress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-disks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure disks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#targeted-storageclasses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Targeted StorageClasses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replication-vs-bandwidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication Vs. Bandwidth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active-active-vs-active-passive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active-Active Vs. Active-Passive
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from-hostpath-to-longhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From hostPath to Longhorn
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="From hostPath to Longhorn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example migration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nas-to-longhorn-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NAS-to-Longhorn sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#longhorn-backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longhorn Backups
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Longhorn Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recurrent-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recurrent jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-future-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding future nodes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"></path></svg>
+                        <time datetime="2026-01-25 00:00:00+00:00" class="md-ellipsis">January 25, 2026</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"></path></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/linux/">linux</a>, 
+                              <a href="../../../../category/ubuntu/">Ubuntu</a>, 
+                              <a href="../../../../category/server/">Server</a>, 
+                              <a href="../../../../category/kubernetes/">kubernetes</a>, 
+                              <a href="../../../../category/docker/">docker</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"></path></svg>
+                          <span class="md-ellipsis">
+                            
+                              25 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Migrating Kubernetes volumes to Longhorn</h1>
+
+<p><a href="../../24/migrating-nfs-volumes-to-the-nfs-csi-driver-for-kubernetes/">Migrating NFS volumes to the NFS CSI driver</a>
+was an easy step forward preparing the single-node Kubernetes cluster to be upgraded to
+an <strong>Active-Active High Availability</strong> cluster.
+The next step in that direction is to migrate volumes currently implemented
+(<em>the lazy way</em>) with <code>hostPath</code> pointed to local NVMe SSD storage to a distributed file
+system, while still leveraging the SSDs speed as high-availability distributed volumes
+replicated across every node's local NVMe SSDs.</p>
+<!-- more -->
+
+<h2 id="motivation">Motivation</h2>
+<p>While NFS volumes are the best choice for bulk data (media, backups, etc.) these are too
+slow for mission-critical configuration files and databases. Longhorn is better for these
+because it can mirror data across all nodes, if one fails the pod instantly restarts on
+another node with its data intact, and whenever adding a new node Longhorn automatically
+rebalances replicas to utilize the new storage. Moving forward, Longhorn can also use
+the Synology NAS as a "Backup Target" to make additional backups.</p>
+<h2 id="prepare-host-os">Prepare Host OS</h2>
+<p>Run these commands on all current and future nodes to install Longhorn’s required dependencies</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp"># </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>open-iscsi<span class="w"> </span>util-linux<span class="w"> </span>dmsetup
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp"># </span>modprobe<span class="w"> </span>iscsi_tcp
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gp"># </span>modprobe<span class="w"> </span>dm_crypt
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gp"># </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"iscsi_tcp"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/modules-load.d/longhorn.conf
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="go">iscsi_tcp</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gp"># </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"dm_crypt"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/modules-load.d/longhorn.conf
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="go">dm_crypt</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="gp"># </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>iscsid
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="go">Synchronizing state of iscsid.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="go">Executing: /usr/lib/systemd/systemd-sysv-install enable iscsid</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="go">Created symlink /etc/systemd/system/sysinit.target.wants/iscsid.service → /usr/lib/systemd/system/iscsid.service.</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="gp"># </span>systemctl<span class="w"> </span>status<span class="w"> </span>iscsid
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="go">● iscsid.service - iSCSI initiator daemon (iscsid)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="go">     Loaded: loaded (/usr/lib/systemd/system/iscsid.service; enabled; preset: enabled)</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="go">     Active: active (running) since Sat 2026-01-24 15:34:28 CET; 19s ago</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="go">TriggeredBy: ● iscsid.socket</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="go">       Docs: man:iscsid(8)</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="go">    Process: 1256258 ExecStartPre=/usr/lib/open-iscsi/startup-checks.sh (code=exited, status=0/SUCCESS)</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="go">    Process: 1256279 ExecStart=/usr/sbin/iscsid (code=exited, status=0/SUCCESS)</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="go">   Main PID: 1256334 (iscsid)</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="go">      Tasks: 2 (limit: 37734)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="go">     Memory: 3.6M (peak: 3.9M)</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="go">        CPU: 27ms</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="go">     CGroup: /system.slice/iscsid.service</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="go">             ├─1256333 /usr/sbin/iscsid</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="go">             └─1256334 /usr/sbin/iscsid</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="go">Jan 24 15:34:28 octavo systemd[1]: Starting iscsid.service - iSCSI initiator daemon (iscsid)...</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="go">Jan 24 15:34:28 octavo iscsid[1256279]: iSCSI logger with pid=1256333 started!</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="go">Jan 24 15:34:28 octavo systemd[1]: Started iscsid.service - iSCSI initiator daemon (iscsid).</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="go">Jan 24 15:34:29 octavo iscsid[1256333]: iSCSI daemon with pid=1256334 started!</span>
+</span></code></pre></div>
+<details class="note">
+<summary>Additional dependencies for optional features.</summary>
+<ul>
+<li><code>cryptsetup</code> and <code>dm_crypt</code> would be required to enable <strong>Volume Encryption</strong>.
+    <code>cryptsetup</code> uses the <code>dm_crypt</code> kernel module to manage LUKS2-formatted
+    encrypted volumes (alss used previously to
+    <a href="../../../../2024/01/10/encrypting-external-ssd/">encrypt external SSD</a>), ensuring that
+    data is secured at rest before being written to the physical SSDs</li>
+<li><code>jq</code> is not used by the Longhorn storage engine itself during runtime, but it is
+    useful to parse JSON output and would be needed for running Longhorn Environment
+    Check scripts to verify nodes before installation.</li>
+<li><code>nfs-common</code> will be needed to make backups to NFS volumes; already installed for
+    <a href="../../24/migrating-nfs-volumes-to-the-nfs-csi-driver-for-kubernetes/">Migrating NFS volumes to the NFS CSI driver</a></li>
+</ul>
+</details>
+<h3 id="migration-from-btrfs-to-xfs">Migration from Btrfs to XFS</h3>
+<p>Longhorn
+<a href="https://longhorn.io/docs/1.10.1/deploy/install/#installation-requirements">Installation Requirements</a>
+includes a host filesystem that supports the <code>file extents</code> feature to store the data,
+<code>ext4</code> and <code>XFS</code> being the <strong>only ones supported</strong>; this presents a challenge because
+both local disks in <code>octavo</code> are formatted as <code>Btrfs</code> and all workloads depend on at
+least one of them.</p>
+<p>While there are adjustments that can be made to <code>Btrfs</code> volumes to minimize issues with
+Longhorn, ultimately <code>Btrfs</code> being unsupported means a kernel update or a specific IO
+pattern could still lead to volumes becoming stuck in Read-Only mode. Alternatives to
+Longhorn such as Ceph (via Rook Operator), GlusterFS (via various CSI drivers) or
+OpenEBS LocalPV also have enough incompatibilities with <code>Btrfs</code> volumes that would not
+serve the purpose.</p>
+<h4 id="remove-use-of-the-sata-ssd">Remove use of the SATA SSD</h4>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Stop all <code>crontab</code> jobs and other scripts that may be syncing files to or from any
+file sytem in the NVMe or SATA SSDS. Make sure that scripts running periodically
+(e.g. those listed by <code>crontab -l</code>) will not run or write data under <code>/home/ssd</code>
+since that would write data to the NVMe SSD and may accidentally fill it up.</p>
+</div>
+<p>The only use of the SATA SSD is for media files that are replicated <strong>from</strong> the NAs,
+so there is nothing in the SATA SSD that needs to be copied outside of it. It is enough
+to migrate the one volume using the SATA SSD to a NFS CSI mount and the disk is ready to
+format.</p>
+<p>Create a new XFS file system on the SATA SSD and mount it in a temporary directory:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp"># </span>umount<span class="w"> </span>/home/ssd<span class="w"> </span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="gp"># </span>mkfs.xfs<span class="w"> </span>-f<span class="w"> </span>/dev/sda
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">meta-data=/dev/sda               isize=512    agcount=4, agsize=244188662 blks</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="go">         =                       sectsz=4096  attr=2, projid32bit=1</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="go">         =                       crc=1        finobt=1, sparse=1, rmapbt=1</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="go">         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=0</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="go">data     =                       bsize=4096   blocks=976754646, imaxpct=5</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="go">         =                       sunit=0      swidth=0 blks</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="go">naming   =version 2              bsize=4096   ascii-ci=0, ftype=1</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">log      =internal log           bsize=4096   blocks=476930, version=2</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="go">         =                       sectsz=4096  sunit=1 blks, lazy-count=1</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="go">realtime =none                   extsz=4096   blocks=0, rtextents=0</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="go">Discarding blocks...Done.</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="gp"># </span>blkid<span class="w"> </span>/dev/sda
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="go">/dev/sda: UUID="76347c52-c635-49b3-baa3-4ea98e41b4a4" BLOCK_SIZE="4096" TYPE="xfs"</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="gp"># </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/mnt/sata_temp
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="gp"># </span>mount<span class="w"> </span>/dev/sda<span class="w"> </span>/mnt/sata_temp
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Remove the line in <code>/etc/fstab</code> to mount the old file system on <code>/home/ssd</code> or else
+the system will no longer boot.</p>
+</div>
+<h4 id="copy-nvme-to-sata-ssd">Copy NVMe to SATA SSD</h4>
+<p>Since the <code>/home</code> partitiion is critical for all workloads, the migration must be
+performed with the cluster services stopped to ensure data consistency. To minimize
+down-time for the affected services, at least the largest part of the data can be
+copied while workloads are running because it is <em>mostly read-only</em>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp"># </span><span class="nb">time</span><span class="w"> </span>rsync<span class="w"> </span>--bwlimit<span class="o">=</span><span class="m">500000</span><span class="w"> </span>-aHAXv<span class="w"> </span>/home/depot<span class="w"> </span>/mnt/sata_temp/
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="go">sent 921,117,494,040 bytes  received 741,595 bytes  364,438,471.07 bytes/sec</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="go">total size is 920,889,625,124  speedup is 1.00</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="go">real    42m7.041s</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="go">user    7m56.286s</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="go">sys     22m42.006s</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Writting to the <a href="../../../../2022/10/12/crucial-mx500-ssd-found-problematic/">problematic Crucial MX500 SSD</a>
+requires hard-limiting the bandwidth to 500 MB/s with <code>--bwlimit=500000</code></p>
+</div>
+<p>This takes 42 minutes to copy over 858 GB of <code>Podcasts</code>; that's 42 minutes less of
+down-time with all workloads down for the complete migration. Additional time can be
+saved if other directories are found to be unnecessary to move; as it happens 240 GB
+were found left back under <code>/home/k8s/photos</code> with no workload using them and additional
+40 GB were found under <code>/home/k8s/minecraft-server-backups</code> that were also out of use.</p>
+<p>Once most of the data has been transfered, all Kubernetes workloads and services must
+be stopped to finalize the transfer. It is actually necessary to first <strong>drain</strong> the
+node, to make sure all pods are stopped, otherwise pods will continue running and
+potentially writting to the files in the current <code>/home</code> partition.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>drain<span class="w"> </span>--ignore-daemonsets<span class="w"> </span>--delete-emptydir-data<span class="w"> </span>--force<span class="w"> </span>octavo
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>kubelet
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>containerd
+</span></code></pre></div>
+<p>Once all the processes are stopped, <code>lsof</code> should report that not a single process is
+using files under <code>/home</code> even though it may not yet be possible to unmount it.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp"># </span><span class="nb">time</span><span class="w"> </span>lsof<span class="w"> </span>+D<span class="w"> </span>/home<span class="w"> </span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">real    0m8.257s</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="go">user    0m1.813s</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="go">sys     0m7.057s</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="gp"># </span>umount<span class="w"> </span>/home
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="go">umount: /home: target is busy.</span>
+</span></code></pre></div>
+<p><code>/home</code> cannot be unmounted yet because the NFS volume from the Synology NAS is still
+mounted as <code>/home/nas</code> and before that one can be unmounted it is necessary to stop the
+<a href="../../../../../projects/conmon/">Continuous Monitoring</a> service:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp"># </span>systemctl<span class="w"> </span>stop<span class="w"> </span>conmon
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="gp"># </span>umount<span class="w"> </span>/home/nas
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="gp"># </span>umount<span class="w"> </span>/home
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Add <code>-x</code> to the <code>rsync</code> command flags to avoid copying files from other file systems.</p>
+</div>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp"># </span>mount<span class="w"> </span>/home
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="gp"># </span><span class="nb">time</span><span class="w"> </span>rsync<span class="w"> </span>-aHAXvx<span class="w"> </span>/home/<span class="w"> </span>/mnt/sata_temp/
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="go">real    5m29.869s</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="go">user    0m15.302s</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="go">sys     0m59.440s</span>
+</span></code></pre></div>
+<p>At this point the <code>/home</code> partition <strong>should never be used again</strong>.</p>
+<p>To make sure no files are written to it; unmount it, disable its entry in <code>/etc/fstab</code>
+and <strong>reboot</strong>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Do not try to reformat the NVMe partition without rebooting. It won't work.</p>
+</div>
+<h4 id="copy-sata-to-nvme-ssd">Copy SATA to NVMe SSD</h4>
+<p>After rebooting without mounting the (old) <code>/home</code> partition, create a new XFS file
+system in the NVME partition and take note of its new block ID:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp"># </span><span class="nb">time</span><span class="w"> </span>mkfs.xfs<span class="w"> </span>-f<span class="w"> </span>/dev/nvme0n1p5
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">meta-data=/dev/nvme0n1p5         isize=512    agcount=4, agsize=232323200 blks</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="go">         =                       sectsz=512   attr=2, projid32bit=1</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="go">         =                       crc=1        finobt=1, sparse=1, rmapbt=1</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="go">         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=0</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="go">data     =                       bsize=4096   blocks=929292800, imaxpct=5</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="go">         =                       sunit=0      swidth=0 blks</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="go">naming   =version 2              bsize=4096   ascii-ci=0, ftype=1</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="go">log      =internal log           bsize=4096   blocks=453756, version=2</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="go">         =                       sectsz=512   sunit=0 blks, lazy-count=1</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="go">realtime =none                   extsz=4096   blocks=0, rtextents=0</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="go">Discarding blocks...Done.</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="go">real    0m21.188s</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="go">user    0m0.010s</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="go">sys     0m0.103s</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="gp"># </span>blkid<span class="w"> </span>/dev/nvme0n1p5
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="go">/dev/nvme0n1p5: UUID="1a2f94cc-315f-4bf1-8b59-0575b49fe098" BLOCK_SIZE="512" TYPE="xfs" PARTUUID="df113399-0802-42bf-b170-1a9e62b79220"</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="gp"># </span>blkid<span class="w"> </span>/dev/sda
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="go">/dev/sda: UUID="76347c52-c635-49b3-baa3-4ea98e41b4a4" BLOCK_SIZE="4096" TYPE="xfs"</span>
+</span></code></pre></div>
+<p>Update the <code>/etc/fstab</code> entries for <code>/home</code> and <code>/home/ssd</code> with their new Block ID
+(and <code>xfs</code> instead of <code>btrfs</code>), then mount <strong>only</strong> <code>/home</code> using its <code>/etc/fstab</code>
+entry, mount the SATA SSD in the temporary directory (so it's not under <code>/home</code>) and
+copy all its data back:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp"># </span>mount<span class="w"> </span>/home
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="gp"># </span>mount<span class="w"> </span>/dev/sda<span class="w"> </span>/mnt/sata_temp
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="gp"># </span><span class="nb">time</span><span class="w"> </span>rsync<span class="w"> </span>-aHAXvx<span class="w"> </span>/mnt/sata_temp/<span class="w"> </span>/home/
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="go">sent 1,033,492,365,270 bytes  received 24,759,287 bytes  361,306,458.51 bytes/sec</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="go">total size is 1,041,827,909,959  speedup is 1.01</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="go">real    47m39.689s</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="go">user    12m36.162s</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="go">sys     29m17.498s</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="gp">#  </span>df<span class="w"> </span>-h
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="go">Filesystem      Size  Used Avail Use% Mounted on</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="go">/dev/nvme0n1p2   60G   14G   46G  23% /</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="go">/dev/nvme0n1p4   60G   36G   25G  59% /var/lib</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="go">/dev/nvme0n1p1  1.1G  6.2M  1.1G   1% /boot/efi</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="go">/dev/nvme0n1p5  3.5T  1.1T  2.5T  30% /home</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="go">/dev/sda        3.7T  1.1T  2.7T  28% /mnt/sata_temp</span>
+</span></code></pre></div>
+<p>Once all data has been copied back to the NVMe, now on a new XFS file system, and all
+entries <code>/etc/fstab</code> have been updated with the new file systems' UUIDs, mount the SATA
+SSD and the NAS back on their original mount points:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp"># </span>umount<span class="w"> </span>/mnt/sata_temp
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="gp"># </span>mount<span class="w"> </span>/home/ssd
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="gp"># </span>mount<span class="w"> </span>/home/nas
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="gp"># </span>df<span class="w"> </span>-h
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">Filesystem                  Size  Used Avail Use% Mounted on</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">/dev/nvme0n1p2               60G   14G   46G  23% /</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go">/dev/nvme0n1p4               60G   36G   25G  59% /var/lib</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">/dev/nvme0n1p1              1.1G  6.2M  1.1G   1% /boot/efi</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">/dev/nvme0n1p5              3.5T  1.1T  2.5T  30% /home</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="go">luggage:/volume1/NetBackup   21T   15T  6.0T  72% /home/nas</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="go">/dev/sda                    3.7T  1.1T  2.7T  28% /home/ssd</span>
+</span></code></pre></div>
+<p>Finally the cluster workloads can be restored by uncordoning the node:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp"># </span>kubectl<span class="w"> </span>uncordon<span class="w"> </span>octavo
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="go">node/octavo uncordoned</span>
+</span></code></pre></div>
+<h2 id="install-longhorn">Install Longhorn</h2>
+<p>To keep track of deployment values, create <code>longhorn-values.yaml</code> with the following
+values:</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>longhorn-values.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">defaultSettings</span><span class="p">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">allowVolumeCreationWithDegradedAvailability</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="nt">createDefaultDiskLabeledNodes</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="nt">defaultDataPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/home/longhorn</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">deletingConfirmationFlag</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nt">metrics</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">  </span><span class="nt">serviceMonitor</span><span class="p">:</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span></code></pre></div>
+</div>
+<p>Before installing the Helm chart, create a <code>longhorn</code> directory under each partition
+with fast local (SSD) storage:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp"># </span>mkdir<span class="w"> </span>/home/longhorn<span class="w"> </span>/home/ssd/longhorn
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="gp"># </span>ls<span class="w"> </span>-lad<span class="w"> </span>/home/longhorn/<span class="w"> </span>/home/ssd/longhorn/
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="go">drwxr-xr-x 2 root root 6 Jan 25 13:54 /home/longhorn/</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="go">drwxr-xr-x 2 root root 6 Jan 25 16:00 /home/ssd/longhorn/</span>
+</span></code></pre></div>
+<p><a href="https://longhorn.io/docs/1.10.1/deploy/install/install-with-helm/">Install with Helm</a>
+using the latest of <strong>Chart versions</strong> available in
+<a href="https://artifacthub.io/packages/helm/longhorn/longhorn">artifacthub.io/longhorn</a>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>longhorn<span class="w"> </span>https://charts.longhorn.io
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">"longhorn" has been added to your repositories</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="gp">$ </span>helm<span class="w"> </span>repo<span class="w"> </span>update
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="go">from your chart repositories...</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="go">...Successfully got an update from the "longhorn" chart repository</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">Update Complete. ⎈Happy Helming!⎈</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="gp">$ </span>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>longhorn<span class="w"> </span>longhorn/longhorn<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">  </span>--values<span class="w"> </span>longhorn-values.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">  </span>--namespace<span class="w"> </span>longhorn-system<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">  </span>--create-namespace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.10.1
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="go">Release "longhorn" does not exist. Installing it now.</span>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="go">I0125 14:20:26.605248  523341 warnings.go:107] "Warning: unrecognized format \"int64\""</span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="go">I0125 14:20:26.606712  523341 warnings.go:107] "Warning: unrecognized format \"int64\""</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="go">I0125 14:20:26.610027  523341 warnings.go:107] "Warning: unrecognized format \"int64\""</span>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="go">I0125 14:20:26.610080  523341 warnings.go:107] "Warning: unrecognized format \"int64\""</span>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="go">NAME: longhorn</span>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="go">LAST DEPLOYED: Sun Jan 25 14:20:26 2026</span>
+</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="go">NAMESPACE: longhorn-system</span>
+</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="go">STATUS: deployed</span>
+</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="go">REVISION: 1</span>
+</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="go">TEST SUITE: None</span>
+</span><span id="__span-13-25"><a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="go">NOTES:</span>
+</span><span id="__span-13-26"><a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="go">Longhorn is now installed on the cluster!</span>
+</span><span id="__span-13-27"><a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a>
+</span><span id="__span-13-28"><a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="go">Please wait a few minutes for other Longhorn components such as CSI deployments, Engine Images, and Instance Managers to be initialized.</span>
+</span><span id="__span-13-29"><a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>
+</span><span id="__span-13-30"><a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="go">Visit our documentation at https://longhorn.io/docs/</span>
+</span></code></pre></div>
+<p>After a few minutes all the pods and services are up and running:</p>
+<details class="terminal">
+<summary><code>kubectl get all -n longhorn-system</code></summary>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>$ kubectl get all -n longhorn-system
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>NAME                                                    READY   STATUS    RESTARTS   AGE
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>pod/csi-attacher-5857549d6f-57tz9                       1/1     Running   0          4m4s
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>pod/csi-attacher-5857549d6f-cd5l8                       1/1     Running   0          4m4s
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>pod/csi-attacher-5857549d6f-nh7dn                       1/1     Running   0          4m4s
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>pod/csi-provisioner-57f9d44448-6g5kf                    1/1     Running   0          4m3s
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>pod/csi-provisioner-57f9d44448-b2p59                    1/1     Running   0          4m4s
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>pod/csi-provisioner-57f9d44448-zp4wd                    1/1     Running   0          4m3s
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>pod/csi-resizer-547f8b9dc8-2nw8d                        1/1     Running   0          4m3s
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>pod/csi-resizer-547f8b9dc8-sq7kx                        1/1     Running   0          4m4s
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>pod/csi-resizer-547f8b9dc8-t9mff                        1/1     Running   0          4m4s
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>pod/csi-snapshotter-8558df8679-2s7vw                    1/1     Running   0          4m3s
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>pod/csi-snapshotter-8558df8679-7cfmt                    1/1     Running   0          4m3s
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>pod/csi-snapshotter-8558df8679-9st8q                    1/1     Running   0          4m3s
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>pod/engine-image-ei-3154f3aa-4p885                      1/1     Running   0          4m9s
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>pod/instance-manager-106c7c23639743eccb1b438e18f1bc72   1/1     Running   0          4m9s
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>pod/longhorn-csi-plugin-js5zc                           3/3     Running   0          4m3s
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>pod/longhorn-driver-deployer-676f7f6c5c-v4kvh           1/1     Running   0          4m17s
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>pod/longhorn-manager-7446v                              2/2     Running   0          4m17s
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>pod/longhorn-ui-7c54575f4d-8ccrr                        1/1     Running   0          4m17s
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>pod/longhorn-ui-7c54575f4d-pfghw                        1/1     Running   0          4m18s
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>NAME                                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>service/longhorn-admission-webhook   ClusterIP   10.104.236.167   &lt;none&gt;        9502/TCP   4m19s
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>service/longhorn-backend             ClusterIP   10.97.214.18     &lt;none&gt;        9500/TCP   4m19s
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a>service/longhorn-frontend            ClusterIP   10.108.65.154    &lt;none&gt;        80/TCP     4m19s
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a>service/longhorn-recovery-backend    ClusterIP   10.101.82.196    &lt;none&gt;        9503/TCP   4m19s
+</span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a>
+</span><span id="__span-14-29"><a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a>NAME                                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+</span><span id="__span-14-30"><a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a>daemonset.apps/engine-image-ei-3154f3aa   1         1         1       1            1           &lt;none&gt;          4m9s
+</span><span id="__span-14-31"><a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a>daemonset.apps/longhorn-csi-plugin        1         1         1       1            1           &lt;none&gt;          4m4s
+</span><span id="__span-14-32"><a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a>daemonset.apps/longhorn-manager           1         1         1       1            1           &lt;none&gt;          4m19s
+</span><span id="__span-14-33"><a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a>
+</span><span id="__span-14-34"><a id="__codelineno-14-34" name="__codelineno-14-34" href="#__codelineno-14-34"></a>NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+</span><span id="__span-14-35"><a id="__codelineno-14-35" name="__codelineno-14-35" href="#__codelineno-14-35"></a>deployment.apps/csi-attacher               3/3     3            3           4m4s
+</span><span id="__span-14-36"><a id="__codelineno-14-36" name="__codelineno-14-36" href="#__codelineno-14-36"></a>deployment.apps/csi-provisioner            3/3     3            3           4m4s
+</span><span id="__span-14-37"><a id="__codelineno-14-37" name="__codelineno-14-37" href="#__codelineno-14-37"></a>deployment.apps/csi-resizer                3/3     3            3           4m4s
+</span><span id="__span-14-38"><a id="__codelineno-14-38" name="__codelineno-14-38" href="#__codelineno-14-38"></a>deployment.apps/csi-snapshotter            3/3     3            3           4m4s
+</span><span id="__span-14-39"><a id="__codelineno-14-39" name="__codelineno-14-39" href="#__codelineno-14-39"></a>deployment.apps/longhorn-driver-deployer   1/1     1            1           4m19s
+</span><span id="__span-14-40"><a id="__codelineno-14-40" name="__codelineno-14-40" href="#__codelineno-14-40"></a>deployment.apps/longhorn-ui                2/2     2            2           4m19s
+</span><span id="__span-14-41"><a id="__codelineno-14-41" name="__codelineno-14-41" href="#__codelineno-14-41"></a>
+</span><span id="__span-14-42"><a id="__codelineno-14-42" name="__codelineno-14-42" href="#__codelineno-14-42"></a>NAME                                                  DESIRED   CURRENT   READY   AGE
+</span><span id="__span-14-43"><a id="__codelineno-14-43" name="__codelineno-14-43" href="#__codelineno-14-43"></a>replicaset.apps/csi-attacher-5857549d6f               3         3         3       4m4s
+</span><span id="__span-14-44"><a id="__codelineno-14-44" name="__codelineno-14-44" href="#__codelineno-14-44"></a>replicaset.apps/csi-provisioner-57f9d44448            3         3         3       4m4s
+</span><span id="__span-14-45"><a id="__codelineno-14-45" name="__codelineno-14-45" href="#__codelineno-14-45"></a>replicaset.apps/csi-resizer-547f8b9dc8                3         3         3       4m4s
+</span><span id="__span-14-46"><a id="__codelineno-14-46" name="__codelineno-14-46" href="#__codelineno-14-46"></a>replicaset.apps/csi-snapshotter-8558df8679            3         3         3       4m4s
+</span><span id="__span-14-47"><a id="__codelineno-14-47" name="__codelineno-14-47" href="#__codelineno-14-47"></a>replicaset.apps/longhorn-driver-deployer-676f7f6c5c   1         1         1       4m19s
+</span><span id="__span-14-48"><a id="__codelineno-14-48" name="__codelineno-14-48" href="#__codelineno-14-48"></a>replicaset.apps/longhorn-ui-7c54575f4d                2         2         2       4m19s
+</span></code></pre></div>
+</details>
+<h3 id="disable-multipath">Disable Multipath</h3>
+<p>Longhorn can run into issues when Multipath is enabled, which is visible in the output
+from <code>lsblk</code> on a Longhorn block device, e.g.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp"># </span>lsblk<span class="w"> </span>/dev/longhorn/pvc-7ae11ade-d6c8-4296-ac67-58953e3dddc2NAME<span class="w"> </span>MAJ:MIN<span class="w"> </span>RM<span class="w"> </span>SIZE<span class="w"> </span>RO<span class="w"> </span>TYPE<span class="w"> </span>MOUNTPOINTS
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">sda 8:0 0 50G 0 disk</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="go"> └─mpatha 252:0 0 50G 0 mpath </span>
+</span></code></pre></div>
+<p>This can cause a mount to fail despite the device showing as <strong>Healthy</strong> in the Longhorn
+UI. When Longhorn attaches the volume, <code>multipathd</code> immediately "claims" the device
+(<code>sda</code>) and creates a virtual device (<code>/dev/mapper/mpatha</code>). Because <code>multipathd</code> has an
+exclusive lock on the block device, the Longhorn CSI driver (and the <code>mount</code> command)
+gets an <code>"Already mounted or mount point busy"</code> error when it tries to open
+<code>/dev/longhorn/pvc-7ae11ade...</code> Longhorn shows the volume as Healthy because the iSCSI
+connection is technically up and the data is replicated; the "Health" check doesn't know
+the host OS has "hijacked" the local block device.</p>
+<p>To avoid such problems <strong>disable and remove</strong> <code>multipathd</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gp"># </span>systemctl<span class="w"> </span>disable<span class="w"> </span>--now<span class="w"> </span>multipathd
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="gp"># </span>apt-get<span class="w"> </span>remove<span class="w"> </span>multipath-tools<span class="w"> </span>-y
+</span></code></pre></div>
+<h3 id="longhorn-ui-ingress">Longhorn UI Ingress</h3>
+<p>To make the Longhorn UI, create an <code>Ingress</code> to access it over HTTPS:</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>pomerium/pomerium-ingress/longhorn.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-pomerium-ingress</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-system</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">cert-manager.io/cluster-issuer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">letsencrypt-prod</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="nt">ingress.pomerium.io/pass_identity_headers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">ingress.pomerium.io/preserve_host_header</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pomerium</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn.very-very-dark-gray.top</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">      </span><span class="nt">http</span><span class="p">:</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">        </span><span class="nt">paths</span><span class="p">:</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">          </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">          </span><span class="nt">backend</span><span class="p">:</span>
+</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="w">            </span><span class="nt">service</span><span class="p">:</span>
+</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-frontend</span>
+</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a><span class="w">              </span><span class="nt">port</span><span class="p">:</span>
+</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a><span class="w">                </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"http"</span>
+</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span>
+</span><span id="__span-17-25"><a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn.very-very-dark-gray.top</span>
+</span><span id="__span-17-26"><a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a><span class="w">      </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tls-secret</span>
+</span></code></pre></div>
+</div>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>pomerium/pomerium-ingress/
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="go">ingress.networking.k8s.io/audiobookshelf-pomerium-ingress unchanged</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="go">ingress.networking.k8s.io/code-server-pomerium-ingress unchanged</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="go">ingress.networking.k8s.io/firefly-iii-pomerium-ingress unchanged</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="go">ingress.networking.k8s.io/home-assistant-pomerium-ingress unchanged</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="go">ingress.networking.k8s.io/homepage-pomerium-ingress unchanged</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="go">ingress.networking.k8s.io/komga-pomerium-ingress unchanged</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="go">ingress.networking.k8s.io/dashboard-pomerium-ingress unchanged</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="hll"><span class="go">ingress.networking.k8s.io/longhorn-pomerium-ingress created</span>
+</span></span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="go">ingress.networking.k8s.io/jellyfin-pomerium-ingress unchanged</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="go">ingress.networking.k8s.io/grafana-pomerium-ingress unchanged</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="go">ingress.networking.k8s.io/influxdb-pomerium-ingress unchanged</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="go">ingress.networking.k8s.io/prometheus-pomerium-ingress unchanged</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="go">ingress.networking.k8s.io/navidrome-pomerium-ingress unchanged</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="go">ingress.networking.k8s.io/ryot-pomerium-ingress unchanged</span>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="go">ingress.networking.k8s.io/steam-headless-pomerium-ingress unchanged</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="go">ingress.networking.k8s.io/unifi-network-app-pomerium-ingress unchanged</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="go">ingress.networking.k8s.io/ddns-updater-pomerium-ingress unchanged</span>
+</span></code></pre></div>
+<p>After a little over a minute the DNS challenge is completed and the Longhorn UI is
+live at <a href="https://longhorn.very-very-dark-gray.top">longhorn.very-very-dark-gray.top</a></p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>get<span class="w"> </span>challenge<span class="w"> </span>-n<span class="w"> </span>longhorn-system<span class="w"> </span>--watch
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="go">NAME                                STATE     DOMAIN                             AGE</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="go">tls-secret-1-2700837206-765358469   pending   longhorn.very-very-dark-gray.top   7s</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="go">tls-secret-1-2700837206-765358469   valid     longhorn.very-very-dark-gray.top   79s</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="gp">$ </span>kubectl<span class="w"> </span>get<span class="w"> </span>certificate<span class="w"> </span>-n<span class="w"> </span>longhorn-system
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="go">NAME         READY   SECRET       AGE</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="go">tls-secret   True    tls-secret   89s</span>
+</span></code></pre></div>
+<p>At first the UI will only show that is <strong>1 Node</strong> and it is <strong>Disabled</strong>:</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-disabled.png" data-desc-position="bottom"><img alt="" src="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-disabled.png"></a></p>
+<p>To make the node available, add to it
+<a href="https://longhorn.io/docs/1.10.1/nodes-and-volumes/nodes/default-disk-and-node-config/">the <code>create-default-disk</code> label</a>:</p>
+<p></p><div class="language-console highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>label<span class="w"> </span>node<span class="w"> </span>octavo<span class="w"> </span>node.longhorn.io/create-default-disk<span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="go">node/octavo labeled</span>
+</span></code></pre></div>
+Once the node is labeled it becomes <strong>Schedulable</strong> and the next steps can be taken.<p></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-schedulable.png" data-desc-position="bottom"><img alt="" src="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-schedulable.png"></a></p>
+<h3 id="configure-disks">Configure disks</h3>
+<p>One the node is <strong>Schedulable</strong> go to the <strong>Nodes</strong> tab and use the drop-down menu on
+the right end of the node's entry to <strong>Edit node and disks</strong>. Add the SATA SSD, add a
+<strong>+New Disk Tag</strong> to each disk to reflect their hardware interface (and bandwidth) and
+set their <strong>Storage Reserved</strong> to the recommended <strong>50 Gi</strong>.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-2-disks-ready.png" data-desc-position="bottom"><img alt="" src="../../../../media/2026-01-25-migrating-kubernetes-volumes-to-longhorn/longhorn-node-2-disks-ready.png"></a></p>
+<p>Storage metrics represent aggregate values across all disks configured on all nodes:</p>
+<ul>
+<li><strong>Reserved storage</strong> is the space Longhorn <strong>will not use</strong> for volume replicas.
+    It is set aside for the Host OS, other applications, and to prevent the disk from
+    reaching 100% capacity.</li>
+<li><strong>Used storage</strong> is the <strong>actual physical space</strong> currently occupied by Longhorn
+    data and other system files.</li>
+<li><strong>Schedulable storage</strong> is the amount of <strong>new volume capacity</strong> Longhorn can
+    allocate to pods.</li>
+</ul>
+<h3 id="targeted-storageclasses">Targeted <code>StorageClass</code>es</h3>
+<p>To enable the automatic creation of volumes in each disk, create a <code>StorageClass</code> for
+each type of disk (NVMe, SATA) with this manifest:</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>longhorn-storage.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-nvme</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="nt">provisioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">driver.longhorn.io</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="nt">allowVolumeExpansion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">  </span><span class="nt">numberOfReplicas</span><span class="p">:</span><span class="w"> </span><span class="s">"1"</span><span class="w"> </span><span class="c1"># Increase to 2 after adding a second node</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">  </span><span class="nt">diskSelector</span><span class="p">:</span><span class="w"> </span><span class="s">"nvme"</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">  </span><span class="nt">dataLocality</span><span class="p">:</span><span class="w"> </span><span class="s">"best-effort"</span>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="nn">---</span>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-sata</span>
+</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="nt">provisioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">driver.longhorn.io</span>
+</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="nt">allowVolumeExpansion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="w">  </span><span class="nt">numberOfReplicas</span><span class="p">:</span><span class="w"> </span><span class="s">"1"</span>
+</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="w">  </span><span class="nt">diskSelector</span><span class="p">:</span><span class="w"> </span><span class="s">"sata"</span>
+</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="w">  </span><span class="nt">dataLocality</span><span class="p">:</span><span class="w"> </span><span class="s">"best-effort"</span>
+</span></code></pre></div>
+</div>
+<p>Longhorn supports supports online volume expansion, allowing the volume to grow without
+downtime, <strong>only if</strong> the <code>StorageClass</code> has <code>allowVolumeExpansion: true</code> which cannot
+be added later without deleting and recreating the <code>StorageClass</code> (existing volumes are
+not deleted).</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>longhorn-storage.yaml
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="go">storageclass.storage.k8s.io/longhorn-nvme created</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="go">storageclass.storage.k8s.io/longhorn-sata created</span>
+</span></code></pre></div>
+<h3 id="replication-vs-bandwidth">Replication Vs. Bandwidth</h3>
+<p>When creating new PVC using the <code>longhorn-nvme</code> class to use the fastest SSD,
+<code>accessModes</code> should <em>almost always</em> be set to <code>ReadWriteOnce</code>.</p>
+<p><strong>RWO</strong> volumes (<code>ReadWriteOnce</code>) are mounted directly as block devices via iSCSI. This
+provides the highest performance for database-like workloads (e.g., Postgres, Redis, or
+application caches) because there is no network filesystem overhead. Most Kubernetes
+deployments (even those with multiple replicas) do not require
+<strong>multiple pods to write to the same volume simultaneously</strong>.
+Instead, each pod typically manages its own data. In a multi-node cluster, if one node
+fails, Kubernetes will move the pod to the other node. Longhorn will then detach the RWO
+volume from the old node and attach it to the new one.</p>
+<p><strong>RWX</strong> volumes (<code>ReadWriteMany</code>) should only be used when an application specifically
+requires <strong>multiple pods</strong> (possibly on multiple nodes) to 
+<strong>read and write to the exact same files at the same time</strong>. 
+Longhorn implements RWX by spinning up a "Share Manager" pod that acts as an NFS server
+for that specific volume (this requires the <code>nfs-common</code>).</p>
+<p>When scaling a single-node cluster to two nodes and setting <code>numberOfReplicas: 2</code>, an
+RWO volume will still be fully distributed and synced across both nodes' NVMe SSDs.
+The "Once" in <code>ReadWriteOnce</code> refers only to <em>how many nodes can mount the volume</em>
+at one time, not how many nodes store the data. Even with RWO, data is redundant
+and safe on both nodes.</p>
+<p>However, in a two-node Longhorn cluster with two replicas, each pod will <strong>not</strong> use <em>exclusively local PCIe NVMe bandwidth</em> for its storage operations. While each pod can
+be guaranteed to have a local copy of its data, the synchronous replication requirement
+of a distributed system introduces network latency. </p>
+<p>By default, Longhorn may schedule a pod on a node that does not contain a local replica
+of its volume. To force each pod to prioritize its local disk, enable <strong>Data Locality</strong>
+in the <code>StorageClass</code> or volume settings: </p>
+<ul>
+<li><code>strict-local</code>: Enforces that a healthy replica must exist on the same node as the
+    pod. This provides the lowest possible latency for reads but prevents the pod from
+    starting if the local disk is unavailable. </li>
+<li><code>best-effort</code>: Longhorn attempts to keep one replica on the same node as the pod.
+    If it can't, the pod will still run but will access its data over the network from
+    the other node. This is very nearly always as fast as <code>strict-local</code> but with the
+    advantage that pods can move across nodes more easily and quickly, which maximizes
+    uptime without compromising performance.</li>
+</ul>
+<p>Even if a pod is reading directly from its local NVMe SSD, write operations are
+synchronous. When a pod writes data, the Longhorn Engine (running on the same node as
+the pod) must successfully write that data to both the local replica and the remote
+replica on the second node before the write is considered "complete".</p>
+<p>This means the write bandwidth and latency are capped by the network speed and the
+overhead of the iSCSI/Longhorn protocol, rather than the raw PCIe NVMe bandwidth.
+While the pod will benefit from NVMe speeds for local reads, the overall performance
+is lower than a raw local NVMe SSD: reads will have <em>near-local</em> speeds but writes is
+limited by network latency.</p>
+<p>Ultimately, if an application requires raw PCIe NVMe bandwidth and doesn't need
+Longhorn’s high availability features, then a <code>hostPath</code> or Local Path Provisioner
+class may be best for that specific workload. However, for most general-purpose
+applications, the performance trade-off of Longhorn is acceptable for the benefit of
+having a fully synced, distributed cluster.</p>
+<h3 id="active-active-vs-active-passive">Active-Active Vs. Active-Passive</h3>
+<p>For a single-pod deployment like code-server, when scaling up to 2 replicas on 2 nodes,
+with Longhorn replicating its RWO volume with <strong>data locality</strong> set to <code>best-effort</code> to
+keep both volumes in sync, the result is an <strong>active-passive</strong> cluster, with one pod
+being active while the other stays in stand-by to take over only when the first one
+goes down.</p>
+<p>This setup will not work for an <strong>active-active</strong> setup because of two reasons:</p>
+<ol>
+<li>
+<p>A <code>ReadWriteOnce</code> (RWO) volume is <strong>physically locked to a single</strong> node at a time.
+    If Pod-A is running one node and has the volume mounted, Pod-B on the other node
+    <strong>will be unable to start</strong>. It will stay in a <code>ContainerCreating</code> or
+    <code>MatchNodeSelector</code> state because Longhorn cannot attach an RWO volume to two nodes
+    simultaneously. While Longhorn replicates the data to both nodes' NVMe SSDs in the
+    background, only one engine can be the <strong>Primary</strong> (the writer) at any given moment.</p>
+<p>With <code>dataLocality: best-effort</code> and <code>numberOfReplicas: 2</code> every byte Pod-A writes
+to the one NVMe is synchronously sent over the network to the other NVMe, so that
+both disks are always bit-for-bit identical. If one node crashes, Kubernetes
+detects the node failure. It then schedules a new Pod on the other node. Longhorn
+"promotes" the second replica to be the new <strong>Primary</strong>, and the Pod starts.
+This is an <strong>Active-Passive High Availability</strong> setup, with redundancy, but not
+both pods responding to requests at the same time.</p>
+</li>
+<li>
+<p>Even when using <strong>RWX</strong> (which allows both pods to run), applications like
+    <code>code-server</code> are not <strong>stateless</strong>; <code>code-server</code> (and its underlying VS Code
+    engine) uses <strong>SQLite</strong> databases for extensions and settings. SQLite does not
+    support multiple processes writing to the same file over a network (NFS/RWX).
+    Attempting to run multiple instances on a single such database would lead to
+    database corruption or immediate "Locked" errors. Moreover, if Pomerium proxy sends
+    a request for "Save File" to Pod-B, but the "Open Editor" session was handled by
+    Pod-A, the session state would be inconsistent.</p>
+</li>
+</ol>
+<p>RWO volumes (best compromise for speed and replication) support <strong>Disaster Recovery</strong> (Active-Passive) setups, ensuring data is never lost a node dies. However, it cannot be
+Active-Active; for that, an application must be specifically designed to store its
+state in an external database (like Postgres) rather than a local RWO/RWX volume.</p>
+<p>Most of the currently running applications are designed as monolithic services that rely
+on a single local database (SQLite) or a local file system (e.g. Home Assistant), making
+them <strong>Active-Passive</strong> by nature. However, several can be adapted for Active-Active 
+High Availability with specific configurations: Pomerium and Homepage are stateless,
+Grafana can have its SQLite database replaced by Postgres or MySQL, but ony InfluxDB
+3.0 supports clustering.</p>
+<h2 id="from-hostpath-to-longhorn">From <code>hostPath</code> to Longhorn</h2>
+<p>At this point data can be migrated from the old <code>hostPath</code> volume to the new Longhorn
+volumes in three steps for each application (<strong>Deployment</strong>):</p>
+<ol>
+<li>Create a new <code>PersistentVolumeClaim</code> using <code>storageClassName: longhorn-nvme</code>.</li>
+<li>Scale the deployment down.</li>
+<li>Copy data using a simple pod to run the <code>cp</code> command e.g. using <code>busybox</code>.</li>
+<li>Update the Deployment to mount the new <code>PersistentVolumeClaim</code>.</li>
+<li>Scale the deployment back up.</li>
+</ol>
+<p>To copy the data the same simple pod can be run by adjusting just the highlighted values:</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>longhorn-migrator.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">batch/v1</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Job</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hostpath-to-longhorn-migrator</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="hll"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server</span><span class="w">  </span><span class="c1"># Set to each application's namespace</span>
+</span></span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">      </span><span class="nt">restartPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OnFailure</span><span class="w">  </span><span class="c1"># Restart only upon failure.</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu:22.04</span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"/bin/sh"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"-c"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="w">            </span><span class="no">apt-get update &amp;&amp; apt-get install -y rsync</span>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="w">            </span><span class="no">rsync -uva /old/ /new/</span>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="w">        </span><span class="nt">volumeMounts</span><span class="p">:</span>
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">old-data</span>
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/old</span><span class="w">  </span><span class="c1"># Point to existing hostPath subdirectory</span>
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="w">          </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new-data</span>
+</span><span id="__span-23-23"><a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/new</span><span class="w">  </span><span class="c1"># Point to new Longhorn PVC</span>
+</span><span id="__span-23-24"><a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a><span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-23-25"><a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">old-data</span>
+</span><span id="__span-23-26"><a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a><span class="w">        </span><span class="nt">hostPath</span><span class="p">:</span>
+</span><span id="__span-23-27"><a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="hll"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/home/k8s/code-server</span>
+</span></span><span id="__span-23-28"><a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new-data</span>
+</span><span id="__span-23-29"><a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">        </span><span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+</span><span id="__span-23-30"><a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a><span class="hll"><span class="w">          </span><span class="nt">claimName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-pvc-lh</span><span class="w">  </span><span class="c1"># The new PVC created for each application.</span>
+</span></span></code></pre></div>
+</div>
+<h3 id="example-migration">Example migration</h3>
+<p>To illustrate the migration process with a simple case, start by migrating
+<a href="../../../../2023/05/29/running-visual-studio-code-server-on-kubernetes/">VS Code Server</a>.</p>
+<ol>
+<li>
+<p>Update the <code>code-server.yaml</code> manifest to add a new <code>PersistentVolumeClaim</code> using
+    <code>storageClassName: longhorn-nvme</code> and apply the mani fest to create the PVC:</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>code-server.yaml</code></p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-24-47">47</a></span>
+<span class="normal"><a href="#__codelineno-24-48">48</a></span>
+<span class="normal"><a href="#__codelineno-24-49">49</a></span>
+<span class="normal"><a href="#__codelineno-24-50">50</a></span>
+<span class="normal"><a href="#__codelineno-24-51">51</a></span>
+<span class="normal"><a href="#__codelineno-24-52">52</a></span>
+<span class="normal"><a href="#__codelineno-24-53">53</a></span>
+<span class="normal"><a href="#__codelineno-24-54">54</a></span>
+<span class="normal"><a href="#__codelineno-24-55">55</a></span>
+<span class="normal"><a href="#__codelineno-24-56">56</a></span>
+<span class="normal"><a href="#__codelineno-24-57">57</a></span>
+<span class="normal"><a href="#__codelineno-24-58">58</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-24-47"><a id="__codelineno-24-47" name="__codelineno-24-47"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+</span><span id="__span-24-48"><a id="__codelineno-24-48" name="__codelineno-24-48"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+</span><span id="__span-24-49"><a id="__codelineno-24-49" name="__codelineno-24-49"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-24-50"><a id="__codelineno-24-50" name="__codelineno-24-50"></a><span class="hll"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-pvc-lh</span>
+</span></span><span id="__span-24-51"><a id="__codelineno-24-51" name="__codelineno-24-51"></a><span class="hll"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server</span>
+</span></span><span id="__span-24-52"><a id="__codelineno-24-52" name="__codelineno-24-52"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-24-53"><a id="__codelineno-24-53" name="__codelineno-24-53"></a><span class="hll"><span class="w">  </span><span class="nt">storageClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-nvme</span>
+</span></span><span id="__span-24-54"><a id="__codelineno-24-54" name="__codelineno-24-54"></a><span class="w">  </span><span class="nt">accessModes</span><span class="p">:</span>
+</span><span id="__span-24-55"><a id="__codelineno-24-55" name="__codelineno-24-55"></a><span class="hll"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ReadWriteOnce</span>
+</span></span><span id="__span-24-56"><a id="__codelineno-24-56" name="__codelineno-24-56"></a><span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-24-57"><a id="__codelineno-24-57" name="__codelineno-24-57"></a><span class="w">    </span><span class="nt">requests</span><span class="p">:</span>
+</span><span id="__span-24-58"><a id="__codelineno-24-58" name="__codelineno-24-58"></a><span class="w">      </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5Gi</span>
+</span></code></pre></div></td></tr></tbody></table></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <code>accessModes</code> value <strong>cannot</strong> be <em>easly</em> done later, e.g. when <a href="#adding-future-nodes">adding a
+node</a>; see
+<a href="#replication-vs-bandwidth">Replication Vs. Bandwidth</a>.</p>
+</div>
+<p>Confirm the PVC is created after applying the <code>code-server.yaml</code> manifest:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>code-server.yaml<span class="w"> </span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="go">namespace/code-server unchanged</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="go">service/code-server unchanged</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="go">persistentvolume/code-server-pv unchanged</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="go">persistentvolumeclaim/code-server-pv-claim unchanged</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="hll"><span class="go">persistentvolumeclaim/code-server-pvc-lh created</span>
+</span></span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="go">deployment.apps/code-server unchanged</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>get<span class="w"> </span>pvc
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="go">NAME                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE</span>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="go">code-server-pv-claim   Bound    code-server-pv                             10Gi       RWO            manual          &lt;unset&gt;                 269d</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="hll"><span class="go">code-server-pvc-lh     Bound    pvc-f549ff26-5424-4b30-b0a3-245a845888f7   5Gi        RWO            longhorn-nvme   &lt;unset&gt;                 68s</span>
+</span></span></code></pre></div>
+</li>
+<li>
+<p>Scale the deployment down.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>code-server<span class="w"> </span>--replicas<span class="o">=</span><span class="m">0</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="go">deployment.apps/code-server scaled</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>Copy data using a simple pod to run the <code>cp</code> command, e.g. using <code>busybox</code>.</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>longhorn-migrator.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">batch/v1</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Job</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hostpath-to-longhorn-migrator</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="hll"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server</span><span class="w">  </span><span class="c1"># Set to each application's namespace</span>
+</span></span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">      </span><span class="nt">restartPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OnFailure</span><span class="w">  </span><span class="c1"># Restart only upon failure.</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker</span>
+</span><span id="__span-27-12"><a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu:22.04</span>
+</span><span id="__span-27-13"><a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"/bin/sh"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"-c"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-27-14"><a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span id="__span-27-15"><a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-27-16"><a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a><span class="w">            </span><span class="no">apt-get update &amp;&amp; apt-get install -y rsync</span>
+</span><span id="__span-27-17"><a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a><span class="w">            </span><span class="no">rsync -uva /old/ /new/</span>
+</span><span id="__span-27-18"><a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a><span class="w">        </span><span class="nt">volumeMounts</span><span class="p">:</span>
+</span><span id="__span-27-19"><a id="__codelineno-27-19" name="__codelineno-27-19" href="#__codelineno-27-19"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">old-data</span>
+</span><span id="__span-27-20"><a id="__codelineno-27-20" name="__codelineno-27-20" href="#__codelineno-27-20"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/old</span><span class="w">  </span><span class="c1"># Point to existing hostPath subdirectory</span>
+</span><span id="__span-27-21"><a id="__codelineno-27-21" name="__codelineno-27-21" href="#__codelineno-27-21"></a><span class="w">          </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-27-22"><a id="__codelineno-27-22" name="__codelineno-27-22" href="#__codelineno-27-22"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new-data</span>
+</span><span id="__span-27-23"><a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/new</span><span class="w">  </span><span class="c1"># Point to new Longhorn PVC</span>
+</span><span id="__span-27-24"><a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a><span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-27-25"><a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">old-data</span>
+</span><span id="__span-27-26"><a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="w">        </span><span class="nt">hostPath</span><span class="p">:</span>
+</span><span id="__span-27-27"><a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="hll"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/home/k8s/code-server</span>
+</span></span><span id="__span-27-28"><a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new-data</span>
+</span><span id="__span-27-29"><a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="w">        </span><span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+</span><span id="__span-27-30"><a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a><span class="hll"><span class="w">          </span><span class="nt">claimName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-pvc-lh</span><span class="w">  </span><span class="c1"># The new PVC created for each application.</span>
+</span></span></code></pre></div>
+</div>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>longhorn-migrator.yaml<span class="w"> </span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="go">job.batch/hostpath-to-longhorn-migrator created</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>get<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>--watch
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="go">NAME                            STATUS    COMPLETIONS   DURATION   AGE</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="go">hostpath-to-longhorn-migrator   Running   0/1           12s        12s</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="go">hostpath-to-longhorn-migrator   Running   0/1           18s        18s</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="go">hostpath-to-longhorn-migrator   SuccessCriteriaMet   0/1           19s        19s</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="go">hostpath-to-longhorn-migrator   Complete             1/1           19s        19s</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>delete<span class="w"> </span>job<span class="w"> </span>hostpath-to-longhorn-migrator<span class="w"> </span>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="go">job.batch "hostpath-to-longhorn-migrator" deleted from code-server namespace</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>Update the Deployment to mount the new <code>PersistentVolumeClaim</code>.</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>code-server.yaml</code></p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-29-76">76</a></span>
+<span class="normal"><a href="#__codelineno-29-77">77</a></span>
+<span class="normal"><a href="#__codelineno-29-78">78</a></span>
+<span class="normal"><a href="#__codelineno-29-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-29-76"><a id="__codelineno-29-76" name="__codelineno-29-76"></a><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-29-77"><a id="__codelineno-29-77" name="__codelineno-29-77"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-storage</span>
+</span><span id="__span-29-78"><a id="__codelineno-29-78" name="__codelineno-29-78"></a><span class="w">    </span><span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+</span><span id="__span-29-79"><a id="__codelineno-29-79" name="__codelineno-29-79"></a><span class="hll"><span class="w">      </span><span class="nt">claimName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-pvc-lh</span>
+</span></span></code></pre></div></td></tr></tbody></table></div>
+</div>
+<p>At this point the old <code>PersistentVolumeClaim</code> and <code>PersistentVolume</code> using
+<code>hostPath</code> can be removed. Apply the <code>code-server.yaml</code> manifest again:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>code-server.yaml<span class="w"> </span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="go">namespace/code-server unchanged</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="go">service/code-server unchanged</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="go">persistentvolumeclaim/code-server-pvc-lh unchanged</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="go">deployment.apps/code-server configured</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>Scale the deployment back up.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>code-server<span class="w"> </span>--replicas<span class="o">=</span><span class="m">1</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="go">deployment.apps/code-server scaled</span>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>--watch
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="go">NAME                           READY   STATUS              RESTARTS   AGE</span>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="go">code-server-67c85cf5d7-gwpnk   0/1     ContainerCreating   0          1s</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="go">code-server-67c85cf5d7-gwpnk   1/1     Running             0          12s</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>Clean-up the old <code>PersistentVolumeClaim</code> and <code>PersistentVolume</code> based on <code>hostPath</code>:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>-n<span class="w"> </span>code-server<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>code-server-pv-claim
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="go">persistentvolumeclaim "code-server-pv-claim" deleted from code-server namespace</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="gp">$ </span>kubectl<span class="w"> </span>delete<span class="w"> </span>pv<span class="w"> </span>code-server-pv
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="go">persistentvolume "code-server-pv" deleted</span>
+</span></code></pre></div>
+</li>
+</ol>
+<h3 id="nas-to-longhorn-sync">NAS-to-Longhorn sync</h3>
+<p>Some applications work better when files are in a "local" file system, e.g.
+Audiobookshelf detects new books when added to a local (<code>hostPath</code>) volume, but when
+added to a NFS volume the library must be manually re-scanned; while this is not too
+bad for audiobooks when added at a rate of <em>a few per month</em> , it becomes a problem 
+with podcasts since the aggregate release rate of episodes soon amounts to
+<em>a few every day</em>.</p>
+<p>To keep such apps running off of "local" Longhorn volumes while using the NAS NFS
+volume as the canonical repository, run a sidecar pod that continuously syncs content
+from the NAS to the Longhorn volume. To avoid constantly scanning the <strong>content</strong> of
+files in the NAS, the pod should scan the NFS volume for <strong>metadata</strong> updates. Here is
+the sidecar pod added to <a href="../../../../2024/05/26/self-hosted-ebook-library-with-komga/">Komga</a>:</p>
+<div class="admonition k8s">
+<p class="admonition-title">Kubernetes deployment: <code>komga.yaml</code></p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-33-72"> 72</a></span>
+<span class="normal"><a href="#__codelineno-33-73"> 73</a></span>
+<span class="normal"><a href="#__codelineno-33-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-33-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-33-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-33-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-33-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-33-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-33-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-33-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-33-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-33-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-33-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-33-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-33-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-33-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-33-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-33-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-33-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-33-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-33-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-33-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-33-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-33-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-33-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-33-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-33-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-33-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-33-100">100</a></span>
+<span class="normal"><a href="#__codelineno-33-101">101</a></span>
+<span class="normal"><a href="#__codelineno-33-102">102</a></span>
+<span class="normal"><a href="#__codelineno-33-103">103</a></span>
+<span class="normal"><a href="#__codelineno-33-104">104</a></span>
+<span class="normal"><a href="#__codelineno-33-105">105</a></span>
+<span class="normal"><a href="#__codelineno-33-106">106</a></span>
+<span class="normal"><a href="#__codelineno-33-107">107</a></span>
+<span class="normal"><a href="#__codelineno-33-108">108</a></span>
+<span class="normal"><a href="#__codelineno-33-109">109</a></span>
+<span class="normal"><a href="#__codelineno-33-110">110</a></span>
+<span class="normal"><a href="#__codelineno-33-111">111</a></span>
+<span class="normal"><a href="#__codelineno-33-112">112</a></span>
+<span class="normal"><a href="#__codelineno-33-113">113</a></span>
+<span class="normal"><a href="#__codelineno-33-114">114</a></span>
+<span class="normal"><a href="#__codelineno-33-115">115</a></span>
+<span class="normal"><a href="#__codelineno-33-116">116</a></span>
+<span class="normal"><a href="#__codelineno-33-117">117</a></span>
+<span class="normal"><a href="#__codelineno-33-118">118</a></span>
+<span class="normal"><a href="#__codelineno-33-119">119</a></span>
+<span class="normal"><a href="#__codelineno-33-120">120</a></span>
+<span class="normal"><a href="#__codelineno-33-121">121</a></span>
+<span class="normal"><a href="#__codelineno-33-122">122</a></span>
+<span class="normal"><a href="#__codelineno-33-123">123</a></span>
+<span class="normal"><a href="#__codelineno-33-124">124</a></span>
+<span class="normal"><a href="#__codelineno-33-125">125</a></span>
+<span class="normal"><a href="#__codelineno-33-126">126</a></span>
+<span class="normal"><a href="#__codelineno-33-127">127</a></span>
+<span class="normal"><a href="#__codelineno-33-128">128</a></span>
+<span class="normal"><a href="#__codelineno-33-129">129</a></span>
+<span class="normal"><a href="#__codelineno-33-130">130</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-33-72"><a id="__codelineno-33-72" name="__codelineno-33-72"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+</span><span id="__span-33-73"><a id="__codelineno-33-73" name="__codelineno-33-73"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+</span><span id="__span-33-74"><a id="__codelineno-33-74" name="__codelineno-33-74"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-33-75"><a id="__codelineno-33-75" name="__codelineno-33-75"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-33-76"><a id="__codelineno-33-76" name="__codelineno-33-76"></a><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span><span id="__span-33-77"><a id="__codelineno-33-77" name="__codelineno-33-77"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span><span id="__span-33-78"><a id="__codelineno-33-78" name="__codelineno-33-78"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span><span id="__span-33-79"><a id="__codelineno-33-79" name="__codelineno-33-79"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-33-80"><a id="__codelineno-33-80" name="__codelineno-33-80"></a><span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-33-81"><a id="__codelineno-33-81" name="__codelineno-33-81"></a><span class="w">  </span><span class="nt">revisionHistoryLimit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span><span id="__span-33-82"><a id="__codelineno-33-82" name="__codelineno-33-82"></a><span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+</span><span id="__span-33-83"><a id="__codelineno-33-83" name="__codelineno-33-83"></a><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+</span><span id="__span-33-84"><a id="__codelineno-33-84" name="__codelineno-33-84"></a><span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span><span id="__span-33-85"><a id="__codelineno-33-85" name="__codelineno-33-85"></a><span class="w">  </span><span class="nt">strategy</span><span class="p">:</span>
+</span><span id="__span-33-86"><a id="__codelineno-33-86" name="__codelineno-33-86"></a><span class="w">    </span><span class="nt">rollingUpdate</span><span class="p">:</span>
+</span><span id="__span-33-87"><a id="__codelineno-33-87" name="__codelineno-33-87"></a><span class="w">      </span><span class="nt">maxSurge</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span><span id="__span-33-88"><a id="__codelineno-33-88" name="__codelineno-33-88"></a><span class="w">      </span><span class="nt">maxUnavailable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-33-89"><a id="__codelineno-33-89" name="__codelineno-33-89"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RollingUpdate</span>
+</span><span id="__span-33-90"><a id="__codelineno-33-90" name="__codelineno-33-90"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+</span><span id="__span-33-91"><a id="__codelineno-33-91" name="__codelineno-33-91"></a><span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-33-92"><a id="__codelineno-33-92" name="__codelineno-33-92"></a><span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-33-93"><a id="__codelineno-33-93" name="__codelineno-33-93"></a><span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span><span id="__span-33-94"><a id="__codelineno-33-94" name="__codelineno-33-94"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-33-95"><a id="__codelineno-33-95" name="__codelineno-33-95"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+</span><span id="__span-33-96"><a id="__codelineno-33-96" name="__codelineno-33-96"></a><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+</span></span><span id="__span-33-97"><a id="__codelineno-33-97" name="__codelineno-33-97"></a><span class="hll"><span class="w">          </span><span class="nt">imagePullPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Always</span>
+</span></span><span id="__span-33-98"><a id="__codelineno-33-98" name="__codelineno-33-98"></a><span class="hll"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sync-nvme-from-nas</span>
+</span></span><span id="__span-33-99"><a id="__codelineno-33-99" name="__codelineno-33-99"></a><span class="hll"><span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"/bin/sh"</span><span class="p p-Indicator">]</span>
+</span></span><span id="__span-33-100"><a id="__codelineno-33-100" name="__codelineno-33-100"></a><span class="hll"><span class="w">          </span><span class="nt">args</span><span class="p">:</span>
+</span></span><span id="__span-33-101"><a id="__codelineno-33-101" name="__codelineno-33-101"></a><span class="hll"><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"-c"</span>
+</span></span><span id="__span-33-102"><a id="__codelineno-33-102" name="__codelineno-33-102"></a><span class="hll"><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span></span><span id="__span-33-103"><a id="__codelineno-33-103" name="__codelineno-33-103"></a><span class="hll"><span class="w">              </span><span class="no">apk add --no-cache rsync</span>
+</span></span><span id="__span-33-104"><a id="__codelineno-33-104" name="__codelineno-33-104"></a><span class="hll"><span class="w">              </span><span class="no">SOURCE="/nas-source"</span>
+</span></span><span id="__span-33-105"><a id="__codelineno-33-105" name="__codelineno-33-105"></a><span class="hll"><span class="w">              </span><span class="no">TARGET="/data-target"</span>
+</span></span><span id="__span-33-106"><a id="__codelineno-33-106" name="__codelineno-33-106"></a><span class="hll"><span class="w">              </span><span class="no">LAST_FINGERPRINT=""</span>
+</span></span><span id="__span-33-107"><a id="__codelineno-33-107" name="__codelineno-33-107"></a><span class="hll"><span class="w">              </span><span class="no">echo "Starting Smart-Sync Poller..."</span>
+</span></span><span id="__span-33-108"><a id="__codelineno-33-108" name="__codelineno-33-108"></a><span class="hll"><span class="w">              </span><span class="no">while true; do</span>
+</span></span><span id="__span-33-109"><a id="__codelineno-33-109" name="__codelineno-33-109"></a><span class="hll"><span class="w">                </span><span class="no">CURRENT_FINGERPRINT=$(ls -Rl --full-time $SOURCE | md5sum)</span>
+</span></span><span id="__span-33-110"><a id="__codelineno-33-110" name="__codelineno-33-110"></a><span class="hll"><span class="w">                </span><span class="no">if [ "$CURRENT_FINGERPRINT" != "$LAST_FINGERPRINT" ]; then</span>
+</span></span><span id="__span-33-111"><a id="__codelineno-33-111" name="__codelineno-33-111"></a><span class="hll"><span class="w">                  </span><span class="no">echo "Change detected on Synology NAS. Synchronizing to NVMe..."</span>
+</span></span><span id="__span-33-112"><a id="__codelineno-33-112" name="__codelineno-33-112"></a><span class="hll"><span class="w">                  </span><span class="no">rsync -au --delete --inplace "$SOURCE/" "$TARGET/"</span>
+</span></span><span id="__span-33-113"><a id="__codelineno-33-113" name="__codelineno-33-113"></a><span class="hll"><span class="w">                  </span><span class="no">LAST_FINGERPRINT=$CURRENT_FINGERPRINT</span>
+</span></span><span id="__span-33-114"><a id="__codelineno-33-114" name="__codelineno-33-114"></a><span class="hll"><span class="w">                  </span><span class="no">echo "Sync complete. Waiting for next change..."</span>
+</span></span><span id="__span-33-115"><a id="__codelineno-33-115" name="__codelineno-33-115"></a><span class="hll"><span class="w">                </span><span class="no">fi</span>
+</span></span><span id="__span-33-116"><a id="__codelineno-33-116" name="__codelineno-33-116"></a><span class="hll"><span class="w">                </span><span class="no">sleep 60</span>
+</span></span><span id="__span-33-117"><a id="__codelineno-33-117" name="__codelineno-33-117"></a><span class="hll"><span class="w">              </span><span class="no">done</span>
+</span></span><span id="__span-33-118"><a id="__codelineno-33-118" name="__codelineno-33-118"></a><span class="hll"><span class="w">          </span><span class="nt">volumeMounts</span><span class="p">:</span>
+</span></span><span id="__span-33-119"><a id="__codelineno-33-119" name="__codelineno-33-119"></a><span class="hll"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga-ebooks-nfs</span>
+</span></span><span id="__span-33-120"><a id="__codelineno-33-120" name="__codelineno-33-120"></a><span class="hll"><span class="w">            </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/nas-source</span>
+</span></span><span id="__span-33-121"><a id="__codelineno-33-121" name="__codelineno-33-121"></a><span class="hll"><span class="w">            </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></span><span id="__span-33-122"><a id="__codelineno-33-122" name="__codelineno-33-122"></a><span class="hll"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga-books</span>
+</span></span><span id="__span-33-123"><a id="__codelineno-33-123" name="__codelineno-33-123"></a><span class="hll"><span class="w">            </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/data-target</span>
+</span></span><span id="__span-33-124"><a id="__codelineno-33-124" name="__codelineno-33-124"></a><span class="w">          </span><span class="nt">securityContext</span><span class="p">:</span>
+</span><span id="__span-33-125"><a id="__codelineno-33-125" name="__codelineno-33-125"></a><span class="w">            </span><span class="nt">allowPrivilegeEscalation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-33-126"><a id="__codelineno-33-126" name="__codelineno-33-126"></a><span class="w">            </span><span class="nt">runAsUser</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">118</span>
+</span><span id="__span-33-127"><a id="__codelineno-33-127" name="__codelineno-33-127"></a><span class="w">            </span><span class="nt">runAsGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">118</span>
+</span><span id="__span-33-128"><a id="__codelineno-33-128" name="__codelineno-33-128"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gotson/komga</span>
+</span><span id="__span-33-129"><a id="__codelineno-33-129" name="__codelineno-33-129"></a><span class="w">          </span><span class="nt">imagePullPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Always</span>
+</span><span id="__span-33-130"><a id="__codelineno-33-130" name="__codelineno-33-130"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">komga</span>
+</span></code></pre></div></td></tr></tbody></table></div>
+</div>
+<p>After applying this change to the Komga deployment, the pod is now running
+<strong>two containers</strong>: the application <code>komga</code> and the sidecar <code>sync-nvme-from-nas</code>.
+Dropping new files in the <code>ebooks</code> directory in the NAS, or deleting them, is detected
+and synced to the Longhorn volume:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>komga<span class="w"> </span>-f<span class="w"> </span>deployment/komga<span class="w"> </span>-c<span class="w"> </span>sync-nvme-from-nas<span class="w"> </span>-f
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="gp gp-VirtualEnv">(1/6)</span> <span class="go">Installing acl-libs (2.3.2-r1)</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a><span class="gp gp-VirtualEnv">(2/6)</span> <span class="go">Installing lz4-libs (1.10.0-r0)</span>
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="gp gp-VirtualEnv">(3/6)</span> <span class="go">Installing popt (1.19-r4)</span>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="gp gp-VirtualEnv">(4/6)</span> <span class="go">Installing libxxhash (0.8.3-r0)</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="gp gp-VirtualEnv">(5/6)</span> <span class="go">Installing zstd-libs (1.5.7-r2)</span>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="gp gp-VirtualEnv">(6/6)</span> <span class="go">Installing rsync (3.4.1-r1)</span>
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a><span class="go">Executing busybox-1.37.0-r30.trigger</span>
+</span><span id="__span-34-9"><a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a><span class="go">OK: 9602 KiB in 22 packages</span>
+</span><span id="__span-34-10"><a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a><span class="go">Starting Smart-Sync Poller...</span>
+</span><span id="__span-34-11"><a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a><span class="go">Change detected on Synology NAS. Synchronizing to NVMe...</span>
+</span><span id="__span-34-12"><a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a><span class="go">sending incremental file list</span>
+</span><span id="__span-34-13"><a id="__codelineno-34-13" name="__codelineno-34-13" href="#__codelineno-34-13"></a><span class="go">./</span>
+</span><span id="__span-34-14"><a id="__codelineno-34-14" name="__codelineno-34-14" href="#__codelineno-34-14"></a>
+</span><span id="__span-34-15"><a id="__codelineno-34-15" name="__codelineno-34-15" href="#__codelineno-34-15"></a><span class="go">sent 573,984 bytes  received 1,172 bytes  383,437.33 bytes/sec</span>
+</span><span id="__span-34-16"><a id="__codelineno-34-16" name="__codelineno-34-16" href="#__codelineno-34-16"></a><span class="go">total size is 13,228,874,013  speedup is 23,000.50</span>
+</span><span id="__span-34-17"><a id="__codelineno-34-17" name="__codelineno-34-17" href="#__codelineno-34-17"></a><span class="go">Sync complete. Waiting for next change...</span>
+</span><span id="__span-34-18"><a id="__codelineno-34-18" name="__codelineno-34-18" href="#__codelineno-34-18"></a>
+</span><span id="__span-34-19"><a id="__codelineno-34-19" name="__codelineno-34-19" href="#__codelineno-34-19"></a><span class="hll"><span class="go">Change detected on Synology NAS. Synchronizing to NVMe...</span>
+</span></span><span id="__span-34-20"><a id="__codelineno-34-20" name="__codelineno-34-20" href="#__codelineno-34-20"></a><span class="hll"><span class="go">sending incremental file list</span>
+</span></span><span id="__span-34-21"><a id="__codelineno-34-21" name="__codelineno-34-21" href="#__codelineno-34-21"></a><span class="hll"><span class="go">Manuals/books/</span>
+</span></span><span id="__span-34-22"><a id="__codelineno-34-22" name="__codelineno-34-22" href="#__codelineno-34-22"></a><span class="hll"><span class="go">Manuals/books/FUJIFILM X-T5 Owner's Manual.pdf</span>
+</span></span><span id="__span-34-23"><a id="__codelineno-34-23" name="__codelineno-34-23" href="#__codelineno-34-23"></a><span class="hll">
+</span></span><span id="__span-34-24"><a id="__codelineno-34-24" name="__codelineno-34-24" href="#__codelineno-34-24"></a><span class="hll"><span class="go">sent 8,633,357 bytes  received 1,165 bytes  5,756,348.00 bytes/sec</span>
+</span></span><span id="__span-34-25"><a id="__codelineno-34-25" name="__codelineno-34-25" href="#__codelineno-34-25"></a><span class="hll"><span class="go">total size is 13,228,874,013  speedup is 1,532.09</span>
+</span></span><span id="__span-34-26"><a id="__codelineno-34-26" name="__codelineno-34-26" href="#__codelineno-34-26"></a><span class="hll"><span class="go">Sync complete. Waiting for next change...</span>
+</span></span></code></pre></div>
+<h2 id="longhorn-backups">Longhorn Backups</h2>
+<p>Once pods are migrated to Longhorn volumes, setting up backups to the Synology NAS is
+<em>easy</em>.</p>
+<p>First, create the necessary directories in the NAS:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="gp"># </span>mkdir<span class="w"> </span>/home/nas/backups/longhorn
+</span></code></pre></div>
+<p>Then, <strong>Edit</strong> the <strong>default</strong> target under <strong>Backup and Restore &gt; Backup Targets</strong> and
+set the URL to <code>nfs://192.168.0.4:/volume1/NetBackup/backups/longhorn</code> <strong>after</strong> having
+creating the directories in the NAS.</p>
+<h3 id="recurrent-jobs">Recurrent jobs</h3>
+<p>To set up a global backup system that covers volumes across all namespaces, leverage
+<a href="https://longhorn.io/docs/1.10.1/snapshots-and-backups/scheduling-backups-and-snapshots/">Longhorn’s Recurring Job Groups</a>.
+These allow defining the schedule once and then applying it to any PVC simply by adding
+a label.</p>
+<p>Create the Global Recurring Jobs with the following <code>longhorn-backups.yaml</code> manifest
+to create the jobs in the <code>longhorn-system</code> namespace. By adding them to the <strong>default</strong>
+group, they become available to any volume in the cluster.</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>longhorn-backups.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn.io/v1beta2</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RecurringJob</span>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">global-daily-backup</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-system</span>
+</span><span id="__span-36-6"><a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-36-7"><a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="w">  </span><span class="nt">cron</span><span class="p">:</span><span class="w"> </span><span class="s">"0</span><span class="nv"> </span><span class="s">2</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span><span class="w">        </span><span class="c1"># 2:00 AM daily</span>
+</span><span id="__span-36-8"><a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a><span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="s">"backup"</span><span class="w">           </span>
+</span><span id="__span-36-9"><a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a><span class="w">  </span><span class="nt">groups</span><span class="p">:</span>
+</span><span id="__span-36-10"><a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span><span class="w">                </span><span class="c1"># Group name used for assignment</span>
+</span><span id="__span-36-11"><a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a><span class="w">  </span><span class="nt">retain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span><span class="w">                </span><span class="c1"># Keeps 1 week of dailies</span>
+</span><span id="__span-36-12"><a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a><span class="w">  </span><span class="nt">concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">           </span><span class="c1"># Allows 2 volumes to backup simultaneously</span>
+</span><span id="__span-36-13"><a id="__codelineno-36-13" name="__codelineno-36-13" href="#__codelineno-36-13"></a><span class="nn">---</span>
+</span><span id="__span-36-14"><a id="__codelineno-36-14" name="__codelineno-36-14" href="#__codelineno-36-14"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn.io/v1beta2</span>
+</span><span id="__span-36-15"><a id="__codelineno-36-15" name="__codelineno-36-15" href="#__codelineno-36-15"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RecurringJob</span>
+</span><span id="__span-36-16"><a id="__codelineno-36-16" name="__codelineno-36-16" href="#__codelineno-36-16"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-36-17"><a id="__codelineno-36-17" name="__codelineno-36-17" href="#__codelineno-36-17"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">global-weekly-backup</span>
+</span><span id="__span-36-18"><a id="__codelineno-36-18" name="__codelineno-36-18" href="#__codelineno-36-18"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">longhorn-system</span>
+</span><span id="__span-36-19"><a id="__codelineno-36-19" name="__codelineno-36-19" href="#__codelineno-36-19"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-36-20"><a id="__codelineno-36-20" name="__codelineno-36-20" href="#__codelineno-36-20"></a><span class="w">  </span><span class="nt">cron</span><span class="p">:</span><span class="w"> </span><span class="s">"0</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">0"</span><span class="w">        </span><span class="c1"># 3:00 AM every Sunday</span>
+</span><span id="__span-36-21"><a id="__codelineno-36-21" name="__codelineno-36-21" href="#__codelineno-36-21"></a><span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="s">"backup"</span>
+</span><span id="__span-36-22"><a id="__codelineno-36-22" name="__codelineno-36-22" href="#__codelineno-36-22"></a><span class="w">  </span><span class="nt">groups</span><span class="p">:</span>
+</span><span id="__span-36-23"><a id="__codelineno-36-23" name="__codelineno-36-23" href="#__codelineno-36-23"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+</span><span id="__span-36-24"><a id="__codelineno-36-24" name="__codelineno-36-24" href="#__codelineno-36-24"></a><span class="w">  </span><span class="nt">retain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">                </span><span class="c1"># Keeps 1 month of weeklies</span>
+</span><span id="__span-36-25"><a id="__codelineno-36-25" name="__codelineno-36-25" href="#__codelineno-36-25"></a><span class="w">  </span><span class="nt">concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span></code></pre></div>
+</div>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="gp">$ </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>longhorn-backups.yaml
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="go">recurringjob.longhorn.io/global-daily-backup created</span>
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="go">recurringjob.longhorn.io/global-weekly-backup created</span>
+</span></code></pre></div>
+<p>In Longhorn, jobs do not target specific namespaces; instead, Volumes (the underlying
+objects of PVCs) "subscribe" to Groups. When a volume has a label matching a group name
+defined in a <code>RecurringJob</code>, Longhorn automatically includes that volume in the
+schedule. Because Longhorn volumes are cluster-scoped, this works regardless of which
+namespace the PVC resides in.</p>
+<p>Add the following label to the manifest of each PVC to be backed up. Longhorn will
+automatically propagate this label to the underlying volume.</p>
+<div class="admonition k8s">
+<p class="admonition-title"><code>code-server.yaml</code></p>
+<div class="language-yaml highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-38-20">20</a></span>
+<span class="normal"><a href="#__codelineno-38-21">21</a></span>
+<span class="normal"><a href="#__codelineno-38-22">22</a></span>
+<span class="normal"><a href="#__codelineno-38-23">23</a></span>
+<span class="normal"><a href="#__codelineno-38-24">24</a></span>
+<span class="normal"><a href="#__codelineno-38-25">25</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-38-20"><a id="__codelineno-38-20" name="__codelineno-38-20"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-38-21"><a id="__codelineno-38-21" name="__codelineno-38-21"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server-pvc-lh</span>
+</span><span id="__span-38-22"><a id="__codelineno-38-22" name="__codelineno-38-22"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-server</span>
+</span><span id="__span-38-23"><a id="__codelineno-38-23" name="__codelineno-38-23"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-38-24"><a id="__codelineno-38-24" name="__codelineno-38-24"></a><span class="w">    </span><span class="c1"># This enables all jobs in the 'default' group for this volume</span>
+</span><span id="__span-38-25"><a id="__codelineno-38-25" name="__codelineno-38-25"></a><span class="hll"><span class="w">    </span><span class="nt">recurring-job-group.longhorn.io/default</span><span class="p">:</span><span class="w"> </span><span class="s">"enabled"</span>
+</span></span></code></pre></div></td></tr></tbody></table></div>
+</div>
+<p>Backups will be found under <strong>Backup and Restore &gt; Backups</strong> after the first 2:00 AM
+run, identified by their source Volume Name and Timestamp, regardless of their original
+Kubernetes namespace.</p>
+<h2 id="adding-future-nodes">Adding future nodes</h2>
+<p>To add nodes in the future (TBC):</p>
+<ol>
+<li>Create an <code>XFS</code> (or <code>ext4</code>) file system and mount it on <code>/home</code>.</li>
+<li>Create the <code>/home/longhorn</code> directory.</li>
+<li>Join the node to the cluster.</li>
+<li>Label the node with <code>node.longhorn.io/create-default-disk=true</code>.<ul>
+<li>Longhorn will automatically detect <code>/home/longhorn</code> on the new node.</li>
+</ul>
+</li>
+<li>Update the <code>longhorn-nvme</code> <code>StorageClass</code>. or individual volumes in the relevant
+    deployments, to <code>numberOfReplicas: 2</code> so that Longhorn syncs data across nodes.</li>
+</ol>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+<script src="https://giscus.app/client.js" data-repo="stibbons1990/hex" data-repo-id="R_kgDOKXTsSg" data-category="Announcements" data-category-id="DIC_kwDOKXTsSs4CqHDX" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="1" data-input-position="top" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+</script>
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../24/migrating-nfs-volumes-to-the-nfs-csi-driver-for-kubernetes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Migrating NFS volumes to the NFS CSI driver for Kubernetes">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Migrating NFS volumes to the NFS CSI driver for Kubernetes
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../02/01/upgrading-a-single-node-kubernetes-cluster-to-zero-downtime-maintenance/" class="md-footer__link md-footer__link--next" aria-label="Next: Upgrading a single-node Kubernetes cluster to Zero Downtime Maintenance">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Upgrading a single-node Kubernetes cluster to Zero Downtime Maintenance
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2019-2025 Ponder Stibbons
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.expand", "navigation.footer", "navigation.top", "search.highlight", "search.suggest"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
