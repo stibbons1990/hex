@@ -2432,7 +2432,6 @@ NOTES:
 
     ``` yaml
     config:
-      baseURL: "https://headlamp.very-very-dark-gray.top/"
       watchPlugins: true
     pluginsManager:
       enabled: true
@@ -2493,6 +2492,127 @@ Finally, to log into the Headlamp dashboard, request a token for `headlamp`:
 ``` console
 $ kubectl create token headlamp --namespace kube-system
 ```
+
+#### Token bypass
+
+Having Headlamp accessible only through a Cloudflare Tunnel *and* Pomerium, both of which
+restrict access greatly, having to SSH in to create a token each team seems excessive and
+unnecessarily inconvenient. To bypass that, create a **legacy long-lived token**:
+
+!!! k8s "`headlamp-token.yaml`"
+
+    ``` yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: headlamp-static-token
+      namespace: kube-system
+      annotations:
+        kubernetes.io/service-account.name: "headlamp"
+    type: kubernetes.io/service-account-token
+    ```
+
+Create this `Secret` and extract the token:
+
+``` console
+$ kubectl apply -f headlamp-token.yaml 
+secret/headlamp-static-token created
+
+$ kubectl get secret headlamp-static-token \
+  -n kube-system -o jsonpath='{.data.token}' | base64 --decode
+ey...
+```
+
+Get the base64-encoded Certificate Authority (`CA`) data from the cluster:
+
+``` console
+$ kubekubectl config view --raw \
+  -o jsonpath='{.clusters[0].cluster.certificate-authority-data}'
+LS...
+```
+
+Then create a `Config` to hold that token plus the `CA` data from:
+
+!!! k8s "`headlamp-kubeconfig.yaml`"
+
+    ``` yaml
+        apiVersion: v1
+        kind: Config
+        clusters:
+        - cluster:
+            certificate-authority-data: LS...<CLUSTER_CA_DATA>
+            server: https://kubernetes.default.svc
+          name: kubernetes
+        contexts:
+        - context:
+            cluster: kubernetes
+            user: headlamp-user
+          name: headlamp-context
+        current-context: headlamp-context
+        users:
+        - name: headlamp-user
+          user:
+            token: ey...<GENERATED_TOKEN>
+    ```
+
+Create the `Secret` using the `create secret` command to wrap your file into an
+`Opaque` secret: 
+
+``` console
+$ kubectl create secret generic headlamp-kubeconfig \
+  --from-file=config=./headlamp-kubeconfig.yaml -n kube-system
+secret/headlamp-kubeconfig created
+```
+
+
+Add the `kubeconfig` as a volume along with the `-dev` flag for less strict security:
+
+!!! k8s "`headlamp-values.yaml`"
+
+    ``` yaml
+    config:
+      inCluster: false
+      extraArgs:
+        - "-dev"
+        - "-kubeconfig=/home/headlamp/.config/Headlamp/kubeconfigs/config"
+      watchPlugins: true
+    env:
+      - name: KUBECONFIG
+        value: /home/headlamp/.config/Headlamp/kubeconfigs/config
+    volumeMounts:
+      - name: kubeconfig-volume
+        mountPath: /home/headlamp/.config/Headlamp/kubeconfigs/
+        readOnly: true
+    volumes:
+      - name: kubeconfig-volume
+        secret:
+          secretName: headlamp-kubeconfig
+    pluginsManager:
+      ...
+    ```
+
+Finally, upgrade the deployment with the new Helm values:
+
+``` console
+$ helm upgrade headlamp headlamp/headlamp \
+  --namespace kube-system \
+  -f headlamp-values.yaml
+NAME: headlamp
+LAST DEPLOYED: Sun Feb  1 00:27:44 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace kube-system -l "app.kubernetes.io/name=headlamp,app.kubernetes.io/instance=headlamp" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace kube-system $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace kube-system port-forward $POD_NAME 8080:$CONTAINER_PORT
+2. Get the token using
+  kubectl create token headlamp --namespace kube-system
+```
+
 
 ### Ingress Controller
 
