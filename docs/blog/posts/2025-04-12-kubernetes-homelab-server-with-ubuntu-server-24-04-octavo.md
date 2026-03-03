@@ -4392,6 +4392,212 @@ creates devices for the NAS, each volume and each drive. This adds 5 devides and
 43 entities, to be used later to create a
 [cool dashboard](https://www.reddit.com/r/synology/comments/1gwpq15/home_assistant_synology_integration_dashboard/).
 
+#### Matter Server
+
+To enable Matter support in Home Assistant, an additional server needs to be deployed.
+This server needs also its own persistent storage, which is created similarly to the one
+for Home Server itself:
+
+``` console
+# mkdir /home/k8s/home-assistant-matter-server
+```
+
+!!! k8s "`home-assistant/base/persistent-volume.yaml`"
+
+    ``` yaml linenums="29"
+    ---
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: matter-server-data-pv
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Retain
+      hostPath:
+        path: /home/k8s/home-assistant-matter-server
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: matter-server-data
+    spec:
+      storageClassName: manual
+      volumeName: matter-server-data-pv
+      accessModes:
+        - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 1Gi
+    ```
+
+The server can then be added as a deployment with its own service:
+
+!!! k8s "`home-assistant/base/deployment.yaml`"
+
+    ``` yaml linenums="98"
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: matter-server
+      labels:
+        app: matter-server
+    spec:
+      replicas: 1
+      strategy:
+        type: Recreate
+      selector:
+        matchLabels:
+          app: matter-server
+      template:
+        metadata:
+          labels:
+            app: matter-server
+        spec:
+          hostNetwork: true
+          containers:
+            - name: matter-server-app
+              image: "ghcr.io/home-assistant-libs/python-matter-server:stable"
+              imagePullPolicy: Always
+              securityContext:
+                privileged: true
+                capabilities:
+                  add:
+                    - NET_ADMIN
+                    - NET_RAW
+              volumeMounts:
+                - name: matter-data
+                  mountPath: /data
+                - name: dev-dbus
+                  mountPath: /run/dbus
+              ports:
+                - name: api
+                  containerPort: 5580
+                  protocol: TCP
+          tolerations:
+          - key: "management-only"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+          - key: "node.kubernetes.io/unreachable"
+            operator: "Exists"
+            effect: "NoExecute"
+            tolerationSeconds: 10
+          - key: "node.kubernetes.io/not-ready"
+            operator: "Exists"
+            effect: "NoExecute"
+            tolerationSeconds: 10
+          volumes:
+            - name: matter-data
+              persistentVolumeClaim:
+                claimName: matter-server-data
+            - name: dev-dbus
+              hostPath:
+                path: /run/dbus
+    ```
+
+!!! k8s "`home-assistant/base/service.yaml`"
+
+    ``` yaml linenums="15"
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: matter-server
+      name: matter-server-svc
+    spec:
+      type: ClusterIP
+      selector:
+        app: matter-server
+      ports:
+      - name: api
+        port: 5580
+        targetPort: 5580
+        protocol: TCP
+    ```
+
+For multi-node clusters, the use of `hostPath` volumes requires keeping the deployment
+in the one specific node where the files live:
+
+!!! k8s "`home-assistant/base/kustomize.yaml`"
+
+    ``` yaml linenums="60"
+      - target: # Run Home Assistant only in the high-perf node (octavo)
+          kind: Deployment
+          name: home-assistant
+        patch: |-
+          - op: add
+            path: /spec/template/spec/affinity
+            value:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: node-type
+                      operator: In
+                      values:
+                      - high-perf
+      - target: # Run Matter server only in the high-perf node (octavo)
+          kind: Deployment
+          name: matter-server
+        patch: |-
+          - op: add
+            path: /spec/template/spec/affinity
+            value:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: node-type
+                      operator: In
+                      values:
+                      - high-perf
+    ```
+
+Applying the above changes will start the server listening on port 5580.
+
+``` console
+$ kubectl apply -k home-assistant/octavo 
+namespace/home-assistant unchanged
+configmap/home-assistant-config-59kccc4bcd unchanged
+configmap/home-assistant-configmap unchanged
+service/home-assistant-svc unchanged
+service/matter-server-svc created
+persistentvolume/home-assistant-pv-config unchanged
+persistentvolume/matter-server-data-pv created
+persistentvolumeclaim/home-assistant-config-root unchanged
+persistentvolumeclaim/matter-server-data created
+deployment.apps/home-assistant configured
+deployment.apps/matter-server created
+ingress.networking.k8s.io/home-assistant-pomerium-ingress unchanged
+ingress.networking.k8s.io/home-assistant-tailscale unchanged
+
+$ kubectl -n home-assistant get all 
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/home-assistant-5854998ddd-8vvpr   1/1     Running   0          27h
+pod/matter-server-55f556f9d7-nrkzz    1/1     Running   0          21s
+
+NAME                         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/home-assistant-svc   ClusterIP   10.107.114.233   <none>        8123/TCP   301d
+service/matter-server-svc    ClusterIP   10.110.140.111   <none>        5580/TCP   21s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/home-assistant   1/1     1            1           301d
+deployment.apps/matter-server    1/1     1            1           21s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/home-assistant-5854998ddd   1         1         1       27h
+replicaset.apps/matter-server-55f556f9d7    1         1         1       21s
+```
+
+At this point the Matter integration can be added pointing to `ws://localhost:5580`.
+
 ### InfluxDB and Grafana
 
 [InfluxDB and Grafana](./2024-04-20-monitoring-with-influxdb-and-grafana-on-kubernetes.md)
