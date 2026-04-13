@@ -6254,7 +6254,7 @@ Install `hostapd` for the access point and `bridge-utils` for bridging support:
     No VM guests are running outdated hypervisor (qemu) binaries on this host.
     ```
 
-### Bridge
+### Bridge setup
 
 Define a bridge in Netplan that includes the Ethernet interface (`enp86s0`) and
 assigns the static IP. The Wi-Fi interface (`wlo1`) will be added to the bridge by
@@ -6822,4 +6822,157 @@ Jan 22 07:04:33 octavo hostapd[1241470]: hostapd_free_hapd_data: Interface wlo1 
 Jan 22 07:04:33 octavo hostapd[1241470]: nl80211: deinit ifname=wlo1 disabled_11b_rates=0
 Jan 22 07:04:33 octavo hostapd[1241470]: nl80211: Failed to remove interface wlo1 from bridge br0: Invalid argument
 Jan 22 07:04:33 octavo systemd[1]: hostapd.service: Control process exited, code=exited, status=1/FAILURE
+```
+
+### Bridge removal
+
+To revert your the server back to the previous non-bridged setup, the networking
+configuration must be moved from from the bridge (`br0`) back to the physical ethernet
+interface (`enp86s0`), then the services can be disabled.
+
+The bridge definition must be removed and the static IPs applied directly to the ethernet interface:
+
+!!! code "`/etc/netplan/50-cloud-init.yaml`"
+
+    ``` yaml hl_lines="6-17"
+    # Dual static IP on LAN, nothing else.
+    network:
+      version: 2
+      renderer: networkd
+      ethernets:
+        enp86s0:
+          dhcp4: no
+          dhcp6: no
+          addresses: [ 10.0.0.8/24, 192.168.0.8/24 ]
+          link-local: [ ipv6 ]
+          # Set default gateway
+          routes:
+          - to: default
+            via: 192.168.0.1  # UniFi router gateway
+          # Set DNS name servers
+          nameservers:
+            addresses: [ 77.109.128.2, 213.144.129.20 ]
+      wlo1:
+        dhcp4: no
+        dhcp6: no
+        optional: true
+    ```
+
+Apply the changes and confirm the IP addresses are now on `enp86s0` instead of `br0`:
+
+``` console
+# netplan apply
+
+# ip addr show enp86s0
+2: enp86s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 48:21:0b:6d:3e:9b brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.8/24 brd 10.0.0.255 scope global enp86s0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.8/24 brd 192.168.0.255 scope global enp86s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4a21:bff:fe6d:3e9b/64 scope link 
+       valid_lft forever preferred_lft forever
+
+# ip addr show br0
+4: br0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether ae:6c:42:82:ec:c1 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::ac6c:42ff:fe82:ecc1/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+At this point there is no need to keep the Wi-Fi AP or the bridging logic running,
+stop and mask the services to prevent them from starting up again:
+
+``` console
+# systemctl stop hostapd
+
+# systemctl disable hostapd
+Synchronizing state of hostapd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install disable hostapd
+Removed "/etc/systemd/system/multi-user.target.wants/hostapd.service".
+
+# systemctl mask hostapd
+Created symlink /etc/systemd/system/hostapd.service → /dev/null.
+```
+
+Bring down the bridge interface:
+
+``` console
+# ip link set br0 down
+
+# ip addr show br0
+4: br0: <BROADCAST,MULTICAST> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether ae:6c:42:82:ec:c1 brd ff:ff:ff:ff:ff:ff
+
+# brctl show br0
+bridge name     bridge id               STP enabled     interfaces
+br0             8000.ae6c4282ecc1       no
+```
+
+Once the configuration is reverted, remove the tools used for the bridge and the AP:
+
+??? terminal "`apt purge hostapd bridge-utils -y && apt autoremove -y`"
+
+    ``` console
+    # apt purge hostapd bridge-utils -y && apt autoremove -y
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following packages were automatically installed and are no longer required:
+      kpartx libsgutils2-1.46-2 sg3-utils sg3-utils-udev
+    Use 'apt autoremove' to remove them.
+    The following packages will be REMOVED:
+      bridge-utils* hostapd*
+    0 upgraded, 0 newly installed, 2 to remove and 8 not upgraded.
+    After this operation, 2,437 kB disk space will be freed.
+    (Reading database ... 211380 files and directories currently installed.)
+    Removing bridge-utils (1.7.1-1ubuntu2) ...
+    Removing hostapd (2:2.10-21ubuntu0.4) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    (Reading database ... 211328 files and directories currently installed.)
+    Purging configuration files for hostapd (2:2.10-21ubuntu0.4) ...
+    Removed "/etc/systemd/system/hostapd.service".
+    dpkg: warning: while removing hostapd, directory '/etc/hostapd' not empty so not removed
+    Purging configuration files for bridge-utils (1.7.1-1ubuntu2) ...
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following packages will be REMOVED:
+      kpartx libsgutils2-1.46-2 sg3-utils sg3-utils-udev
+    0 upgraded, 0 newly installed, 4 to remove and 8 not upgraded.
+    After this operation, 3,271 kB disk space will be freed.
+    (Reading database ... 211323 files and directories currently installed.)
+    Removing kpartx (0.9.4-5ubuntu8.1) ...
+    Removing sg3-utils-udev (1.46-3ubuntu4) ...
+    update-initramfs: deferring update (trigger activated)
+    Removing sg3-utils (1.46-3ubuntu4) ...
+    Removing libsgutils2-1.46-2:amd64 (1.46-3ubuntu4) ...
+    Processing triggers for libc-bin (2.39-0ubuntu8.7) ...
+    Processing triggers for man-db (2.12.0-4build2) ...
+    Processing triggers for initramfs-tools (0.142ubuntu25.8) ...
+    update-initramfs: Generating /boot/initrd.img-6.17.0-20-generic
+    ``` 
+
+Confirm the bridge `br0` is gone and `enp86s0` holds the static IPs; the first command
+should return an error or show no bridge:
+
+``` console
+# brctl show
+-bash: /usr/sbin/brctl: No such file or directory
+
+# ip addr show enp86s0
+2: enp86s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 48:21:0b:6d:3e:9b brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.8/24 brd 10.0.0.255 scope global enp86s0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.8/24 brd 192.168.0.255 scope global enp86s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4a21:bff:fe6d:3e9b/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+To keep the system tidy, remove the old configuration files that are no longer in use:
+
+``` console
+# rm /etc/hostapd/hostapd.conf
 ```
