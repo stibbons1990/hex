@@ -438,6 +438,17 @@ and a user-friendly self-hosted WebUI at
 [open-webui/open-webui](https://github.com/open-webui/open-webui). You can even install
 [both Ollama and Open WebUI using Helm](https://github.com/open-webui/open-webui/blob/main/INSTALLATION.md#installing-both-ollama-and-open-webui-using-helm).
 
+#### Piwigo
+
+[Piwigo](https://piwigo.org/) is probably a better alternative to [Immich](#immich), at
+least when it comes to sharing photos with different groups of people by setting
+per-photo ACLs. Also supports pre-existing directory structures natively rather than as a
+read-only addition (as [Immich](#immich) does).
+
+The [Docker Image](https://www.piwigo.org/guides/install/docker) can be run with a simple
+[compose](https://raw.githubusercontent.com/Piwigo/piwigo-docker/refs/heads/main/compose.yaml)
+which would be easy to turn into a Kubernetes deployment.
+
 #### Pi-hole®
 
 [Pi-hole®](https://pi-hole.net/) is a renowned *Network-wide Ad Blocking* and is very
