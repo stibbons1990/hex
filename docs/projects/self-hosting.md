@@ -95,6 +95,23 @@ means no longer having to manually update the
 *plus* its dependencies (MongoDB and Java). The alternatives to self-hosting are pricey,
 starting at $15/month or $29/month depending on the provider.
 
+The *legacy* UniFi Network Server has been replaced with the **UniFi OS Server** for
+[Self-Hosting UniFi](https://help.ui.com/hc/en-us/articles/34210126298775-Self-Hosting-UniFi).
+[This presents challenges](https://share.google/aimode/072DXnYssRWDW6vyL) for a
+Kubernetes environment, since the **UniFi OS Server** is designed to run with direct
+access to the host's network.
+
+[UniFi OS Server on Docker](https://www.reddit.com/r/Ubiquiti/comments/1rp6yw3/unifi_os_server_on_docker/)
+is possible by either deploying the Docker image from
+[lemker/unifi-os-server](https://github.com/lemker/unifi-os-server)
+or the [ConnorsApps/unifi-os-helm](https://github.com/ConnorsApps/unifi-os-helm)
+Helm chart that organizes components differently.
+
+Either way, UniFi OS Server releases seem to bundle much older versions of the
+Network application, e.g. 
+[UniFi OS Server 5.0.6](https://community.ui.com/releases/UniFi-OS-Server-5-0-6/27e08ff9-377c-4ffe-a67b-8c138d7faae1)
+comes wiith UniFi Network **9.5.21**, while the cluster is already running 10.1.89.
+
 #### Visual Studio Code Server
 
 [Running Visual Studio Code Server on Kubernetes](../blog/posts/2023-05-29-running-vs-code-server-on-kubernetes.md)
