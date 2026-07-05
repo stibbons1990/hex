@@ -538,6 +538,11 @@ daemonset.apps/kube-flannel-ds configured
 
 ## Upgrade to 1.34
 
+!!! important
+
+    Make sure to follow [Longhorn requirements](#longhorn-requirements) when running
+    [Longhorn](./2026-01-25-migrating-kubernetes-volumes-to-longhorn.md) on the cluster.
+
 *Mostly* the same as the [upgrade to 1.33](#upgrade-to-133) with an important caveat.
 
 [Upgrade version 1.33.x to version 1.34.x](https://v1-34.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
@@ -1172,3 +1177,118 @@ Events:
 All this was necessary only because the `latest` tag was *temporarily*
 [yobasystems/alpine-mariadb tags](https://hub.docker.com/r/yobasystems/alpine-mariadb/tags),
 once the `latest` tag reinstantiated the original manifest would work again.
+
+### Longhorn requirements
+
+[Longhorn](./2026-01-25-migrating-kubernetes-volumes-to-longhorn.md)
+will not allow the node to fully drain under normal circumstances, so the `kubectl drain`
+command will get stuck forever with:
+
+```
+evicting pod longhorn-system/instance-manager-e54cb5cfb78d08238a3a426e71e09918
+error when evicting pods/"instance-manager-e54cb5cfb78d08238a3a426e71e09918" -n "longhorn-system" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.
+```
+
+This is because, by default, Longhorn prevents the eviction of its instance managers.
+To bypass this blocking error, temporarily change the **`node-drain-policy`**.
+
+``` console
+$ kubectl -n longhorn-system patch \
+  settings.longhorn.io node-drain-policy --type merge \
+  -p '{"value": "always-allow"}'
+setting.longhorn.io/node-drain-policy patched
+```
+
+This will get the **first** node to finish draining. Once upgraded to the next version
+of Kubernetes, Longhorn will show most volumes as **Degraded** until it finishes
+rebuilding the replicas for all of them.
+
+**This must be completed before draining the next node.**
+
+Draining the next node, which is also the last node in a 2-node cluster, will also get
+stuck indefinitely with a similar error:
+
+```
+evicting pod longhorn-system/instance-manager-eb583993afcbd514922e7235321c0161
+error when evicting pods/"instance-manager-eb583993afcbd514922e7235321c0161" -n "longhorn-system" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.
+```
+
+To get past this block, delete the specific PDB protecting the `instance-manager` on the
+node that needs to be drained:
+
+``` console
+$ kubectl get pdb -n longhorn-system -o wide
+NAME                                                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+csi-attacher                                        1               N/A               2                     102d
+csi-provisioner                                     1               N/A               2                     102d
+instance-manager-e54cb5cfb78d08238a3a426e71e09918   1               N/A               0                     38m
+instance-manager-eb583993afcbd514922e7235321c0161   1               N/A               0                     102d
+
+$ kubectl -n longhorn-system \
+  delete pdb instance-manager-eb583993afcbd514922e7235321c0161
+poddisruptionbudget.policy "instance-manager-eb583993afcbd514922e7235321c0161" deleted from longhorn-system namespace
+```
+
+Once the second node is drained, simply install the latest version of `kubeadm`
+**without** runnig the `kubeadm upgrade plan` commands. Those commands plan should only
+be executed on the primary control plane node (`octavo`), which holds the official
+cluster credentials (`admin.conf`). Do not run these on secondary nodes or workers.
+
+Instead, simply update `kubeadm` to the latest version:
+
+``` console
+# apt-get update
+# apt-get install --only-upgrade -y kubeadm
+```
+
+Instead of running a plan or an apply command, execute the dedicated node
+synchronization phase. This uses the local kubelet.conf credentials instead of looking
+for the missing `admin.conf` file:
+
+``` console
+# kubeadm upgrade node
+```
+
+Once `kubeadm` finishes updating the local node configuration, update the actual
+background worker services:
+
+``` console
+# apt-get install --only-upgrade -y kubelet kubectl
+```
+
+Reload the system management daemon and restart your kubelet instance to apply the 1.36 changes:
+
+``` console
+# systemctl daemon-reload
+# systemctl restart kubelet
+```
+
+Once the commands finish on lexicon, return to your primary octavo node terminal to bring your cluster back to full service:
+
+``` console
+# kubectl get nodes -o wide
+NAME      STATUS                     ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION              CONTAINER-RUNTIME
+lexicon   Ready,SchedulingDisabled   <none>          148d   v1.36.2   192.168.0.6   <none>        Ubuntu 24.04.4 LTS   6.17.0-35-generic (amd64)   containerd://2.2.5
+octavo    Ready                      control-plane   430d   v1.36.2   192.168.0.8   <none>        Ubuntu 24.04.4 LTS   6.17.0-35-generic (amd64)   containerd://2.2.5
+```
+
+Finally, bring Lexicon back online:
+
+``` console
+# kubectl uncordon lexicon
+node/lexicon uncordoned
+
+# kubectl get nodes -o wide
+NAME      STATUS   ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION              CONTAINER-RUNTIME
+lexicon   Ready    <none>          148d   v1.36.2   192.168.0.6   <none>        Ubuntu 24.04.4 LTS   6.17.0-35-generic (amd64)   containerd://2.2.5
+octavo    Ready    control-plane   430d   v1.36.2   192.168.0.8   <none>        Ubuntu 24.04.4 LTS   6.17.0-35-generic (amd64)   containerd://2.2.5
+```
+
+Then, *and only then*,  revert the `node-drain-policy`:
+
+``` console
+$ kubectl -n longhorn-system patch \
+  settings.longhorn.io node-drain-policy --type merge -\
+  p '{"value": "block-if-contains-last-replica"}'
+setting.longhorn.io/node-drain-policy patched
+```
