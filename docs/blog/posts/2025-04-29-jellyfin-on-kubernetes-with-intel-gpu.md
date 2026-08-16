@@ -1209,3 +1209,37 @@ crw-rw---- 1 root   993 226, 128 Apr 29 22:27 pci-0000:00:02.0-render
 
 This was fixed by adding the correct GID (`993`) in the pod's
 `securityContext.supplementalGroups`.
+
+### Enable CDI in containerd
+
+**Update on August 16th, 2026**
+
+If at some point Jellyfin fails to start (`CreateContainerError`) with the following error:
+
+`Error: failed to get container spec opts: CDI devices (intel.cdi.k8s.io/gpu=card0) requested but CDI support is explicitly disabled`
+
+Make sure to *explicitly* **enable CDI** on `containerd`, if it is disabled in
+`/etc/containerd/config.toml`
+
+``` toml title="/etc/containerd/config.toml" hl_lines="2"
+[plugins."io.containerd.grpc.v1.cri"]
+  enable_cdi = true
+  cdi_spec_dirs = ["/etc/cdi", "/var/run/cdi"]
+```
+
+To start Jellyfin after this change, restart the following components and delete
+the Jellyfin pod so that a new one is created by the deployment:
+
+``` console
+$ sudo systemctl restart containerd
+$ sudo systemctl restart kubelet
+$ kubectl -n intel-device-plugins-gpu rollout restart daemonset intel-gpu-plugin
+```
+
+Older versions of `containerd` (and default configurations prior to version 2.0),
+CDI parsing was opt-in and required `enable_cdi = true`. However, workloads often
+managed to bypass strict checks or used legacy device-plugin node mappings until a
+system restart forced a clean daemon state re-evaluation. When a node is rebooted,
+the service may be reloaded under strict compliance, see that explicit CDI
+evaluation is missing or toggled off in the config block, and immediately reject
+the Intel device spec request (`intel.cdi.k8s.io/gpu=card0`).

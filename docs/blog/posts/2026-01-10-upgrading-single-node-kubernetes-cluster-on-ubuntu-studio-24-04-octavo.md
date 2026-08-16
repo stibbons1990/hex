@@ -1288,7 +1288,7 @@ Then, *and only then*,  revert the `node-drain-policy`:
 
 ``` console
 $ kubectl -n longhorn-system patch \
-  settings.longhorn.io node-drain-policy --type merge -\
-  p '{"value": "block-if-contains-last-replica"}'
+  settings.longhorn.io node-drain-policy --type merge \
+  -p '{"value": "block-if-contains-last-replica"}'
 setting.longhorn.io/node-drain-policy patched
 ```
